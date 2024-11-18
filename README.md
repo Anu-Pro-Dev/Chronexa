@@ -10,7 +10,7 @@ This is a Next.js project with NextUI & shadcn/ui.
 Clone the project
 
 ```bash
-  git clone https://github.com/Anu-Pro-Dev/Chronologix.git
+  git clone https://github.com/Anu-Pro-Dev/Chronologix-new.git
 ```
 
 Install dependencies
