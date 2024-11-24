@@ -3,16 +3,16 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 type LanguageData = {
   code: string;
-  dir: string;
+  dir: string | undefined;
   language: string;
-  translations: { [key: string]: string };
+  translations: any;
 };
 
 type LanguageContextType = {
   language: string;
-  dir: string;
+  dir: string | undefined;
   languageName: string;
-  translations: { [key: string]: string };
+  translations: any;
   setLanguage: (language: string) => void;
 };
 
@@ -38,7 +38,6 @@ export default function LanguageProvider({
   const [language, setLanguage] = useState<string>("en");
   const [isMounted, setIsMounted] = useState(false);
 
-  // Get the current language data, fallback to English if undefined
   const currentLanguageData = allLanguages[language] || allLanguages["en"];
 
   useEffect(() => {

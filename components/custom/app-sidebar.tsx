@@ -43,83 +43,83 @@ import {
 import Image from "next/image";
 
 // This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-
-  primary: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: DashboardIcon,
-      isActive: true,
-    },
-    {
-      title: "Company Master",
-      url: "/company-master",
-      icon: CompanyMasterIcon,
-    },
-    {
-      title: "Organization",
-      url: "/organization",
-      icon: OrganizationIcon,
-    },
-    {
-      title: "Employee Master",
-      url: "/employee-master",
-      icon: EmployeeMasterIcon,
-    },
-    {
-      title: "TA Master",
-      url: "/ta-master",
-      icon: TAMasterIcon,
-    },
-    {
-      title: "Scheduling",
-      url: "/scheduling",
-      icon: SchedulingIcon,
-    },
-    {
-      title: "Self Services",
-      url: "/self-services",
-      icon: SelfServicesIcon,
-    },
-  ],
-  secondary: [
-    {
-      title: "Devices",
-      url: "/devices",
-      icon: DevicesIcon,
-      isActive: true,
-    },
-    {
-      title: "Reports",
-      url: "/reports",
-      icon: ReportsIcon,
-    },
-    {
-      title: "Security",
-      url: "/security",
-      icon: SecurityIcon,
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Alerts",
-      url: "/alerts",
-      icon: AlertsIcon,
-    },
-  ],
-};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { dir } = useLanguage();
+  const { translations, dir } = useLanguage();
+  const data = {
+    user: {
+      name: "shadcn",
+      email: "m@example.com",
+      avatar: "/avatars/shadcn.jpg",
+    },
+
+    primary: [
+      {
+        title: translations.navbar.primary.dashboard,
+        url: "/dashboard",
+        icon: DashboardIcon,
+        isActive: true,
+      },
+      {
+        title: translations.navbar.primary.company_master,
+        url: "/company-master",
+        icon: CompanyMasterIcon,
+      },
+      {
+        title: translations.navbar.primary.organization,
+        url: "/organization",
+        icon: OrganizationIcon,
+      },
+      {
+        title: translations.navbar.primary.employee_master,
+        url: "/employee-master",
+        icon: EmployeeMasterIcon,
+      },
+      {
+        title: translations.navbar.primary.ta_master,
+        url: "/ta-master",
+        icon: TAMasterIcon,
+      },
+      {
+        title: translations.navbar.primary.scheduling,
+        url: "/scheduling",
+        icon: SchedulingIcon,
+      },
+      {
+        title: translations.navbar.primary.self_services,
+        url: "/self-services",
+        icon: SelfServicesIcon,
+      },
+    ],
+    secondary: [
+      {
+        title: translations.navbar.secondary.devices,
+        url: "/devices",
+        icon: DevicesIcon,
+        isActive: true,
+      },
+      {
+        title: translations.navbar.secondary.reports,
+        url: "/reports",
+        icon: ReportsIcon,
+      },
+      {
+        title: translations.navbar.secondary.security,
+        url: "/security",
+        icon: SecurityIcon,
+      },
+      {
+        title: translations.navbar.secondary.settings,
+        url: "/settings",
+        icon: SettingsIcon,
+      },
+      {
+        title: translations.navbar.secondary.alerts,
+        url: "/alerts",
+        icon: AlertsIcon,
+      },
+    ],
+  };
   const { open, toggleSidebar, setOpen } = useSidebar();
   React.useEffect(() => {
     const savedState = localStorage.getItem("sidebar-chorno") === "true";
@@ -150,14 +150,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 toggleSidebar();
               }}
             />
-            {open && <h1>Chronologix</h1>}
+            {open && <h1>{translations?.app_name}</h1>}
           </div>
           {open && <SidebarTrigger />}
         </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.primary} title={"Primary"} />
-        <hr className="w-10/12 mx-auto"/>
+        <hr className="w-10/12 mx-auto" />
         <NavMain items={data.secondary} title={"Secondary"} />
       </SidebarContent>
 

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
+import { logout } from "@/lib/utils";
 
 export function NavUser({}: {}) {
   const { isMobile } = useSidebar();
@@ -74,13 +75,18 @@ export function NavUser({}: {}) {
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem>Change Password</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  router.push("/change-password");
+                }}
+              >
+                Change Password
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                localStorage.removeItem(USER_TOKEN);
-                sessionStorage.removeItem(USER_TOKEN);
+                logout();
                 router.push("/");
               }}
             >

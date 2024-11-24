@@ -21,7 +21,12 @@ import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  username: z.string(),
+  username: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
 });
 
 export default function ForgotPassword() {
@@ -46,7 +51,7 @@ export default function ForgotPassword() {
         <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-center">Forgot Password</h1>
-            <p className="text-center">Drop your username</p>
+      
           </div>
           <FormField
             control={form.control}

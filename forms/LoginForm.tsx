@@ -21,8 +21,18 @@ import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  username: z.string(),
-  password: z.string(),
+  username: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  password: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
   captcha_result: z.string().min(1, {
     message: "Captcha is Required",
   }),
@@ -35,6 +45,9 @@ export default function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username: "",
+      password: "",
+      captcha_result: "",
       captcha_1: 0,
       captcha_2: 0,
       remember_me: false,
@@ -148,18 +161,19 @@ export default function LoginForm() {
                   <FormControl>
                     <div className="flex items-center gap-2">
                       <Checkbox
+                        id="remember_me"
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                      />{" "}
-                      <FormLabel>Remember me</FormLabel>
+                      />
+                      <FormLabel htmlFor="remember_me">Remember me</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>
               )}
             />
-            {/* <Link className="text-sm" href={"/forgot-password"}>
+            <Link className="text-sm" href={"/forgot-password"}>
               Forgot Password ?
-            </Link> */}
+            </Link>
           </div>
 
           <Button type="submit">Submit</Button>

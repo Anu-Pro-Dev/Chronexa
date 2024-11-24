@@ -2,7 +2,27 @@
   "code": "en",
   "dir": "ltr",
   "language": "English",
+
   "translations": {
-    "welcome": "Welcome"
+    "app_name": "Chronologix",
+    "welcome": "Welcome",
+    "navbar": {
+      "primary": {
+        "dashboard": "Dashboard",
+        "company_master": "Company Master",
+        "organization": "Organization",
+        "employee_master": "Employee Master",
+        "ta_master": "TA Master",
+        "scheduling": "Scheduling",
+        "self_services": "Self Services"
+      },
+      "secondary": {
+        "devices": "Devices",
+        "reports": "Reports",
+        "security": "Security",
+        "settings": "Settings",
+        "alerts": "Alerts"
+      }
+    }
   }
 }

@@ -25,26 +25,28 @@ export default function Layout({ children }: { children: any }) {
   return (
     <>
       {!Loading ? (
-        <>
+        <div className="relative">
           {Render && (
             <SidebarProvider>
               <AppSidebar />
 
               <div className="w-full">
-                <header className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
-                  <div></div>
-                  <div className="flex items-center gap-2">
-                    <LanguageSwitcher />
-                    <NavUser />
+                <header className="absolute top-0 right-0 left-0 ">
+                  <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
+                    <div></div>
+                    <div className="flex items-center gap-2">
+                      <LanguageSwitcher />
+                      <NavUser />
+                    </div>
                   </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-5 pt-6 pl-7">
+                <div className="pt-20 flex flex-1 flex-col gap-4 p-5 pt-6 pl-7 bg-background min-h-dvh h-full">
                   {Render && children}
                 </div>
               </div>
             </SidebarProvider>
           )}
-        </>
+        </div>
       ) : (
         <div className="flex flex-col justify-center items-center h-dvh">
           <Spinner />

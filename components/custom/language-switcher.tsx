@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 
 export default function LanguageSwitcher() {
-  const { language, translations, setLanguage, dir } = useLanguage();
+  const { language, setLanguage, dir } = useLanguage();
 
   const languageOptions = [
     { value: "en", label: "English", flag: "/us_flag.svg" },
@@ -19,8 +19,9 @@ export default function LanguageSwitcher() {
   ];
 
   return (
-    <div dir={"ltr"}>
+    <div>
       <Select
+        dir={dir}
         value={language}
         onValueChange={(value) => {
           console.log(value);
