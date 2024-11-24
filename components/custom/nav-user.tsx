@@ -80,6 +80,7 @@ export function NavUser({}: {}) {
             <DropdownMenuItem
               onClick={() => {
                 localStorage.removeItem(USER_TOKEN);
+                sessionStorage.removeItem(USER_TOKEN);
                 router.push("/");
               }}
             >

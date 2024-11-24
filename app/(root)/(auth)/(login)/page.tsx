@@ -1,15 +1,14 @@
 "use client";
 import LoginForm from "@/forms/LoginForm";
-import { useLanguage } from "@/providers/LanguageProvider";
 import React from "react";
 
 export default function Home() {
-  const { language, translations } = useLanguage();
-
   return (
-    <div>
+    <div dir="ltr">
       <div className="flex flex-col justify-center h-dvh">
-        <LoginForm />
+        <div className=" w-11/12 lg:w-3/12  mx-auto">
+          <LoginForm />
+        </div>
       </div>
     </div>
   );
