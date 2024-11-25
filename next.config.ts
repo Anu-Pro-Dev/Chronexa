@@ -1,10 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
-  trailingSlash: true,
-  images: { unoptimized: true },
-  reactStrictMode: false,
+  images: {
+    unoptimized: true,
+  },
+
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  i18n: {
+    locales: ["en-US", "ar-AE	"],
+    defaultLocale: "en-US",
+  },
 };
 
 export default nextConfig;

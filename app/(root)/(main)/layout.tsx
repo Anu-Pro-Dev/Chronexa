@@ -1,44 +1,57 @@
 "use client";
+import { AppSidebar } from "@/components/custom/app-sidebar";
+import LanguageSwitcher from "@/components/custom/language-switcher";
+import { NavUser } from "@/components/custom/nav-user";
 
-import AutoPathMapper from "@/components/auto-path-mapper";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
-import { UserContextProvider } from "@/contexts/UserContext";
-import { USER_TOKEN } from "@/utils/Instance";
-
+import { USER_TOKEN } from "@/lib/Instance";
+import { useLanguage } from "@/providers/LanguageProvider";
 import { redirect } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: any }) {
   const [Loading, SetLoading] = useState<boolean>(false);
   const [Render, SetRender] = useState<boolean>(false);
   useEffect(() => {
     const token = localStorage.getItem(USER_TOKEN);
-    if (!token) {
-      redirect("/sign-in");
+    const session_token = sessionStorage.getItem(USER_TOKEN);
+
+    if (!token && !session_token) {
+      redirect("/");
     }
     SetRender(true);
   }, []);
-
   return (
     <>
-      <UserContextProvider>
-        {!Loading ? (
-          <>
-            {Render && (
-              <div>
-                <div className="w-11/12 py-10 mx-auto max-w-6xl">
-                  <AutoPathMapper />
-                  <div className="py-2">{Render && children}</div>
+      {!Loading ? (
+        <div className="relative">
+          {Render && (
+            <SidebarProvider>
+              <AppSidebar />
+
+              <div className="w-full">
+                <header className="absolute top-0 right-0 left-0 ">
+                  <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
+                    <div></div>
+                    <div className="flex items-center gap-2">
+                      <LanguageSwitcher />
+                      <NavUser />
+                    </div>
+                  </div>
+                </header>
+                <div className="pt-20 flex flex-1 flex-col gap-4 p-5 pt-6 pl-7 bg-background min-h-dvh h-full">
+                  {Render && children}
                 </div>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="flex flex-col justify-center items-center h-dvh">
-            <Spinner />
-          </div>
-        )}
-      </UserContextProvider>
+            </SidebarProvider>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col justify-center items-center h-dvh">
+          <Spinner />
+        </div>
+      )}
     </>
   );
 }

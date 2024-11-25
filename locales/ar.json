@@ -1,0 +1,27 @@
+{
+  "code": "ar",
+  "dir": "rtl",
+  "language": "عربي",
+  "translations": {
+    "app_name": "كرونولوجيكس",
+    "welcome": "مرحبًا",
+    "navbar": {
+      "primary": {
+        "dashboard": "لوحة القيادة",
+        "company_master": "سجل الشركة",
+        "organization": "المؤسسة",
+        "employee_master": "سجل الموظفين",
+        "ta_master": "سجل الحضور والغياب",
+        "scheduling": "الجدولة",
+        "self_services": "الخدمات الذاتية"
+      },
+      "secondary": {
+        "devices": "الأجهزة",
+        "reports": "التقارير",
+        "security": "الأمان",
+        "settings": "الإعدادات",
+        "alerts": "تنبيه"
+      }
+    }
+  }
+}
