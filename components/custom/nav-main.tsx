@@ -46,8 +46,6 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
             className="group/collapsible"
           >
             <SidebarMenuItem>
-              {/* Top-level item */}
-
               <SidebarMenuButton
                 onClick={() => {
                   router.push(item?.url);
@@ -55,7 +53,7 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
                 tooltip={item.title}
                 className={`hover:bg-transparent h-10  ${
                   pathname.startsWith(item?.url)
-                    ? " bg-primary/20 hover:bg-primary/20 text-primary hover:text-primary  "
+                    ? "bg-primary/20 hover:bg-primary/20  text-primary hover:text-primary  "
                     : ""
                 } ${!open && " ps-4"} `}
               >

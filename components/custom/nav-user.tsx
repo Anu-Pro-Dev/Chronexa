@@ -36,11 +36,11 @@ export function NavUser({}: {}) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-transparent focus:bg-transparent"
             >
-              <Avatar className="h-8 w-8 ">
+              <Avatar className="h-8 w-8 rounded-[10px]  text-primary ">
                 <AvatarImage alt={user.name} />
-                <AvatarFallback className="rounded-xs bg-primary/10 ">
+                <AvatarFallback className="bg-primary/10 ">
                   {user.name?.slice(0, 1)}
                 </AvatarFallback>
               </Avatar>
@@ -51,17 +51,17 @@ export function NavUser({}: {}) {
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+          <DropdownMenuContent  
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-sm p-3"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+                <Avatar className="h-8 w-8 rounded-[10px]  text-primary ">
                   <AvatarImage alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className=" bg-primary/10 ">
                     {" "}
                     {user.name?.slice(0, 1)}
                   </AvatarFallback>
@@ -85,6 +85,7 @@ export function NavUser({}: {}) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              className="cursor-pointer"
               onClick={() => {
                 logout();
                 router.push("/");

@@ -1,7 +1,6 @@
-import React from 'react'
+import { redirect } from "next/navigation";
+import React from "react";
 
 export default function CompanyMaster() {
-  return (
-    <div>CompanyMaster</div>
-  )
+  return redirect("/company-master/regions");
 }

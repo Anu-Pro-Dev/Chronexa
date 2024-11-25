@@ -1,5 +1,6 @@
 "use client";
 import { AppSidebar } from "@/components/custom/app-sidebar";
+import AutoPathMapper from "@/components/custom/auto-path-mapper";
 import LanguageSwitcher from "@/components/custom/language-switcher";
 import { NavUser } from "@/components/custom/nav-user";
 
@@ -31,7 +32,7 @@ export default function Layout({ children }: { children: any }) {
               <AppSidebar />
 
               <div className="w-full">
-                <header className="absolute top-0 right-0 left-0 ">
+                <header className="absolute bg-sidebar-background sidebar-background top-0 right-0 left-0 ">
                   <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
                     <div></div>
                     <div className="flex items-center gap-2">
@@ -40,7 +41,7 @@ export default function Layout({ children }: { children: any }) {
                     </div>
                   </div>
                 </header>
-                <div className="pt-20 flex flex-1 flex-col gap-4 p-5 pt-6 pl-7 bg-background min-h-dvh h-full">
+                <div className="pt-20 flex flex-1 flex-col gap-4 p-5 pl-7 bg-background min-h-dvh h-full">
                   {Render && children}
                 </div>
               </div>

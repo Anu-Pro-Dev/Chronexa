@@ -1,6 +1,4 @@
 "use client";
-import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
+import Required from "@/components/ui/required";
 
 const formSchema = z.object({
   username: z
@@ -51,14 +50,15 @@ export default function ForgotPassword() {
         <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-center">Forgot Password</h1>
-      
           </div>
           <FormField
             control={form.control}
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>
+                  Username <Required />
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter your username"

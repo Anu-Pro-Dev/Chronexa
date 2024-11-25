@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import Required from "@/components/ui/required";
 
 const formSchema = z.object({
   username: z
@@ -78,7 +79,9 @@ export default function ChangePasswordForm() {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>
+                  Username <Required />
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter your username"
@@ -95,7 +98,9 @@ export default function ChangePasswordForm() {
             name="old_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Old Password</FormLabel>
+                <FormLabel>
+                  Old Password <Required />
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter your old password"
@@ -112,7 +117,9 @@ export default function ChangePasswordForm() {
             name="new_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>
+                  New Password <Required />
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter your New Password"

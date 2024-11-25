@@ -19,7 +19,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
-
+import Required from "@/components/ui/required";
+import { RefreshIcon } from "@/icons/icons";
+import { IoMdRefresh } from "react-icons/io";
 const formSchema = z.object({
   username: z
     .string()
@@ -89,16 +91,18 @@ export default function LoginForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="text-center">Login</h1>
-            <p className="text-center">Welcome Back! Please Login to access.</p>
+          <div className="flex flex-col gap-2">
+            <h1 className="text-center font-bold text-2xl">Login</h1>
+            <p className="text-center text-sm">Welcome Back! Please Login to access.</p>
           </div>
           <FormField
             control={form.control}
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>
+                  Username <Required />
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter your username"
@@ -116,7 +120,9 @@ export default function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>
+                  Password <Required />
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter your password"
@@ -135,15 +141,27 @@ export default function LoginForm() {
             name="captcha_result"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Captcha</FormLabel>
-                <div className="flex justify-center items-center gap-4">
-                  <div className="border rounded-md flex items-center justify-center  w-10 h-10">
-                    <h1 className="">{form.watch("captcha_1") ?? "0"}</h1>
+                <FormLabel>
+                  Captcha <Required />
+                </FormLabel>
+
+                <div className="flex justify-between items-center">
+                  <div className="flex justify-center items-center gap-4">
+                    <div className="border rounded-md flex items-center justify-center  w-10 h-10">
+                      <h1 className="">{form.watch("captcha_1") ?? "0"}</h1>
+                    </div>
+                    <h1>+</h1>
+                    <div className="border rounded-md flex items-center justify-center  w-10 h-10">
+                      <h1>{form.watch("captcha_2") ?? "0"}</h1>
+                    </div>
                   </div>
-                  <h1>+</h1>
-                  <div className="border rounded-md flex items-center justify-center  w-10 h-10">
-                    <h1>{form.watch("captcha_2") ?? "0"}</h1>
-                  </div>
+                  <IoMdRefresh
+                    onClick={() => {
+                      form.setValue("captcha_1", getRandomInt(1, 9));
+                      form.setValue("captcha_2", getRandomInt(1, 9));
+                    }}
+                    className="text-primary text-3xl"
+                  />
                 </div>
                 <FormControl>
                   <Input placeholder="Enter captcha" type="number" {...field} />
@@ -152,6 +170,7 @@ export default function LoginForm() {
               </FormItem>
             )}
           />
+
           <div className="flex items-center justify-between">
             <FormField
               control={form.control}
@@ -171,12 +190,15 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            <Link className="text-sm" href={"/forgot-password"}>
+            <Link
+              className="text-sm text-primary font-bold"
+              href={"/forgot-password"}
+            >
               Forgot Password ?
             </Link>
           </div>
 
-          <Button type="submit">Submit</Button>
+          <Button type="submit" size={"lg"} className="w-full lg:w-7/12 mx-auto mt-4 ">Login</Button>
         </div>
       </form>
     </Form>
