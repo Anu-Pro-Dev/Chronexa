@@ -6,17 +6,18 @@ import React, { useState } from "react";
 
 export default function Page() {
   const [Data, SetData] = useState<any>([]);
-
+  const [SelectedKeys, SetSelectedKeys] = useState<any>([]);
   const [Columns, setColumns] = useState([
     { field: "number" },
     { field: "name" },
   ]);
 
-
   const props = {
     Data,
     SetData,
     Columns,
+    SelectedKeys,
+    SetSelectedKeys,
   };
 
   return (

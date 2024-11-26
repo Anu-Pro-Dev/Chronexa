@@ -23,6 +23,13 @@
         "settings": "Settings",
         "alerts": "Alerts"
       }
+    },
+    "modules": {
+      "organization": {
+        "items": {
+          "departments": "Departments"
+        }
+      }
     }
   }
 }

@@ -4,13 +4,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-
+  output: "export",
   eslint: {
     ignoreDuringBuilds: true,
-  },
-  i18n: {
-    locales: ["en-US", "ar-AE	"],
-    defaultLocale: "en-US",
   },
 };
 

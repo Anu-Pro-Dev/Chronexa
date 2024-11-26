@@ -7,6 +7,9 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+.ag-root {
   font-family: "Poppins", sans-serif !important;
 }
 @layer base {

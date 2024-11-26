@@ -36,7 +36,7 @@ export default function PowerHeader({
             {!disableAdd && (
               <PowerAdd isAddNewPagePath={isAddNewPagePath ?? null} />
             )}
-            {!disableDelete && <PowerDelete />}
+            {!disableDelete && <PowerDelete props={props} />}
             {isExport && <PowerExport />}
           </div>
         )}

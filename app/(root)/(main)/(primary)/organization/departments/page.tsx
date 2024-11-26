@@ -5,34 +5,21 @@ import { organization } from "@/lib/routes";
 import React, { useState } from "react";
 
 export default function Page() {
-  const [Data, SetData] = useState<any>([]);
+  const [Data, SetData] = useState<any>([
+    {
+      number: 1,
+      name: "page a",
+    },
+    {
+      number: 2,
+      name: "page b",
+    },
+  ]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
+    { field: "number", sort: "asc" },
+    { field: "name", sort: "asc" },
   ]);
-  const items = [
-    {
-      label: "Departments",
-      path: "/organization/departments",
-      value: "departments",
-    },
-    {
-      label: "Structures",
-      path: "/organization/structures",
-      value: "types",
-    },
-    {
-      label: "Types",
-      path: "/organization/types",
-      value: "types",
-    },
-  ];
-  const context = {
-    data_fetch_route: "/regions",
-    data_add_route: "/regions/add",
-    data_delete_route: "/regions/delete",
-  };
 
   const props = {
     Data,
