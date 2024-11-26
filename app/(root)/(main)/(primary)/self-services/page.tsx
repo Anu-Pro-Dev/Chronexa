@@ -1,7 +1,6 @@
-import React from 'react'
+import { self_services } from "@/lib/routes";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return (
-    <div>page</div>
-  )
+  return redirect(self_services.items[0].path);
 }

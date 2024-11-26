@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body
-        className={`${font_poppins.className} ${font_poppins.variable} antialiased`}
+        className={`${font_poppins.className} ${font_poppins.variable} antialiased overflow-y-hidden`}
       >
         <Providers>{children}</Providers>
       </body>

@@ -1,6 +1,6 @@
+import { organization } from "@/lib/routes";
 import { redirect } from "next/navigation";
-import React from "react";
 
 export default function Page() {
-  return redirect("/organization/departments");
+  return redirect(organization.items[0].path);
 }

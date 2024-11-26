@@ -1,5 +1,7 @@
-import React from "react";
+import { reports } from "@/lib/routes";
+import { redirect } from "next/navigation";
+
 
 export default function Page() {
-  return <div>Page</div>;
+  return redirect(reports.items[0].path);
 }

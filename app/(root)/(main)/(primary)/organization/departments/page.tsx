@@ -1,6 +1,7 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
+import { organization } from "@/lib/routes";
 import React, { useState } from "react";
 
 export default function Page() {
@@ -15,21 +16,16 @@ export default function Page() {
       label: "Departments",
       path: "/organization/departments",
       value: "departments",
-      isAddPage: true,
-      addPagePath: "/organization/departments/add",
     },
     {
       label: "Structures",
       path: "/organization/structures",
       value: "types",
-      isAdd: false,
-      isCustomPage: <div></div>,
     },
     {
       label: "Types",
       path: "/organization/types",
       value: "types",
-      addAttributeForm: "/organization/departments/add",
     },
   ];
   const context = {
@@ -46,7 +42,11 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader props={props} items={items} />
+      <PowerHeader
+        props={props}
+        items={organization.items}
+        isAddNewPagePath="/organization/departments/add"
+      />
       <PowerTable props={props} />
     </div>
   );

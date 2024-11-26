@@ -1,5 +1,6 @@
-import React from "react";
+import { settings } from "@/lib/routes";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <div>Page</div>;
+  return redirect(settings.items[0].path);
 }

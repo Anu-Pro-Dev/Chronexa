@@ -1,7 +1,7 @@
-import React from 'react'
+
+import { scheduling } from "@/lib/routes";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return (
-    <div>page</div>
-  )
+  return redirect(scheduling.items[0].path);
 }

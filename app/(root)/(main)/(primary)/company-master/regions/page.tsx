@@ -1,6 +1,7 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
+import { company_master } from "@/lib/routes";
 import React, { useState } from "react";
 
 export default function Page() {
@@ -9,19 +10,6 @@ export default function Page() {
     { field: "number" },
     { field: "name" },
   ]);
-  const items = [
-    {
-      label: "Regions",
-      path: "/company-master/regions",
-      value: "regions",
-    },
-    { label: "Grades", path: "/company-master/grades", value: "grades" },
-  ];
-  const context = {
-    data_fetch_route: "/grades",
-    data_add_route: "/grades/add",
-    data_delete_route: "/grades/delete",
-  };
 
   const props = {
     Data,
@@ -31,7 +19,7 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader props={props} items={items} />
+      <PowerHeader props={props} items={company_master.items} />
       <PowerTable props={props} />
     </div>
   );

@@ -23,6 +23,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 // Import language data
 import arData from "@/locales/ar.json";
 import enData from "@/locales/en.json";
+import { dir } from "console";
 
 // Map of all language data
 const allLanguages: { [key: string]: LanguageData } = {

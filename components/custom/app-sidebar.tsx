@@ -41,6 +41,20 @@ import {
   TAMasterIcon,
 } from "@/icons/icons";
 import Image from "next/image";
+import {
+  alerts,
+  company_master,
+  dashboard,
+  devices,
+  employee_master,
+  organization,
+  reports,
+  scheduling,
+  security,
+  self_services,
+  settings,
+  ta_master,
+} from "@/lib/routes";
 
 // This is sample data.
 
@@ -56,44 +70,44 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     primary: [
       {
         title: translations.navbar.primary.dashboard,
-        url: "/dashboard",
+        url: dashboard.items[0].path,
         path: "/dashboard",
         icon: DashboardIcon,
         isActive: true,
       },
       {
         title: translations.navbar.primary.company_master,
-        url: "/company-master/regions",
+        url: company_master.items[0].path,
         path: "/company-master",
         icon: CompanyMasterIcon,
       },
       {
         title: translations.navbar.primary.organization,
-        url: "/organization/departments",
+        url: organization.items[0].path,
         path: "/organization",
         icon: OrganizationIcon,
       },
       {
         title: translations.navbar.primary.employee_master,
-        url: "/employee-master",
+        url: employee_master.items[0].path,
         path: "/employee-master",
         icon: EmployeeMasterIcon,
       },
       {
         title: translations.navbar.primary.ta_master,
-        url: "/ta-master",
-        path: "/ta-master",
+        url: ta_master.items[0].path,
+        path: "/TA-master",
         icon: TAMasterIcon,
       },
       {
         title: translations.navbar.primary.scheduling,
-        url: "/scheduling",
+        url: scheduling.items[0].path,
         path: "/scheduling",
         icon: SchedulingIcon,
       },
       {
         title: translations.navbar.primary.self_services,
-        url: "/self-services",
+        url: self_services.items[0].path,
         path: "/self-services",
         icon: SelfServicesIcon,
       },
@@ -101,32 +115,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     secondary: [
       {
         title: translations.navbar.secondary.devices,
-        url: "/devices",
+        url: devices.items[0].path,
         path: "/devices",
         icon: DevicesIcon,
         isActive: true,
       },
       {
         title: translations.navbar.secondary.reports,
-        url: "/reports",
+        url: reports.items[0].path,
         path: "/reports",
         icon: ReportsIcon,
       },
       {
         title: translations.navbar.secondary.security,
-        url: "/security",
+        url: security.items[0].path,
         path: "/security",
         icon: SecurityIcon,
       },
       {
         title: translations.navbar.secondary.settings,
-        url: "/settings",
+        url: settings.items[0].path,
         path: "/settings",
         icon: SettingsIcon,
       },
       {
         title: translations.navbar.secondary.alerts,
-        url: "/alerts",
+        url: alerts.items[0].path,
         path: "/alerts",
         icon: AlertsIcon,
       },
@@ -168,7 +182,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {open && <SidebarTrigger />}
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="pb-4">
         <NavMain items={data.primary} title={"Primary"} />
         <hr className="w-10/12 mx-auto" />
         <NavMain items={data.secondary} title={"Secondary"} />

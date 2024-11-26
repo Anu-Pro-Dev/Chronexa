@@ -1,5 +1,7 @@
-import React from "react";
+
+import { alerts } from "@/lib/routes";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <div>Page</div>;
+  return redirect(alerts.items[0].path);
 }

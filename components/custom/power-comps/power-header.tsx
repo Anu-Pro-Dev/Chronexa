@@ -13,6 +13,8 @@ export default function PowerHeader({
   disableSearch = false,
   disableAdd = false,
   disableDelete = false,
+  isAddNewPagePath,
+  disableFeatures = false,
 }: {
   items: any;
   props?: any;
@@ -20,20 +22,24 @@ export default function PowerHeader({
   disableSearch?: boolean;
   disableAdd?: boolean;
   disableDelete?: boolean;
+  isAddNewPagePath?: string;
+  disableFeatures?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
         <PowerShifter items={items} />
 
-        <div className="flex gap-2 items-center">
-          {!disableSearch && <PowerSearch />}
-
-          {!disableAdd && <PowerAdd />}
-          {!disableDelete && <PowerDelete />}
-
-          {isExport && <PowerExport />}
-        </div>
+        {!disableFeatures && (
+          <div className="flex gap-2 items-center">
+            {!disableSearch && <PowerSearch />}
+            {!disableAdd && (
+              <PowerAdd isAddNewPagePath={isAddNewPagePath ?? null} />
+            )}
+            {!disableDelete && <PowerDelete />}
+            {isExport && <PowerExport />}
+          </div>
+        )}
       </div>
 
       <AutoPathMapper />
