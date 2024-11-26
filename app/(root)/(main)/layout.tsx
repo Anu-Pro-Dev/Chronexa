@@ -15,24 +15,25 @@ export default function Layout({ children }: { children: any }) {
   const [Loading, SetLoading] = useState<boolean>(false);
   const [Render, SetRender] = useState<boolean>(false);
   useEffect(() => {
-    const token = localStorage.getItem(USER_TOKEN);
-    const session_token = sessionStorage.getItem(USER_TOKEN);
-
-    if (!token && !session_token) {
-      redirect("/");
+    const token =
+      localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);
+    if (!token) {
+      redirect("/"); // Redirect to home if not authenticated
+    } else {
+      SetRender(true);
     }
-    SetRender(true);
+    SetLoading(false);
   }, []);
   return (
     <>
       {!Loading ? (
-        <div className="relative">
+        <div className="relative ">
           {Render && (
             <SidebarProvider>
               <AppSidebar />
 
-              <div className="w-full">
-                <header className="absolute bg-sidebar-background sidebar-background top-0 right-0 left-0 ">
+              <div className=" w-full">
+                <header className="absolute top-0 right-0 left-0 bg-sidebar-background sidebar-background  ">
                   <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
                     <div></div>
                     <div className="flex items-center gap-2">
@@ -41,7 +42,7 @@ export default function Layout({ children }: { children: any }) {
                     </div>
                   </div>
                 </header>
-                <div className="pt-20 flex flex-1 flex-col gap-4 p-5 pl-7 bg-background min-h-dvh h-full">
+                <div className="  pt-20 flex flex-1 flex-col gap-4 p-5 pl-7 bg-background min-h-dvh  h-full">
                   {Render && children}
                 </div>
               </div>

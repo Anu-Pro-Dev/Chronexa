@@ -5,22 +5,24 @@ import React, { useState } from "react";
 
 export default function Page() {
   const [Data, SetData] = useState<any>([]);
-  const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
-  ]);
+
+  const [Columns, setColumns] = useState([{ field: "desription" }]);
   const items = [
     {
-      label: "Regions",
-      path: "/company-master/regions",
-      value: "regions",
+      label: "Departments",
+      path: "/organization/departments",
+      value: "departments",
     },
-    { label: "Grades", path: "/company-master/grades", value: "grades" },
+    {
+      label: "Types",
+      path: "/organization/types",
+      value: "types",
+    },
   ];
   const context = {
-    data_fetch_route: "/grades",
-    data_add_route: "/grades/add",
-    data_delete_route: "/grades/delete",
+    data_fetch_route: "/regions",
+    data_add_route: "/regions/add",
+    data_delete_route: "/regions/delete",
   };
 
   const props = {

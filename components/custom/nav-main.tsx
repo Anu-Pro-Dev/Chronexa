@@ -25,6 +25,7 @@ type NavItem = {
   items?: {
     title: string;
     url: string;
+    path: any;
     isActive?: boolean;
   }[];
 };
@@ -38,7 +39,7 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
     <SidebarGroup>
       <SidebarGroupLabel>{title}</SidebarGroupLabel>
       <SidebarMenu className={`${open && "ps-4"}`}>
-        {items.map((item) => (
+        {items?.map((item: any) => (
           <Collapsible
             key={item.title}
             asChild
@@ -52,7 +53,7 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
                 }}
                 tooltip={item.title}
                 className={`hover:bg-transparent h-10  ${
-                  pathname.startsWith(item?.url)
+                  pathname.startsWith(item?.path)
                     ? "bg-primary/20 hover:bg-primary/20  text-primary hover:text-primary  "
                     : ""
                 } ${!open && " ps-4"} `}
@@ -65,7 +66,7 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
               {item.items && (
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items.map((subItem) => (
+                    {item?.items?.map((subItem: any) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton
                           href={subItem.url}

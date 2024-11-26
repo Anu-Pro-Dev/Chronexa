@@ -57,37 +57,44 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         title: translations.navbar.primary.dashboard,
         url: "/dashboard",
+        path: "/dashboard",
         icon: DashboardIcon,
         isActive: true,
       },
       {
         title: translations.navbar.primary.company_master,
-        url: "/company-master",
+        url: "/company-master/regions",
+        path: "/company-master",
         icon: CompanyMasterIcon,
       },
       {
         title: translations.navbar.primary.organization,
-        url: "/organization",
+        url: "/organization/departments",
+        path: "/organization",
         icon: OrganizationIcon,
       },
       {
         title: translations.navbar.primary.employee_master,
         url: "/employee-master",
+        path: "/employee-master",
         icon: EmployeeMasterIcon,
       },
       {
         title: translations.navbar.primary.ta_master,
         url: "/ta-master",
+        path: "/ta-master",
         icon: TAMasterIcon,
       },
       {
         title: translations.navbar.primary.scheduling,
         url: "/scheduling",
+        path: "/scheduling",
         icon: SchedulingIcon,
       },
       {
         title: translations.navbar.primary.self_services,
         url: "/self-services",
+        path: "/self-services",
         icon: SelfServicesIcon,
       },
     ],
@@ -95,27 +102,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         title: translations.navbar.secondary.devices,
         url: "/devices",
+        path: "/devices",
         icon: DevicesIcon,
         isActive: true,
       },
       {
         title: translations.navbar.secondary.reports,
         url: "/reports",
+        path: "/reports",
         icon: ReportsIcon,
       },
       {
         title: translations.navbar.secondary.security,
         url: "/security",
+        path: "/security",
         icon: SecurityIcon,
       },
       {
         title: translations.navbar.secondary.settings,
         url: "/settings",
+        path: "/settings",
         icon: SettingsIcon,
       },
       {
         title: translations.navbar.secondary.alerts,
         url: "/alerts",
+        path: "/alerts",
         icon: AlertsIcon,
       },
     ],
@@ -133,6 +145,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [open]);
   return (
     <Sidebar
+      className=""
       collapsible="icon"
       {...props}
       variant="sidebar"
