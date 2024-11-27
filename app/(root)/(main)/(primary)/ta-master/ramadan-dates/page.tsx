@@ -8,11 +8,13 @@ import React, { useState } from "react";
 export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
-  const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
+  const [Columns] = useState([
+    { field: "remarks" },
+    { field: "description_en", headerName: "Description(English)" },
+    { field: "description_ar", headerName: "Description(العربية)" },
+    { field: "from_date", headerName: "From date" },
+    { field: "to_date", headerName: "To date" },
   ]);
-
   const props = {
     Data,
     SetData,

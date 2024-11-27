@@ -9,8 +9,13 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
+    { field: "code" },
+    { field: "reason_mode", headerName: "Reason Mode" },
+    { field: "description_en", headerName: "Description(English)" },
+    { field: "description_ar", headerName: "Description(العربية)" },
+    { field: "prompt_message", headerName: "Prompt message" },
+    { field: "web_punch", headerName: "Web Punch" },
+    { field: "geo_fence", headerName: "Geo Fence" },
   ]);
 
   const props = {

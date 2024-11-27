@@ -7,13 +7,10 @@ import React, { useState } from "react";
 export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
-  const [Columns, setColumns] = useState([{ field: "desription" }]);
-
-  const context = {
-    data_fetch_route: "/regions",
-    data_add_route: "/regions/add",
-    data_delete_route: "/regions/delete",
-  };
+  const [Columns, setColumns] = useState([
+    { field: "direction" },
+    { field: "time" },
+  ]);
 
   const props = {
     Data,

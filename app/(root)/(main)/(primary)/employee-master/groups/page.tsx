@@ -8,10 +8,15 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
+    { field: "code" },
+    { field: "description" },
+    { field: "schedule" },
+    { field: "from_date", headerName: "From date" },
+    { field: "to_date", headerName: "To date" },
+    { field: "reporting_group", headerName: "Reporting group" },
+    { field: "members", headerName: "Members" },
+    { field: "updatedAt", headerName: "Updated" },
   ]);
-
 
   const props = {
     Data,

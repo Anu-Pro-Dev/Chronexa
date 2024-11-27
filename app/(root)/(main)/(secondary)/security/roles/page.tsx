@@ -1,15 +1,16 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import {  security } from "@/lib/routes";
+import { security } from "@/lib/routes";
 import React, { useState } from "react";
 
 export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
+    { field: "code" },
+    { field: "privileges" },
+    { field: "users" },
   ]);
 
   const props = {

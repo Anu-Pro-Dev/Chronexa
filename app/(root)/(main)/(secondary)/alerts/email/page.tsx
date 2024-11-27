@@ -8,8 +8,12 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
+    { field: "email" },
+    { field: "subject" },
+    { field: "request_type", headerName: "Request Type" },
+    { field: "request_status", headerName: "Request Status" },
+    { field: "cc_maio", headerName: "CC mail" },
+    { field: "bcc_mail", headerName: "BCC mail" },
   ]);
 
   const props = {

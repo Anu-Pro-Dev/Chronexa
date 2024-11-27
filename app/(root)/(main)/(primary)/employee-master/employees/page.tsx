@@ -10,6 +10,11 @@ export default function Page() {
   const [Columns, setColumns] = useState([
     { field: "number" },
     { field: "name" },
+    { field: "manager" },
+    { field: "punch" },
+    { field: "active" },
+    { field: "designation" },
+    { field: "organization" },
   ]);
 
   const props = {

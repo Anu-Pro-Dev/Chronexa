@@ -5,20 +5,16 @@ import { organization } from "@/lib/routes";
 import React, { useState } from "react";
 
 export default function Page() {
-  const [Data, SetData] = useState<any>([
-    {
-      number: 1,
-      name: "page a",
-    },
-    {
-      number: 2,
-      name: "page b",
-    },
-  ]);
+  const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number", sort: "asc" },
-    { field: "name", sort: "asc" },
+    { field: "number" },
+    { field: "name" },
+    { field: "manager" },
+    { field: "punch" },
+    { field: "active" },
+    { field: "description" },
+    { field: "organization" },
   ]);
 
   const props = {

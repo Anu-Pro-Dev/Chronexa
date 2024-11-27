@@ -70,7 +70,7 @@ export default function LanguageProvider({
       },
       { label: "Grades", path: "/company-master/grades", value: "grades" },
     ],
-  };  
+  };
 
   const organization = {
     route_name: "Organization",
@@ -89,12 +89,12 @@ export default function LanguageProvider({
         hide: true,
       },
       {
-        label: "Structure",
+        label: "Organization Structure",
         path: "/organization/structures",
         value: "structure",
       },
       {
-        label: "Types",
+        label: "Organization types",
         path: "/organization/types",
         value: "types",
       },
@@ -239,7 +239,7 @@ export default function LanguageProvider({
     route: "/security",
     items: [
       {
-        label: "Roles",
+        label: "Assign Roles",
         path: "/security/roles",
         value: "roles",
       },

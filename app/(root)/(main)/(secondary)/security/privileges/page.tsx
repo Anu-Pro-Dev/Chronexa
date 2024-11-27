@@ -9,8 +9,9 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
     { field: "name" },
+    { field: "group" },
+    { field: "updatedAt", headerName: "Updated" },
   ]);
 
   const props = {

@@ -1,4 +1,4 @@
-//this comp will be deleted soon though translation cant be applied and worked here ! though we use context as global store 
+//this comp will be deleted soon though translation cant be applied and worked here ! though we use context as global store
 export const dashboard = {
   route_name: "Dashboard",
   route: "/dashboard",
@@ -46,12 +46,12 @@ export const organization = {
       hide: true,
     },
     {
-      label: "Structure",
+      label: "Organization Structure",
       path: "/organization/structures",
       value: "structure",
     },
     {
-      label: "Types",
+      label: "Organization types",
       path: "/organization/types",
       value: "types",
     },
@@ -196,7 +196,7 @@ export const security = {
   route: "/security",
   items: [
     {
-      label: "Roles",
+      label: "Assign Roles",
       path: "/security/roles",
       value: "roles",
     },
