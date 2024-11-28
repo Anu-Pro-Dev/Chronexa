@@ -171,6 +171,12 @@ export const devices = {
       path: "/devices/readers",
       value: "readers",
     },
+    {
+      label: "Add Reader",
+      path: "/devices/readers/add",
+      value: "departments",
+      hide: true,
+    },
   ],
 };
 

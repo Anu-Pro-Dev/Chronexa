@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { AddIcon } from "@/icons/icons";
-import React from "react";
+import React, { useState } from "react";
 
 import {
   ResponsiveModal,
@@ -17,16 +17,22 @@ export default function PowerAdd({
   modal_title = "Add",
   modal_description = "",
   modal_component,
+  modal_props,
 }: {
   isAddNewPagePath?: string | null;
   modal_title?: string;
   modal_description?: string;
   modal_component?: any;
+  modal_props?: any;
 }) {
   const router = useRouter();
+
   return (
     <div>
-      <ResponsiveModal>
+      <ResponsiveModal
+        open={modal_props?.open}
+        onOpenChange={modal_props?.on_open_change}
+      >
         {isAddNewPagePath && (
           <Button
             variant={"success"}

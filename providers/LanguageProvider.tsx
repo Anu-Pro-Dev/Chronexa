@@ -287,11 +287,6 @@ export default function LanguageProvider({
         path: "/alerts/email",
         value: "email",
       },
-      {
-        label: "SMS",
-        path: "/alerts/SMS",
-        value: "sms",
-      },
     ],
   };
   const modules = {

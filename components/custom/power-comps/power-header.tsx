@@ -15,6 +15,7 @@ export default function PowerHeader({
   disableDelete = false,
   isAddNewPagePath,
   disableFeatures = false,
+  modal_component,
 }: {
   items: any;
   props?: any;
@@ -24,6 +25,7 @@ export default function PowerHeader({
   disableDelete?: boolean;
   isAddNewPagePath?: string;
   disableFeatures?: boolean;
+  modal_component?: any;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -34,7 +36,14 @@ export default function PowerHeader({
           <div className="flex gap-2 items-center">
             {!disableSearch && <PowerSearch />}
             {!disableAdd && (
-              <PowerAdd isAddNewPagePath={isAddNewPagePath ?? null} />
+              <PowerAdd
+                isAddNewPagePath={isAddNewPagePath ?? null}
+                modal_component={modal_component}
+                modal_props={{
+                  open: props.open,
+                  on_open_change: props.on_open_change,
+                }}
+              />
             )}
             {!disableDelete && <PowerDelete props={props} />}
             {isExport && <PowerExport />}
