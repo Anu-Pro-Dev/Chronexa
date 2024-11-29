@@ -4,7 +4,7 @@ import AutoPathMapper from "@/components/custom/auto-path-mapper";
 import LanguageSwitcher from "@/components/custom/language-switcher";
 import { NavUser } from "@/components/custom/nav-user";
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { USER_TOKEN } from "@/lib/Instance";
 import { useLanguage } from "@/providers/LanguageProvider";
@@ -27,26 +27,28 @@ export default function Layout({ children }: { children: any }) {
   return (
     <>
       {!Loading ? (
-        <div className="relative  ">
+        <div className="">
           {Render && (
-            <SidebarProvider>
-              <AppSidebar />
+            <div color="relative">
+              <SidebarProvider>
+                <AppSidebar />
 
-              <div className=" w-full">
-                <header className=" absolute top-0 right-0 left-0 bg-sidebar-background sidebar-background  ">
-                  <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
-                    <div></div>
-                    <div className="flex items-center gap-2">
-                      <LanguageSwitcher />
-                      <NavUser />
+                <div className=" w-full ">
+                  <header className=" absolute top-0 right-0 left-0 bg-sidebar-background sidebar-background  ">
+                    <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
+                      <div></div>
+                      <div className="flex items-center gap-2">
+                        <LanguageSwitcher />
+                        <NavUser />
+                      </div>
                     </div>
+                  </header>
+                  <div className=" pt-20 flex flex-1 flex-col gap-4 p-5 pl-7 bg-background min-h-dvh h-full">
+                    {Render && children}
                   </div>
-                </header>
-                <div className="h-dvh overflow-y-auto pt-20 flex flex-1 flex-col gap-4 p-5 pl-7 bg-background min-h-dvh">
-                  {Render && children}
                 </div>
-              </div>
-            </SidebarProvider>
+              </SidebarProvider>
+            </div>
           )}
         </div>
       ) : (

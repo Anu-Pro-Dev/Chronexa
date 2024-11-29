@@ -28,12 +28,37 @@ import Required from "@/components/ui/required";
 import Link from "next/link";
 
 const formSchema = z.object({
-  code: z.string().min(1).max(1000),
-  port: z.number().min(1).max(100),
-  name: z.string().min(1).max(100),
-  building: z.string(),
-  location: z.string().min(1).max(1000),
-  name_1083172805: z.boolean().default(true),
+  code: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  port: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  name: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  building: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  location: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  enable: z.boolean(),
 });
 
 export default function AddReaderDevices({
@@ -43,6 +68,14 @@ export default function AddReaderDevices({
 }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      code: "",
+      name: "",
+      port: "",
+      building: "",
+      location: "",
+      enable: false,
+    },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -63,7 +96,7 @@ export default function AddReaderDevices({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-2 gap-10"
+        className="grid grid-cols-2 gap-4"
       >
         <FormField
           control={form.control}
@@ -91,7 +124,7 @@ export default function AddReaderDevices({
                 Port <Required />
               </FormLabel>
               <FormControl>
-                <Input placeholder="Enter the port" type="number" {...field} />
+                <Input placeholder="Enter the port" type="text" {...field} />
               </FormControl>
 
               <FormMessage />
@@ -161,17 +194,17 @@ export default function AddReaderDevices({
         <div className="col-span-2">
           <FormField
             control={form.control}
-            name="name_1083172805"
+            name="enable"
             render={({ field }) => (
               <FormItem className=" ">
                 <FormControl>
                   <div className="flex items-center gap-2">
                     <Checkbox
-                      id="name_1083172805"
+                      id="enable"
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
-                    <FormLabel htmlFor="name_1083172805">Enable</FormLabel>
+                    <FormLabel htmlFor="enable">Enable</FormLabel>
                   </div>
                 </FormControl>
               </FormItem>

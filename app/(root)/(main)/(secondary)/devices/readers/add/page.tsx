@@ -14,7 +14,9 @@ export default function Page() {
         isAddNewPagePath="/devices/readers/add"
       />
 
-      <AddReaderDevices />
+      <div className="pt-4">
+        <AddReaderDevices />
+      </div>
     </div>
   );
 }
