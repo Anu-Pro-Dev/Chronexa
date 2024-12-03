@@ -1,5 +1,5 @@
 "use client";
-import LoginForm from "@/forms/LoginForm";
+import LoginForm from "@/forms/auth/LoginForm";
 import Image from "next/image";
 import React from "react";
 

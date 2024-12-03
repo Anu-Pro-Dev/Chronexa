@@ -28,7 +28,7 @@ export default function LanguageSwitcher() {
           setLanguage(value);
         }}
       >
-        <SelectTrigger className="w-[180px] border-none shadow-none">
+        <SelectTrigger className="w-[180px]  border-none shadow-none">
           <SelectValue placeholder="Select Language" />
         </SelectTrigger>
         <SelectContent>

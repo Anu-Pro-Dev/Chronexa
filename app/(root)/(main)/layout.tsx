@@ -34,7 +34,7 @@ export default function Layout({ children }: { children: any }) {
                 <AppSidebar />
 
                 <div className=" w-full ">
-                  <header className=" absolute top-0 right-0 left-0 bg-sidebar-background sidebar-background  ">
+                  <header className=" absolute top-0 right-0 left-0 bg-white sidebar-background  ">
                     <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
                       <div></div>
                       <div className="flex items-center gap-2">

@@ -1,7 +1,7 @@
 "use client";
 import AutoPathMapper from "@/components/custom/auto-path-mapper";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import AddReaderDevices from "@/forms/AddReaderDevices";
+import AddReaderDevices from "@/forms/devices/AddReaderDevices";
 import { devices } from "@/lib/routes";
 import React from "react";
 

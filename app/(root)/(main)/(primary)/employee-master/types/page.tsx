@@ -1,7 +1,7 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddEmployeeTypeEmployeeMaster from "@/forms/AddEmployeeTypeEmployeeMaster";
+import AddEmployeeTypeEmployeeMaster from "@/forms/emloyee-master/AddEmployeeTypeEmployeeMaster";
 import { employee_master } from "@/lib/routes";
 import React, { useState } from "react";
 

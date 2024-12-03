@@ -1,4 +1,4 @@
-import ChangePasswordForm from "@/forms/ChangePasswordForm";
+import ChangePasswordForm from "@/forms/auth/ChangePasswordForm";
 import React from "react";
 
 export default function Page() {

@@ -1,6 +1,6 @@
 "use client";
 
-import ForgotPassword from "@/forms/ForgotPasswordForm";
+import ForgotPassword from "@/forms/auth/ForgotPasswordForm";
 import React from "react";
 
 export default function Page() {

@@ -1,7 +1,7 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddReaderDevices from "@/forms/AddReaderDevices";
+import AddReaderDevices from "@/forms/devices/AddReaderDevices";
 import { devices } from "@/lib/routes";
 
 import React, { useState } from "react";
