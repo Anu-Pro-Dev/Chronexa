@@ -16,6 +16,7 @@ export default function PowerHeader({
   isAddNewPagePath,
   disableFeatures = false,
   modal_component,
+  isLarge,
 }: {
   items: any;
   props?: any;
@@ -26,6 +27,7 @@ export default function PowerHeader({
   isAddNewPagePath?: string;
   disableFeatures?: boolean;
   modal_component?: any;
+  isLarge?: any;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -43,6 +45,7 @@ export default function PowerHeader({
                   open: props.open,
                   on_open_change: props.on_open_change,
                 }}
+                isLarge={isLarge}
               />
             )}
             {!disableDelete && <PowerDelete props={props} />}

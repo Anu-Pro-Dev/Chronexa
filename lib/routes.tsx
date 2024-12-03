@@ -68,10 +68,17 @@ export const employee_master = {
       path: "/employee-master/employees",
       value: "employees",
     },
+
     {
       label: "Groups",
       path: "/employee-master/groups",
       value: "groups",
+    },
+    {
+      label: "Add Group",
+      path: "/employee-master/groups/add",
+      value: "groups",
+      hide: true,
     },
     {
       label: "Types",

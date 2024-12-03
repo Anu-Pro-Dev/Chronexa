@@ -105,7 +105,7 @@ export default function AddTypeOrganization({
               Cancel
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Submit
+              Save
             </Button>
           </div>
         </div>

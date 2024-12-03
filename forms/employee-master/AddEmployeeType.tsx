@@ -44,7 +44,7 @@ const formSchema = z.object({
     .max(100),
 });
 
-export default function AddEmployeeTypeEmployeeMaster({
+export default function AddEmployeeType({
   on_open_change,
 }: {
   on_open_change: any;
@@ -131,7 +131,7 @@ export default function AddEmployeeTypeEmployeeMaster({
               Cancel
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Submit
+              Save
             </Button>
           </div>
         </div>

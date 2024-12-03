@@ -131,7 +131,7 @@ export default function AddRegionsCompanyMaster({
               Cancel
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Submit
+              Save
             </Button>
           </div>
         </div>

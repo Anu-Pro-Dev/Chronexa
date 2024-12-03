@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/responsive-modal";
 import { useRouter } from "next/navigation";
 
-export default function PowerAdd({
+export default function PowerFilter({
   isAddNewPagePath = null,
-  modal_title = "Add",
+  modal_title = "Filters",
   modal_description = "",
   modal_component,
   modal_props,
@@ -37,25 +37,21 @@ export default function PowerAdd({
       >
         {isAddNewPagePath && (
           <Button
-            variant={"success"}
             onClick={() => {
               router.push(isAddNewPagePath);
             }}
             className="flex items-center space-y-0.5"
           >
             <AddIcon />
-            <span className="text-fore">Add</span>
+            <span className="text-white"> Filters</span>
           </Button>
         )}
 
         {isAddNewPagePath === null && (
           <ResponsiveModalTrigger asChild>
-            <Button
-              variant={"success"}
-              className="flex items-center space-y-0.5"
-            >
+            <Button className="flex items-center space-y-0.5">
               <AddIcon />
-              <span>Add</span>
+              <span className="text-white">Filters</span>
             </Button>
           </ResponsiveModalTrigger>
         )}

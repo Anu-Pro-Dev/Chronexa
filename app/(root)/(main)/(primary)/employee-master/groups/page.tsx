@@ -26,7 +26,11 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader props={props} items={employee_master.items} />
+      <PowerHeader
+        props={props}
+        items={employee_master.items}
+        isAddNewPagePath="/employee-master/groups/add"
+      />
       <PowerTable props={props} />
     </div>
   );

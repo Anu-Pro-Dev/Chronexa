@@ -31,8 +31,8 @@ ResponsiveModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const ResponsiveModalVariants = cva(
   cn(
-    "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 overflow-y-auto",
-    "lg:left-[50%] lg:top-[50%] lg:grid lg:w-full lg:max-w-lg lg:translate-x-[-50%] lg:translate-y-[-50%] lg:border lg:duration-200 lg:data-[state=open]:animate-in lg:data-[state=closed]:animate-out lg:data-[state=closed]:fade-out-0 lg:data-[state=open]:fade-in-0 lg:data-[state=closed]:zoom-out-95 lg:data-[state=open]:zoom-in-95 lg:data-[state=closed]:slide-out-to-left-1/2 lg:data-[state=closed]:slide-out-to-top-[48%] lg:data-[state=open]:slide-in-from-left-1/2 lg:data-[state=open]:slide-in-from-top-[48%] lg:rounded-xl"
+    "fixed z-50 gap-4 bg-white p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 overflow-y-auto",
+    "lg:left-[50%] lg:top-[50%] lg:grid lg:w-full  lg:translate-x-[-50%] lg:translate-y-[-50%] lg:border lg:duration-200 lg:data-[state=open]:animate-in lg:data-[state=closed]:animate-out lg:data-[state=closed]:fade-out-0 lg:data-[state=open]:fade-in-0 lg:data-[state=closed]:zoom-out-95 lg:data-[state=open]:zoom-in-95 lg:data-[state=closed]:slide-out-to-left-1/2 lg:data-[state=closed]:slide-out-to-top-[48%] lg:data-[state=open]:slide-in-from-left-1/2 lg:data-[state=open]:slide-in-from-top-[48%] lg:rounded-xl"
   ),
   {
     variants: {
@@ -44,9 +44,16 @@ const ResponsiveModalVariants = cva(
         right:
           "inset-y-0 right-0 h-full lg:h-fit w-3/4 border-l rounded-l-xl data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
       },
+      size: {
+        small: "max-w-[200px]",
+        medium: "max-w-[400px]",
+        large: "max-w-[600px]",
+        extraLarge: "max-w-[800px]",
+      },
     },
     defaultVariants: {
       side: "bottom",
+      size: "medium",
     },
   }
 );
@@ -58,12 +65,12 @@ interface ResponsiveModalContentProps
 const ResponsiveModalContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   ResponsiveModalContentProps
->(({ side = "bottom", className, children, ...props }, ref) => (
+>(({ side = "bottom", size, className, children, ...props }, ref) => (
   <ResponsiveModalPortal>
     <ResponsiveModalOverlay />
     <DialogPrimitive.Content
       ref={ref}
-      className={cn(ResponsiveModalVariants({ side }), className)}
+      className={cn(ResponsiveModalVariants({ side, size }), className)}
       {...props}
     >
       {children}
