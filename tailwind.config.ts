@@ -34,7 +34,6 @@ export default {
         secondary: {
           DEFAULT: "var(--secondary)",
         },
-
         text: {
           primary: "var(--text-primary)",
           secondary: "var(--text-secondary)",
@@ -53,11 +52,11 @@ export default {
         dropdown: "2px 2px 5px rgba(0, 0, 0, 0.05)",
         sidebar: "0px 16px 44px 0px rgba(0, 0, 0, 0.07)",
       },
-      borderRadius: {
-        sm: "var(--border-radius-sm)",
-        md: "var(--border-radius-md)",
-        lg: "var(--border-radius-lg)",
-      },
+      // borderRadius: {
+      //   sm: "var(--border-radius-sm)",
+      //   md: "var(--border-radius-md)",
+      //   lg: "var(--border-radius-lg)",
+      // },
     },
   },
   plugins: [require("tailwindcss-animate")],

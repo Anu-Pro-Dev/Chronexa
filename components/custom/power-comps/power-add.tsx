@@ -38,13 +38,14 @@ export default function PowerAdd({
         {isAddNewPagePath && (
           <Button
             variant={"success"}
+            size={"sm"}
             onClick={() => {
               router.push(isAddNewPagePath);
             }}
             className="flex items-center space-y-0.5"
           >
             <AddIcon />
-            <span className="text-fore">Add</span>
+            <span>Add</span>
           </Button>
         )}
 
@@ -52,6 +53,7 @@ export default function PowerAdd({
           <ResponsiveModalTrigger asChild>
             <Button
               variant={"success"}
+              size={"sm"}
               className="flex items-center space-y-0.5"
             >
               <AddIcon />

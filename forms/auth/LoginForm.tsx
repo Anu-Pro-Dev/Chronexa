@@ -26,17 +26,17 @@ const formSchema = z.object({
   username: z
     .string()
     .min(1, {
-      message: "Required",
+      message: "Username is required.",
     })
     .max(100),
   password: z
     .string()
     .min(1, {
-      message: "Required",
+      message: "Password is required.",
     })
     .max(100),
   captcha_result: z.string().min(1, {
-    message: "Captcha is Required",
+    message: "CAPTCHA is invalid, please try again!",
   }),
   captcha_1: z.number(),
   captcha_2: z.number(),
@@ -91,9 +91,9 @@ export default function LoginForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-center font-bold text-2xl">Login</h1>
-            <p className="text-center text-sm">Welcome Back! Please Login to access.</p>
+          <div className="flex flex-col">
+            <h1 className="text-center text-xl font-bold">Login</h1>
+            <p className="text-center text-sm font-semibold text-text-secondary">Welcome Back! Please Login to access.</p>
           </div>
           <FormField
             control={form.control}
@@ -146,12 +146,12 @@ export default function LoginForm() {
                 </FormLabel>
 
                 <div className="flex justify-between items-center">
-                  <div className="flex justify-center items-center gap-4">
-                    <div className="border rounded-md flex items-center justify-center  w-10 h-10">
+                  <div className="flex justify-center items-center gap-4 text-sm">
+                    <div className="border border-border-grey rounded-lg flex items-center justify-center w-10 h-10">
                       <h1 className="">{form.watch("captcha_1") ?? "0"}</h1>
                     </div>
                     <h1>+</h1>
-                    <div className="border rounded-md flex items-center justify-center  w-10 h-10">
+                    <div className="border border-border-grey rounded-lg flex items-center justify-center w-10 h-10">
                       <h1>{form.watch("captcha_2") ?? "0"}</h1>
                     </div>
                   </div>
@@ -160,7 +160,7 @@ export default function LoginForm() {
                       form.setValue("captcha_1", getRandomInt(1, 9));
                       form.setValue("captcha_2", getRandomInt(1, 9));
                     }}
-                    className="text-primary text-3xl"
+                    className="text-primary text-2xl"
                   />
                 </div>
                 <FormControl>
@@ -184,7 +184,7 @@ export default function LoginForm() {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      <FormLabel htmlFor="remember_me">Remember me</FormLabel>
+                      <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">Remember me</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>
@@ -198,7 +198,7 @@ export default function LoginForm() {
             </Link>
           </div>
 
-          <Button type="submit" size={"lg"} className="w-full lg:w-7/12 mx-auto mt-4 ">Login</Button>
+          <Button type="submit" size={"lg"} className="w-auto min-w-[200px] mx-auto mt-4">Login</Button>
         </div>
       </form>
     </Form>
