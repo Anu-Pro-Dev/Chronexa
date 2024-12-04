@@ -4,6 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { cn } from "@/lib/utils";
 
 interface DataTablePaginationProps {
   totalPages: number;
@@ -71,21 +72,24 @@ export function PowerTablePagination({
   return (
     <div className="flex items-center justify-center space-x-2">
       <Button
-        variant="outline"
-        size="icon"
-        className={`${dir === "rtl" && "rotate-180"}`}
+        className={cn(
+          `${dir === "rtl" && "rotate-180"}`,
+          "p-2 border-none outline-none rounded-[5px] h-6 w-6 flex justify-center items-center text-sm cursor-pointer bg-backdrop"
+        )}
+        variant="ghost"
+        size="pagination"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-4 w-4 text-secondary"/>
         <span className="sr-only">Previous page</span>
       </Button>
       <div className="flex space-x-1">
         {visiblePages.map((pageNumber, index) => (
           <Button
             key={index}
-            variant={pageNumber === currentPage ? "default" : "outline"}
-            size="icon"
+            variant={pageNumber === currentPage ? "default" : "ghost"}
+            size="pagination"
             onClick={() => {
               if (typeof pageNumber === "number") {
                 onPageChange(pageNumber);
@@ -93,23 +97,27 @@ export function PowerTablePagination({
                 handleEllipsisClick(pageNumber);
               }
             }}
+            className={ pageNumber === currentPage ? "text-white" : "text-secondary"}
           >
             {typeof pageNumber === "number" ? (
               pageNumber
             ) : (
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="h-4 w-4 text-secondary"/>
             )}
           </Button>
         ))}
       </div>
       <Button
-        className={`${dir === "rtl" && "rotate-180"}`}
-        variant="outline"
-        size="icon"
+        className={cn(
+          `${dir === "rtl" && "rotate-180"}`,
+          "p-2 border-none outline-none rounded-[5px] h-6 w-6 flex justify-center items-center text-sm cursor-pointer bg-backdrop"
+        )}
+        variant="ghost"
+        size="pagination"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 text-secondary" />
         <span className="sr-only">Next page</span>
       </Button>
     </div>

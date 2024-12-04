@@ -27,6 +27,7 @@ const buttonVariants = cva(
         sm: "h-9 rounded-lg px-3 text-xs font-bold",
         lg: "h-10 rounded-full px-8",
         icon: "h-9 w-9",
+        pagination: "h-6 w-6 rounded-md text-sm font-normal",
       },
     },
     defaultVariants: {
