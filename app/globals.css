@@ -43,6 +43,8 @@ body {
     --border: #9BA9D2;
     --border-accent: #E9EDF7;
     --border-grey: #808080CC;
+    --backdrop: #0078d40d;
+    --table-backdrop: #0078d41a;
   }
 }
 

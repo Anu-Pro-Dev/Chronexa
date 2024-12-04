@@ -218,7 +218,7 @@ export const ArrowRightIcon = (color = "#9BA9D2") => (
 );
 
 export const DropDownIcon = (color = "#64748B") => (
-  <svg viewBox="0 0 24 24" fill="currentColor" height="100%" width="100%">
+  <svg viewBox="0 0 24 24" fill="currentColor" height="24px" width="24px">
     <path d="M12 15.121a.997.997 0 01-.707-.293L7.05 10.586a1 1 0 011.414-1.414L12 12.707l3.536-3.535a1 1 0 011.414 1.414l-4.243 4.242a.997.997 0 01-.707.293z" />
   </svg>
 );
