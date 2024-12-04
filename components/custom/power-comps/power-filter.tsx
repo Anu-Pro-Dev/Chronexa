@@ -41,6 +41,7 @@ export default function PowerFilter({
               router.push(isAddNewPagePath);
             }}
             className="flex items-center space-y-0.5"
+            size={"sm"}
           >
             <AddIcon />
             <span className="text-white"> Filters</span>
@@ -49,7 +50,7 @@ export default function PowerFilter({
 
         {isAddNewPagePath === null && (
           <ResponsiveModalTrigger asChild>
-            <Button className="flex items-center space-y-0.5">
+            <Button className="flex items-center space-y-0.5" size={"sm"}>
               <AddIcon />
               <span className="text-white">Filters</span>
             </Button>

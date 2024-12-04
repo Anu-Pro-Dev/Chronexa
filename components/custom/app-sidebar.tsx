@@ -165,11 +165,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       variant="sidebar"
       side={dir === "rtl" ? "right" : "left"}
     >
-      <SidebarHeader className="mx-[6px] mt-2">
-        <div className="flex justify-between items-center">
+      <SidebarHeader className="">
+        <div className="flex justify-between items-center py-5">
           <div className="flex items-center gap-2">
             <Image
-              width={20}
+              width={25}
               height={100}
               alt="logo"
               src={"/logo.svg"}
@@ -177,7 +177,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 toggleSidebar();
               }}
             />
-            {open && <h1>{translations?.app_name}</h1>}
+            {open && <h1 className="font-bold text-xl cursor-pointer text-text-primary">{translations?.app_name}</h1>}
           </div>
           {open && <SidebarTrigger />}
         </div>

@@ -23,7 +23,7 @@ const formSchema = z.object({
   username: z
     .string()
     .min(1, {
-      message: "Required",
+      message: "Username is required.",
     })
     .max(100),
 });
@@ -48,8 +48,9 @@ export default function ForgotPassword() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="text-center">Forgot Password</h1>
+          <div className="flex flex-col">
+            <h1 className="text-center text-xl font-bold">Forgot your password?</h1>
+            <p className="text-center text-sm font-semibold text-text-secondary">It's okay! Reset your password.</p>
           </div>
           <FormField
             control={form.control}
@@ -70,11 +71,10 @@ export default function ForgotPassword() {
               </FormItem>
             )}
           />
-
-          <Button type="submit">Submit</Button>
-          <Link className="text-sm text-end" href={"/"}>
-            Back to Sign In{" "}
-          </Link>
+          <div className="mt-4 flex gap-2 justify-center">
+            <Button size={"lg"} variant={"outline"} className="w-auto" onClick={() => router.push('/')}>Cancel</Button>
+            <Button type="submit" size={"lg"} className="w-auto">Submit</Button>
+          </div>
         </div>
       </form>
     </Form>

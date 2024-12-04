@@ -10,6 +10,7 @@ export default function PowerDelete({ props }: { props: any }) {
           props?.SelectedKeys?.length === 0 || props?.SelectedKeys === undefined
         }
         variant={"destructive"}
+        size={"sm"}
         className="flex items-center space-y-0.5"
       >
         <DeleteIcon />

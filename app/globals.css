@@ -10,7 +10,7 @@ body {
 }
 
 .ag-root {
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Nunito_Sans", sans-serif !important;
 }
 @layer base {
   :root {
@@ -19,6 +19,8 @@ body {
     --primary: #0078d4;
     --primary-50: #d0e6f8;
     --secondary: #9ba9d2;
+    --text-primary: #23272e;
+    --text-secondary: #64748B;
     --muted: #2b3674;
     --success: #34c759;
     --destructive: #ff3b30;
@@ -35,9 +37,14 @@ body {
     --sidebar-accent: #34c759;
     --sidebar-border: #919396;
     --sidebar-ring: rgba(0, 120, 212, 0.1);
-    --border-radius-sm: 0.5rem;
+    /* --border-radius-sm: 0.5rem;
     --border-radius-md: 1rem;
-    --border-radius-lg: 2rem;
+    --border-radius-lg: 2rem; */
+    --border: #9BA9D2;
+    --border-accent: #E9EDF7;
+    --border-grey: #808080CC;
+    --backdrop: #0078d40d;
+    --table-backdrop: #0078d41a;
   }
 }
 

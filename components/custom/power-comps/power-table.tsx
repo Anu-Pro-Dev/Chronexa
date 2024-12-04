@@ -46,7 +46,7 @@ export default function PowerTable({ props }: { props: any }) {
       <div className="flex justify-between">
         <div className="flex items-center gap-2">
           <Select value={rows_per_page} onValueChange={set_rows_per_page}>
-            <SelectTrigger className="w-20 text-xs">
+            <SelectTrigger className="w-20 text-sm font-normal text-secondary border border-border-grey shadow-lg bg-white rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -60,7 +60,7 @@ export default function PowerTable({ props }: { props: any }) {
             </SelectContent>
           </Select>
           <div>
-            <p className=" text-xs">Records per page</p>
+            <p className="text-secondary text-sm font-normal">Records per page</p>
           </div>
         </div>
         <div>

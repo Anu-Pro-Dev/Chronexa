@@ -32,10 +32,9 @@ export default function Layout({ children }: { children: any }) {
             <div color="relative">
               <SidebarProvider>
                 <AppSidebar />
-
                 <div className=" w-full ">
                   <header className=" absolute top-0 right-0 left-0 bg-white sidebar-background  ">
-                    <div className="flex items-center gap-2 justify-between w-full p-1 bg-sidebar">
+                    <div className="flex items-center gap-2 justify-between w-full py-4 px-2 bg-sidebar">
                       <div></div>
                       <div className="flex items-center gap-2">
                         <LanguageSwitcher />
