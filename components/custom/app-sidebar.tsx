@@ -41,25 +41,11 @@ import {
   TAMasterIcon,
 } from "@/icons/icons";
 import Image from "next/image";
-import {
-  alerts,
-  company_master,
-  dashboard,
-  devices,
-  employee_master,
-  organization,
-  reports,
-  scheduling,
-  security,
-  self_services,
-  settings,
-  ta_master,
-} from "@/lib/routes";
 
 // This is sample data.
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { translations, dir } = useLanguage();
+  const { translations, dir, modules } = useLanguage();
   const data = {
     user: {
       name: "shadcn",
@@ -70,78 +56,78 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     primary: [
       {
         title: translations.navbar.primary.dashboard,
-        url: dashboard.items[0].path,
-        path: "/dashboard",
+        url: modules.dashboard.items[0].path,
+        path: modules.dashboard.path,
         icon: DashboardIcon,
         isActive: true,
       },
       {
         title: translations.navbar.primary.company_master,
-        url: company_master.items[0].path,
-        path: "/company-master",
+        url: modules.company_master.items[0].path,
+        path: modules.company_master.path,
         icon: CompanyMasterIcon,
       },
       {
         title: translations.navbar.primary.organization,
-        url: organization.items[0].path,
-        path: "/organization",
+        url: modules.organization.items[0].path,
+        path: modules.organization.path,
         icon: OrganizationIcon,
       },
       {
         title: translations.navbar.primary.employee_master,
-        url: employee_master.items[0].path,
-        path: "/employee-master",
+        url: modules.employee_master.items[0].path,
+        path: modules.employee_master,
         icon: EmployeeMasterIcon,
       },
       {
         title: translations.navbar.primary.ta_master,
-        url: ta_master.items[0].path,
-        path: "/TA-master",
+        url: modules.ta_master.items[0].path,
+        path: modules.ta_master.path,
         icon: TAMasterIcon,
       },
       {
         title: translations.navbar.primary.scheduling,
-        url: scheduling.items[0].path,
-        path: "/scheduling",
+        url: modules.scheduling.items[0].path,
+        path: modules.scheduling.path,
         icon: SchedulingIcon,
       },
       {
         title: translations.navbar.primary.self_services,
-        url: self_services.items[0].path,
-        path: "/self-services",
+        url: modules.self_services.items[0].path,
+        path: modules.self_services.path,
         icon: SelfServicesIcon,
       },
     ],
     secondary: [
       {
         title: translations.navbar.secondary.devices,
-        url: devices.items[0].path,
-        path: "/devices",
+        url: modules.devices.items[0].path,
+        path: modules.devices.path,
         icon: DevicesIcon,
         isActive: true,
       },
       {
         title: translations.navbar.secondary.reports,
-        url: reports.items[0].path,
-        path: "/reports",
+        url: modules.reports.items[0].path,
+        path: modules.reports.path,
         icon: ReportsIcon,
       },
       {
         title: translations.navbar.secondary.security,
-        url: security.items[0].path,
-        path: "/security",
+        url: modules.security.items[0].path,
+        path: modules.security.path,
         icon: SecurityIcon,
       },
       {
         title: translations.navbar.secondary.settings,
-        url: settings.items[0].path,
-        path: "/settings",
+        url: modules.settings.items[0].path,
+        path: modules.settings.path,
         icon: SettingsIcon,
       },
       {
         title: translations.navbar.secondary.alerts,
-        url: alerts.items[0].path,
-        path: "/alerts",
+        url: modules.alerts.items[0].path,
+        path: modules.alerts.path,
         icon: AlertsIcon,
       },
     ],
@@ -159,14 +145,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [open]);
   return (
     <Sidebar
-      className=""
       collapsible="icon"
       {...props}
-      variant="sidebar"
+      variant="inset"
       side={dir === "rtl" ? "right" : "left"}
     >
       <SidebarHeader className="">
-        <div className="flex justify-between items-center py-5">
+        <div
+          className={`flex items-center py-5 ${
+            open ? "justify-between" : "justify-center"
+          }`}
+        >
           <div className="flex items-center gap-2">
             <Image
               width={25}
@@ -177,7 +166,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 toggleSidebar();
               }}
             />
-            {open && <h1 className="font-bold text-xl cursor-pointer text-text-primary">{translations?.app_name}</h1>}
+            {open && (
+              <h1 className="font-bold text-xl cursor-pointer text-text-primary">
+                {translations?.app_name}
+              </h1>
+            )}
           </div>
           {open && <SidebarTrigger />}
         </div>

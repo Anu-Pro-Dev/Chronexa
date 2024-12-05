@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 interface DataTablePaginationProps {
   totalPages: number;
   currentPage: number;
-  onPageChange: (page: number) => void;
+  onPageChange: any;
 }
 
 export function PowerTablePagination({
@@ -81,7 +81,7 @@ export function PowerTablePagination({
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
-        <ChevronLeft className="h-4 w-4 text-secondary"/>
+        <ChevronLeft className="h-4 w-4 text-secondary" />
         <span className="sr-only">Previous page</span>
       </Button>
       <div className="flex space-x-1">
@@ -97,12 +97,14 @@ export function PowerTablePagination({
                 handleEllipsisClick(pageNumber);
               }
             }}
-            className={ pageNumber === currentPage ? "text-white" : "text-secondary"}
+            className={
+              pageNumber === currentPage ? "text-white" : "text-secondary"
+            }
           >
             {typeof pageNumber === "number" ? (
               pageNumber
             ) : (
-              <MoreHorizontal className="h-4 w-4 text-secondary"/>
+              <MoreHorizontal className="h-4 w-4 text-secondary" />
             )}
           </Button>
         ))}

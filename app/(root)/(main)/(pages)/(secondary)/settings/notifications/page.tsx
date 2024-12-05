@@ -1,0 +1,32 @@
+"use client";
+import PowerHeader from "@/components/custom/power-comps/power-header";
+import PowerTable from "@/components/custom/power-comps/power-table";
+
+import React, { useState } from "react";
+
+import { useLanguage } from "@/providers/LanguageProvider";
+export default function Page() {
+  const { modules } = useLanguage();
+  const [Data, SetData] = useState<any>([]);
+
+  const [Columns, setColumns] = useState([
+    { field: "description_en", headerName: "Description(English)" },
+    { field: "description_ar", headerName: "Description(العربية)" },
+    { field: "subject", headerName: "Subject" },
+    { field: "updated_by", headerName: "Updated by" },
+    { field: "updated_date", headerName: "Updated date" },
+  ]);
+
+  const props = {
+    Data,
+    SetData,
+    Columns,
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <PowerHeader props={props} items={modules?.settings?.items} />
+      <PowerTable props={props} />
+    </div>
+  );
+}

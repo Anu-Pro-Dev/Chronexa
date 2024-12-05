@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import AutoPathMapper from "../auto-path-mapper";
 import PowerShifter from "./power-shifter";
@@ -5,6 +6,7 @@ import PowerAdd from "./power-add";
 import PowerDelete from "./power-delete";
 import PowerSearch from "./power-search";
 import PowerExport from "./power-export";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function PowerHeader({
   items,
@@ -36,7 +38,7 @@ export default function PowerHeader({
 
         {!disableFeatures && (
           <div className="flex gap-2 items-center">
-            {!disableSearch && <PowerSearch />}
+            {!disableSearch && <PowerSearch props={props} />}
             {!disableAdd && (
               <PowerAdd
                 isAddNewPagePath={isAddNewPagePath ?? null}

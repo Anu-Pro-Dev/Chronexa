@@ -26,7 +26,6 @@ import arData from "@/locales/ar.json";
 import enData from "@/locales/en.json";
 import { dir } from "console";
 
-// Map of all language data
 const allLanguages: { [key: string]: LanguageData } = {
   ar: arData,
   en: enData,
@@ -44,7 +43,7 @@ export default function LanguageProvider({
 
   const dashboard = {
     route_name: "Dashboard",
-    route: "/dashboard",
+    path: "/dashboard",
     items: [
       {
         label: "Self Statistics",
@@ -61,7 +60,7 @@ export default function LanguageProvider({
 
   const company_master = {
     route_name: "Company Master",
-    route: "/company-master",
+    path: "/company-master",
     items: [
       {
         label: "Regions",
@@ -74,7 +73,7 @@ export default function LanguageProvider({
 
   const organization = {
     route_name: "Organization",
-    route: "/organization",
+    path: "/organization",
 
     items: [
       {
@@ -85,7 +84,7 @@ export default function LanguageProvider({
       {
         label: "Add Department",
         path: "/organization/departments/add",
-        value: "departments",
+        value: "add-department",
         hide: true,
       },
       {
@@ -103,7 +102,7 @@ export default function LanguageProvider({
 
   const employee_master = {
     route_name: "Employee Master",
-    route: "/employee-master",
+    path: "/employee-master",
 
     items: [
       {
@@ -112,9 +111,21 @@ export default function LanguageProvider({
         value: "employees",
       },
       {
+        label: "Add Employee",
+        path: "/employee-master/employees/add",
+        value: "add-employee",
+        hide: true,
+      },
+      {
         label: "Groups",
         path: "/employee-master/groups",
         value: "groups",
+      },
+      {
+        label: "Add Group",
+        path: "/employee-master/groups/add",
+        value: "groups",
+        hide: true,
       },
       {
         label: "Types",
@@ -126,7 +137,7 @@ export default function LanguageProvider({
 
   const ta_master = {
     route_name: "TA Master",
-    route: "/TA-master",
+    path: "/TA-master",
     items: [
       {
         label: "Reasons",
@@ -153,7 +164,7 @@ export default function LanguageProvider({
 
   const scheduling = {
     route_name: "Scheduling",
-    route: "/scheduling",
+    path: "/scheduling",
     items: [
       {
         label: "Weekly Schedule",
@@ -175,7 +186,7 @@ export default function LanguageProvider({
 
   const self_services = {
     route_name: "Self Services",
-    route: "/self-services",
+    path: "/self-services",
     items: [
       {
         label: "Manage Permissions",
@@ -207,19 +218,25 @@ export default function LanguageProvider({
 
   const devices = {
     route_name: "Devices",
-    route: "/devices",
+    path: "/devices",
     items: [
       {
         label: "Readers",
         path: "/devices/readers",
         value: "readers",
       },
+      {
+        label: "Add Reader",
+        path: "/devices/readers/add",
+        value: "departments",
+        hide: true,
+      },
     ],
   };
 
   const reports = {
     route_name: "Reports",
-    route: "/reports",
+    path: "/reports",
     items: [
       {
         label: "Standard Reports",
@@ -236,7 +253,7 @@ export default function LanguageProvider({
 
   const security = {
     route_name: "Security",
-    route: "/security",
+    path: "/security",
     items: [
       {
         label: "Assign Roles",
@@ -253,7 +270,7 @@ export default function LanguageProvider({
 
   const settings = {
     route_name: "Settings",
-    route: "/settings",
+    path: "/settings",
     items: [
       {
         label: "Application Settings",
@@ -280,15 +297,21 @@ export default function LanguageProvider({
 
   const alerts = {
     route_name: "Devices",
-    route: "/devices",
+    path: "/devices",
     items: [
       {
         label: "Email",
         path: "/alerts/email",
         value: "email",
       },
+      {
+        label: "SMS",
+        path: "/alerts/SMS",
+        value: "sms",
+      },
     ],
   };
+
   const modules = {
     dashboard,
     company_master,
