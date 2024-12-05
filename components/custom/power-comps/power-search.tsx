@@ -1,10 +1,12 @@
-import { Input } from "@/components/ui/input";
 import React from "react";
+import { Input } from "@/components/ui/input";
+import { SearchIcon } from "@/icons/icons"
 
 export default function PowerSearch() {
   return (
-    <div>
-      <Input className="w-80" type="Search" placeholder={"Search ..."} />
+    <div className="bg-white border border-border-accent min-w-[300px] px-4 py-3 flex items-center gap-2 shadow-searchbar rounded-full">
+      <span className="text-secondary">{SearchIcon()}</span>
+      <Input className="text-xs bg-transparent border-none outline-none font-medium text-text-primary w-full h-full placeholder-text-secondary" type="Search" placeholder={"Search ..."} />
     </div>
   );
 }

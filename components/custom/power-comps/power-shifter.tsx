@@ -21,13 +21,13 @@ export default function PowerShifter({ items }: { items: any }) {
         }}
         value={pathname}
       >
-        <SelectTrigger className="min-w-20 w-fit gap-2 ps-0 border-none shadow-none">
+        <SelectTrigger className="min-w-20 w-fit gap-2 ps-0 border-none shadow-none text-2xl font-bold text-text-primary">
           <SelectValue placeholder="Theme" />
         </SelectTrigger>
         <SelectContent>
           {items?.map((item: any, index: number) => (
             <SelectItem
-              className={item?.hide === true ? "hidden" : ""}
+              className={item?.hide === true ? "hidden" : "text-base font-normal"}
               onClick={() => {
                 router.push(item?.path);
               }}
