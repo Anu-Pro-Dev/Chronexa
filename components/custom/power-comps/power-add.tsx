@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { AddIcon } from "@/icons/icons";
 import React, { useState } from "react";
@@ -11,11 +12,14 @@ import {
   ResponsiveModalTrigger,
 } from "@/components/ui/responsive-modal";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { Close } from "@radix-ui/react-dialog";
+import { IoMdClose } from "react-icons/io";
 
 export default function PowerAdd({
   isAddNewPagePath = null,
   modal_title = "Add",
-  modal_description = "",
+  modal_description = "Description",
   modal_component,
   modal_props,
   isLarge = false,
@@ -27,6 +31,7 @@ export default function PowerAdd({
   modal_props?: any;
   isLarge?: any;
 }) {
+  const { dir } = useLanguage();
   const router = useRouter();
 
   return (
@@ -63,10 +68,23 @@ export default function PowerAdd({
         )}
         <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
           <ResponsiveModalHeader>
-            <ResponsiveModalTitle>{modal_title}</ResponsiveModalTitle>
-            <ResponsiveModalDescription>
-              {modal_description}
-            </ResponsiveModalDescription>
+            <div dir={dir} className="flex items-start justify-between">
+              <div className="flex flex-col text-start">
+                <span className="text-primary font-bold">{modal_title}</span>
+                <ResponsiveModalDescription className="text-secondary">
+                  {modal_description}
+                </ResponsiveModalDescription>
+              </div>
+              <span
+                className="cursor-pointer hover:scale-125 transition-all"
+                onClick={() => {
+                  modal_props?.on_open_change(false);
+                }}
+              >
+                <IoMdClose />
+              </span>
+            </div>
+            <ResponsiveModalTitle></ResponsiveModalTitle>
           </ResponsiveModalHeader>
           {<div className="p-1">{modal_component}</div>}
         </ResponsiveModalContent>

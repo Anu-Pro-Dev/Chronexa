@@ -31,6 +31,9 @@ export default {
         "primary-50": {
           DEFAULT: "var(--primary-50)",
         },
+        "primary-100": {
+          DEFAULT: "var(--primary-100)",
+        },
         secondary: {
           DEFAULT: "var(--secondary)",
         },
@@ -52,11 +55,28 @@ export default {
         dropdown: "2px 2px 5px rgba(0, 0, 0, 0.05)",
         sidebar: "0px 16px 44px 0px rgba(0, 0, 0, 0.07)",
       },
-      // borderRadius: {
-      //   sm: "var(--border-radius-sm)",
-      //   md: "var(--border-radius-md)",
-      //   lg: "var(--border-radius-lg)",
-      // },
+      keyframes: {
+        "accordion-down": {
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
+        },
+        "accordion-up": {
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

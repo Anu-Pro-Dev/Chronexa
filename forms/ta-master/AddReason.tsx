@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from "@/providers/LanguageProvider";
 const formSchema = z.object({
   code: z
     .string()
@@ -68,7 +69,7 @@ export default function AddReason({ on_open_change }: { on_open_change: any }) {
       description_ar: "",
     },
   });
-
+  const { dir } = useLanguage();
   const router = useRouter();
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -80,7 +81,7 @@ export default function AddReason({ on_open_change }: { on_open_change: any }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="" dir={dir}>
         <div className="grid lg:grid-cols-2 gap-10">
           <FormField
             control={form.control}
@@ -104,6 +105,7 @@ export default function AddReason({ on_open_change }: { on_open_change: any }) {
               <FormItem>
                 <FormLabel>Reason Mode</FormLabel>
                 <Select
+                  dir={dir}
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >

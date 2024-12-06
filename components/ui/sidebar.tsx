@@ -18,8 +18,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const SIDEBAR_COOKIE_NAME = "sidebar:state";
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "4rem";
@@ -42,7 +40,6 @@ function useSidebar() {
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider.");
   }
-
   return context;
 }
 
@@ -81,9 +78,6 @@ const SidebarProvider = React.forwardRef<
         } else {
           _setOpen(openState);
         }
-
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
       },
       [setOpenProp, open]
     );
@@ -278,7 +272,9 @@ const SidebarTrigger = React.forwardRef<
       }}
       {...props}
     >
-      <span className="p-2.5 rounded-lg bg-backdrop text-primary">{MenuFold()}</span>
+      <span className="p-2.5 rounded-lg bg-backdrop text-primary">
+        {MenuFold()}
+      </span>
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

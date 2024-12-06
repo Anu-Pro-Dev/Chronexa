@@ -18,12 +18,6 @@ import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 
 const formSchema = z.object({
-  username: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
   old_password: z
     .string()
     .min(1, {
@@ -42,7 +36,6 @@ export default function ChangePasswordForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
       old_password: "",
       new_password: "",
     },
@@ -74,25 +67,6 @@ export default function ChangePasswordForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Username <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter your username"
-                    type="text"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <FormField
             control={form.control}
             name="old_password"
@@ -131,8 +105,10 @@ export default function ChangePasswordForm() {
               </FormItem>
             )}
           />
-          <div className="flex justify-end">
-            <Button type="submit">Submit</Button>
+          <div className="">
+            <Button className="w-full" type="submit">
+              Submit
+            </Button>
           </div>
         </div>
       </form>

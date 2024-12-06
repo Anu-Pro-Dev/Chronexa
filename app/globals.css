@@ -10,7 +10,7 @@ body {
 }
 
 .ag-root {
-  font-family: "Nunito_Sans", sans-serif !important;
+  font-family: "Nunito Sans", sans-serif !important;
 }
 @layer base {
   :root {
@@ -18,9 +18,10 @@ body {
     --foreground: #000000;
     --primary: #0078d4;
     --primary-50: #d0e6f8;
+    --primary-100: #ecf2f7;
     --secondary: #9ba9d2;
     --text-primary: #23272e;
-    --text-secondary: #64748B;
+    --text-secondary: #64748b;
     --muted: #2b3674;
     --success: #34c759;
     --destructive: #ff3b30;
@@ -40,9 +41,9 @@ body {
     /* --border-radius-sm: 0.5rem;
     --border-radius-md: 1rem;
     --border-radius-lg: 2rem; */
-    --border: #9BA9D2;
-    --border-accent: #E9EDF7;
-    --border-grey: #808080CC;
+    --border: #9ba9d2;
+    --border-accent: #e9edf7;
+    --border-grey: #808080cc;
     --backdrop: #0078d40d;
     --table-backdrop: #0078d41a;
   }
