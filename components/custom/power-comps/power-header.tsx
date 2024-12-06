@@ -33,7 +33,7 @@ export default function PowerHeader({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-center py-6">
+      <div className="flex justify-between items-center">
         <div>
           <PowerShifter items={items} />
           <AutoPathMapper />

@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: any }) {
                   </div>
                 </div>
               </header>
-              <div className=" flex flex-1 flex-col gap-4 p-5 pl-7 bg-background min-h-dvh h-full">
+              <div className=" flex flex-1 flex-col gap-4 py-5 px-6 bg-background min-h-dvh h-full">
                 {children}
               </div>
             </div>
