@@ -9,9 +9,10 @@ body {
   box-sizing: border-box;
 }
 
-.ag-root {
-  font-family: "Nunito Sans", sans-serif !important;
+.ag-cell {
+  font-weight: "bold" !important;
 }
+
 @layer base {
   :root {
     --background: #f9f9f9;
@@ -53,18 +54,15 @@ body {
   width: 5px;
 }
 
-/* Track */
 ::-webkit-scrollbar-track {
   background: #caf3f8;
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 3px;
 }
 
-/* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }

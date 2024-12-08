@@ -21,7 +21,7 @@ export default function PowerShifter({ items }: { items: any }) {
         }}
         value={pathname}
       >
-        <SelectTrigger className="min-w-20 w-fit gap-2 ps-0 border-none shadow-none ">
+        <SelectTrigger className="font-bold text-lg min-w-20 w-fit gap-2 ps-0 border-none shadow-none ">
           <SelectValue placeholder="Theme" />
         </SelectTrigger>
         <SelectContent>
