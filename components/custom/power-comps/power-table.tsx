@@ -15,7 +15,7 @@ import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
 export default function PowerTable({ props, api }: { props: any; api?: any }) {
   const [TotalPages, SetTotalPages] = useState<number>(1);
-  const [rows_per_page, set_rows_per_page] = useState<string>("20");
+  const [rows_per_page, set_rows_per_page] = useState<string>("5");
 
   console.log(props);
   const FetchData = async () => {
@@ -79,20 +79,23 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
     borderColor: "#00000005",
     borderRadius: "0px",
     browserColorScheme: "light",
-    columnBorder: true,
-    headerTextColor: "#9ba9d2",
+    columnBorder: false,
+    headerTextColor: "#9BA9D2",
     headerBackgroundColor: "#FFFFFF",
-    headerFontSize: 14,
-    rowBorder: true,
+    headerFontSize: 15,
+    rowBorder: false,
     sidePanelBorder: false,
     wrapperBorder: false,
-    headerFontWeight: "bold",
-    cellTextColor: "black",
+    headerFontWeight: 600,
+    cellTextColor: "#2B3674",
     wrapperBorderRadius: "0px",
+    checkboxBorderRadius: "3px",
+    checkboxBorderWidth: "2px",
+    checkboxUncheckedBorderColor: "#E5E7EB",
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
       <div className="">
         <AgGridReact
           gridOptions={{
@@ -113,10 +116,10 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
         />
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-between px-3">
         <div className="flex items-center gap-2">
           <Select
-            defaultValue="20"
+            defaultValue="5"
             value={rows_per_page}
             onValueChange={set_rows_per_page}
           >
