@@ -1,12 +1,14 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import React from "react";
+import { SearchIcon } from "@/icons/icons"
 
 export default function PowerSearch({ props }: { props: any }) {
   return (
-    <div>
+    <div className="bg-white border border-border-accent min-w-auto md:min-w-[300px] px-4 py-3 flex items-center shadow-searchbar rounded-full">
+      <span className="text-secondary">{SearchIcon()}</span>
       <Input
-        className="w-80"
+        className="text-xs bg-transparent border-none outline-none font-medium text-text-primary w-full h-full placeholder-text-secondary"
         type="search"
         placeholder={"Search ..."}
         value={props?.SearchValue}
