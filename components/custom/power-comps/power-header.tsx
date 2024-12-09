@@ -34,8 +34,10 @@ export default function PowerHeader({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
-        <PowerShifter items={items} />
-
+        <div>
+          <PowerShifter items={items} />
+          <AutoPathMapper />
+        </div>
         {!disableFeatures && (
           <div className="flex gap-2 items-center">
             {!disableSearch && <PowerSearch props={props} />}
@@ -55,8 +57,6 @@ export default function PowerHeader({
           </div>
         )}
       </div>
-
-      <AutoPathMapper />
     </div>
   );
 }
