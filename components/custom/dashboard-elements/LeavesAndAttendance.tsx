@@ -21,12 +21,18 @@ export default function LeavesAndAttendance({ data }: { data: any }) {
         {data?.map((item: any, index: number) => (
           <div
             className={`
-        p-3 flex flex-col gap-1
-        ${index !== 2 && index !== 5 ? "border-r" : ""}
-        ${index !== 3 && index !== 4 && index !== 5 ? "border-b" : ""}
+        p-3 flex flex-col gap-1 relative 
+    
       `}
             key={index}
           >
+            {(index === 0 || index === 1 || index === 2) && (
+              <div className="absolute right-0 mx-auto bottom-0 left-0 w-4/12 border-b"></div>
+            )}
+
+            {(index === 0 || index === 1 || index === 3 || index === 4) && (
+              <div className="absolute right-0 top-0 mx-auto bottom-0 w-2  border-r h-10 flex flex-col my-auto"></div>
+            )}
             <div className="flex items-center justify-between">
               <h1 className="break-words">{item?.label}</h1>{" "}
               {/* Use break-words for text wrapping */}

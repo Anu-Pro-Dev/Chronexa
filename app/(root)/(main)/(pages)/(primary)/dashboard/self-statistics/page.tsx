@@ -7,7 +7,15 @@ import TimeOffSights from "@/components/custom/dashboard-elements/TimeOffSights"
 import Violations from "@/components/custom/dashboard-elements/Violations";
 import WorkTrends from "@/components/custom/dashboard-elements/WorkTrends";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import { CalendarIcon } from "@/icons/icons";
+import {
+  AbsentIcon,
+  ApprovedIcon,
+  CalendarIcon,
+  LeaveTakenIcon,
+  PendingIcon,
+  TotalLeavesIcon,
+  WorkingDaysIcon,
+} from "@/icons/icons";
 import { useLanguage } from "@/providers/LanguageProvider";
 import React, { useEffect, useState } from "react";
 
@@ -19,32 +27,32 @@ export default function Dashboard() {
     SetLeaveAndAttendance([
       {
         label: "Working Days",
-        icon: <CalendarIcon color="#0078D4" />,
+        icon: <WorkingDaysIcon />,
         value: "212",
       },
       {
         label: "Total leaves",
-        icon: <CalendarIcon color="#0078D4" />,
+        icon: <TotalLeavesIcon />,
         value: "09",
       },
       {
         label: "Leaves Taken",
-        icon: <CalendarIcon color="#0078D4" />,
+        icon: <LeaveTakenIcon />,
         value: "06",
       },
       {
         label: "Leaves Absent",
-        icon: <CalendarIcon color="#0078D4" />,
+        icon: <AbsentIcon />,
         value: "03",
       },
       {
         label: "Approved leaves",
-        icon: <CalendarIcon color="#0078D4" />,
+        icon: <ApprovedIcon />,
         value: "02",
       },
       {
         label: "Pending leaves",
-        icon: <CalendarIcon color="#0078D4" />,
+        icon: <PendingIcon />,
         value: "01",
       },
     ]);
