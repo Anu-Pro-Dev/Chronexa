@@ -88,13 +88,12 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
     wrapperBorder: false,
     headerFontWeight: "bold",
     cellTextColor: "black",
-
     wrapperBorderRadius: "0px",
   });
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="" style={{ height: "60dvh" }}>
+      <div className="">
         <AgGridReact
           gridOptions={{
             rowSelection: {
@@ -110,6 +109,7 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
           }}
           rowData={props.Data}
           columnDefs={props.Columns || []}
+          domLayout="autoHeight"
         />
       </div>
 

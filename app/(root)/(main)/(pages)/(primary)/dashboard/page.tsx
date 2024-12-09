@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { redirect } from "next/navigation";
 
 import { useLanguage } from "@/providers/LanguageProvider";
