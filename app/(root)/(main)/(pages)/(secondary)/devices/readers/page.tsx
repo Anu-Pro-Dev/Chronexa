@@ -40,7 +40,7 @@ export default function Page() {
         items={modules?.devices?.items}
         isAddNewPagePath="/devices/readers/add"
       />
-      <PowerTable props={props}  />
+      <PowerTable props={props} api={"/devices/readers"} />
     </div>
   );
 }

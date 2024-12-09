@@ -3,10 +3,8 @@ import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from "@/providers/Providers";
 
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-quartz.css";
 const font_nunito_sans = Nunito_Sans({
-  variable: "--font-geist-nunito_sans",
+  variable: "--font-nunito_sans",
   subsets: ["latin", "latin-ext"],
   weight: ["200", "300", "400", "500", "600", "700", "800", "900", "1000"],
 });

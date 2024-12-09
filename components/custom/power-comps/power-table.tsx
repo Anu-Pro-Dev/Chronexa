@@ -11,8 +11,8 @@ import {
 import { AgGridReact } from "ag-grid-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { PowerTablePagination } from "./power-table-pagination";
-import { UserAxiosInstance } from "@/lib/Instance";
-
+import { DynamicApi } from "@/lib/dynamicapi";
+import { themeQuartz } from "ag-grid-community";
 export default function PowerTable({ props, api }: { props: any; api?: any }) {
   const [TotalPages, SetTotalPages] = useState<number>(1);
   const [rows_per_page, set_rows_per_page] = useState<string>("20");
@@ -20,16 +20,14 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
   console.log(props);
   const FetchData = async () => {
     try {
-      const response = await UserAxiosInstance.get(api, {
-        params: {
-          page: props?.CurrentPage,
-          limit: rows_per_page,
-          sortField: props?.SortField,
-          sortType: props?.SortDirection,
-          search: props?.SearchValue,
-        },
+      const response: any = await DynamicApi(api, {
+        page: props?.CurrentPage,
+        limit: rows_per_page,
+        sortField: props?.SortField,
+        sortType: props?.SortDirection,
+        search: props?.SearchValue,
       });
-
+      console.log(response);
       props.SetData(response.data.payload);
       SetTotalPages(response.data.pagination.totalPages);
     } catch (error) {
@@ -75,10 +73,38 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
     console.log("Navigating to page:", page);
     props.SetCurrentPage(page);
   };
+
+  const myTheme = themeQuartz.withParams({
+    fontFamily: "Nunito Sans",
+    borderColor: "#00000005",
+    borderRadius: "0px",
+    browserColorScheme: "light",
+    columnBorder: true,
+    headerTextColor: "#9ba9d2",
+    headerBackgroundColor: "#FFFFFF",
+    headerFontSize: 14,
+    rowBorder: true,
+    sidePanelBorder: false,
+    wrapperBorder: false,
+    headerFontWeight: "bold",
+    cellTextColor: "black",
+
+    wrapperBorderRadius: "0px",
+  });
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="ag-theme-quartz" style={{ height: "60dvh" }}>
+      <div className="" style={{ height: "60dvh" }}>
         <AgGridReact
+          gridOptions={{
+            rowSelection: {
+              mode: "multiRow",
+            },
+          }}
+          rowStyle={{
+            fontWeight: "bold",
+          }}
+          theme={myTheme}
           onSortChanged={(e: any) => {
             onSortChanged(e);
           }}
