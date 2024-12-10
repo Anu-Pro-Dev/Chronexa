@@ -73,7 +73,7 @@ export default function Dashboard() {
           <LeavesAndAttendance data={LeaveAndAttendanceElements} />
           <LeaveAnalytics />
         </div>
-        <div className="col-span-4 flex flex-col gap-4">
+        <div className="col-span-5 flex flex-col gap-4">
           <ClockYourHours />
           <Violations />
         </div>
@@ -83,7 +83,6 @@ export default function Dashboard() {
         <Schedule />
       </div>
       <div className="grid grid-cols-2 gap-10">
-        <LeaveAnalytics />
         <TimeOffSights />
       </div>
     </div>
