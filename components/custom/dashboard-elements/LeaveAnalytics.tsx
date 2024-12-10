@@ -32,7 +32,7 @@ const data = [
 
 export default function LeaveAnalytics() {
   return (
-    <Card className="w-full max-w-4xl">
+    <Card className="w-full max-w-4xl border-none shadow-sm bg-white rounded-md">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-2xl font-bold">Leave analytics</CardTitle>
         <Select defaultValue="this-year">
@@ -55,7 +55,7 @@ export default function LeaveAnalytics() {
               color: "hsl(var(--chart-1))",
             },
           }}
-          className="h-[340px]"
+          className="xl:h-[280px] lg:h-[240px]"
         >
           <BarChart
             data={data}

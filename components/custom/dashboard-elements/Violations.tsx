@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Violations() {
   return (
-    <div className="w-full bg-white ">
+    <div className="w-full bg-white shadow-sm rounded-md ">
       <h1 className="text-xl font-bold text-center my-4">Violations</h1>
 
       <div className="flex justify-between  w-full">
@@ -14,8 +14,7 @@ export default function Violations() {
           </button>
         </div>
 
-        <div className="space-y-4 w-full px-2">
-          {/* Missed In Card */}
+        <div className="space-y-4 w-full px-2 py-2 h-full">
           <Card className="p-6 bg-gradient-to-br from-blue-50/80 to-white">
             <div className="flex justify-between items-start">
               <div className="p-2 bg-blue-50 rounded-xl">
@@ -29,7 +28,6 @@ export default function Violations() {
             </div>
           </Card>
 
-          {/* Missed Out Card */}
           <Card className="p-6 bg-gradient-to-br from-teal-50/80 to-white">
             <div className="flex justify-between items-start">
               <div className="p-2 bg-teal-50 rounded-xl">
@@ -48,6 +46,9 @@ export default function Violations() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
         </div>
+      </div>
+      <div className="flex justify-center pb-1">
+        <div className="items-center ">. __</div>
       </div>
     </div>
   );

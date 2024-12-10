@@ -4,7 +4,7 @@ import React from "react";
 
 export default function LeavesAndAttendance({ data }: { data: any }) {
   return (
-    <div className="bg-white p-5">
+    <div className="bg-white p-5 rounded-md shadow-sm">
       <div className="flex flex-row gap-2 items-center justify-between">
         <div className="flex items-center justify-between w-full">
           <h1 className="font-bold">Leaves and Attendance</h1>
@@ -22,7 +22,7 @@ export default function LeavesAndAttendance({ data }: { data: any }) {
           <div
             className={`
         p-3 flex flex-col gap-1 relative 
-    
+  
       `}
             key={index}
           >
@@ -35,7 +35,6 @@ export default function LeavesAndAttendance({ data }: { data: any }) {
             )}
             <div className="flex items-center justify-between">
               <h1 className="break-words">{item?.label}</h1>{" "}
-              {/* Use break-words for text wrapping */}
               <span>{item?.icon}</span>
             </div>
             <div className="mb-3">
