@@ -8,6 +8,7 @@ import {
 } from "@/data/em.data";
 import { departments_data, organizationtypes_data } from "@/data/org.data";
 import { privileges_data, roles_data } from "@/data/security.data";
+import { workflows_data } from "@/data/selfservices.data";
 import { notification_data, settings_data } from "@/data/settings.data";
 import {
   holidays_data,
@@ -62,6 +63,10 @@ export const DynamicApi = (api: any, params: any) => {
       case "/ta-master/schedules":
         data = schedules_data;
         break;
+      case "/self-services/workflow":
+        data = workflows_data;
+        break;
+    
 
       case "/devices/readers":
         data = devices_status_data;

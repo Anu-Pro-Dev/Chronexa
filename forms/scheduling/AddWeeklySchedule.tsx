@@ -424,7 +424,12 @@ export default function AddWeeklySchedule() {
                   Attachment <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input className="pt-2" placeholder="Enter your Code" type="file" {...field} />
+                  <Input
+                    className="pt-2"
+                    placeholder="Enter your Code"
+                    type="file"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -226,6 +226,12 @@ export default function LanguageProvider({
         path: "/self-services/workflow",
         value: "workflow",
       },
+      {
+        label: "Add Workflow",
+        path: "/self-services/workflow/add",
+        value: "add_workflow",
+        hide: true,
+      },
     ],
   };
 

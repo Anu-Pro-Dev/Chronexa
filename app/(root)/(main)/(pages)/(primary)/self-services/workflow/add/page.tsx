@@ -1,19 +1,11 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import PowerTable from "@/components/custom/power-comps/power-table";
-
+import AddWorkflow from "@/forms/self-services/AddWorkflow";
+import { useLanguage } from "@/providers/LanguageProvider";
 import React, { useState } from "react";
 
-import { useLanguage } from "@/providers/LanguageProvider";
-export default function Page() {
+export default function Add() {
   const { modules } = useLanguage();
-
-  const [Columns, setColumns] = useState([
-    { field: "code" },
-    { field: "category" },
-    { field: "steps" },
-  ]);
-
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -23,7 +15,6 @@ export default function Page() {
   const props = {
     Data,
     SetData,
-    Columns,
     SortField,
     CurrentPage,
     SetCurrentPage,
@@ -36,13 +27,11 @@ export default function Page() {
     SetSearchValue,
   };
   return (
-    <div className="flex flex-col gap-4">
-      <PowerHeader
-        props={props}
-        items={modules?.self_services?.items}
-        isAddNewPagePath="/self-services/workflow/add"
-      />
-      <PowerTable props={props} api={"/self-services/workflow"} />
+    <div>
+      <PowerHeader props={props} items={modules?.self_services?.items} />
+      <div className="flex flex-col gap-6 pt-6 bg-white p-6 rounded-md mt-4">
+        <AddWorkflow />
+      </div>
     </div>
   );
 }
