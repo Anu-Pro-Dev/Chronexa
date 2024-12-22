@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import Required from "@/components/ui/required";
 import { Calendar } from "@/components/ui/calendar";
+import { useRouter } from "next/navigation";
 
 export default function PowerForm({
   fields,
@@ -36,6 +37,8 @@ export default function PowerForm({
   state_route,
   input_width = "w-10/12",
   form_class,
+  next_route,
+  setPage,
 }: {
   fields: any;
   form: any;
@@ -43,10 +46,13 @@ export default function PowerForm({
   state_route: any;
   input_width?: any;
   form_class?: any;
+  next_route?: any;
+  setPage?: any;
 }) {
+  const router = useRouter();
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className={form_class}>
           {fields.map((item: any, index: number) => (
             <div
@@ -177,12 +183,30 @@ export default function PowerForm({
           ))}
 
           <div className="w-full flex gap-2 items-center col-span-2 justify-end">
-            <Button variant="outline" type="button" size="lg">
+            <Button
+              variant="outline"
+              type="button"
+              size="lg"
+              onClick={() => {
+                router.push("/employee-master");
+              }}
+            >
               Cancel
             </Button>
-            <Button type="submit" size="lg">
-              Save
-            </Button>
+            {!next_route ? (
+              <Button size="lg" type="submit">
+                Save
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onClick={() => {
+                  setPage(next_route);
+                }}
+              >
+                Next
+              </Button>
+            )}
           </div>
         </div>
       </form>

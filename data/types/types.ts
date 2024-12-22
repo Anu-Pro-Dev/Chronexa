@@ -114,10 +114,12 @@ export type SchedulesDataType = {
 };
 
 export type RamadanDatesDataType = {
-  description: string;
+  description_en: string;
+  description_ar: string;
   from_date: string;
   to_date: string;
   updatedAt: string;
+  remarks: string;
 };
 
 // Scheduling Page DataTypes
@@ -189,7 +191,8 @@ export type AllSettingsDataType = {
 };
 
 export type NotificationDataType = {
-  description: string;
+  description_en: string;
+  description_ar: string;
   subject: string;
   updated_by: string;
   updatedAt: string;

@@ -7,20 +7,32 @@ import React, { useState } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
 export default function Page() {
   const { modules } = useLanguage();
-  const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "direction" },
-    { field: "time" },
+    { field: "description" },
+    { field: "updatedAt" },
   ]);
 
+  const [Data, SetData] = useState<any>([]);
+  const [CurrentPage, SetCurrentPage] = useState<number>(1);
+  const [SortField, SetSortField] = useState<string>("");
+  const [SortDirection, SetSortDirection] = useState<string>("asc");
+  const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const props = {
     Data,
     SetData,
     Columns,
+    SortField,
+    CurrentPage,
+    SetCurrentPage,
+    SetSortField,
+    SortDirection,
+    SetSortDirection,
     open,
     on_open_change,
+    SearchValue,
+    SetSearchValue,
   };
 
   return (
@@ -32,7 +44,7 @@ export default function Page() {
           <AddTypeOrganization on_open_change={on_open_change} />
         }
       />
-      <PowerTable props={props} />
+      <PowerTable props={props} api={"/organization/types"} />
     </div>
   );
 }

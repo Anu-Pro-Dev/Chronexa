@@ -11,6 +11,7 @@ import {
   ResponsiveModalTrigger,
 } from "@/components/ui/responsive-modal";
 import { useRouter } from "next/navigation";
+import { FiltersIcon } from "@/lib/svg/icons";
 
 export default function PowerFilter({
   isAddNewPagePath = null,
@@ -43,7 +44,7 @@ export default function PowerFilter({
             className="flex items-center space-y-0.5"
             size={"sm"}
           >
-            <AddIcon />
+            <FiltersIcon />
             <span className="text-white"> Filters</span>
           </Button>
         )}
@@ -51,15 +52,18 @@ export default function PowerFilter({
         {isAddNewPagePath === null && (
           <ResponsiveModalTrigger asChild>
             <Button className="flex items-center space-y-0.5" size={"sm"}>
-              <AddIcon />
+              <FiltersIcon />
               <span className="text-white">Filters</span>
             </Button>
           </ResponsiveModalTrigger>
         )}
+
         <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
           <ResponsiveModalHeader>
-            <ResponsiveModalTitle>{modal_title}</ResponsiveModalTitle>
-            <ResponsiveModalDescription>
+            <ResponsiveModalTitle className="text-primary font-bold">
+              {modal_title}
+            </ResponsiveModalTitle>
+            <ResponsiveModalDescription className="text-secondary">
               {modal_description}
             </ResponsiveModalDescription>
           </ResponsiveModalHeader>

@@ -95,25 +95,41 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
   });
 
   return (
-    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
+    <div className="flex flex-col gap-4 bg-background p-3 rounded-2xl pb-6">
       <div className="">
-        <AgGridReact
-          gridOptions={{
-            rowSelection: {
-              mode: "multiRow",
-            },
-          }}
-          rowStyle={{
-            fontWeight: "bold",
-          }}
-          theme={myTheme}
-          onSortChanged={(e: any) => {
-            onSortChanged(e);
-          }}
-          rowData={props.Data}
-          columnDefs={props.Columns || []}
-          domLayout="autoHeight"
-        />
+        {props.row_selection !== false && (
+          <AgGridReact
+            gridOptions={{
+              rowSelection: {
+                mode: "multiRow",
+              },
+            }}
+            rowStyle={{
+              fontWeight: "bold",
+            }}
+            theme={myTheme}
+            onSortChanged={(e: any) => {
+              onSortChanged(e);
+            }}
+            rowData={props.Data}
+            columnDefs={props.Columns || []}
+            domLayout="autoHeight"
+          />
+        )}
+        {props.row_selection === false && (
+          <AgGridReact
+            rowStyle={{
+              fontWeight: "bold",
+            }}
+            theme={myTheme}
+            onSortChanged={(e: any) => {
+              onSortChanged(e);
+            }}
+            rowData={props.Data}
+            columnDefs={props.Columns || []}
+            domLayout="autoHeight"
+          />
+        )}
       </div>
 
       <div className="flex justify-between px-3">
@@ -123,10 +139,10 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
             value={rows_per_page}
             onValueChange={set_rows_per_page}
           >
-            <SelectTrigger className="w-20 text-sm font-normal text-secondary border border-border-grey shadow-lg bg-white rounded-lg">
+            <SelectTrigger className="w-20 text-sm font-normal text-secondary border border-border-grey shadow-lg bg-background rounded-lg">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white rounded-md">
               {["5", "10", "20", "30", "50"].map((item, index) => (
                 <SelectItem value={item} key={index}>
                   {item}

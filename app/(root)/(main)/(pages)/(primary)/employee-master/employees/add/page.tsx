@@ -6,9 +6,6 @@ import * as z from "zod";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form";
-import PersonalForm from "@/forms/company-master/PersonalForm";
-import BusinessForm from "@/forms/company-master/BusinessForm";
-import FlagsForm from "@/forms/company-master/FlagsForm";
 import PowerForm from "@/components/custom/power-comps/power-form";
 
 export default function Page() {
@@ -222,6 +219,7 @@ export default function Page() {
         type: "checkbox",
         state_route: "flags-form",
       },
+
       {
         label: "Calculate monthly missed hours",
         name: "monthly_missed_hours",
@@ -233,6 +231,104 @@ export default function Page() {
         name: "check_in",
         type: "checkbox",
         state_route: "flags-form",
+      },
+      {
+        label: "Employee type",
+        name: "employee_type",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+      {
+        label: "Manager",
+        name: "manager_type",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+      {
+        label: "Designation",
+        name: "designation",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+      {
+        label: "Grade",
+        name: "grade",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+      {
+        label: "Region",
+        name: "region",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+      {
+        label: "Schedule type",
+        name: "schedule-type",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+
+      {
+        label: "Schedule type",
+        name: "schedule-type",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+      {
+        label: "Buildings",
+        name: "buildings",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+
+      {
+        label: "Nationality",
+        name: "nationality",
+        type: "select",
+        state_route: "business-form",
+        items: [
+          { value: "full-time", label: "Full Time" },
+          { value: "half-time", label: "Half-Time" },
+        ],
+      },
+      {
+        label: "Manager flag",
+        name: "manager_flag",
+        type: "checkbox",
+        state_route: "business-form",
       },
     ]);
   }, []);
@@ -276,12 +372,19 @@ export default function Page() {
       console.error("Form submission error", error);
     }
   }
-
+  const [Page, SetPage] = useState<string>("personal-form");
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader items={modules?.employee_master.items} disableFeatures />
+      <PowerHeader
+        items={modules?.employee_master.items}
+        disableFeatures
+        modal_title="Employee "
+        modal_description="Select the Employee types of the company"
+      />
       <div>
         <PowerMultiStepForm
+          SetPage={SetPage}
+          Page={Page}
           Pages={[
             {
               title: "Personal",
@@ -295,6 +398,8 @@ export default function Page() {
                   onSubmit={onSubmit}
                   state_route="personal-form"
                   form_class="grid lg:grid-cols-2 gap-10 pt-4"
+                  next_route="business-form"
+                  setPage={SetPage}
                 />
               ),
             },
@@ -310,6 +415,8 @@ export default function Page() {
                   onSubmit={onSubmit}
                   state_route="business-form"
                   form_class="grid lg:grid-cols-2 gap-10 pt-4"
+                  next_route="flags-form"
+                  setPage={SetPage}
                 />
               ),
             },

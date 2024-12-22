@@ -159,6 +159,12 @@ export default function LanguageProvider({
         path: "/TA-master/schedules",
         value: "schedules",
       },
+      {
+        label: "Add Schedules",
+        path: "/TA-master/schedules/add",
+        value: "add-schedules",
+        hide: true,
+      },
     ],
   };
 
@@ -172,6 +178,12 @@ export default function LanguageProvider({
         value: "weekly_schedule",
       },
       {
+        label: "Add Weekly Schedule",
+        path: "/scheduling/weekly-schedule/add",
+        value: "add_weekly_schedule",
+        hide: true,
+      },
+      {
         label: "Monthly Roaster",
         path: "/scheduling/monthly-roaster",
         value: "monthly_roaster",
@@ -180,6 +192,7 @@ export default function LanguageProvider({
         label: "Employee Schedule",
         path: "/scheduling/employee-schedule",
         value: "employee_schedule",
+        hide: true,
       },
     ],
   };
@@ -278,6 +291,12 @@ export default function LanguageProvider({
         value: "application_settings",
       },
       {
+        label: "Add Announcement",
+        path: "/settings/announcements/add",
+        value: "add_announcement",
+        hide: true,
+      },
+      {
         label: "Announcements",
         path: "/settings/announcements",
         value: "announcement",
@@ -287,27 +306,17 @@ export default function LanguageProvider({
         path: "/settings/notifications",
         value: "notifications",
       },
-      {
-        label: "Licenses",
-        path: "/settings/licenses",
-        value: "licenses",
-      },
     ],
   };
 
   const alerts = {
     route_name: "Devices",
-    path: "/devices",
+    path: "/alerts",
     items: [
       {
         label: "Email",
         path: "/alerts/email",
         value: "email",
-      },
-      {
-        label: "SMS",
-        path: "/alerts/SMS",
-        value: "sms",
       },
     ],
   };

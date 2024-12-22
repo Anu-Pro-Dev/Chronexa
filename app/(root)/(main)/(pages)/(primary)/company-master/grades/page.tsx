@@ -5,7 +5,7 @@ import AddGradesCompanyMaster from "@/forms/AddGradesCompanyMaster";
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
-import { Checkbox } from "@/components/ui/checkbox";
+
 export default function Page() {
   const { modules } = useLanguage();
 

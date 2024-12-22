@@ -7,7 +7,6 @@ import React, { useState } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
 export default function Page() {
   const { modules } = useLanguage();
-  const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
     { field: "code" },
@@ -20,10 +19,26 @@ export default function Page() {
     { field: "updatedAt", headerName: "Updated" },
   ]);
 
+  const [Data, SetData] = useState<any>([]);
+  const [CurrentPage, SetCurrentPage] = useState<number>(1);
+  const [SortField, SetSortField] = useState<string>("");
+  const [SortDirection, SetSortDirection] = useState<string>("asc");
+  const [SearchValue, SetSearchValue] = useState<string>("");
+  const [open, on_open_change] = useState<boolean>(false);
   const props = {
     Data,
     SetData,
     Columns,
+    SortField,
+    CurrentPage,
+    SetCurrentPage,
+    SetSortField,
+    SortDirection,
+    SetSortDirection,
+    open,
+    on_open_change,
+    SearchValue,
+    SetSearchValue,
   };
 
   return (
@@ -33,7 +48,7 @@ export default function Page() {
         items={modules?.employee_master.items}
         isAddNewPagePath="/employee-master/groups/add"
       />
-      <PowerTable props={props} />
+      <PowerTable props={props} api={"/employee-master/groups"} />
     </div>
   );
 }

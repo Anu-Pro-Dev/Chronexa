@@ -76,7 +76,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         title: translations.navbar.primary.employee_master,
         url: modules.employee_master.items[0].path,
-        path: modules.employee_master,
+        path: modules.employee_master.path,
         icon: EmployeeMasterIcon,
       },
       {

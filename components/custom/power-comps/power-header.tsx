@@ -7,6 +7,7 @@ import PowerDelete from "./power-delete";
 import PowerSearch from "./power-search";
 import PowerExport from "./power-export";
 import { useLanguage } from "@/providers/LanguageProvider";
+import PowerFilter from "./power-filter";
 
 export default function PowerHeader({
   items,
@@ -17,8 +18,14 @@ export default function PowerHeader({
   disableDelete = false,
   isAddNewPagePath,
   disableFeatures = false,
+  enableFilters = false,
   modal_component,
+  filter_modal_component,
   isLarge,
+  modal_title,
+  modal_description,
+  filter_modal_title,
+  filter_modal_description,
 }: {
   items: any;
   props?: any;
@@ -28,19 +35,41 @@ export default function PowerHeader({
   disableDelete?: boolean;
   isAddNewPagePath?: string;
   disableFeatures?: boolean;
+  enableFilters?: boolean;
   modal_component?: any;
+  filter_modal_component?: any;
   isLarge?: any;
+  modal_title?: string;
+  modal_description?: string;
+  filter_modal_title?: string;
+  filter_modal_description?: string;
 }) {
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center">
         <PowerShifter items={items} />
 
-        {!disableFeatures && (
+        {
           <div className="flex gap-2 items-center">
-            {!disableSearch && <PowerSearch props={props} />}
-            {!disableAdd && (
+            {!disableFeatures && !disableSearch && (
+              <PowerSearch props={props} />
+            )}
+            {enableFilters && (
+              <PowerFilter
+                modal_title={filter_modal_title}
+                modal_description={filter_modal_description}
+                modal_component={filter_modal_component}
+                modal_props={{
+                  open: props.filter_open,
+                  on_open_change: props.filter_on_open_change,
+                }}
+                isLarge={isLarge}
+              />
+            )}
+            {!disableFeatures && !disableAdd && (
               <PowerAdd
+                modal_title={modal_title}
+                modal_description={modal_description}
                 isAddNewPagePath={isAddNewPagePath ?? null}
                 modal_component={modal_component}
                 modal_props={{
@@ -50,10 +79,13 @@ export default function PowerHeader({
                 isLarge={isLarge}
               />
             )}
-            {!disableDelete && <PowerDelete props={props} />}
-            {isExport && <PowerExport />}
+
+            {!disableFeatures && !disableDelete && (
+              <PowerDelete props={props} />
+            )}
+            {!disableFeatures && isExport && <PowerExport />}
           </div>
-        )}
+        }
       </div>
 
       <AutoPathMapper />

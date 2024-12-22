@@ -13,12 +13,12 @@ export default function Page() {
     { field: "description", headerName: "Description" },
     { field: "updatedAt", headerName: "Updated" },
   ]);
-  const [open, on_open_change] = useState<boolean>(false);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
   const [SortDirection, SetSortDirection] = useState<string>("asc");
   const [SearchValue, SetSearchValue] = useState<string>("");
+  const [open, on_open_change] = useState<boolean>(false);
   const props = {
     Data,
     SetData,

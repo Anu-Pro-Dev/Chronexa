@@ -50,7 +50,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 bg-white", className)}
+      className={cn("p-3 bg-background", className)}
       style={{
         width: 248.8 * (columnsDisplayed ?? 1) + "px",
       }}

@@ -91,7 +91,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "ODGS16",
     name: "Employee 1",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -101,7 +101,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "DGS42",
     name: "Employee 2",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -111,7 +111,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "OGS1",
     name: "Employee 3",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -121,7 +121,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "ODGS12",
     name: "Employee 4",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -131,7 +131,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "ODGS13",
     name: "Employee 5",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -141,7 +141,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "DGS42",
     name: "Employee 6",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -151,7 +151,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "OGS1",
     name: "Employee 7",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -161,7 +161,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "ODGS12",
     name: "Employee 8",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",
@@ -171,7 +171,7 @@ export const departments_data: DepartmentsDataType[] = [
   {
     number: "OGS1",
     name: "Employee 9",
-    organization: "",
+    organization: "CHRONO",
     from_date: "03-09-2024",
     to_date: "06-09-2024",
     active: "",

@@ -215,7 +215,7 @@ export default function AddManageMovements({
                     </PopoverTrigger>
                   </FormControl>
                   <PopoverContent className="w-auto p-0">
-                    <div className="p-3  bg-white">
+                    <div className="p-3  bg-background">
                       <TimePicker12Demo
                         setDate={field.onChange}
                         date={field.value}
@@ -255,7 +255,7 @@ export default function AddManageMovements({
                     </PopoverTrigger>
                   </FormControl>
                   <PopoverContent className="w-auto p-0 ">
-                    <div className="p-3  bg-white">
+                    <div className="p-3  bg-background">
                       <TimePicker12Demo
                         setDate={field.onChange}
                         date={field.value}

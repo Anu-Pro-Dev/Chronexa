@@ -14,10 +14,13 @@ export default function Page() {
     { field: "name" },
   ]);
 
+  const [open, on_open_change] = useState<boolean>(false);
   const props = {
     Data,
     SetData,
     Columns,
+    open,
+    on_open_change,
   };
 
   return (

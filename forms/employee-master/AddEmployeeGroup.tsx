@@ -83,7 +83,7 @@ export default function AddEmployeeGroup() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="grid lg:grid-cols-2 gap-10  w-11/12 mx-auto  ">
+        <div className="grid lg:grid-cols-2 gap-10  w-11/12 mx-auto bg-white p-4 rounded-md  ">
           <div>
             <FormField
               control={form.control}
@@ -264,8 +264,8 @@ export default function AddEmployeeGroup() {
             />
           </div>
 
-          <div className=" col-span-2 flex justify-end ">
-            <div className="flex ">
+          <div className=" col-span-2 flex justify-end">
+            <div className="flex  gap-2 ">
               <Button
                 variant={"outline"}
                 type="button"

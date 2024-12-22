@@ -96,7 +96,7 @@ export default function AddReaderDevices({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-2 gap-4"
+        className="grid grid-cols-2 gap-4 bg-white p-3 rounded-md"
       >
         <FormField
           control={form.control}

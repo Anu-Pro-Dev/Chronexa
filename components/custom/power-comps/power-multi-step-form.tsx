@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 
-export default function PowerMultiStepForm({ Pages }: { Pages: any }) {
-  const [Page, SetPage] = useState<string>("personal-form");
+export default function PowerMultiStepForm({
+  Pages,
+  Page,
+  SetPage,
+}: {
+  Pages: any;
+  Page: any;
+  SetPage: any;
+}) {
   return (
     <div className="flex flex-col gap-1 bg-white p-6 rounded-md">
       {Pages?.map((page: any, index: number) => (

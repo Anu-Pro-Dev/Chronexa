@@ -37,7 +37,7 @@ export default function Page() {
         items={modules?.ta_master?.items}
         modal_component={<AddReason on_open_change={on_open_change} />}
       />
-      <PowerTable props={props} />
+      <PowerTable props={props} api={"/ta-master/reasons"} />
     </div>
   );
 }

@@ -1,11 +1,23 @@
+import { email_data } from "@/data/alerts.data";
 import { grades_data, regions_data } from "@/data/cm.data"; // Import your datasets
 import { devices_status_data } from "@/data/devices.data";
+import {
+  employee_master_employees_data,
+  employee_master_groups_data,
+  employee_master_types_data,
+} from "@/data/em.data";
+import { departments_data, organizationtypes_data } from "@/data/org.data";
 import { privileges_data, roles_data } from "@/data/security.data";
+import { notification_data, settings_data } from "@/data/settings.data";
+import {
+  holidays_data,
+  ramadandates_data,
+  reasons_data,
+  schedules_data,
+} from "@/data/tam.data";
 
 export const DynamicApi = (api: any, params: any) => {
   try {
-    // Extract parameters
-
     const page = parseInt(params.page as string) || 1;
     const limit = parseInt(params.limit as string) || 10;
     const search = params.search ? params.search.toString() : "";
@@ -20,6 +32,37 @@ export const DynamicApi = (api: any, params: any) => {
       case "/company-master/regions":
         data = regions_data;
         break;
+      case "/organization/departments":
+        data = departments_data;
+        break;
+      case "/organization/types":
+        data = organizationtypes_data;
+        break;
+      case "/organization/types":
+        data = organizationtypes_data;
+        break;
+      case "/employee-master/employees":
+        data = employee_master_employees_data;
+        break;
+      case "/employee-master/types":
+        data = employee_master_types_data;
+        break;
+      case "/employee-master/groups":
+        data = employee_master_groups_data;
+        break;
+      case "/ta-master/ramadan-dates":
+        data = ramadandates_data;
+        break;
+      case "/ta-master/reasons":
+        data = reasons_data;
+        break;
+      case "/ta-master/holidays":
+        data = holidays_data;
+        break;
+      case "/ta-master/schedules":
+        data = schedules_data;
+        break;
+
       case "/devices/readers":
         data = devices_status_data;
         break;
@@ -29,13 +72,24 @@ export const DynamicApi = (api: any, params: any) => {
       case "/security/privileges":
         data = privileges_data;
         break;
+      case "/settings/notifications":
+        data = notification_data;
+        break;
+      case "/settings/application-settings":
+        data = settings_data;
+        break;
+      case "/alerts/email":
+        data = email_data;
+        break;
       default:
         throw new Error("API endpoint not supported");
     }
 
     if (search) {
       data = data.filter((item: any) =>
-        item.description.toLowerCase().includes(search.toLowerCase())
+        Object.values(item).some((value: any) =>
+          value.toString().toLowerCase().includes(search.toLowerCase())
+        )
       );
     }
 

@@ -3,7 +3,6 @@ import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddHoliday from "@/forms/ta-master/AddHoliday";
 
-
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
@@ -12,8 +11,12 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "code" },
-    { field: "reason_mode", headerName: "Reason Mode" },
+    { field: "description" },
+    { field: "from_date" },
+    { field: "to_date" },
+    { field: "recurring" },
+    { field: "public_holiday", headerName: "Public Holiday" },
+    { field: "updatedAt" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
@@ -32,7 +35,7 @@ export default function Page() {
         modal_component={<AddHoliday on_open_change={on_open_change} />}
         isLarge
       />
-      <PowerTable props={props} />
+      <PowerTable props={props} api={"/ta-master/holidays"} />
     </div>
   );
 }
