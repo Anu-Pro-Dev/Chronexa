@@ -2,12 +2,14 @@
 import SelfStatisticsPage from "@/components/custom/dashboard-comps/self-statistics/SSPage";
 
 import PowerHeader from "@/components/custom/power-comps/power-header";
+import { Button } from "@/components/ui/button";
 import {
   AbsentIcon,
   ApprovedIcon,
   CalendarIcon,
   LeaveTakenIcon,
   PendingIcon,
+  PunchInIcon,
   TotalLeavesIcon,
   WorkingDaysIcon,
 } from "@/icons/icons";
@@ -55,13 +57,19 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <div className="flex justify-between">
         <PowerHeader
           disableAdd
           disableDelete
           disableSearch
           items={modules?.dashboard.items}
         />
+        <div className="text-white">
+          <Button>
+            {" "}
+            <PunchInIcon /> Punch in
+          </Button>
+        </div>
       </div>
       <SelfStatisticsPage />
     </div>

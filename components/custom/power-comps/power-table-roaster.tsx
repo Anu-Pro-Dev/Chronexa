@@ -13,7 +13,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
-export default function PowerTable({ props, api }: { props: any; api?: any }) {
+export default function PowerTableRoaster({
+  props,
+  api,
+}: {
+  props: any;
+  api?: any;
+}) {
   const [TotalPages, SetTotalPages] = useState<number>(1);
   const [rows_per_page, set_rows_per_page] = useState<string>("5");
 
@@ -47,7 +53,7 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
     props?.SortDirection,
     props?.SearchValue,
   ]);
-  
+
   const onSortChanged = (event: any) => {
     const sortColumns = event.columns;
 
@@ -118,6 +124,7 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
         )}
         {props.row_selection === false && (
           <AgGridReact
+            groupDisplayType="multipleColumns"
             rowStyle={{
               fontWeight: "bold",
             }}
@@ -165,7 +172,6 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
           />
         </div>
       </div>
-      
     </div>
   );
 }

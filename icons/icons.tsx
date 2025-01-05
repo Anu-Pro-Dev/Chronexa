@@ -64,7 +64,7 @@ export const SearchIcon = (color: string = "#A3AED0") => (
   </svg>
 );
 
-export const LogoutIcon = (color: string = "#23272E") => (
+export const LogoutIcon = () => (
   <svg
     stroke="currentColor"
     fill="none"
@@ -694,7 +694,7 @@ export const ExportReportIcon = (color = "#FFFFFF") => (
   </svg>
 );
 
-export const ExportExcelIcon = (color = "#FFFFFF") => (
+export const ExportExcelIcon = () => (
   <svg
     width="15"
     height="16"
@@ -718,7 +718,7 @@ export const ExportExcelIcon = (color = "#FFFFFF") => (
   </svg>
 );
 
-export const ExportPDFIcon = (color = "FFFFFF") => (
+export const ExportPDFIcon = () => (
   <svg
     width="14"
     height="16"
@@ -741,7 +741,7 @@ export const ExportPDFIcon = (color = "FFFFFF") => (
   </svg>
 );
 
-export const ExportWordIcon = (color = "#FFFFFF") => (
+export const ExportWordIcon = () => (
   <svg
     width="15"
     height="16"
@@ -1043,7 +1043,7 @@ export const GreenPaletteIcon = () => (
   </svg>
 );
 
-export const LockIcon = (color = "#FFFFFF") => (
+export const LockIcon = () => (
   <svg
     width="12"
     height="16"
@@ -1058,7 +1058,7 @@ export const LockIcon = (color = "#FFFFFF") => (
   </svg>
 );
 
-export const UnlockIcon = (color = "#979797") => (
+export const UnlockIcon = () => (
   <svg
     width="12"
     height="16"
@@ -1276,7 +1276,7 @@ export const PendingIcon = () => (
   </svg>
 );
 
-export const PunchInIcon = (color = "#FFFFFF") => (
+export const PunchInIcon = () => (
   <svg
     width="12"
     height="12"

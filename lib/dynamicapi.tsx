@@ -66,8 +66,6 @@ export const DynamicApi = (api: any, params: any) => {
       case "/self-services/workflow":
         data = workflows_data;
         break;
-    
-
       case "/devices/readers":
         data = devices_status_data;
         break;

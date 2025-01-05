@@ -6,16 +6,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 import { usePathname, useRouter } from "next/navigation";
 
 export default function PowerShifter({ items }: { items: any }) {
   const router = useRouter();
   const pathname = usePathname();
-
+  const { dir } = useLanguage();
   return (
     <div>
       <Select
+        dir={dir}
         onValueChange={(value) => {
           router.push(value);
         }}

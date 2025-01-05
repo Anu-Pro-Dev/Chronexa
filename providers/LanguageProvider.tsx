@@ -47,12 +47,12 @@ export default function LanguageProvider({
     items: [
       {
         label: "Self Statistics",
-        path: "/dashboard/self-statistics",
+        path: "/dashboard/self-statistics/",
         value: "self_statistics",
       },
       {
         label: "Team Statistics",
-        path: "/dashboard/team-statistics",
+        path: "/dashboard/team-statistics/",
         value: "team_statistics",
       },
     ],
@@ -64,37 +64,37 @@ export default function LanguageProvider({
     items: [
       {
         label: "Regions",
-        path: "/company-master/regions",
+        path: "/company-master/regions/",
         value: "regions",
       },
-      { label: "Grades", path: "/company-master/grades", value: "grades" },
+      { label: "Grades", path: "/company-master/grades/", value: "grades" },
     ],
   };
 
   const organization = {
     route_name: "Organization",
-    path: "/organization",
+    path: "/organization/",
 
     items: [
       {
         label: "Departments",
-        path: "/organization/departments",
+        path: "/organization/departments/",
         value: "departments",
       },
       {
         label: "Add Department",
-        path: "/organization/departments/add",
+        path: "/organization/departments/add/",
         value: "add-department",
         hide: true,
       },
       {
         label: "Organization Structure",
-        path: "/organization/structures",
+        path: "/organization/structures/",
         value: "structure",
       },
       {
         label: "Organization types",
-        path: "/organization/types",
+        path: "/organization/types/",
         value: "types",
       },
     ],
@@ -102,34 +102,34 @@ export default function LanguageProvider({
 
   const employee_master = {
     route_name: "Employee Master",
-    path: "/employee-master",
+    path: "/employee-master/",
 
     items: [
       {
         label: "Employees",
-        path: "/employee-master/employees",
+        path: "/employee-master/employees/",
         value: "employees",
       },
       {
         label: "Add Employee",
-        path: "/employee-master/employees/add",
+        path: "/employee-master/employees/add/",
         value: "add-employee",
         hide: true,
       },
       {
         label: "Groups",
-        path: "/employee-master/groups",
+        path: "/employee-master/groups/",
         value: "groups",
       },
       {
         label: "Add Group",
-        path: "/employee-master/groups/add",
+        path: "/employee-master/groups/add/",
         value: "groups",
         hide: true,
       },
       {
         label: "Types",
-        path: "/employee-master/types",
+        path: "/employee-master/types/",
         value: "types",
       },
     ],
@@ -137,31 +137,31 @@ export default function LanguageProvider({
 
   const ta_master = {
     route_name: "TA Master",
-    path: "/TA-master",
+    path: "/TA-master/",
     items: [
       {
         label: "Reasons",
-        path: "/TA-master/reasons",
+        path: "/TA-master/reasons/",
         value: "reasons",
       },
       {
         label: "Holidays",
-        path: "/TA-master/holidays",
+        path: "/TA-master/holidays/",
         value: "holidays",
       },
       {
         label: "Ramadan Dates",
-        path: "/TA-master/ramadan-dates",
+        path: "/TA-master/ramadan-dates/",
         value: "ramadan_dates",
       },
       {
         label: "Schedules",
-        path: "/TA-master/schedules",
+        path: "/TA-master/schedules/",
         value: "schedules",
       },
       {
         label: "Add Schedules",
-        path: "/TA-master/schedules/add",
+        path: "/TA-master/schedules/add/",
         value: "add-schedules",
         hide: true,
       },
@@ -170,27 +170,27 @@ export default function LanguageProvider({
 
   const scheduling = {
     route_name: "Scheduling",
-    path: "/scheduling",
+    path: "/scheduling/",
     items: [
       {
         label: "Weekly Schedule",
-        path: "/scheduling/weekly-schedule",
+        path: "/scheduling/weekly-schedule/",
         value: "weekly_schedule",
       },
       {
         label: "Add Weekly Schedule",
-        path: "/scheduling/weekly-schedule/add",
+        path: "/scheduling/weekly-schedule/add/",
         value: "add_weekly_schedule",
         hide: true,
       },
       {
         label: "Monthly Roaster",
-        path: "/scheduling/monthly-roaster",
+        path: "/scheduling/monthly-roaster/",
         value: "monthly_roaster",
       },
       {
         label: "Employee Schedule",
-        path: "/scheduling/employee-schedule",
+        path: "/scheduling/employee-schedule/",
         value: "employee_schedule",
         hide: true,
       },
@@ -199,54 +199,125 @@ export default function LanguageProvider({
 
   const self_services = {
     route_name: "Self Services",
-    path: "/self-services",
+    path: "/self-services/",
     items: [
       {
         label: "Manage Permissions",
-        path: "/self-services/manage-permissions",
+        path: "/self-services/manage-permissions/applied/",
         value: "manage-permissions",
       },
       {
         label: "Manage Leaves",
-        path: "/self-services/manage-leaves",
+        path: "/self-services/manage-leaves/",
         value: "manage-leaves",
       },
       {
         label: "Manage Movements",
-        path: "/self-services/manage-movements",
+        path: "/self-services/manage-movements/",
         value: "manage-movements",
       },
       {
         label: "Approvals",
-        path: "/self-services/approvals",
+        path: "/self-services/approvals/",
         value: "approvals",
       },
       {
+        label: "Approvals",
+        path: "/self-services/approvals/verification/",
+        value: "approvals",
+        hide: true,
+      },
+      {
+        label: "Approvals",
+        path: "/self-services/approvals/pending/",
+        value: "approvals",
+        hide: true,
+      },
+      {
         label: "Workflow",
-        path: "/self-services/workflow",
+        path: "/self-services/workflow/",
         value: "workflow",
       },
       {
         label: "Add Workflow",
-        path: "/self-services/workflow/add",
+        path: "/self-services/workflow/add/",
         value: "add_workflow",
         hide: true,
       },
+      {
+        label: "Applied",
+        path: "/self-services/manage-movements/applied/",
+        value: "applied",
+        hide: true,
+      },
+      {
+        label: "Manual",
+        path: "/self-services/manage-movements/manual/",
+        value: "manual",
+        hide: true,
+      },
+      {
+        label: "Approval Manual",
+        path: "/self-services/manage-movements/approval-manual/",
+        value: "approved_manual",
+        hide: true,
+      },
+      {
+        label: "Missing",
+        path: "/self-services/manage-movements/missing/",
+        value: "manage-movements",
+        hide: true,
+      },
+      {
+        label: "Approve Missing",
+        path: "/self-services/manage-movements/approve-missing/",
+        value: "manage-movements",
+        hide: true,
+      },
     ],
+    manage_movements: {
+      items: [
+        {
+          label: "Applied",
+          url: "/self-services/manage-movements/applied/",
+          value: "applied",
+        },
+        {
+          label: "Manual",
+          url: "/self-services/manage-movements/manual/",
+          value: "manual",
+        },
+        {
+          label: "Approval Manual",
+          url: "/self-services/manage-movements/approval-manual/",
+          value: "approval-manual",
+        },
+        {
+          label: "Missing",
+          url: "/self-services/manage-movements/missing/",
+          value: "missing",
+        },
+        {
+          label: "Approve Missing",
+          url: "/self-services/manage-movements/approve-missing/",
+          value: "approve-missing",
+        },
+      ],
+    },
   };
 
   const devices = {
     route_name: "Devices",
-    path: "/devices",
+    path: "/devices/",
     items: [
       {
         label: "Readers",
-        path: "/devices/readers",
+        path: "/devices/readers/",
         value: "readers",
       },
       {
         label: "Add Reader",
-        path: "/devices/readers/add",
+        path: "/devices/readers/add/",
         value: "departments",
         hide: true,
       },
@@ -255,16 +326,16 @@ export default function LanguageProvider({
 
   const reports = {
     route_name: "Reports",
-    path: "/reports",
+    path: "/reports/",
     items: [
       {
         label: "Standard Reports",
-        path: "/reports/standard-reports",
+        path: "/reports/standard-reports/",
         value: "standard_reports",
       },
       {
         label: "Reprocess Data",
-        path: "/reports/reprocess-data",
+        path: "/reports/reprocess-data/",
         value: "reprocess_data",
       },
     ],
@@ -272,16 +343,16 @@ export default function LanguageProvider({
 
   const security = {
     route_name: "Security",
-    path: "/security",
+    path: "/security/",
     items: [
       {
         label: "Assign Roles",
-        path: "/security/roles",
+        path: "/security/roles/",
         value: "roles",
       },
       {
         label: "Privileges",
-        path: "/security/privileges",
+        path: "/security/privileges/",
         value: "privileges",
       },
     ],
@@ -289,27 +360,27 @@ export default function LanguageProvider({
 
   const settings = {
     route_name: "Settings",
-    path: "/settings",
+    path: "/settings/",
     items: [
       {
         label: "Application Settings",
-        path: "/settings/application-settings",
+        path: "/settings/application-settings/",
         value: "application_settings",
       },
       {
         label: "Add Announcement",
-        path: "/settings/announcements/add",
+        path: "/settings/announcements/add/",
         value: "add_announcement",
         hide: true,
       },
       {
         label: "Announcements",
-        path: "/settings/announcements",
+        path: "/settings/announcements/",
         value: "announcement",
       },
       {
         label: "Notifications ",
-        path: "/settings/notifications",
+        path: "/settings/notifications/",
         value: "notifications",
       },
     ],
@@ -317,11 +388,11 @@ export default function LanguageProvider({
 
   const alerts = {
     route_name: "Devices",
-    path: "/alerts",
+    path: "/alerts/",
     items: [
       {
         label: "Email",
-        path: "/alerts/email",
+        path: "/alerts/email/",
         value: "email",
       },
     ],
@@ -341,6 +412,7 @@ export default function LanguageProvider({
     settings,
     alerts,
   };
+
   useEffect(() => {
     setIsMounted(true);
     const storedLanguage = localStorage.getItem("language");

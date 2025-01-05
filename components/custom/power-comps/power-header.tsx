@@ -8,6 +8,8 @@ import PowerSearch from "./power-search";
 import PowerExport from "./power-export";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerFilter from "./power-filter";
+import PowerTakeAction from "./power-take-action";
+import PowerClear from "./power-clear";
 
 export default function PowerHeader({
   items,
@@ -26,6 +28,8 @@ export default function PowerHeader({
   modal_description,
   filter_modal_title,
   filter_modal_description,
+  enable_take_action = false,
+  enableClear = false,
 }: {
   items: any;
   props?: any;
@@ -43,6 +47,8 @@ export default function PowerHeader({
   modal_description?: string;
   filter_modal_title?: string;
   filter_modal_description?: string;
+  enable_take_action?: boolean;
+  enableClear?: boolean;
 }) {
   return (
     <div className="flex flex-col">
@@ -83,7 +89,21 @@ export default function PowerHeader({
             {!disableFeatures && !disableDelete && (
               <PowerDelete props={props} />
             )}
+            {enable_take_action && (
+              <PowerTakeAction
+                modal_title={modal_title}
+                modal_description={modal_description}
+                isAddNewPagePath={isAddNewPagePath ?? null}
+                modal_component={modal_component}
+                modal_props={{
+                  open: props.open,
+                  on_open_change: props.on_open_change,
+                }}
+                isLarge={isLarge}
+              />
+            )}
             {!disableFeatures && isExport && <PowerExport />}
+            {enableClear && <PowerClear props={props} />}
           </div>
         }
       </div>

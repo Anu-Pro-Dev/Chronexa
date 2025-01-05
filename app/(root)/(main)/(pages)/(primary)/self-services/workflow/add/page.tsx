@@ -1,6 +1,7 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import AddWorkflow from "@/forms/self-services/AddWorkflow";
+import WorkflowTable from "@/forms/self-services/WorkFlowTable";
 import { useLanguage } from "@/providers/LanguageProvider";
 import React, { useState } from "react";
 
@@ -26,11 +27,15 @@ export default function Add() {
     SearchValue,
     SetSearchValue,
   };
+
   return (
     <div>
       <PowerHeader props={props} items={modules?.self_services?.items} />
       <div className="flex flex-col gap-6 pt-6 bg-white p-6 rounded-md mt-4">
         <AddWorkflow />
+      </div>
+      <div>
+        <WorkflowTable />
       </div>
     </div>
   );
