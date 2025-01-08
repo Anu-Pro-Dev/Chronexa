@@ -45,7 +45,7 @@ import Image from "next/image";
 // This is sample data.
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { translations, dir } = useLanguage();
+  const { translations, dir, modules } = useLanguage();
   const data = {
     user: {
       name: "shadcn",
@@ -56,66 +56,78 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     primary: [
       {
         title: translations.navbar.primary.dashboard,
-        url: "/dashboard",
+        url: modules.dashboard.items[0].path,
+        path: modules.dashboard.path,
         icon: DashboardIcon,
         isActive: true,
       },
       {
         title: translations.navbar.primary.company_master,
-        url: "/company-master",
+        url: modules.company_master.items[0].path,
+        path: modules.company_master.path,
         icon: CompanyMasterIcon,
       },
       {
         title: translations.navbar.primary.organization,
-        url: "/organization",
+        url: modules.organization.items[0].path,
+        path: modules.organization.path,
         icon: OrganizationIcon,
       },
       {
         title: translations.navbar.primary.employee_master,
-        url: "/employee-master",
+        url: modules.employee_master.items[0].path,
+        path: modules.employee_master.path,
         icon: EmployeeMasterIcon,
       },
       {
         title: translations.navbar.primary.ta_master,
-        url: "/ta-master",
+        url: modules.ta_master.items[0].path,
+        path: modules.ta_master.path,
         icon: TAMasterIcon,
       },
       {
         title: translations.navbar.primary.scheduling,
-        url: "/scheduling",
+        url: modules.scheduling.items[0].path,
+        path: modules.scheduling.path,
         icon: SchedulingIcon,
       },
       {
         title: translations.navbar.primary.self_services,
-        url: "/self-services",
+        url: modules.self_services.items[0].path,
+        path: modules.self_services.path,
         icon: SelfServicesIcon,
       },
     ],
     secondary: [
       {
         title: translations.navbar.secondary.devices,
-        url: "/devices",
+        url: modules.devices.items[0].path,
+        path: modules.devices.path,
         icon: DevicesIcon,
         isActive: true,
       },
       {
         title: translations.navbar.secondary.reports,
-        url: "/reports",
+        url: modules.reports.items[0].path,
+        path: modules.reports.path,
         icon: ReportsIcon,
       },
       {
         title: translations.navbar.secondary.security,
-        url: "/security",
+        url: modules.security.items[0].path,
+        path: modules.security.path,
         icon: SecurityIcon,
       },
       {
         title: translations.navbar.secondary.settings,
-        url: "/settings",
+        url: modules.settings.items[0].path,
+        path: modules.settings.path,
         icon: SettingsIcon,
       },
       {
         title: translations.navbar.secondary.alerts,
-        url: "/alerts",
+        url: modules.alerts.items[0].path,
+        path: modules.alerts.path,
         icon: AlertsIcon,
       },
     ],
@@ -135,14 +147,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar
       collapsible="icon"
       {...props}
-      variant="sidebar"
-      side={dir === "rtl" ? "right" : "left"}
+      variant="inset"
+      // side={dir === "rtl" ? "right" : "left"}
     >
-      <SidebarHeader className="mx-[6px] mt-2">
-        <div className="flex justify-between items-center">
+      <SidebarHeader className="">
+        <div
+          className={`flex items-center py-5 ${
+            open ? "justify-between" : "justify-center"
+          }`}
+        >
           <div className="flex items-center gap-2">
             <Image
-              width={20}
+              width={25}
               height={100}
               alt="logo"
               src={"/logo.svg"}
@@ -150,12 +166,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 toggleSidebar();
               }}
             />
-            {open && <h1>{translations?.app_name}</h1>}
+            {open && (
+              <h1 className="font-bold text-xl cursor-pointer text-text-primary">
+                {translations?.app_name}
+              </h1>
+            )}
           </div>
           {open && <SidebarTrigger />}
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="pb-4">
         <NavMain items={data.primary} title={"Primary"} />
         <hr className="w-10/12 mx-auto" />
         <NavMain items={data.secondary} title={"Secondary"} />

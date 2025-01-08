@@ -19,22 +19,22 @@ export default function LanguageSwitcher() {
   ];
 
   return (
-    <div>
+  <div>
       <Select
-        dir={dir}
+        // dir={dir}
         value={language}
         onValueChange={(value) => {
           console.log(value);
           setLanguage(value);
         }}
       >
-        <SelectTrigger className="w-[180px] border-none shadow-none">
+        <SelectTrigger className="w-[140px] border-none shadow-none font-bold">
           <SelectValue placeholder="Select Language" />
         </SelectTrigger>
         <SelectContent>
           {languageOptions.map((item) => (
             <SelectItem value={item.value} key={item.value}>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4 text-sm">
                 <Image
                   width={20}
                   height={20}

@@ -1,0 +1,41 @@
+"use client";
+import PowerHeader from "@/components/custom/power-comps/power-header";
+import PowerTable from "@/components/custom/power-comps/power-table";
+import AddHoliday from "@/forms/ta-master/AddHoliday";
+
+import React, { useState } from "react";
+
+import { useLanguage } from "@/providers/LanguageProvider";
+export default function Page() {
+  const { modules } = useLanguage();
+  const [Data, SetData] = useState<any>([]);
+
+  const [Columns, setColumns] = useState([
+    { field: "description" },
+    { field: "from_date" },
+    { field: "to_date" },
+    { field: "recurring" },
+    { field: "public_holiday", headerName: "Public Holiday" },
+    { field: "updatedAt" },
+  ]);
+
+  const [open, on_open_change] = useState<boolean>(false);
+  const props = {
+    Data,
+    SetData,
+    Columns,
+    open,
+    on_open_change,
+  };
+  return (
+    <div className="flex flex-col gap-4">
+      <PowerHeader
+        props={props}
+        items={modules?.ta_master?.items}
+        modal_component={<AddHoliday on_open_change={on_open_change} />}
+        isLarge
+      />
+      <PowerTable props={props} api={"/ta-master/holidays"} />
+    </div>
+  );
+}

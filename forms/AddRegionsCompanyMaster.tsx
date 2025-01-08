@@ -1,0 +1,141 @@
+"use client";
+import { useEffect, useState } from "react";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { cn, getRandomInt } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
+import { USER_TOKEN } from "@/lib/Instance";
+import { useRouter } from "next/navigation";
+import Required from "@/components/ui/required";
+import { RefreshIcon } from "@/icons/icons";
+import { IoMdRefresh } from "react-icons/io";
+import { Textarea } from "@/components/ui/textarea";
+const formSchema = z.object({
+  code: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  description_en: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  description_ar: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+});
+
+export default function AddRegionsCompanyMaster({
+  on_open_change,
+}: {
+  on_open_change: any;
+}) {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      code: "",
+      description_en: "",
+      description_ar: "",
+    },
+  });
+
+  const router = useRouter();
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      console.log(values);
+    } catch (error) {
+      console.error("Form submission error", error);
+    }
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+        <div className="flex flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Code <Required />
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your Code" type="text" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description_en"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Description (English) <Required />
+                </FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Type here..." {...field} />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="description_ar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Description (العربية) <Required />
+                </FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Type here..." {...field} />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="w-full flex gap-2 items-center">
+            <Button
+              variant={"outline"}
+              type="button"
+              size={"lg"}
+              className="w-full"
+              onClick={() => on_open_change(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size={"lg"} className="w-full">
+              Save
+            </Button>
+          </div>
+        </div>
+      </form>
+    </Form>
+  );
+}

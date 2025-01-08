@@ -25,6 +25,7 @@ type NavItem = {
   items?: {
     title: string;
     url: string;
+    path: any;
     isActive?: boolean;
   }[];
 };
@@ -37,8 +38,8 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{title}</SidebarGroupLabel>
-      <SidebarMenu className={`${open && "ps-4"}`}>
-        {items.map((item) => (
+      <SidebarMenu className={`${open && ""}`}>
+        {items?.map((item: any) => (
           <Collapsible
             key={item.title}
             asChild
@@ -46,32 +47,30 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
             className="group/collapsible"
           >
             <SidebarMenuItem>
-              {/* Top-level item */}
-
               <SidebarMenuButton
                 onClick={() => {
                   router.push(item?.url);
                 }}
                 tooltip={item.title}
-                className={`hover:bg-transparent h-10  ${
-                  pathname.startsWith(item?.url)
-                    ? " bg-primary/20 hover:bg-primary/20 text-primary hover:text-primary  "
+                className={`hover:bg-backdrop hover:text-primary h-10  ${
+                  pathname.startsWith(item?.path)
+                    ? "bg-backdrop rounded-full hover:bg-backdrop text-primary hover:text-primary"
                     : ""
-                } ${!open && " ps-4"} `}
+                } ${!open && "rounded-lg"} `}
               >
                 {item.icon && <item.icon className="" />}
-                <span className="">{item.title}</span>
+                <span className="text-sm font-medium">{item.title}</span>
                 {item.items && <ChevronRight className="" />}
               </SidebarMenuButton>
 
               {item.items && (
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items.map((subItem) => (
+                    {item?.items?.map((subItem: any) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton
                           href={subItem.url}
-                          className={subItem.isActive ? "text-accent" : ""}
+                          className={subItem.isActive ? "text-success" : ""}
                         >
                           {subItem.title}
                         </SidebarMenuSubButton>

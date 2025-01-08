@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from "@/providers/Providers";
 
-const font_poppins = Poppins({
-  variable: "--font-geist-poppins",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+const font_nunito_sans = Nunito_Sans({
+  variable: "--font-nunito_sans",
+  subsets: ["latin", "latin-ext"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900", "1000"],
 });
 
 export const metadata: Metadata = {
-  title: "CHRONO",
+  title: "Chronologix",
   description: "",
 };
 
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body
-        className={`${font_poppins.className} ${font_poppins.variable} antialiased`}
+        className={`${font_nunito_sans.className} ${font_nunito_sans.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

@@ -4,6 +4,12 @@
   "language": "English",
 
   "translations": {
+    "buttons": {
+      "add": "Add",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
     "app_name": "Chronologix",
     "welcome": "Welcome",
     "navbar": {
@@ -22,6 +28,13 @@
         "security": "Security",
         "settings": "Settings",
         "alerts": "Alerts"
+      }
+    },
+    "modules": {
+      "organization": {
+        "items": {
+          "departments": "Departments"
+        }
       }
     }
   }
