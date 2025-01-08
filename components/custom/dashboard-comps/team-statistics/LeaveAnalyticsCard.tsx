@@ -8,7 +8,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/Chart";
+} from "@/components/ui/chart";
 
 const chartData = [
   { month: "January", leaves: 8, absent: 1 },
@@ -65,13 +65,13 @@ function LeaveAnalyticsCard() {
           <Bar
             dataKey="leaves"
             stackId="a"
-            fill="var(--primary)"
+            fill="var(--color-leaves)"
             radius={[0, 0, 2, 2]}
           />
           <Bar
             dataKey="absent"
             stackId="a"
-            fill="var(--danger)"
+            fill="var(--color-absent)"
             radius={[2, 2, 0, 0]}
           />
         </BarChart>

@@ -31,9 +31,9 @@ export function NavUser({}: {}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <SidebarMenuButton
-          size="lg"
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-transparent focus:bg-transparent"
+        <button
+          className="flex gap-3 items-center outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+          // className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-transparent focus:bg-transparent"
         >
           <Avatar className="w-12 h-12 rounded-lg bg-backdrop flex justify-center items-center">
             <AvatarImage alt={user.name} />
@@ -45,9 +45,9 @@ export function NavUser({}: {}) {
             <span className="truncate text-base font-bold text-text-primary">{user.name}</span>
             <span className="truncate text-sm font-semibold text-secondary">{user.email}</span>
           </div>
-          <span className="text-text-primary w-6">{DropDownIcon()}</span>
+          <span className="text-text-primary w-6"><DropDownIcon/></span>
           {/* <ChevronsUpDown className="ml-auto size-4" /> */}
-        </SidebarMenuButton>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[--radix-dropdown-menu-trigger-width] min-w-52"

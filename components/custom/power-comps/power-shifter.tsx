@@ -7,17 +7,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage } from "@/providers/LanguageProvider";
-
+import { SelectIcon } from "@radix-ui/react-select";
+import { DropDownIcon } from "@/icons/icons"
 import { usePathname, useRouter } from "next/navigation";
 
 export default function PowerShifter({ items }: { items: any }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { dir } = useLanguage();
+  // const { dir } = useLanguage();
   return (
     <div>
       <Select
-        dir={dir}
+        // dir={dir}
         onValueChange={(value) => {
           router.push(value);
         }}

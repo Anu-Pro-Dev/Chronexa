@@ -13,7 +13,17 @@ import React, { useEffect, useMemo, useState } from "react";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
+import { SelectIcon } from "@radix-ui/react-select";
+import { DropDownIcon } from "@/icons/icons";
 export default function PowerTable({ props, api }: { props: any; api?: any }) {
+  
+  const { isRTL, language } = props;
+
+  const containerStyle: React.CSSProperties = {
+    textAlign: isRTL ? "right" : "left",
+    direction: isRTL ? "rtl" : "ltr", // Explicitly provide the correct type
+  };
+
   const [TotalPages, SetTotalPages] = useState<number>(1);
   const [rows_per_page, set_rows_per_page] = useState<string>("5");
 
@@ -95,7 +105,7 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
   });
 
   return (
-    <div className="flex flex-col gap-4 bg-background p-3 rounded-2xl pb-6">
+    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
       <div className="">
         {props.row_selection !== false && (
           <AgGridReact
@@ -139,10 +149,10 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
             value={rows_per_page}
             onValueChange={set_rows_per_page}
           >
-            <SelectTrigger className="w-20 text-sm font-normal text-secondary border border-border-grey shadow-lg bg-background rounded-lg">
+            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-white rounded-lg">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-white rounded-md">
+            <SelectContent>
               {["5", "10", "20", "30", "50"].map((item, index) => (
                 <SelectItem value={item} key={index}>
                   {item}
@@ -165,7 +175,7 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
           />
         </div>
       </div>
-      
+
     </div>
   );
 }

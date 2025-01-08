@@ -101,7 +101,7 @@ export default function PowerTableRoaster({
   });
 
   return (
-    <div className="flex flex-col gap-4 bg-background p-3 rounded-2xl pb-6">
+    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
       <div className="">
         {props.row_selection !== false && (
           <AgGridReact
@@ -146,7 +146,7 @@ export default function PowerTableRoaster({
             value={rows_per_page}
             onValueChange={set_rows_per_page}
           >
-            <SelectTrigger className="w-20 text-sm font-normal text-secondary border border-border-grey shadow-lg bg-background rounded-lg">
+            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-white rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-white rounded-md">

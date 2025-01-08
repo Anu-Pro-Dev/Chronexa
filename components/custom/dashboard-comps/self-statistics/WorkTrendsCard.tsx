@@ -9,7 +9,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/Chart"
+} from "@/components/ui/chart"
 
 const chartData = [
   { date: "1", worked: 10, national: 0, holidays: 0 },

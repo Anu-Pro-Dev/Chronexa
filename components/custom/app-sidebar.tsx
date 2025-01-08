@@ -148,7 +148,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       collapsible="icon"
       {...props}
       variant="inset"
-      side={dir === "rtl" ? "right" : "left"}
+      // side={dir === "rtl" ? "right" : "left"}
     >
       <SidebarHeader className="">
         <div

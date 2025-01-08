@@ -13,7 +13,7 @@ import InsightsCard from "./InsightsCard";
 function SelfStatisticsPage() {
   return (
     <>
-      <div className="widget-group-1 flex justify-between mx-6 gap-4">
+      <div className="widget-group-1 flex justify-between gap-4">
         <div className="card-widget max-w-[calc(100vh / 3 * 4)] w-full h-auto flex flex-col gap-4">
           <LeaveCard />
           <LeaveAnalyticsCard />
@@ -23,7 +23,7 @@ function SelfStatisticsPage() {
           <ViolationsCard />
         </div>
       </div>
-      <div className="widget-group-2 flex justify-between mx-6 gap-4 my-4">
+      <div className="widget-group-2 flex justify-between gap-4">
         <div className="card-widget w-full h-auto flex flex-col gap-4">
           <WorkTrendsCard />
         </div>

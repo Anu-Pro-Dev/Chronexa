@@ -1,6 +1,6 @@
 "use client";
+import { cn } from "@/lib/utils";
 import SelfStatisticsPage from "@/components/custom/dashboard-comps/self-statistics/SSPage";
-
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,9 +54,10 @@ export default function Dashboard() {
       },
     ]);
   }, []);
+  const { dir } = useLanguage();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex justify-between">
         <PowerHeader
           disableAdd
@@ -65,9 +66,13 @@ export default function Dashboard() {
           items={modules?.dashboard.items}
         />
         <div className="text-white">
-          <Button>
+          <Button variant="gradient" size="sm">
             {" "}
-            <PunchInIcon /> Punch in
+            <PunchInIcon  
+              className={cn(
+                `${dir === "rtl" && "rotate-180"}`,
+              )}
+            /> Punch in
           </Button>
         </div>
       </div>

@@ -9,12 +9,12 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 export default function Layout({ children }: { children: any }) {
   return (
     <>
-      <div className="">
-        <div className="">
+      {/* <div className="">
+        <div className=""> */}
           <SidebarProvider>
             <AppSidebar />
             <div className=" w-full ">
-              <header className=" bg-background sidebar-background  ">
+              <header className="bg-white sidebar-background">
                 <div className="flex items-center gap-2 justify-between w-full py-4 px-2 bg-sidebar">
                   <div></div>
                   <div className="flex items-center gap-2">
@@ -23,13 +23,13 @@ export default function Layout({ children }: { children: any }) {
                   </div>
                 </div>
               </header>
-              <div className=" flex flex-1 flex-col gap-4 p-5 pl-7 bg-background min-h-dvh h-full">
+              <div className=" flex flex-1 flex-col gap-4 p-5 pl-7 bg-background">
                 {children}
               </div>
             </div>
           </SidebarProvider>
-        </div>
-      </div>
+        {/* </div>
+      </div> */}
     </>
   );
 }

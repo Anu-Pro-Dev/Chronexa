@@ -47,6 +47,10 @@ body {
     --border-grey: #808080cc;
     --backdrop: #0078d40d;
     --table-backdrop: #0078d41a;
+
+    /* Charts Color */
+    --chart-leaves: 206 100% 89%;
+    --chart-absent: 206 100% 42%;
     
   }
 }

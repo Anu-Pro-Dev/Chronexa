@@ -67,7 +67,21 @@ export default function LanguageProvider({
         path: "/company-master/regions/",
         value: "regions",
       },
-      { label: "Grades", path: "/company-master/grades/", value: "grades" },
+      {
+        label: "Nationalities",
+        path: "/company-master/nationalities",
+        value: "nationalities",
+      },
+      {
+        label: "Designations",
+        path: "/company-master/designations",
+        value: "designations",
+      },
+      { 
+        label: "Grades", 
+        path: "/company-master/grades/", 
+        value: "grades" 
+      },
     ],
   };
 
@@ -421,6 +435,12 @@ export default function LanguageProvider({
     }
   }, []);
 
+  useEffect(() => {
+    // Update the <html> attributes for `dir` and `lang`
+    document.documentElement.setAttribute("dir", currentLanguageData.dir || "ltr");
+    document.documentElement.setAttribute("lang", currentLanguageData.code);
+  }, [currentLanguageData]);
+
   const changeLanguage = (newLanguage: string) => {
     if (allLanguages[newLanguage]) {
       setLanguage(newLanguage);
@@ -443,9 +463,9 @@ export default function LanguageProvider({
         modules: modules,
       }}
     >
-      <div dir={currentLanguageData.dir} lang={currentLanguageData.code}>
+      {/* <div dir={currentLanguageData.dir} lang={currentLanguageData.code}> */}
         {children}
-      </div>
+      {/* </div> */}
     </LanguageContext.Provider>
   );
 }

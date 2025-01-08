@@ -7,7 +7,7 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/Chart"
+} from "@/components/ui/chart"
 
 const chartData = [
   { activity: "Missed in", value: 24 },

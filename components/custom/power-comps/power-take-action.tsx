@@ -70,7 +70,7 @@ export default function PowerTakeAction({
         
         <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
           <ResponsiveModalHeader>
-            <div dir={dir} className="flex items-start justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex flex-col text-start">
                 <span className="text-primary font-bold">{modal_title}</span>
                 <ResponsiveModalDescription className="text-secondary">

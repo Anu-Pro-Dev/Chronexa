@@ -6,7 +6,7 @@ import React from "react";
 
 export default function Page() {
   return (
-    <div dir="ltr" className="relative">
+    <div className="relative">
       <Image
         style={{ zIndex: -1 }}
         src="/bg_main.svg"
