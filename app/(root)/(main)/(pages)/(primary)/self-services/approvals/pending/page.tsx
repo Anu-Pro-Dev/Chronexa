@@ -32,7 +32,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.self_services?.items}
+        items={modules?.selfServices?.items}
         disableFeatures
         enableFilters
         enable_take_action

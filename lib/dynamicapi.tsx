@@ -2,9 +2,9 @@ import { email_data } from "@/data/alerts.data";
 import { grades_data, regions_data } from "@/data/cm.data"; // Import your datasets
 import { devices_status_data } from "@/data/devices.data";
 import {
-  employee_master_employees_data,
-  employee_master_groups_data,
-  employee_master_types_data,
+  employeeMaster_employees_data,
+  employeeMaster_groups_data,
+  employeeMaster_types_data,
 } from "@/data/em.data";
 import { departments_data, organizationtypes_data } from "@/data/org.data";
 import { privileges_data, roles_data } from "@/data/security.data";
@@ -43,13 +43,13 @@ export const DynamicApi = (api: any, params: any) => {
         data = organizationtypes_data;
         break;
       case "/employee-master/employees":
-        data = employee_master_employees_data;
+        data = employeeMaster_employees_data;
         break;
       case "/employee-master/types":
-        data = employee_master_types_data;
+        data = employeeMaster_types_data;
         break;
       case "/employee-master/groups":
-        data = employee_master_groups_data;
+        data = employeeMaster_groups_data;
         break;
       case "/ta-master/ramadan-dates":
         data = ramadandates_data;

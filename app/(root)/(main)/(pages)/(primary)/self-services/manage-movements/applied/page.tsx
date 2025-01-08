@@ -28,11 +28,11 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.self_services?.items}
+        items={modules?.selfServices?.items}
         disableAdd
         disableDelete
       />
-      <PowerTabs items={modules?.self_services?.manage_movements?.items} />
+      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
       <PowerTable props={props} />
     </div>
   );

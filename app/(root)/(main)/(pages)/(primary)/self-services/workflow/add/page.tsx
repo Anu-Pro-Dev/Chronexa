@@ -30,7 +30,7 @@ export default function Add() {
 
   return (
     <div>
-      <PowerHeader props={props} items={modules?.self_services?.items} />
+      <PowerHeader props={props} items={modules?.selfServices?.items} />
       <div className="flex flex-col gap-6 pt-6 bg-white p-6 rounded-md mt-4">
         <AddWorkflow />
       </div>

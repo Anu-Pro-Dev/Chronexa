@@ -31,7 +31,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.ta_master?.items}
+        items={modules?.taMaster?.items}
         modal_component={<AddHoliday on_open_change={on_open_change} />}
         isLarge
       />

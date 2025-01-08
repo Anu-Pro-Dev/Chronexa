@@ -12,7 +12,7 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader items={modules?.employee_master.items} disableFeatures />
+      <PowerHeader items={modules?.employeeMaster.items} disableFeatures />
       <AddEmployeeGroup />
     </div>
   );

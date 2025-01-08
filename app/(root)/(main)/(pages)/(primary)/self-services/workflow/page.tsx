@@ -39,7 +39,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.self_services?.items}
+        items={modules?.selfServices?.items}
         isAddNewPagePath="/self-services/workflow/add"
       />
       <PowerTable props={props} api={"/self-services/workflow"} />

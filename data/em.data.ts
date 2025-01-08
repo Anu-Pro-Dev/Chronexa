@@ -1,6 +1,6 @@
 import { EmployeeMasterEmployeesDataType, EmployeeMasterGroupsDataType, EmployeeMasterGroupsMembersDataType, EmployeeMasterTypesDataType } from "./types/types";
 
-export const employee_master_employees_columns = [
+export const employeeMaster_employees_columns = [
     "select",
     "number",
     "name",
@@ -14,7 +14,7 @@ export const employee_master_employees_columns = [
     "actions",
 ];
 
-export const employee_master_groups_columns = [
+export const employeeMaster_groups_columns = [
     "select",
     "code",
     "description",
@@ -28,7 +28,7 @@ export const employee_master_groups_columns = [
     "actions",
 ];
 
-export const employee_master_groups_member_columns = [
+export const employeeMaster_groups_member_columns = [
     "select",
     "number",
     "name",
@@ -36,7 +36,7 @@ export const employee_master_groups_member_columns = [
     "organization",
 ];
 
-export const employee_master_types_columns = [
+export const employeeMaster_types_columns = [
     "select",
     "code",
     "description",
@@ -44,7 +44,7 @@ export const employee_master_types_columns = [
     "actions",
 ];
 
-export const  employee_master_employees_data: EmployeeMasterEmployeesDataType[] = [
+export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] = [
     {
         "number": "1",
         "name": "John Doe",
@@ -212,7 +212,7 @@ export const  employee_master_employees_data: EmployeeMasterEmployeesDataType[] 
     },
 ];
 
-export const employee_master_groups_data: EmployeeMasterGroupsDataType[] = [
+export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
     {
         "code": "WD",
         "description": "Working Days",
@@ -292,7 +292,7 @@ export const employee_master_groups_data: EmployeeMasterGroupsDataType[] = [
     },
 ];
 
-export const employee_master_groups_member_data : EmployeeMasterGroupsMembersDataType[] = [
+export const employeeMaster_groups_member_data : EmployeeMasterGroupsMembersDataType[] = [
     {
         "number": "1",
         "name": "John Doe",
@@ -344,7 +344,7 @@ export const employee_master_groups_member_data : EmployeeMasterGroupsMembersDat
 ];
 
 
-export const employee_master_types_data: EmployeeMasterTypesDataType[] = [
+export const employeeMaster_types_data: EmployeeMasterTypesDataType[] = [
     {
         "code": "100",
         "description": "Andrew Brown",

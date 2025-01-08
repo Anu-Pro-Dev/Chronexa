@@ -1,7 +1,7 @@
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AddIcon } from "@/icons/icons";
-import React, { useState } from "react";
-
+import { useLanguage } from "@/providers/LanguageProvider";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -15,7 +15,7 @@ import { FiltersIcon } from "@/lib/svg/icons";
 
 export default function PowerFilter({
   isAddNewPagePath = null,
-  modal_title = "Filters",
+  modal_title,
   modal_description = "",
   modal_component,
   modal_props,
@@ -29,6 +29,8 @@ export default function PowerFilter({
   isLarge?: any;
 }) {
   const router = useRouter();
+  const { translations } = useLanguage();
+  const modalTitle = modal_title || translations?.buttons.filters || "Filters";
 
   return (
     <div>
@@ -45,7 +47,7 @@ export default function PowerFilter({
             size={"sm"}
           >
             <FiltersIcon />
-            <span className="text-white"> Filters</span>
+            <span className="text-white">{translations?.buttons.filters}</span>
           </Button>
         )}
 
@@ -53,7 +55,7 @@ export default function PowerFilter({
           <ResponsiveModalTrigger asChild>
             <Button className="flex items-center space-y-0.5" size={"sm"}>
               <FiltersIcon />
-              <span className="text-white">Filters</span>
+              <span className="text-white">{translations?.buttons.filters}</span>
             </Button>
           </ResponsiveModalTrigger>
         )}
@@ -61,7 +63,7 @@ export default function PowerFilter({
         <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
           <ResponsiveModalHeader>
             <ResponsiveModalTitle className="text-primary font-bold">
-              {modal_title}
+              {modalTitle}
             </ResponsiveModalTitle>
             <ResponsiveModalDescription className="text-secondary">
               {modal_description}

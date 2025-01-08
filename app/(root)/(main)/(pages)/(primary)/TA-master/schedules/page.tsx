@@ -56,7 +56,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.ta_master?.items}
+        items={modules?.taMaster?.items}
         isAddNewPagePath="/TA-master/schedules/add"
       />
       <PowerTable props={props} api={"/ta-master/schedules"} />

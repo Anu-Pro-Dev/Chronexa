@@ -39,7 +39,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.company_master.items}
+        items={modules?.companyMaster.items}
         modal_component={
           <AddRegionsCompanyMaster on_open_change={on_open_change} />
         }

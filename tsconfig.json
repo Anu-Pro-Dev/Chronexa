@@ -31,10 +31,10 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "next-env.d.ts",
     ".next/types/**/*.ts",
     "C:\\temp\\.next/types/**/*.ts",
     "D:\\.next/types/**/*.ts",
-    "next-env.d.ts",
     "D:\\Chronologix-new\\.next/types/**/*.ts"
   ],
   "exclude": [

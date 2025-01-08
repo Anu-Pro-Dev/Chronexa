@@ -24,7 +24,6 @@ export default function LanguageSwitcher() {
         // dir={dir}
         value={language}
         onValueChange={(value) => {
-          console.log(value);
           setLanguage(value);
         }}
       >

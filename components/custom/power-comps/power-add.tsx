@@ -18,7 +18,7 @@ import { IoMdClose } from "react-icons/io";
 
 export default function PowerAdd({
   isAddNewPagePath = null,
-  modal_title = "Add",
+  modal_title,
   modal_description = "Description",
   modal_component,
   modal_props,
@@ -31,8 +31,9 @@ export default function PowerAdd({
   modal_props?: any;
   isLarge?: any;
 }) {
-  // const { dir } = useLanguage();
   const router = useRouter();
+  const { translations } = useLanguage();
+  const modalTitle = modal_title || translations?.buttons.add || "Add";
 
   return (
     <div>
@@ -50,7 +51,7 @@ export default function PowerAdd({
             className="flex items-center space-y-0.5"
           >
             <AddIcon />
-            <span>Add</span>
+            <span>{translations?.buttons.add}</span>
           </Button>
         )}
 
@@ -62,7 +63,7 @@ export default function PowerAdd({
               className="flex items-center space-y-0.5"
             >
               <AddIcon />
-              <span>Add</span>
+              <span>{translations?.buttons.add}</span>
             </Button>
           </ResponsiveModalTrigger>
         )}
@@ -70,7 +71,9 @@ export default function PowerAdd({
           <ResponsiveModalHeader>
             <div className="flex items-start justify-between">
               <div className="flex flex-col text-start">
-                <span className="text-primary font-bold">{modal_title}</span>
+                <span className="text-primary font-bold">
+                  {modalTitle}
+                </span>
                 <ResponsiveModalDescription className="text-secondary">
                   {modal_description}
                 </ResponsiveModalDescription>

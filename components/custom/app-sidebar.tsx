@@ -62,9 +62,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: true,
       },
       {
-        title: translations.navbar.primary.company_master,
-        url: modules.company_master.items[0].path,
-        path: modules.company_master.path,
+        title: translations.navbar.primary.companyMaster,
+        url: modules.companyMaster.items[0].path,
+        path: modules.companyMaster.path,
         icon: CompanyMasterIcon,
       },
       {
@@ -74,15 +74,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: OrganizationIcon,
       },
       {
-        title: translations.navbar.primary.employee_master,
-        url: modules.employee_master.items[0].path,
-        path: modules.employee_master.path,
+        title: translations.navbar.primary.employeeMaster,
+        url: modules.employeeMaster.items[0].path,
+        path: modules.employeeMaster.path,
         icon: EmployeeMasterIcon,
       },
       {
-        title: translations.navbar.primary.ta_master,
-        url: modules.ta_master.items[0].path,
-        path: modules.ta_master.path,
+        title: translations.navbar.primary.taMaster,
+        url: modules.taMaster.items[0].path,
+        path: modules.taMaster.path,
         icon: TAMasterIcon,
       },
       {
@@ -92,9 +92,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: SchedulingIcon,
       },
       {
-        title: translations.navbar.primary.self_services,
-        url: modules.self_services.items[0].path,
-        path: modules.self_services.path,
+        title: translations.navbar.primary.selfServices,
+        url: modules.selfServices.items[0].path,
+        path: modules.selfServices.path,
         icon: SelfServicesIcon,
       },
     ],
@@ -168,7 +168,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             />
             {open && (
               <h1 className="font-bold text-xl cursor-pointer text-text-primary">
-                {translations?.app_name}
+                {translations?.productName}
               </h1>
             )}
           </div>
@@ -176,9 +176,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent className="pb-4">
-        <NavMain items={data.primary} title={"Primary"} />
+        <NavMain items={data.primary} title={translations?.primary} />
         <hr className="w-10/12 mx-auto" />
-        <NavMain items={data.secondary} title={"Secondary"} />
+        <NavMain items={data.secondary} title={translations?.secondary} />
       </SidebarContent>
 
       <SidebarRail />

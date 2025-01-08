@@ -20,6 +20,7 @@ import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
 import { logout } from "@/lib/utils";
 import { DropDownIcon, LogoutIcon, UserPasswordIcon } from "@/icons/icons";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 export function NavUser({}: {}) {
   const { isMobile } = useSidebar();
@@ -28,6 +29,8 @@ export function NavUser({}: {}) {
     email: "Admin",
   };
   const router = useRouter();
+  const { translations, dir } = useLanguage();
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -52,6 +55,7 @@ export function NavUser({}: {}) {
       <DropdownMenuContent
         className="w-[--radix-dropdown-menu-trigger-width] min-w-52"
         // side={isMobile ? "bottom" : "right"}
+        dir={undefined}
         side={"bottom"}
         align="end"
         sideOffset={4}
@@ -63,7 +67,7 @@ export function NavUser({}: {}) {
             }}
           >
             {UserPasswordIcon()}
-            Change Password
+            {translations?.changePassword}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuItem
@@ -74,7 +78,7 @@ export function NavUser({}: {}) {
           }}
         >
           {LogoutIcon()}
-          Log out
+          {translations?.logout}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

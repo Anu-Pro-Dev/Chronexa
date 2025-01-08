@@ -46,39 +46,39 @@ export default function LanguageProvider({
     path: "/dashboard",
     items: [
       {
-        label: "Self Statistics",
+        label: currentLanguageData.translations?.modules?.dashboard?.selfStatistics || "Self Statistics",
         path: "/dashboard/self-statistics/",
         value: "self_statistics",
       },
       {
-        label: "Team Statistics",
+        label: currentLanguageData.translations?.modules?.dashboard?.teamStatistics || "Team Statistics",
         path: "/dashboard/team-statistics/",
         value: "team_statistics",
       },
     ],
   };
 
-  const company_master = {
+  const companyMaster = {
     route_name: "Company Master",
     path: "/company-master",
     items: [
       {
-        label: "Regions",
+        label: currentLanguageData.translations?.modules?.companyMaster?.regions || "Regions",
         path: "/company-master/regions/",
         value: "regions",
       },
       {
-        label: "Nationalities",
+        label: currentLanguageData.translations?.modules?.companyMaster?.nationalities || "Nationalities",
         path: "/company-master/nationalities",
         value: "nationalities",
       },
       {
-        label: "Designations",
+        label: currentLanguageData.translations?.modules?.companyMaster?.designations || "Designations",
         path: "/company-master/designations",
         value: "designations",
       },
       { 
-        label: "Grades", 
+        label: currentLanguageData.translations?.modules?.companyMaster?.grades || "Grades",
         path: "/company-master/grades/", 
         value: "grades" 
       },
@@ -88,33 +88,32 @@ export default function LanguageProvider({
   const organization = {
     route_name: "Organization",
     path: "/organization/",
-
     items: [
       {
-        label: "Departments",
+        label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
         path: "/organization/departments/",
         value: "departments",
       },
       {
-        label: "Add Department",
+        label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
         path: "/organization/departments/add/",
         value: "add-department",
         hide: true,
       },
       {
-        label: "Organization Structure",
+        label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
         path: "/organization/structures/",
         value: "structure",
       },
       {
-        label: "Organization types",
+        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
         path: "/organization/types/",
         value: "types",
       },
     ],
   };
 
-  const employee_master = {
+  const employeeMaster = {
     route_name: "Employee Master",
     path: "/employee-master/",
 
@@ -125,13 +124,13 @@ export default function LanguageProvider({
         value: "employees",
       },
       {
-        label: "Add Employee",
+        label: "Employees",
         path: "/employee-master/employees/add/",
         value: "add-employee",
         hide: true,
       },
       {
-        label: "Groups",
+        label: "Employee Groups",
         path: "/employee-master/groups/",
         value: "groups",
       },
@@ -142,14 +141,14 @@ export default function LanguageProvider({
         hide: true,
       },
       {
-        label: "Types",
+        label: "Employee Types",
         path: "/employee-master/types/",
         value: "types",
       },
     ],
   };
 
-  const ta_master = {
+  const taMaster = {
     route_name: "TA Master",
     path: "/TA-master/",
     items: [
@@ -211,7 +210,7 @@ export default function LanguageProvider({
     ],
   };
 
-  const self_services = {
+  const selfServices = {
     route_name: "Self Services",
     path: "/self-services/",
     items: [
@@ -414,12 +413,12 @@ export default function LanguageProvider({
 
   const modules = {
     dashboard,
-    company_master,
+    companyMaster,
     organization,
-    employee_master,
-    ta_master,
+    employeeMaster,
+    taMaster,
     scheduling,
-    self_services,
+    selfServices,
     devices,
     reports,
     security,

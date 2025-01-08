@@ -1,8 +1,11 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { DeleteIcon } from "@/icons/icons";
-import React from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function PowerDelete({ props }: { props: any }) {
+  const { translations } = useLanguage();
+  
   return (
     <div>
       <Button
@@ -14,7 +17,7 @@ export default function PowerDelete({ props }: { props: any }) {
         className="flex items-center space-y-0.5"
       >
         <DeleteIcon />
-        <span>Delete</span>
+        <span>{translations?.buttons.delete}</span>
       </Button>
     </div>
   );

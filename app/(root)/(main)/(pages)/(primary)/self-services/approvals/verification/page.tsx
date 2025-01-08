@@ -31,7 +31,7 @@ export default function Page() {
       <PowerHeader
         enable_take_action
         props={props}
-        items={modules?.self_services?.items}
+        items={modules?.selfServices?.items}
         disableFeatures
         enableFilters
         isLarge={true}

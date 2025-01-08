@@ -376,7 +376,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        items={modules?.employee_master.items}
+        items={modules?.employeeMaster.items}
         disableFeatures
         modal_title="Employee "
         modal_description="Select the Employee types of the company"

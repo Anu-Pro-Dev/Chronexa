@@ -33,7 +33,7 @@ export default function Page() {
       <PowerHeader
         isLarge
         props={props}
-        items={modules?.ta_master?.items}
+        items={modules?.taMaster?.items}
         modal_component={
           <AddRamadanDateRange on_open_change={on_open_change} />
         }

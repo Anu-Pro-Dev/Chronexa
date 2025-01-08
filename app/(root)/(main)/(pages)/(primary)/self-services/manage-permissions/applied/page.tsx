@@ -26,8 +26,8 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader props={props} items={modules?.self_services?.items} />
-      <PowerTabs items={modules?.self_services?.manage_movements?.items} />
+      <PowerHeader props={props} items={modules?.selfServices?.items} />
+      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
       <PowerTable props={props} />
     </div>
   );

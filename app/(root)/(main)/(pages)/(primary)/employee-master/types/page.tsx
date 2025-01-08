@@ -40,7 +40,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.employee_master.items}
+        items={modules?.employeeMaster.items}
         modal_title="Employee types"
         modal_description="Select the Employee types of the company"
         modal_component={

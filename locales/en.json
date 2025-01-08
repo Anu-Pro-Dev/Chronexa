@@ -4,23 +4,23 @@
   "language": "English",
 
   "translations": {
-    "buttons": {
-      "add": "Add",
-      "delete": "Delete",
-      "save": "Save",
-      "cancel": "Cancel"
-    },
-    "app_name": "Chronologix",
+    "productName": "Chronologix",
     "welcome": "Welcome",
+    "changePassword": "Change Password",
+    "logout": "Logout",
+    "search": "Search",
+    "recordsPerPage": "Records per page",
+    "primary": "Primary",
+    "secondary":"Secondary",
     "navbar": {
       "primary": {
         "dashboard": "Dashboard",
-        "company_master": "Company Master",
+        "companyMaster": "Company Master",
         "organization": "Organization",
-        "employee_master": "Employee Master",
-        "ta_master": "TA Master",
+        "employeeMaster": "Employee Master",
+        "taMaster": "TA Master",
         "scheduling": "Scheduling",
-        "self_services": "Self Services"
+        "selfServices": "Self Services"
       },
       "secondary": {
         "devices": "Devices",
@@ -30,11 +30,41 @@
         "alerts": "Alerts"
       }
     },
+    "buttons": {
+      "add": "Add",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "filters": "Filters",
+      "takeAction": "Take Action",
+      "punchIn": "Punch In",
+      "punchOut": "Punch Out"
+    },
     "modules": {
+      "dashboard": {
+        "selfStatistics": "Self Statistics",
+        "teamStatistics": "Team Statistics",
+        "permissionandLeaves": "Permission & Leaves",
+        "workingDays": "Working Days",
+        "leavesTaken" : "Leaves Taken",
+        "leavesAbsent": "Leaves Absent",
+        "approvedLeaves": "Approved Leaves",
+        "pendingLeaves" : "Pending Leaves",
+        "applyLeave": "Apply Leave",
+        "clockHours": "Clock your hours",
+        "remaining": "Remaining",
+        "breakTime": "Break Time"
+      },
+      "companyMaster": {
+        "regions": "Regions",
+        "nationalities": "Nationalities",
+        "designations": "Designations",
+        "grades": "Grades"
+      },
       "organization": {
-        "items": {
-          "departments": "Departments"
-        }
+        "departments": "Departments",
+        "organizationStructure": "Organization Structure",
+        "organizationTypes": "Organization Types"
       }
     }
   }

@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 export default function PowerShifter({ items }: { items: any }) {
   const router = useRouter();
   const pathname = usePathname();
-  // const { dir } = useLanguage();
+  const { translations } = useLanguage();
   return (
     <div>
       <Select

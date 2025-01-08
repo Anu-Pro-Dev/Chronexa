@@ -16,7 +16,7 @@
 //   ],
 // };
 
-// export const company_master = {
+// export const companyMaster = {
 //   route_name: "Company Master",
 //   route: "/company-master",
 //   items: [
@@ -58,7 +58,7 @@
 //   ],
 // };
 
-// export const employee_master = {
+// export const employeeMaster = {
 //   route_name: "Employee Master",
 //   route: "/employee-master",
 
@@ -93,7 +93,7 @@
 //   ],
 // };
 
-// export const ta_master = {
+// export const taMaster = {
 //   route_name: "TA Master",
 //   route: "/TA-master",
 //   items: [
@@ -142,7 +142,7 @@
 //   ],
 // };
 
-// export const self_services = {
+// export const selfServices = {
 //   route_name: "Self Services",
 //   route: "/self-services",
 //   items: [

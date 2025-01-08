@@ -29,12 +29,12 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.self_services?.items}
+        items={modules?.selfServices?.items}
         modal_title="Manual movements add"
         modal_description="Select the options of the Manual movements to add"
         modal_component={<AddManageMovements on_open_change={on_open_change} />}
       />
-      <PowerTabs items={modules?.self_services?.manage_movements?.items} />
+      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
       <PowerTable props={props} />
     </div>
   );

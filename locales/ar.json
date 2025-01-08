@@ -3,17 +3,23 @@
   "dir": "rtl",
   "language": "عربي",
   "translations": {
-    "app_name": "كرونولوجيكس",
+    "productName": "Chronologix",
     "welcome": "مرحبًا",
+    "changePassword": "تغيير كلمة المرور",
+    "logout": "تسجيل الخروج",
+    "search": "يبحث",
+    "recordsPerPage": "عدد السجلات في كل صفحة",
+    "primary": "أساسي",
+    "secondary":"ثانوي",
     "navbar": {
       "primary": {
         "dashboard": "لوحة القيادة",
-        "company_master": "سجل الشركة",
+        "companyMaster": "سجل الشركة",
         "organization": "المؤسسة",
-        "employee_master": "سجل الموظفين",
-        "ta_master": "سجل الحضور والغياب",
+        "employeeMaster": "سجل الموظفين",
+        "taMaster": "سجل الحضور والغياب",
         "scheduling": "الجدولة",
-        "self_services": "الخدمات الذاتية"
+        "selfServices": "الخدمات الذاتية"
       },
       "secondary": {
         "devices": "الأجهزة",
@@ -21,6 +27,42 @@
         "security": "الأمان",
         "settings": "الإعدادات",
         "alerts": "تنبيه"
+      }
+    },
+    "buttons": {
+      "add": "يضيف",
+      "delete": "يمسح",
+      "save": "يحفظ",
+      "cancel": "يلغي",
+      "filters": "المرشحات",
+      "takeAction": "إتخذ إجراء",
+      "punchIn": "لكمة في",
+      "punchOut": "لكمة خارج"
+    },
+    "modules": {
+      "dashboard": {
+        "selfStatistics": "إحصائيات ذاتية",
+        "teamStatistics": "إحصائيات الفريق",
+        "permissionandLeaves": "إذن & أوراق",
+        "workingDays": "أيام العمل",
+        "leavesTaken" : "الأوراق المتخذة",
+        "leavesAbsent": "يترك غائبا",
+        "approvedLeaves": "الأوراق المعتمدة",
+        "pendingLeaves" : "أوراق معلقة",
+        "clockHours": "اضبط ساعاتك",
+        "remaining": "متبقي",
+        "breakTime": "وقت الاستراحة"
+      },
+      "companyMaster": {
+        "regions": "مناطق",
+        "nationalities": "الجنسيات",
+        "designations": "المسميات الوظيفية",
+        "grades": "الدرجات"
+      },
+      "organization": {
+        "departments": "الأقسام",
+        "organizationStructure": "الهيكل التنظيمي",
+        "organizationTypes": "أنواع الجهات"
       }
     }
   }
