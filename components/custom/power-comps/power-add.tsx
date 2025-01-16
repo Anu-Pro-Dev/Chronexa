@@ -69,27 +69,30 @@ export default function PowerAdd({
         )}
         <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
           <ResponsiveModalHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex flex-col text-start">
-                <span className="text-primary font-bold">
+            {/* <div className=""> */}
+              {/* <div className=""> */}
+                <ResponsiveModalTitle>
                   {modalTitle}
-                </span>
-                <ResponsiveModalDescription className="text-secondary">
+                </ResponsiveModalTitle>
+                {/* <span className="text-text-primary font-bold text-xl">
+                  {modalTitle}
+                </span> */}
+                <ResponsiveModalDescription>
                   {modal_description}
                 </ResponsiveModalDescription>
-              </div>
-              <span
+              {/* </div> */}
+              {/* <span
                 className="cursor-pointer hover:scale-125 transition-all"
                 onClick={() => {
                   modal_props?.on_open_change(false);
                 }}
               >
                 <IoMdClose />
-              </span>
-            </div>
-            <ResponsiveModalTitle></ResponsiveModalTitle>
+              </span> */}
+            {/* </div> */}
+            {/* <ResponsiveModalTitle></ResponsiveModalTitle> */}
           </ResponsiveModalHeader>
-          {<div className="p-1">{modal_component}</div>}
+          {<div className="">{modal_component}</div>}
         </ResponsiveModalContent>
       </ResponsiveModal>
     </div>

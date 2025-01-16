@@ -13,9 +13,9 @@ export default function Layout({ children }: { children: any }) {
         <div className=""> */}
           <SidebarProvider>
             <AppSidebar />
-            <div className=" w-full ">
-              <header className="bg-white sidebar-background">
-                <div className="flex items-center gap-2 justify-between w-full py-4 px-2 bg-sidebar">
+            <div className="w-full bg-background">
+              <header className="bg-white">
+                <div className="flex items-center gap-2 justify-between w-full py-4 px-2">
                   <div></div>
                   <div className="flex items-center gap-2">
                     <LanguageSwitcher />

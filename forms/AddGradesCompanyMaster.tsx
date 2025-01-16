@@ -88,7 +88,6 @@ export default function AddGradesCompanyMaster({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="description_en"
@@ -98,9 +97,8 @@ export default function AddGradesCompanyMaster({
                   Description (English) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter description here..." type="text" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -114,54 +112,55 @@ export default function AddGradesCompanyMaster({
                   Description (العربية) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter description here..." type="text" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="senior_employee"
-            render={({ field }) => (
-              <FormItem className="">
-                <FormControl>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="senior_employee"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                    <FormLabel htmlFor="senior_employee">
-                      Senior Employee
-                    </FormLabel>
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="overtime_eligible"
-            render={({ field }) => (
-              <FormItem className="">
-                <FormControl>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="overtime_eligible"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                    <FormLabel htmlFor="overtime_eligible">
-                      Overtime Eligible
-                    </FormLabel>
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <div className="w-full flex gap-2 items-center">
+          <div className="flex justify-between">
+            <FormField
+              control={form.control}
+              name="overtime_eligible"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="overtime_eligible"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <FormLabel htmlFor="overtime_eligible" className="font-semibold text-sm text-text-primary">
+                        Overtime Eligible
+                      </FormLabel>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="senior_employee"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="senior_employee"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <FormLabel htmlFor="senior_employee" className="font-semibold text-sm text-text-primary">
+                        Senior Employee
+                      </FormLabel>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}
               type="button"
