@@ -80,13 +80,12 @@ export default function AddRegionsCompanyMaster({
                   Code <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your Code" type="text" {...field} />
+                  <Input placeholder="Enter the code" type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="description_en"
@@ -96,9 +95,8 @@ export default function AddRegionsCompanyMaster({
                   Description (English) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter description here..." type="text" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -112,15 +110,46 @@ export default function AddRegionsCompanyMaster({
                   Description (العربية) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter description here..." type="text" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="w-full flex gap-2 items-center">
+          {/* <FormField
+            control={form.control}
+            name="description_en"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Description (English) <Required />
+                </FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Type here..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description_ar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Description (العربية) <Required />
+                </FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Type here..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          /> */}
+
+          <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}
               type="button"
