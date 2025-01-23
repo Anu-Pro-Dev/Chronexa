@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/select";
 
 import { AgGridReact } from "ag-grid-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
+import { useLanguage } from "@/providers/LanguageProvider";
+
 export default function PowerTableRoaster({
   props,
   api,
@@ -20,6 +22,8 @@ export default function PowerTableRoaster({
   props: any;
   api?: any;
 }) {
+  const { dir } = useLanguage();
+
   const [TotalPages, SetTotalPages] = useState<number>(1);
   const [rows_per_page, set_rows_per_page] = useState<string>("5");
 
@@ -80,6 +84,14 @@ export default function PowerTableRoaster({
     props.SetCurrentPage(page);
   };
 
+  const gridRef = useRef<any>();
+
+  useEffect(() => {
+    if (gridRef.current) {
+      gridRef.current.api.setDomLayout(dir === "rtl" ? "rtl" : "ltr");
+    }
+  }, [dir]);
+
   const myTheme = themeQuartz.withParams({
     fontFamily: "Nunito Sans",
     borderColor: "#00000005",
@@ -113,6 +125,8 @@ export default function PowerTableRoaster({
             rowStyle={{
               fontWeight: "bold",
             }}
+            key={dir}
+            enableRtl={dir === "rtl"}
             theme={myTheme}
             onSortChanged={(e: any) => {
               onSortChanged(e);
@@ -128,6 +142,8 @@ export default function PowerTableRoaster({
             rowStyle={{
               fontWeight: "bold",
             }}
+            key={dir}
+            enableRtl={dir === "rtl"}
             theme={myTheme}
             onSortChanged={(e: any) => {
               onSortChanged(e);
