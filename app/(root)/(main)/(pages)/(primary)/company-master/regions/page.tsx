@@ -19,6 +19,7 @@ export default function Page() {
   const [SortDirection, SetSortDirection] = useState<string>("asc");
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const props = {
     Data,
     SetData,
@@ -35,16 +36,26 @@ export default function Page() {
     SetSearchValue,
   };
 
+  // Function to handle edit click
+  const handleEditClick = (data: any) => {
+    // Here you can handle the edit logic
+    console.log("Editing row data:", data);
+    setSelectedRowData(data);
+    // Open the modal by setting `on_open_change` to true
+    on_open_change(true);
+  };
+
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
         items={modules?.companyMaster.items}
         modal_component={
-          <AddRegionsCompanyMaster on_open_change={on_open_change} />
+          <AddRegionsCompanyMaster on_open_change={on_open_change}/>
         }
       />
-      <PowerTable props={props} api={"/company-master/regions"} />
+      <PowerTable props={props} api={"/company-master/regions"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

@@ -74,7 +74,7 @@ export function PowerTablePagination({
       <Button
         className={cn(
           `${dir === "rtl" && "rotate-180"}`,
-          "p-2 border-none outline-none rounded-[5px] h-6 w-6 flex justify-center items-center text-sm cursor-pointer bg-backdrop"
+          "p-2 border-none outline-none rounded-[5px] h-6 w-6 flex justify-center items-center text-sm cursor-pointer bg-backdrop ml-2"
         )}
         variant="ghost"
         size="pagination"
