@@ -7,31 +7,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { AgGridReact } from "ag-grid-react";
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
-import { SelectIcon } from "@radix-ui/react-select";
-import { DropDownIcon } from "@/icons/icons";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { EditIcon } from "@/icons/icons";
 
-export default function PowerTable({ props, api }: { props: any; api?: any }) {
-  
-  const { isRTL, language } = props;
-
-  const { dir } = useLanguage();
-
-  const containerStyle: React.CSSProperties = {
-    textAlign: isRTL ? "right" : "left",
-    direction: isRTL ? "rtl" : "ltr", // Explicitly provide the correct type
+const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data: any) => void }) => {
+  const handleClick = () => {
+    onEditClick(data);
   };
 
+  return (
+    <button onClick={handleClick}>
+      {EditIcon()}
+    </button>
+  );
+};
+
+export default function PowerTable({ props, api, showEdit, onEditClick  }: { props: any; api?: any; showEdit?: boolean; onEditClick?: (data: any) => void  }) {
+  
+  const { dir } = useLanguage();
+
+  const gridRef = useRef<any>();
+
   const [TotalPages, SetTotalPages] = useState<number>(1);
+
   const [rows_per_page, set_rows_per_page] = useState<string>("5");
 
-  console.log(props);
   const FetchData = async () => {
     try {
       const response: any = await DynamicApi(api, {
@@ -41,7 +46,6 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
         sortType: props?.SortDirection,
         search: props?.SearchValue,
       });
-      console.log(response);
       props.SetData(response.data.payload);
       SetTotalPages(response.data.pagination.totalPages);
     } catch (error) {
@@ -83,12 +87,11 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
       }
     }
   };
+
   const handlePageChange = (page: number) => {
     console.log("Navigating to page:", page);
     props.SetCurrentPage(page);
   };
-
-  const gridRef = useRef<any>();
 
   useEffect(() => {
     if (gridRef.current) {
@@ -116,46 +119,45 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
     checkboxUncheckedBorderColor: "#E5E7EB",
   });
 
+  const columnDefs = [
+    ...props.Columns,
+    ...(showEdit
+      ? [
+          {
+            field: "actions",
+            headerName: "",
+            cellRenderer: "editIconRenderer",
+            cellStyle: { textAlign: "right", display: "flex", alignItems: "center", justifyContent: "end" },
+          },
+        ]
+      : []),
+  ];
+  
   return (
-    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
-      <div className="">
-        {props.row_selection !== false && (
-          <AgGridReact
-            gridOptions={{
-              rowSelection: {
-                mode: "multiRow",
-              },
-            }}
-            rowStyle={{
-              fontWeight: "bold",
-            }}
-            key={dir}
-            enableRtl={dir === "rtl"}
-            theme={myTheme}
-            onSortChanged={(e: any) => {
-              onSortChanged(e);
-            }}
-            rowData={props.Data}
-            columnDefs={props.Columns || []}
-            domLayout="autoHeight"
-          />
-        )}
-        {props.row_selection === false && (
-          <AgGridReact
-            rowStyle={{
-              fontWeight: "bold",
-            }}
-            key={dir}
-            enableRtl={dir === "rtl"}
-            theme={myTheme}
-            onSortChanged={(e: any) => {
-              onSortChanged(e);
-            }}
-            rowData={props.Data}
-            columnDefs={props.Columns || []}
-            domLayout="autoHeight"
-          />
-        )}
+    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6 w-full">
+      <div style={{ width: "100%" }}>
+        <AgGridReact
+          key={dir}
+          enableRtl={dir === "rtl"}
+          theme={myTheme}
+          onSortChanged={(e: any) => {
+            onSortChanged(e);
+          }}
+          rowData={props.Data}
+          columnDefs={columnDefs}
+          domLayout="autoHeight"
+          gridOptions={{
+            rowSelection: {
+              mode: "multiRow",
+            },
+          }}
+          rowStyle={{
+            fontWeight: "bold",
+          }}
+          components={{
+            editIconRenderer: (params: any) => <EditIconRenderer {...params} onEditClick={onEditClick} />,
+          }}
+        />
       </div>
 
       <div className="flex justify-between px-3">
@@ -191,7 +193,6 @@ export default function PowerTable({ props, api }: { props: any; api?: any }) {
           />
         </div>
       </div>
-
     </div>
   );
 }
