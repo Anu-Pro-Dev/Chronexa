@@ -127,7 +127,7 @@ const ResponsiveModalDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm font-semibold text-secondary", className)}
+    className={cn("text-sm font-semibold text-text-secondary", className)}
     {...props}
   />
 ));

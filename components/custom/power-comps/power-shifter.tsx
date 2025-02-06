@@ -18,7 +18,6 @@ export default function PowerShifter({ items }: { items: any }) {
   return (
     <div>
       <Select
-        // dir={dir}
         onValueChange={(value) => {
           router.push(value);
         }}
