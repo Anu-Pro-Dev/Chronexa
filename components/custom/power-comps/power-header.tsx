@@ -54,7 +54,6 @@ export default function PowerHeader({
     <div className="flex flex-col">
       <div className="flex justify-between items-center">
         <PowerShifter items={items} />
-
         {
           <div className="flex gap-2 items-center">
             {!disableFeatures && !disableSearch && (
