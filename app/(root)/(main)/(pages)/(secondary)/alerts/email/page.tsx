@@ -38,6 +38,7 @@ export default function Page() {
     SetSortField,
     SortDirection,
     SetSortDirection,
+    EnableBorders: true,
   };
 
   return (
@@ -45,15 +46,10 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.alerts?.items}
-        enableFilters
         disableAdd
-        filter_modal_title="Filter"
-        filter_modal_description="Select the Filter value according to the requirement"
-        filter_modal_component={
-          <FilterEmailForm on_open_change={on_open_change} />
-        }
+        disableDelete
       />
-      <PowerTable props={props} api={"/alerts/email"} />
+      <PowerTable props={props} api={"/alerts/email"} showCheckbox={false}/>
     </div>
   );
 }
