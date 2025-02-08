@@ -48,6 +48,7 @@ export default function Page() {
         items={modules?.alerts?.items}
         disableAdd
         disableDelete
+        isExport
       />
       <PowerTable props={props} api={"/alerts/email"} showCheckbox={false}/>
     </div>
