@@ -34,7 +34,7 @@ function SelfStatisticsPage() {
       </div>
       {/* <div className="widget-group-3 flex justify-between mx-6 gap-4 mb-4">
                 <div className="card-widget max-w-[35%] w-full h-auto flex flex-col gap-4">
-                    <ServicesStatisticsCard/>
+                    <ServicesStatisticsC    dard/>
                 </div>
                 <div className='card-widget w-full h-auto flex flex-col gap-4'>
                     <InsightsCard/>

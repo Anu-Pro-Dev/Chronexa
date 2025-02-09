@@ -27,7 +27,7 @@ const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data
   );
 };
 
-export default function PowerTable({ props, api, showEdit, onEditClick  }: { props: any; api?: any; showEdit?: boolean; onEditClick?: (data: any) => void  }) {
+export default function     PowerTable({ props, api, showEdit, onEditClick  }: { props: any; afpi?: any; showEdit?: boolean; onEditClick?: (data: any) => void  }) {
   
   const { dir } = useLanguage();
 
@@ -108,10 +108,11 @@ export default function PowerTable({ props, api, showEdit, onEditClick  }: { pro
     headerTextColor: "#9BA9D2",
     headerBackgroundColor: "#FFFFFF",
     headerFontSize: 15,
+    headerFontWeight: 600,
+    headerRowBorder: { width: 1, color: '#E5EDF7' },
     rowBorder: false,
     sidePanelBorder: false,
     wrapperBorder: false,
-    headerFontWeight: 600,
     cellTextColor: "#2B3674",
     wrapperBorderRadius: "0px",
     checkboxBorderRadius: "3px",
@@ -127,14 +128,15 @@ export default function PowerTable({ props, api, showEdit, onEditClick  }: { pro
             field: "actions",
             headerName: "",
             cellRenderer: "editIconRenderer",
-            cellStyle: { textAlign: "right", display: "flex", alignItems: "center", justifyContent: "end" },
+            cellStyle: { textAlign: "right", display: "flex", alignItems: "center", justifyContent: "end", whiteSpace: "normal", wordBreak: "break-word"},
+            autoHeight:true,
           },
         ]
       : []),
   ];
   
   return (
-    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6 w-full">
+    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6 width-screen">
       <div style={{ width: "100%" }}>
         <AgGridReact
           key={dir}
@@ -147,6 +149,7 @@ export default function PowerTable({ props, api, showEdit, onEditClick  }: { pro
           columnDefs={columnDefs}
           domLayout="autoHeight"
           gridOptions={{
+            // getRowHeight: () => 50,
             rowSelection: {
               mode: "multiRow",
             },

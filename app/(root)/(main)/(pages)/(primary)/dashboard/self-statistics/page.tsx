@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import SelfStatisticsPage from "@/components/custom/dashboard-comps/self-statistics/SSPage";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import { Button } from "@/components/ui/button";
-import {
+import { 
   AbsentIcon,
   ApprovedIcon,
   CalendarIcon,

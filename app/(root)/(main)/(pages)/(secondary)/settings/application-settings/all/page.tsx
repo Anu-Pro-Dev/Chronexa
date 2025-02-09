@@ -5,65 +5,61 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
+import AddApplicationSettings from "@/forms/settings/AddApplicationSettings";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
-import AddManageMovements from "@/forms/self-services/AddManageMovements";
 export default function Page() {
   const { modules } = useLanguage();
-  const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "employee" },
-    { field: "date" },
-    { field: "from_date" },
-    { field: "to_date" },
-    { field: "from_time" },
-    { field: "to_time" },
-    { field: "status" },
+    { field: "name" },
+    { field: "value" },
+    { field: "deletable" },
+    { field: "description" },
+    { field: "updated_by" },
+    { field: "updatedAt" },
   ]);
 
-  const [open, on_open_change] = useState<boolean>(false);
-  const [filter_open, filter_on_open_change] = useState<boolean>(false);
+  const [Data, SetData] = useState<any>([])
   const [CurrentPage, SetCurrentPage] = useState<number>(1)
   const [SortField, SetSortField] = useState<string>("")
   const [SortDirection, SetSortDirection] = useState<string>("asc")
   const [SearchValue, SetSearchValue] = useState<string>("")
-
-   const props = {
+  const [open, on_open_change] = useState<boolean>(false)
+  const props = {
     Data,
     SetData,
     Columns,
-    filter_open,
-    filter_on_open_change,
     SortField,
     CurrentPage,
     SetCurrentPage,
     SetSortField,
     SortDirection,
     SetSortDirection,
-    SearchValue,
-    SetSearchValue,
     open,
     on_open_change,
+    SearchValue,
+    SetSearchValue,
   };
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.selfServices?.items}
-        modal_title="Manual movements add"
-        modal_description="Select the options of the Manual movements to add"
-        modal_component={<AddManageMovements on_open_change={on_open_change} />}
+        items={modules?.settings?.items}
+        modal_title="Application Settings"
+        modal_description="Choose the data to add new application settings"
+        modal_component={
+          <AddApplicationSettings on_open_change={on_open_change} />
+        }
       />
       <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Manual Movements</h1>
+            <h1 className="font-bold text-primary">Application settings</h1>
             <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
+              Select the region of the employee
             </h1>
       </div>
-      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
-      <PowerTable props={props} api={"/self-services/manage-movements/manual"}/>
+      <PowerTabs items={modules?.settings?.manage_movements?.items} />
+      <PowerTable props={props} api={"/settings/application-settings"} />
     </div>
   );
 }
