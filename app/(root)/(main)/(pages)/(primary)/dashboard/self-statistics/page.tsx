@@ -72,7 +72,7 @@ export default function Dashboard() {
               className={cn(
                 `${dir === "rtl" && "rotate-180"}`,
               )}
-            /> Punch in
+            /> Punch out
           </Button>
         </div>
       </div>
