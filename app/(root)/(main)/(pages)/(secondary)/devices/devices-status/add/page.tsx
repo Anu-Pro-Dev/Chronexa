@@ -1,7 +1,7 @@
 "use client";
 import AutoPathMapper from "@/components/custom/auto-path-mapper";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import AddReaderDevices from "@/forms/devices/AddReaderDevices";
+import AddDevicesStatus from "@/forms/devices/AddDevicesStatus";
 
 import React from "react";
 
@@ -13,11 +13,11 @@ export default function Page() {
       <PowerHeader
         items={modules?.devices.items}
         disableFeatures
-        isAddNewPagePath="/devices/readers/add"
+        isAddNewPagePath="/devices/devices-status/add"
       />
 
       <div className="pt-4">
-        <AddReaderDevices />
+        <AddDevicesStatus />
       </div>
     </div>
   );

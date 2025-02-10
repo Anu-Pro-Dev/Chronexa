@@ -349,14 +349,14 @@ export default function LanguageProvider({
     path: "/devices/",
     items: [
       {
-        label: "Readers",
-        path: "/devices/readers/",
-        value: "readers",
+        label: "Devices Status",
+        path: "/devices/devices-status/",
+        value: "devices_status",
       },
       {
-        label: "Add Reader",
-        path: "/devices/readers/add/",
-        value: "departments",
+        label: "Devices Status",
+        path: "/devices/devices-status/add/",
+        value: "add_devices_status",
         hide: true,
       },
     ],

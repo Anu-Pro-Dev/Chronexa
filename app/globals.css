@@ -13,6 +13,14 @@ body {
   font-weight: "bold" !important;
 }
 
+.ag-pinned-left-header {
+  border: none !important;
+}
+
+.ag-pinned-right-header {
+  border: none !important;
+}
+
 @layer base {
   :root {
     --background: #f9f9f9;
