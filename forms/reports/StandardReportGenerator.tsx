@@ -104,11 +104,11 @@ export default function StandardReportGenerator() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
         <div className="grid lg:grid-cols-2 gap-10">
           <div className="col-span-2">
-            <h1 className="font-bold text-primary">Standard Reports</h1>
-            <h1 className="font-bold text-secondary">
+            <h1 className="font-bold text-xl text-primary">Standard Reports</h1>
+            <h1 className="font-semibold text-sm text-text-secondary">
               Select the Filter you want to view
             </h1>
           </div>

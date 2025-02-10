@@ -384,7 +384,7 @@ export default function LanguageProvider({
     path: "/security/",
     items: [
       {
-        label: "Assign Roles",
+        label: "Roles",
         path: "/security/roles/",
         value: "roles",
       },

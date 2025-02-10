@@ -103,132 +103,14 @@ export default function AddDevicesStatus({
 
   return (
     <Form {...form}>
-      {/* <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-2 gap-4 bg-white p-3 rounded-md"
-      >
-        <FormField
-          control={form.control}
-          name="code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Code <Required />
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="shadcn" type="text" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="port"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Port <Required />
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="Enter the port" type="text" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Name <Required />
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="shadcn" type="text" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="building"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Choose Building <Required />
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="choose organization" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter the location"
-                  type="text"
-                  {...field}
-                />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="col-span-2">
-          <FormField
-            control={form.control}
-            name="enable"
-            render={({ field }) => (
-              <FormItem className=" ">
-                <FormControl>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="enable"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                    <FormLabel htmlFor="enable">Enable</FormLabel>
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
+        <div className="pb-3">
+          <h1 className="font-bold text-xl text-primary">Readers</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            Select the choices for readers devices status
+          </h1>
         </div>
-        <div className="col-span-2 flex justify-end gap-4">
-          <Button type="button" variant={"outline"} asChild>
-            <Link href={"/devices/devices-status"}>Cancel</Link>
-          </Button>
-          <Button type="submit">Submit</Button>
-        </div>
-      </form> */}
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-6 bg-white p-6 rounded-2xl">
+        <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col">
             <div className="flex justify-between items-start gap-10">
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
