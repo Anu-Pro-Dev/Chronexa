@@ -6,6 +6,7 @@ import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
 import FilterEmailForm from "@/forms/alerts/FilterEmailForm";
+import { FileX } from "lucide-react";
 export default function Page() {
   const { modules } = useLanguage();
 
@@ -50,7 +51,14 @@ export default function Page() {
         disableDelete
         isExport
       />
-      <PowerTable props={props} api={"/alerts/email"} showCheckbox={false}/>
+      <PowerTable 
+        props={props} 
+        api={"/alerts/email"} 
+        showCheckbox={false}
+        customColDef={{
+          flex: 0,
+        }}
+      />
     </div>
   );
 }
