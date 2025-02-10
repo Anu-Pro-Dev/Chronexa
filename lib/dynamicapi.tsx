@@ -88,7 +88,7 @@ export const DynamicApi = (api: any, params: any) => {
       case "/self-services/manage-permissions/types":
         data = permissions_types_data;
         break;
-      case "/devices/readers":
+      case "/devices/devices-status":
         data = devices_status_data;
         break;
       case "/security/roles":

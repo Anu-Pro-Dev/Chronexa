@@ -13,13 +13,13 @@ export default function Page() {
   const [Columns, setColumns] = useState([
     { field: "email" },
     { field: "subject" },
-    { field: "email_body" },
+    { field: "email_body", headerName: "Email Body" },
     { field: "status" },
-    { field: "cc_email" },
-    { field: "bcc_email" },
-    { field: "complete_violation" },
-    { field: "created_date" },
-    { field: "updatedAt" },
+    { field: "cc_email", headerName: "CC Email" },
+    { field: "bcc_email", headerName: "BCC Email" },
+    { field: "complete_violation", headerName: "Complete Violation" },
+    { field: "created_date", headerName: "Created Date" },
+    { field: "updatedAt", headerName: "Updated Date" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
