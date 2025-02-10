@@ -133,6 +133,7 @@ export default function PowerTable({
             sortable: false,
             filter: false,
             pinned: "left",
+            cellStyle: { border: "none" },
           },
         ]
       : []),

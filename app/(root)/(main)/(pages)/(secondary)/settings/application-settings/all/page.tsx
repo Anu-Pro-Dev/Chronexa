@@ -52,14 +52,18 @@ export default function Page() {
           <AddApplicationSettings on_open_change={on_open_change} />
         }
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Application settings</h1>
-            <h1 className="font-bold text-secondary">
-              Select the region of the employee
-            </h1>
+      <div className="bg-white rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Application settings</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            Enable required application settings for employee
+          </h1>
+        </div>
+        <div className="px-6">
+          <PowerTabs items={modules?.settings?.manage_movements?.items} />
+        </div>
+        <PowerTable props={props} api={"/settings/application-settings"}/>
       </div>
-      <PowerTabs items={modules?.settings?.manage_movements?.items} />
-      <PowerTable props={props} api={"/settings/application-settings"} />
     </div>
   );
 }

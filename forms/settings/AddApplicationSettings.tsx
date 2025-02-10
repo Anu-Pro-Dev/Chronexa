@@ -84,7 +84,7 @@ export default function AddApplicationSettings({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-6 ">
+        <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
             name="name"
@@ -152,30 +152,28 @@ export default function AddApplicationSettings({
               <FormItem>
                 <FormLabel className="flex gap-2 ">Description</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} rows={8} />
+                  <Textarea placeholder="Enter the description" {...field} rows={8} />
                 </FormControl>
 
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div className="flex justify-end gap-2 items-center">
-            <div className="flex gap-4">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className="w-full"
-                onClick={() => {
-                  on_open_change(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                Save
-              </Button>
-            </div>
+          <div className="w-full flex gap-2 items-center py-3">
+            <Button
+              variant={"outline"}
+              type="button"
+              size={"lg"}
+              className="w-full"
+              onClick={() => {
+                on_open_change(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size={"lg"} className="w-full">
+              Save
+            </Button>
           </div>
         </div>
       </form>
