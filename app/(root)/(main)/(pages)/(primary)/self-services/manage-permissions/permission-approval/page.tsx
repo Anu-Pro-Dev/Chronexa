@@ -8,7 +8,6 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
 export default function Page() {
   const { modules } = useLanguage();
-
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
@@ -27,19 +26,14 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader
-        props={props}
-        items={modules?.selfServices?.items}
-        disableAdd
-        disableDelete
-      />
+      <PowerHeader props={props} items={modules?.selfServices?.items} />
       <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Missing Movements</h1>
+            <h1 className="font-bold text-primary">Permission Approval</h1>
             <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
+              Permission approval can be viewed in this tab
             </h1>
       </div>
-      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
+      <PowerTabs items={modules?.selfServices?.manage_permissions?.items} />
       <PowerTable props={props} />
     </div>
   );

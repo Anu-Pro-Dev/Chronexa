@@ -155,6 +155,94 @@ export type WorkflowsDataType = {
   steps: string;
 };
 
+//self services verification approval data type
+
+export type VerificationApprovalDataType = {
+number: string;
+name: string;
+type: string;
+date : string;
+time: string;
+approved_by: string;
+remarks: string;
+};
+
+//self services verification pending data type
+
+export type VerificationPendingDataType = {
+  number: string;
+  employee: string;
+  request_type: string;
+  type: string;
+  from_date: string;
+  to_date: string;
+  from_time: string;
+  to_time: string;
+  };
+
+//self services movement applied data type
+
+  export type MovementPendingDataType = {
+    number: string;
+    employee: string;
+    date: string;
+    time: string;
+    reason: string;
+    remarks: string;
+    action_by: string;
+    action_date: string;
+  }
+
+  //self services movement manual data type
+
+  export type MovementManualDataType = {
+    number: string;
+    employee: string;
+    date: string;
+    from_date: string;
+    to_date: string;
+    from_time: string;
+    to_time: string;
+    status: string;
+  }
+
+  //self services movement approval manual data type
+
+  export type MovementApprovalManualDataType = {
+    number: string;
+    employee: string;
+    date: string;
+    from_date: string;
+    to_date: string;
+    from_time: string;
+    to_time: string;
+    remarks: string;
+  }
+
+  //self-services permission application data type
+
+  export type PermissionApplicationDataType = {
+    number: string;
+    employee: string;
+    date: string;
+    from_date: string;
+    to_date: string;
+    from_time: string;
+    to_time: string;
+    remarks: string;
+  }
+
+  //self-services permission types data type
+
+  export type PermissionTypesDataType = {
+    code: string;
+    description: string;
+    reason: string;
+    max_no_of_permissions_per_day: string;
+    min_per_day: string;
+    max_no_of_permissions_per_month: string;
+  }
+
 // Devices Page DataTypes
 
 export type DevicesStatusDataType = {
