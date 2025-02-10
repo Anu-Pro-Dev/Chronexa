@@ -144,8 +144,12 @@ export default function PowerTable({
             field: "actions",
             headerName: "",
             cellRenderer: "editIconRenderer",
+            width: 50,
+            sortable: false,
+            filter: false,
+            pinned: "right",
             cellStyle: {
-              textAlign: "right",
+              border: "none",
               display: "flex",
               alignItems: "center",
               justifyContent: "end",

@@ -19,12 +19,13 @@ export default function Page() {
     { field: "updatedAt" },
   ]);
 
-  const [Data, SetData] = useState<any>([])
-  const [CurrentPage, SetCurrentPage] = useState<number>(1)
-  const [SortField, SetSortField] = useState<string>("")
-  const [SortDirection, SetSortDirection] = useState<string>("asc")
-  const [SearchValue, SetSearchValue] = useState<string>("")
-  const [open, on_open_change] = useState<boolean>(false)
+  const [Data, SetData] = useState<any>([]);
+  const [CurrentPage, SetCurrentPage] = useState<number>(1);
+  const [SortField, SetSortField] = useState<string>("");
+  const [SortDirection, SetSortDirection] = useState<string>("asc");
+  const [SearchValue, SetSearchValue] = useState<string>("");
+  const [open, on_open_change] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const props = {
     Data,
     SetData,
@@ -39,6 +40,11 @@ export default function Page() {
     on_open_change,
     SearchValue,
     SetSearchValue,
+  };
+
+  const handleEditClick = (data: any) => {
+    setSelectedRowData(data);
+    on_open_change(true);
   };
 
   return (
@@ -62,7 +68,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.settings?.manage_movements?.items} />
         </div>
-        <PowerTable props={props} api={"/settings/application-settings"}/>
+        <PowerTable props={props} api={"/settings/application-settings"} showEdit={true} onEditClick={handleEditClick}/>
       </div>
     </div>
   );
