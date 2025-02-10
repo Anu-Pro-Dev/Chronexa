@@ -1,5 +1,5 @@
 import { email_data } from "@/data/alerts.data";
-import { grades_data, regions_data } from "@/data/cm.data"; // Import your datasets
+import { regions_data, nationalities_data, designations_data, grades_data } from "@/data/cm.data"; // Import your datasets
 import { devices_status_data } from "@/data/devices.data";
 import {
   employeeMaster_employees_data,
@@ -22,12 +22,18 @@ export const DynamicApi = (api: any, params: any) => {
 
     let data: any = [];
     switch (api) {
+      case "/company-master/regions":
+        data = regions_data;
+        break;
+      case "/company-master/nationalities":
+        data = nationalities_data;
+        break;
+      case "/company-master/designations":
+        data = designations_data;
+        break;
       case "/company-master/grades":
         data = grades_data;
         break;
-      case "/company-master/regions":
-        data = regions_data;
-        break
       case "/organization/departments":
         data = departments_data;
         break;

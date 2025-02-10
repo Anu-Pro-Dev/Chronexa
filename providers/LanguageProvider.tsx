@@ -69,12 +69,12 @@ export default function LanguageProvider({
       },
       {
         label: currentLanguageData.translations?.modules?.companyMaster?.nationalities || "Nationalities",
-        path: "/company-master/nationalities",
+        path: "/company-master/nationalities/",
         value: "nationalities",
       },
       {
         label: currentLanguageData.translations?.modules?.companyMaster?.designations || "Designations",
-        path: "/company-master/designations",
+        path: "/company-master/designations/",
         value: "designations",
       },
       { 
