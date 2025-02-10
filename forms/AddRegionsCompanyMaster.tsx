@@ -117,38 +117,6 @@ export default function AddRegionsCompanyMaster({
             )}
           />
 
-          {/* <FormField
-            control={form.control}
-            name="description_en"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Description (English) <Required />
-                </FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="description_ar"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Description (العربية) <Required />
-                </FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
-
           <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}
