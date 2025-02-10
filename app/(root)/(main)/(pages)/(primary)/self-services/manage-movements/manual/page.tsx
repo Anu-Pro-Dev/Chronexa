@@ -13,36 +13,14 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "number" },
-    { field: "employee" },
-    { field: "date" },
-    { field: "from_date" },
-    { field: "to_date" },
-    { field: "from_time" },
-    { field: "to_time" },
-    { field: "status" },
+    { field: "name" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
-  const [filter_open, filter_on_open_change] = useState<boolean>(false);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1)
-  const [SortField, SetSortField] = useState<string>("")
-  const [SortDirection, SetSortDirection] = useState<string>("asc")
-  const [SearchValue, SetSearchValue] = useState<string>("")
-
-   const props = {
+  const props = {
     Data,
     SetData,
     Columns,
-    filter_open,
-    filter_on_open_change,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    SearchValue,
-    SetSearchValue,
     open,
     on_open_change,
   };
@@ -56,14 +34,8 @@ export default function Page() {
         modal_description="Select the options of the Manual movements to add"
         modal_component={<AddManageMovements on_open_change={on_open_change} />}
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Manual Movements</h1>
-            <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
-            </h1>
-      </div>
       <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
-      <PowerTable props={props} api={"/self-services/manage-movements/manual"}/>
+      <PowerTable props={props} />
     </div>
   );
 }
