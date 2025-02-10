@@ -216,8 +216,20 @@ export default function LanguageProvider({
     items: [
       {
         label: "Manage Permissions",
-        path: "/self-services/manage-permissions/applied/",
+        path: "/self-services/manage-permissions/permission-types/",
         value: "manage-permissions",
+      },
+      {
+        label: "Manage Permissions",
+        path: "/self-services/manage-permissions/permission-application/",
+        value: "permission application",
+        hide:true,
+      },
+      {
+        label: "Manage Permissions",
+        path: "/self-services/manage-permissions/permission-approval/",
+        value: "permission approval",
+        hide:true,
       },
       {
         label: "Manage Leaves",
@@ -226,8 +238,32 @@ export default function LanguageProvider({
       },
       {
         label: "Manage Movements",
-        path: "/self-services/manage-movements/",
+        path: "/self-services/manage-movements/applied/",
         value: "manage-movements",
+      },
+      {
+        label: "Manage Movements",
+        path: "/self-services/manage-movements/manual/",
+        value: "manual",
+        hide: true,
+      },
+      {
+        label: "Manage Movements",
+        path: "/self-services/manage-movements/approval-manual/",
+        value: "approved_manual",
+        hide: true,
+      },
+      {
+        label: "Manage Movements",
+        path: "/self-services/manage-movements/missing/",
+        value: "manage-movements",
+        hide: true,
+      },
+      {
+        label: "Manage Movements",
+        path: "/self-services/manage-movements/approve-missing/",
+        value: "manage-movements",
+        hide: true,
       },
       {
         label: "Approvals",
@@ -252,39 +288,9 @@ export default function LanguageProvider({
         value: "workflow",
       },
       {
-        label: "Add Workflow",
+        label: "Workflow",
         path: "/self-services/workflow/add/",
         value: "add_workflow",
-        hide: true,
-      },
-      {
-        label: "Applied",
-        path: "/self-services/manage-movements/applied/",
-        value: "applied",
-        hide: true,
-      },
-      {
-        label: "Manual",
-        path: "/self-services/manage-movements/manual/",
-        value: "manual",
-        hide: true,
-      },
-      {
-        label: "Approval Manual",
-        path: "/self-services/manage-movements/approval-manual/",
-        value: "approved_manual",
-        hide: true,
-      },
-      {
-        label: "Missing",
-        path: "/self-services/manage-movements/missing/",
-        value: "manage-movements",
-        hide: true,
-      },
-      {
-        label: "Approve Missing",
-        path: "/self-services/manage-movements/approve-missing/",
-        value: "manage-movements",
         hide: true,
       },
     ],
@@ -317,7 +323,26 @@ export default function LanguageProvider({
         },
       ],
     },
-  };
+    manage_permissions: { 
+      items: [
+        {
+          label: "Types",
+          url: "/self-services/manage-permissions/permission-types/",
+          value: "permission types",
+        },
+        {
+          label: "Application",
+          url: "/self-services/manage-permissions/permission-application/",
+          value: "permission application",
+        },
+        {
+          label: "Approval",
+          url: "/self-services/manage-permissions/permission-approval/",
+          value: "permission approval",
+        },
+      ],
+    },
+  };  
 
   const devices = {
     route_name: "Devices",
@@ -374,29 +399,100 @@ export default function LanguageProvider({
   const settings = {
     route_name: "Settings",
     path: "/settings/",
-    items: [
-      {
-        label: "Application Settings",
-        path: "/settings/application-settings/",
-        value: "application_settings",
-      },
-      {
-        label: "Add Announcement",
-        path: "/settings/announcements/add/",
-        value: "add_announcement",
-        hide: true,
-      },
-      {
-        label: "Announcements",
-        path: "/settings/announcements/",
-        value: "announcement",
-      },
-      {
-        label: "Notifications ",
-        path: "/settings/notifications/",
-        value: "notifications",
-      },
-    ],
+      items: [
+        {
+          label: "Application Settings",
+          path: "/settings/application-settings/",
+          value: "application_settings",
+        },
+        {
+          label: "Application Settings",
+          path: "/settings/application-settings/all/",
+          value: "application_settings",
+          hide:true,
+        },
+        {
+          label: "Application Settings",
+          path: "/settings/application-settings/notification/",
+          value: "application_settings",
+          hide:true,
+        },
+        {
+          label: "Application Settings",
+          path: "/settings/application-settings/server/",
+          value: "application_settings",
+          hide:true,
+        },
+        {
+          label: "Application Settings",
+          path: "/settings/application-settings/others/",
+          value: "application_settings",
+          hide:true,
+        },
+        {
+          label: "Application Settings",
+          path: "/settings/application-settings/module/",
+          value: "application_settings",
+          hide:true,
+        },
+        {
+          label: "Application Settings",
+          path: "/settings/application-settings/verification/",
+          value: "application_settings",
+          hide:true,
+        },
+        {
+          label: "Add Announcement",
+          path: "/settings/announcements/add/",
+          value: "add_announcement",
+          hide: true,
+        },
+        {
+          label: "Announcements",
+          path: "/settings/announcements/",
+          value: "announcement",
+        },
+        {
+          label: "Notifications ",
+          path: "/settings/notifications/",
+          value: "notifications",
+        },
+      ],
+    manage_movements: {
+      items: [
+        {
+          label: "All",
+          url: "/settings/application-settings/all/",
+          value: "all",
+        },
+        {
+          label: "Notification",
+          url: "/settings/application-settings/notification/",
+          value: "notification",
+        },
+        {
+          label: "Server",
+          url: "/settings/application-settings/server/",
+          value: "server",
+        },
+        {
+          label: "Module",
+          url: "/settings/application-settings/module/",
+          value: "module",
+        },
+        {
+          label: "Others",
+          url: "/settings/application-settings/others/",
+          value: "others",
+        },
+        {
+          label: "Verification",
+          url: "/settings/application-settings/verification/",
+          value: "verification",
+        },
+      ],
+    },
+
   };
 
   const alerts = {
