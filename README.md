@@ -44,6 +44,4 @@ shadcn/ui - https://ui.shadcn.com/
 
 ## Demo
 
-http://108.181.97.222:8010/Login/ENT"# Main-to-do-list" 
-"# Main-to-do-list" 
-"# Main-to-do-list" 
+http://108.181.97.222:8010/Login/ENT

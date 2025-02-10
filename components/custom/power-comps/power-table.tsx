@@ -155,7 +155,7 @@ export default function PowerTable({
   ];
 
   return (
-    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6 width-screen">
+    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6 w-full">
       <div style={{ width: "100%" }}>
         <AgGridReact
           key={dir}

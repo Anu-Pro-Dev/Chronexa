@@ -32,12 +32,6 @@ export default function Page() {
             disableAdd
         disableDelete
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Approve Missing Movements</h1>
-            <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
-            </h1>
-      </div>
       <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
       <PowerTable props={props} />
     </div>
