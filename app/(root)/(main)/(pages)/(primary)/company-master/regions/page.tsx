@@ -37,7 +37,6 @@ export default function Page() {
   };
 
   const handleEditClick = (data: any) => {
-    console.log("Editing row data:", data);
     setSelectedRowData(data);
     on_open_change(true);
   };
