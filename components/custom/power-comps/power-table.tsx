@@ -33,12 +33,14 @@ export default function PowerTable({
   showEdit = false,
   showCheckbox = true,
   onEditClick,
+  customColDef = {},
 }: {
   props: any;
   api?: any;
   showEdit?: boolean;
   showCheckbox?: boolean;
   onEditClick?: (data: any) => void;
+  customColDef?: any;
 }) {
   const { dir } = useLanguage();
   const gridRef = useRef<any>();
@@ -160,7 +162,7 @@ export default function PowerTable({
   ];
 
   return (
-    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6 width-screen">
+    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
       <div style={{ width: "100%" }}>
         <AgGridReact
           key={dir}
@@ -174,9 +176,11 @@ export default function PowerTable({
           gridOptions={{
             rowSelection: showCheckbox ? "multiple" : undefined,
             suppressCellFocus: true,
+            suppressMovableColumns: true,
           }}
           defaultColDef={{
             autoHeight: true,
+            flex: 1,
             wrapText: true,
             resizable: false,
             cellStyle: {
@@ -187,6 +191,7 @@ export default function PowerTable({
               wordBreak: "break-word",
               lineHeight: "1.5",
             },
+            ...customColDef,
           }}
           rowStyle={{ fontWeight: "bold" }}
           components={{
