@@ -13,17 +13,37 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "number" },
-    { field: "name" },
+    { field: "employee" },
+    { field: "request_type" },
+    { field: "type" },
+    { field: "from_date" },
+    { field: "to_date" },
+    { field: "from_time" },
+    { field: "to_time" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
 
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
+  const [CurrentPage, SetCurrentPage] = useState<number>(1)
+  const [SortField, SetSortField] = useState<string>("")
+  const [SortDirection, SetSortDirection] = useState<string>("asc")
+  const [SearchValue, SetSearchValue] = useState<string>("")
 
   const props = {
     Data,
     SetData,
     Columns,
+    filter_open,
+    filter_on_open_change,
+    SortField,
+    CurrentPage,
+    SetCurrentPage,
+    SetSortField,
+    SortDirection,
+    SetSortDirection,
+    SearchValue,
+    SetSearchValue,
     open,
     on_open_change,
   };
@@ -41,6 +61,12 @@ export default function Page() {
           <FilterDataOnVerification on_open_change={filter_on_open_change} />
         }
       />
+      <div className="col-span-2 mt-4 mb-3">
+            <h1 className="font-bold text-primary">Pending Approval</h1>
+            <h1 className="font-bold text-secondary">
+              Enter the personal information for the process
+            </h1>
+      </div>
       <PowerTabs
         items={[
           {
