@@ -1,5 +1,5 @@
 "use client";
-
+import React, { useEffect, useState, useRef } from "react";
 import {
   Select,
   SelectContent,
@@ -7,9 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { AgGridReact } from "ag-grid-react";
-import React, { useEffect, useMemo, useState, useRef } from "react";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
@@ -18,16 +16,21 @@ import { useLanguage } from "@/providers/LanguageProvider";
 export default function PowerTableRoaster({
   props,
   api,
+  showCheckbox = true,
+  customColDef = {},
 }: {
   props: any;
   api?: any;
+  showCheckbox?: boolean;
+  customColDef?: any;
 }) {
   const { dir } = useLanguage();
+  const gridRef = useRef<any>();
 
   const [TotalPages, SetTotalPages] = useState<number>(1);
   const [rows_per_page, set_rows_per_page] = useState<string>("5");
 
-  console.log(props);
+  // Fetch Data Function
   const FetchData = async () => {
     try {
       const response: any = await DynamicApi(api, {
@@ -37,7 +40,6 @@ export default function PowerTableRoaster({
         sortType: props?.SortDirection,
         search: props?.SearchValue,
       });
-      console.log(response);
       props.SetData(response.data.payload);
       SetTotalPages(response.data.pagination.totalPages);
     } catch (error) {
@@ -45,66 +47,56 @@ export default function PowerTableRoaster({
     }
   };
 
+  // Fetch data on dependency change
   useEffect(() => {
     if (api) {
-      console.log(props.CurrentPage);
       FetchData();
     }
-  }, [
-    props?.CurrentPage,
-    rows_per_page,
-    props?.SortField,
-    props?.SortDirection,
-    props?.SearchValue,
-  ]);
+  }, [props?.CurrentPage, rows_per_page, props?.SortField, props?.SortDirection, props?.SearchValue]);
 
+  // Handle Sorting
   const onSortChanged = (event: any) => {
-    const sortColumns = event.columns;
-
-    if (sortColumns && sortColumns.length > 0) {
-      const sortedColumn = sortColumns.find(
-        (column: any) => column.sort !== null && column.sort !== undefined
-      );
-
-      const sortedField = {
-        field: sortedColumn?.colId,
-        direction: sortedColumn?.sort,
-      };
-
-      if (sortedField.field) {
-        props?.SetSortField(sortedField.field);
-        props?.SetSortDirection(
-          sortedField.direction === "asc" ? "asc" : "desc"
-        );
-      }
+    const sortedColumn = event.columns?.find((column: any) => column.sort);
+    if (sortedColumn) {
+      props?.SetSortField(sortedColumn.colId);
+      props?.SetSortDirection(sortedColumn.sort);
     }
   };
+  // Handle Page Change
   const handlePageChange = (page: number) => {
     console.log("Navigating to page:", page);
     props.SetCurrentPage(page);
   };
 
-  const gridRef = useRef<any>();
 
+  // Apply RTL dynamically
+  const onGridReady = (params: any) => {
+    gridRef.current = params;
+    params.api.setDomLayout(dir === "rtl" ? "rtl" : "ltr");
+  };
+  
   useEffect(() => {
-    if (gridRef.current) {
+    if (gridRef.current && gridRef.current.api) {
       gridRef.current.api.setDomLayout(dir === "rtl" ? "rtl" : "ltr");
     }
-  }, [dir]);
+  }, [dir]);  
 
+  // Define AG Grid Theme
   const myTheme = themeQuartz.withParams({
     fontFamily: "Nunito Sans",
     borderColor: "#00000005",
     borderRadius: "0px",
     browserColorScheme: "light",
-    columnBorder: false,
     headerTextColor: "#9BA9D2",
     headerBackgroundColor: "#FFFFFF",
     headerFontSize: 15,
-    rowBorder: false,
+    headerFontWeight: 600,
+    headerRowBorder: { width: 1, color: "#E5EDF7" },
+    headerColumnBorder: props?.EnableBorders ? { width: 1, color: "#E5EDF7" } : false,
+    rowBorder: props?.EnableBorders ? { width: 1, color: "#E5EDF7" } : false,
+    columnBorder: props?.EnableBorders ? { width: 1, color: "#E5EDF7" } : false,
     sidePanelBorder: false,
     wrapperBorder: false,
-    headerFontWeight: 600,
     cellTextColor: "#2B3674",
     wrapperBorderRadius: "0px",
     checkboxBorderRadius: "3px",
@@ -112,47 +104,62 @@ export default function PowerTableRoaster({
     checkboxUncheckedBorderColor: "#E5E7EB",
   });
 
+  // Define Table Columns
+  const columnDefs = [
+    ...(showCheckbox
+      ? [
+          {
+            field: "checkbox",
+            headerName: "",
+            headerCheckboxSelection: true,
+            checkboxSelection: true,
+            width: 50,
+            sortable: false,
+            filter: false,
+            pinned: "left",
+            cellStyle: { border: "none" },
+          },
+        ]
+      : []),
+    ...props.Columns,
+  ];
+
   return (
     <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
-      <div className="">
-        {props.row_selection !== false && (
-          <AgGridReact
-            gridOptions={{
-              rowSelection: {
-                mode: "multiRow",
-              },
-            }}
-            rowStyle={{
-              fontWeight: "bold",
-            }}
-            key={dir}
-            enableRtl={dir === "rtl"}
-            theme={myTheme}
-            onSortChanged={(e: any) => {
-              onSortChanged(e);
-            }}
-            rowData={props.Data}
-            columnDefs={props.Columns || []}
-            domLayout="autoHeight"
-          />
-        )}
-        {props.row_selection === false && (
-          <AgGridReact
-            groupDisplayType="multipleColumns"
-            rowStyle={{
-              fontWeight: "bold",
-            }}
-            key={dir}
-            enableRtl={dir === "rtl"}
-            theme={myTheme}
-            onSortChanged={(e: any) => {
-              onSortChanged(e);
-            }}
-            rowData={props.Data}
-            columnDefs={props.Columns || []}
-            domLayout="autoHeight"
-          />
-        )}
+      <div style={{ width: "100%" }}>
+        <AgGridReact
+          groupDisplayType="multipleColumns"
+          key={dir} 
+          ref={gridRef}
+          enableRtl={dir === "rtl"}
+          theme={myTheme}
+          onSortChanged={onSortChanged}
+          rowData={props.Data}
+          columnDefs={columnDefs}
+          domLayout="autoHeight"
+          getRowStyle={(params) => ({
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          })}
+          gridOptions={{
+            rowSelection: showCheckbox ? "multiple" : undefined,
+            suppressCellFocus: true,
+            suppressMovableColumns: true,
+          }}
+          defaultColDef={{
+            autoHeight: true,
+            resizable: false,
+            cellStyle: {
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "start",
+            },
+            ...customColDef,
+          }}
+          rowStyle={{ fontWeight: "bold" }}
+        />
       </div>
 
       <div className="flex justify-between px-3">

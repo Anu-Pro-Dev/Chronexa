@@ -36,7 +36,7 @@ export const scheduleData: any = [
             version: "24.Jan.2021",
             status: "Nor",
             hours: "170:00",
-            slots: Array(15)
+            slots: Array(31)
               .fill(null)
               .map(() => ({
                 status: ["Nor", "Nig", "Day", "Fri", null][
@@ -51,7 +51,7 @@ export const scheduleData: any = [
             version: "24.Jan.2021",
             status: "Nor",
             hours: "170:00",
-            slots: Array(15)
+            slots: Array(31)
               .fill(null)
               .map(() => ({
                 status: ["Nor", "Nig", "Day", "Fri", null][
@@ -76,7 +76,7 @@ export const scheduleData: any = [
             version: "24.Jan.2021",
             status: "Nor",
             hours: "170:00",
-            slots: Array(15)
+            slots: Array(31)
               .fill(null)
               .map(() => ({
                 status: ["Nor", "Nig", "Day", "Fri", null][
@@ -91,7 +91,7 @@ export const scheduleData: any = [
             version: "24.Jan.2021",
             status: "Nor",
             hours: "170:00",
-            slots: Array(15)
+            slots: Array(31)
               .fill(null)
               .map(() => ({
                 status: ["Nor", "Nig", "Day", "Fri", null][
@@ -116,7 +116,7 @@ export const scheduleData: any = [
             version: "24.Jan.2021",
             status: "Nor",
             hours: "170:00",
-            slots: Array(15)
+            slots: Array(31)
               .fill(null)
               .map(() => ({
                 status: ["Nor", "Nig", "Day", "Fri", null][
@@ -131,7 +131,7 @@ export const scheduleData: any = [
             version: "24.Jan.2021",
             status: "Nor",
             hours: "170:00",
-            slots: Array(15)
+            slots: Array(31)
               .fill(null)
               .map(() => ({
                 status: ["Nor", "Nig", "Day", "Fri", null][
