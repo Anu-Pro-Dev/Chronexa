@@ -1075,7 +1075,7 @@ export const UnlockIcon = () => (
   </svg>
 );
 
-export const SaveIcon = (color = "#FFFFFF") => (
+export const SaveIcon = () => (
   <svg
     width="15"
     height="15"
