@@ -26,6 +26,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+
   const props = {
     Data,
     SetData,

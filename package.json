@@ -8,10 +8,6 @@
     "start": "npx serve@latest out",
     "lint": "next lint"
   },
-  "overrides": {
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106"
-  },
   "dependencies": {
     "@ag-grid-community/styles": "^32.3.3",
     "@hookform/resolvers": "^3.9.1",

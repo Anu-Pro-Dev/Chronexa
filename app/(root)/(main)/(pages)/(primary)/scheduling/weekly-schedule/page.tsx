@@ -14,7 +14,7 @@ export default function Page() {
   const [Columns, setColumns] = useState([
     { field: "number" },
     { field: "name" },
-  ]);
+  ])
 
   const [open, on_open_change] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);

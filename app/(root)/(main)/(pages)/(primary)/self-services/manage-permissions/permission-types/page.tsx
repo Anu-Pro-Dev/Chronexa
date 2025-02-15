@@ -46,7 +46,11 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader props={props} items={modules?.selfServices?.items} />
+      <PowerHeader 
+      props={props} 
+      items={modules?.selfServices?.items} 
+      isAddNewPagePath="/self-services/manage-permissions/permission-types/add"
+      />
       <div className="col-span-2 mt-4 mb-3">
             <h1 className="font-bold text-primary">Permission Types</h1>
             <h1 className="font-bold text-secondary">
