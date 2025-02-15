@@ -6,24 +6,21 @@ import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
-import AddManageMovements from "@/forms/self-services/AddManageMovements";
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "employee" },
-    { field: "date" },
-    { field: "from_date" },
-    { field: "to_date" },
-    { field: "from_time" },
-    { field: "to_time" },
-    { field: "status" },
+    { field: "code" },
+    { field: "description" },
+    { field: "reason" },
+    { field: "max_no_of_permissions_per_day" },
+    { field: "min_per_day" },
+    { field: "max_no_of_permissions_per_month" },
   ]);
 
-  const [open, on_open_change] = useState<boolean>(false);
-  const [filter_open, filter_on_open_change] = useState<boolean>(false);
+  const [open, on_open_change] = useState<boolean>(false)
+  const [filter_open, filter_on_open_change] = useState<boolean>(false)
   const [CurrentPage, SetCurrentPage] = useState<number>(1)
   const [SortField, SetSortField] = useState<string>("")
   const [SortDirection, SetSortDirection] = useState<string>("asc")
@@ -45,25 +42,23 @@ export default function Page() {
     SetSearchValue,
     open,
     on_open_change,
-  };
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader
-        props={props}
-        items={modules?.selfServices?.items}
-        modal_title="Manual movements add"
-        modal_description="Select the options of the Manual movements to add"
-        modal_component={<AddManageMovements on_open_change={on_open_change} />}
+      <PowerHeader 
+      props={props} 
+      items={modules?.selfServices?.items} 
+      isAddNewPagePath="/self-services/manage-permissions/permission-types/add"
       />
       <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Manual Movements</h1>
+            <h1 className="font-bold text-primary">Permission Types</h1>
             <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
+              Permission types can be viewed in this tab
             </h1>
       </div>
-      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
-      <PowerTable props={props} api={"/self-services/manage-movements/manual"}/>
+      <PowerTabs items={modules?.selfServices?.manage_permissions?.items} />
+      <PowerTable props={props} api={"/self-services/manage-permissions/types"} />
     </div>
   );
 }

@@ -12,9 +12,9 @@ import { DropDownIcon } from "@/icons/icons"
 import { usePathname, useRouter } from "next/navigation";
 
 export default function PowerShifter({ items }: { items: any }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const { translations } = useLanguage();
+  const router = useRouter()
+  const pathname = usePathname()
+  const { translations } = useLanguage()
   return (
     <div>
       <Select
@@ -32,7 +32,7 @@ export default function PowerShifter({ items }: { items: any }) {
             <SelectItem
               className={item?.hide === true ? "hidden" : ""}
               onClick={() => {
-                router.push(item?.path);
+                router.push(item?.path)
               }}
               key={index}
               value={item?.path}

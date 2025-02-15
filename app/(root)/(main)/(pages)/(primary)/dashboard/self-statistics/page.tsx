@@ -2,19 +2,19 @@
 import { cn } from "@/lib/utils";
 import SelfStatisticsPage from "@/components/custom/dashboard-comps/self-statistics/SSPage";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import { Button } from "@/components/ui/button";
-import {
+import { PunchButton } from "@/components/custom/PunchButton";
+import { 
   AbsentIcon,
   ApprovedIcon,
-  CalendarIcon,
   LeaveTakenIcon,
   PendingIcon,
-  PunchInIcon,
   TotalLeavesIcon,
   WorkingDaysIcon,
-} from "@/icons/icons";
+}
+from "@/icons/icons";
 import { useLanguage } from "@/providers/LanguageProvider";
 import React, { useEffect, useState } from "react";
+import CurrentDate from "@/components/ui/currentdate";
 
 export default function Dashboard() {
   const { modules } = useLanguage();
@@ -23,9 +23,11 @@ export default function Dashboard() {
   useEffect(() => {
     SetLeaveAndAttendance([
       {
+
         label: "Working Days",
         icon: <WorkingDaysIcon />,
         value: "212",
+
       },
       {
         label: "Total leaves",
@@ -54,7 +56,6 @@ export default function Dashboard() {
       },
     ]);
   }, []);
-  const { dir } = useLanguage();
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,18 +66,15 @@ export default function Dashboard() {
           disableSearch
           items={modules?.dashboard.items}
         />
+        <div className="absolute right-40 bottom-55">
+          <CurrentDate />
+        </div>
         <div className="text-white">
-          <Button variant="gradient" size="sm">
-            {" "}
-            <PunchInIcon  
-              className={cn(
-                `${dir === "rtl" && "rotate-180"}`,
-              )}
-            /> Punch in
-          </Button>
+          <PunchButton />
         </div>
       </div>
       <SelfStatisticsPage />
     </div>
   );
 }
+

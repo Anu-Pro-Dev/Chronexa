@@ -19,6 +19,7 @@ interface TransferListProps {
   onSelectionChange: (selectedItems: Employee[]) => void;
   className?: string;
   title?: string;
+  height?: string;
 }
 
 export function TransferList({
@@ -26,6 +27,7 @@ export function TransferList({
   items,
   onSelectionChange,
   className,
+  height = "250px", // Reduced default height
 }: TransferListProps) {
   const [searchLeft, setSearchLeft] = React.useState("");
   const [searchRight, setSearchRight] = React.useState("");
@@ -50,7 +52,7 @@ export function TransferList({
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <Card className="flex-1 border-none shadow-none">
-        <CardHeader>
+        <CardHeader className="pb-2">
           <CardTitle className="text-center pb-2">All {title}</CardTitle>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -63,9 +65,9 @@ export function TransferList({
           </div>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px] pr-4">
+          <ScrollArea className={`h-[${height}] pr-4`}>
             {filteredLeftItems.map((item) => (
-              <div key={item.id} className="flex items-center space-x-2 py-2">
+              <div key={item.id} className="flex items-center space-x-2 py-1">
                 <Checkbox
                   checked={item.selected}
                   onCheckedChange={(checked) =>
@@ -82,7 +84,7 @@ export function TransferList({
       </Card>
 
       <Card className="flex-1 border-none shadow-none">
-        <CardHeader>
+        <CardHeader className="pb-2">
           <CardTitle className="text-center pb-2">Selected {title}</CardTitle>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -95,9 +97,9 @@ export function TransferList({
           </div>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px] pr-4">
+          <ScrollArea className={`h-[${height}] pr-4`}>
             {filteredRightItems.map((item) => (
-              <div key={item.id} className="flex items-center space-x-2 py-2">
+              <div key={item.id} className="flex items-center space-x-2 py-1">
                 <span className="text-sm font-medium leading-none">
                   {item.name}
                 </span>

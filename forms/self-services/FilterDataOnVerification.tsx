@@ -38,30 +38,19 @@ import {
 } from "@/components/ui/select";
 
 const formSchema = z.object({
-  organization: z
+  verification: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  manager: z
+  status: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  employee: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  type: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+
   to_date: z.date({
     required_error: "To Date is required.",
   }),
@@ -95,10 +84,10 @@ export default function FilterDataOnVerification({
           <div>
             <FormField
               control={form.control}
-              name="organization"
+              name="verification"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Organization</FormLabel>
+                  <FormLabel>verification</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -122,10 +111,10 @@ export default function FilterDataOnVerification({
           <div>
             <FormField
               control={form.control}
-              name="manager"
+              name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Manager</FormLabel>
+                  <FormLabel>status</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -146,60 +135,7 @@ export default function FilterDataOnVerification({
               )}
             />
           </div>
-          <div>
-            <FormField
-              control={form.control}
-              name="employee"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Employee</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="choose any one" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">1 </SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div>
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="choose any one" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">1 </SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          
           <div>
             <FormField
               control={form.control}

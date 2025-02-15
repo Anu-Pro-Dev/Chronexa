@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from "@/providers/Providers";
+import { PunchProvider } from "@/providers/PunchProvider";
 
 const font_nunito_sans = Nunito_Sans({
   variable: "--font-nunito_sans",
@@ -24,7 +25,11 @@ export default function RootLayout({
       <body
         className={`${font_nunito_sans.className} ${font_nunito_sans.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <PunchProvider>
+            {children}
+          </PunchProvider>
+        </Providers>
       </body>
     </html>
   );

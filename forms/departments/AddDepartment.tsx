@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Required from "@/components/ui/required";
-import { AutoComplete } from "@/components/ui/autocomplete";
 import { TransferList } from "@/components/ui/transfer-list";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -29,6 +28,7 @@ export default function AddDepartment() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedOption, setSelectedOption] = useState<string>("");
+  const [showDetails, setShowDetails] = useState(false);
 
   const options = [
     { value: "option1", label: "Organization 1" },
@@ -36,13 +36,13 @@ export default function AddDepartment() {
     { value: "option3", label: "Organization 3" },
   ];
 
-  const initialEmployees = Array.from({ length: 20 }, (_, i) => ({
+  const initialEmployees = Array.from({ length: 7 }, (_, i) => ({
     id: `emp-${i + 1}`,
     name: `DSG12 - Employee ${i + 1}`,
     selected: false,
   }));
 
-  const initialOrganizations = Array.from({ length: 20 }, (_, i) => ({
+  const initialOrganizations = Array.from({ length: 7 }, (_, i) => ({
     id: `org-${i + 1}`,
     name: `ORG - ${i + 1}`,
     selected: false,
@@ -71,6 +71,7 @@ export default function AddDepartment() {
   };
 
   const router = useRouter();
+
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-3 gap-4">
@@ -121,7 +122,6 @@ export default function AddDepartment() {
                 )}
               >
                 {toDate ? format(toDate, "PPP") : "To date"}
-
                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -132,50 +132,65 @@ export default function AddDepartment() {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-md">
-        <h1 className="text-primary text-lg">Employees</h1>
-        <div className="">
-          <TransferList
-            title="Employees"
-            items={employees}
-            onSelectionChange={handleSelectionChange}
-          />
-        </div>
-      </div>
-      <div className="bg-white p-4 rounded-md">
-        <h1 className="text-primary text-lg">Organization</h1>
-        <div className="">
-          <TransferList
-            title="Organizations"
-            items={organizations}
-            onSelectionChange={handleSelectionChangeOrg}
-          />
-        </div>
-      </div>
-
-      <div className="bg-white p-4 rounded-md">
-        <Label className="text-primary pb-2">Remarks</Label>
-        <Textarea />
-      </div>
-
-      <div>
-        <div className="w-full flex gap-2 items-center col-span-2 justify-end">
-          <Button
-            variant="outline"
-            type="button"
-            size="lg"
-            onClick={() => {
-              router.push("/organization/departments");
-            }}
+      {!showDetails ? (
+        <div className="flex justify-end">
+          <Button 
+            size="lg" 
+            onClick={() => setShowDetails(true)}
+            className="bg-primary hover:bg-primary/90"
           >
-            Cancel
-          </Button>
-
-          <Button size="lg" type="submit">
-            Save
+            Add
           </Button>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="bg-white p-3 rounded-md">
+            <h1 className="text-primary text-lg mb-2">Employees</h1>
+            <TransferList
+              title="Employees"
+              items={employees}
+              onSelectionChange={handleSelectionChange}
+              height="200px"
+            />
+          </div>
+          <div className="bg-white p-3 rounded-md">
+            <h1 className="text-primary text-lg mb-2">Organization</h1>
+            <TransferList
+              title="Organizations"
+              items={organizations}
+              onSelectionChange={handleSelectionChangeOrg}
+              height="200px"
+            />
+          </div>
+
+          <div className="bg-white p-3 rounded-md">
+            <Label className="text-primary text-lg">Remarks</Label>
+            <Textarea 
+              className="mt-2 min-h-[100px] border-2 rounded-md p-2 focus:border-primary focus:ring-1 focus:ring-primary" 
+              placeholder="Enter your remarks here..."
+            />
+          </div>
+
+          <div>
+            <div className="w-full flex gap-2 items-center col-span-2 justify-end">
+              <Button
+                variant="outline"
+                type="button"
+                size="lg"
+                onClick={() => {
+                  router.push("/organization/departments");
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button size="lg" type="submit">
+                Save
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

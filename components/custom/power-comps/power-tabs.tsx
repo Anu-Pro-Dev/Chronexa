@@ -5,6 +5,7 @@ import React from "react";
 
 export default function PowerTabs({ items }: { items: any }) {
   const pathname = usePathname();
+  console.log(pathname)
   return (
     <div>
       <div className="flex gap-10 items-center border-b pb-2">

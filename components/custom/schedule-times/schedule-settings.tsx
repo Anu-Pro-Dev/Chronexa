@@ -64,8 +64,8 @@ export function ScheduleSettings({
   });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+    e.preventDefault()
+    onSubmit(formData)
   };
 
   return (
