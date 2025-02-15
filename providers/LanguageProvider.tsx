@@ -69,12 +69,12 @@ export default function LanguageProvider({
       },
       {
         label: currentLanguageData.translations?.modules?.companyMaster?.nationalities || "Nationalities",
-        path: "/company-master/nationalities",
+        path: "/company-master/nationalities/",
         value: "nationalities",
       },
       {
         label: currentLanguageData.translations?.modules?.companyMaster?.designations || "Designations",
-        path: "/company-master/designations",
+        path: "/company-master/designations/",
         value: "designations",
       },
       { 
@@ -355,14 +355,14 @@ export default function LanguageProvider({
     path: "/devices/",
     items: [
       {
-        label: "Readers",
-        path: "/devices/readers/",
-        value: "readers",
+        label: "Devices Status",
+        path: "/devices/devices-status/",
+        value: "devices_status",
       },
       {
-        label: "Add Reader",
-        path: "/devices/readers/add/",
-        value: "departments",
+        label: "Devices Status",
+        path: "/devices/devices-status/add/",
+        value: "add_devices_status",
         hide: true,
       },
     ],
@@ -390,7 +390,7 @@ export default function LanguageProvider({
     path: "/security/",
     items: [
       {
-        label: "Assign Roles",
+        label: "Roles",
         path: "/security/roles/",
         value: "roles",
       },

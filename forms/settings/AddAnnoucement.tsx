@@ -80,19 +80,69 @@ export default function AddAnnoucement() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-6 bg-white p-6 rounded-md">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6 bg-white p-6 rounded-2xl">
+          <div className="px-5 py-3 flex flex-col">
+            <div className="flex justify-start items-center gap-10">
+              <FormField
+                control={form.control}
+                name="organization"
+                render={({ field }) => (
+                  <FormItem className="flex gap-2 items-center flex-1">
+                    <FormLabel className="flex gap-2">Organization <Required/> </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="choose organization" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">organization 1</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="employee"
+                render={({ field }) => (
+                  <FormItem className="flex gap-2 items-center flex-1">
+                    <FormLabel className="flex gap-2">Employee <Required/> </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="choose employee" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">1employee 12</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
-              name="organization"
+              name="subject"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-2 w-8/12">
+                <FormItem className="flex items-center gap-12">
                   <FormLabel className="flex gap-2 pt-2">
-                    Organization <Required />
+                    Subject <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter your Code"
+                      placeholder="Enter your subject"
                       type="text"
                       {...field}
                     />
@@ -103,69 +153,21 @@ export default function AddAnnoucement() {
             />
             <FormField
               control={form.control}
-              name="employee"
+              name="body"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-2 ">
-                  <FormLabel className="flex text-nowrap pt-2">
-                    Employee <Required />
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="choose employee" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                    </SelectContent>
-                  </Select>
-
+                <FormItem className="flex items-center gap-16">
+                  <FormLabel className="flex gap-2 ">Body <Required /></FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Enter the context of the body" {...field} rows={8} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          <FormField
-            control={form.control}
-            name="subject"
-            render={({ field }) => (
-              <FormItem className="flex items-center gap-6">
-                <FormLabel className="flex gap-2 pt-2">
-                  Subject <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter your subject"
-                    type="text"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="body"
-            render={({ field }) => (
-              <FormItem className="flex items-center gap-10">
-                <FormLabel className="flex gap-2 ">
-                  Body <Required />
-                </FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
-                </FormControl>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-end gap-2 items-center">
-            <div className="flex gap-4">
+          <div className="flex justify-end gap-2 items-center py-3">
+            <div className="flex gap-4 px-5">
               <Button
                 variant={"outline"}
                 type="button"

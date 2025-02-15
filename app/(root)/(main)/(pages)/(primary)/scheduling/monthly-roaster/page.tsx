@@ -1,115 +1,51 @@
 "use client";
+import React, { useState, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import PowerTable from "@/components/custom/power-comps/power-table";
-import React, { useState } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
 import FilterForm from "@/forms/monthly-roaster/FilterForm";
 import { Button } from "@/components/ui/button";
+import PowerTableRoaster from "@/components/custom/power-comps/power-table-roaster";
 import {
   CopyIcon,
-  DeleteIcon,
   ExportIcon,
   ImportIcon,
   LockIcon,
   UnlockIcon,
+  DeleteIcon,
+  PasteIcon,
+  SaveIcon,
 } from "@/icons/icons";
-import PowerTableRoaster from "@/components/custom/power-comps/power-table-roaster";
-import { SaveIcon } from "lucide-react";
+import { scheduleData } from "./demo/data";
 
 export default function Page() {
   const { modules } = useLanguage();
+  const [SearchValue, SetSearchValue] = useState<string>("");
 
-  // Initial data for the table
-  const [Data, SetData] = useState<any>([
-    {
-      category: "ADMIN - ADMIN",
-      subcategory:
-        "A/ Executive Director Corporate Support Services Centre - A/ Executive Director Corporate Support Services Centre",
-      rows: [
-        {
-          name: "Executive",
-          number: "DGS78",
-          version: "Normal",
-          status: "Locked",
-          schedule: [
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nig",
-            "Nor",
-            "Day",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-          ],
-          work_hours: "170:00",
-        },
-      ],
-    },
-    {
-      category: "ADMIN - ADMIN",
-      subcategory: "Advisor - Advisor",
-      rows: [
-        {
-          name: "Employee 61",
-          number: "DGS131",
-          version: "Normal",
-          status: "Locked",
-          schedule: [
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nig",
-            "Nor",
-            "Day",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-          ],
-          work_hours: "170:00",
-        },
-        {
-          name: "Chairman",
-          number: "ODGS1",
-          version: "Normal",
-          status: "Locked",
-          schedule: [
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nig",
-            "Nig",
-            "Day",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-            "Nor",
-          ],
-          work_hours: "189:30",
-        },
-      ],
-    },
-  ]);
+  const [filter_open, filter_on_open_change] = useState<boolean>(false);
 
-  // Generate columns dynamically
-  const [Columns, setColumns] = useState(() => {
+  const [Data, SetData] = useState<any>(() => {
+    return scheduleData.flatMap((category: any) => {
+      const flattenedRows = category.subcategories.flatMap((subcategory: any) => {
+        return subcategory.rows.map((row: any) => {
+          // Convert schedule slots into day-wise structure
+          const schedule = row.slots.reduce((acc: any, slot: any, idx: number) => {
+            acc[idx + 1] = slot.status; // Map slots to 1-31 for the days of the month
+            return acc;
+          }, {});
+          return {
+            ...row,
+            category: category.name,
+            subcategory: subcategory.name,
+            ...schedule,
+          };
+        });
+      });
+
+      return flattenedRows;
+    });
+  });
+
+  const [Columns] = useState(() => {
     const dayColumns = Array.from({ length: 31 }, (_, i) => ({
       field: `${i + 1}`,
       headerName: `${i + 1}`,
@@ -118,86 +54,78 @@ export default function Page() {
         switch (params.value) {
           case "Nor":
             return {
-              backgroundColor: "#007bff",
+              backgroundColor: "#0E6ECF",
               color: "#fff",
-              fontSize: "10px",
+              fontSize: "12px",
+              fontWeight: "800",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             };
           case "Nig":
             return {
-              backgroundColor: "#6c757d",
+              backgroundColor: "#DF2F4A",
               color: "#fff",
-              fontSize: "10px",
+              fontSize: "12px",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             };
           case "Day":
             return {
-              backgroundColor: "#28a745",
+              backgroundColor: "#00C875",
               color: "#fff",
-              fontSize: "10px",
+              fontSize: "12px",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            };
+          case "Fri":
+            return {
+              backgroundColor: "#9D50DD",
+              color: "#fff",
+              fontSize: "12px",
+              fontWeight: "800",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             };
           default:
             return {};
         }
       },
     }));
+
     return [
       { field: "category", headerName: "Category", width: 200 },
       { field: "subcategory", headerName: "Subcategory", width: 200 },
-      { field: "number", headerName: "Employee ID", width: 150 },
-      { field: "name", headerName: "Name", width: 200 },
+      { field: "number", headerName: "Number", width: 150 },
+      { field: "name", headerName: "Name", width: 150 },
+      { field: "version", headerName: "Version", width: 100 },
+      { field: "status", headerName: "Status", width: 100 },
       ...dayColumns,
-      {
-        field: "work_hours",
-        headerName: "Work Hours",
-        pinned: "right",
-        width: 120,
-      },
+      { field: "hours", headerName: "Work Hours", width: 120, pinned: "right" },
     ];
   });
 
-  // Handle filter modal state
-  const [filter_open, filter_on_open_change] = useState<boolean>(false);
-
-  // Flatten the data for rendering, add `category` and `subcategory` columns
-  const flattenedData = Data.flatMap((group: any) => {
-    const categoryRow = {
-      category: group.category,
-      subcategory: "", // No subcategory in this row
-      name: "Category", // Special name for the category row
-      schedule: Array(31).fill(""), // Empty schedule cells
-      work_hours: "",
-    };
-    const subcategoryRow = {
-      category: "",
-      subcategory: group.subcategory,
-      name: "Subcategory", // Special name for the subcategory row
-      schedule: Array(31).fill(""), // Empty schedule cells
-      work_hours: "",
-    };
-    const rows = group.rows.map((row: any) => {
-      const days = row.schedule.reduce(
-        (acc: any, day: string, index: number) => {
-          acc[index + 1] = day;
-          return acc;
-        },
-        {}
-      );
-      return {
-        ...row,
-        ...days,
-        category: group.category,
-        subcategory: group.subcategory,
-      };
-    });
-
-    return [categoryRow, subcategoryRow, ...rows];
-  });
-
   const props = {
-    Data: flattenedData,
+    Data,
     SetData,
     Columns,
-    filter_open,
-    filter_on_open_change,
+    SearchValue,
+    SetSearchValue,
   };
 
   return (
@@ -206,51 +134,53 @@ export default function Page() {
         enableClear
         props={props}
         items={modules?.scheduling?.items}
-        disableFeatures
         enableFilters
+        disableAdd
+        disableDelete
         filter_modal_component={
           <FilterForm on_open_change={filter_on_open_change} />
         }
         isLarge
         filter_modal_description="Select the filter for further process"
       />
-      <div className="flex justify-between items-center gap-4">
-        <input
-          type="file"
-          className="border rounded-md text-primary px-2 py-2"
-        />
+
+      <div className="flex justify-between bg-white rounded-[15px] items-center px-5 py-3">
+        <input type="file" className="" />
         <div className="flex items-center gap-2">
-          <Button className="border-primary-50 bg-white text-primary border bg-primary/40">
+          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
             <ImportIcon /> Import
           </Button>
-          <Button className="border-primary-50 bg-white text-primary border bg-primary/40">
+          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
             <ExportIcon /> Export
           </Button>
-          <Button className="border-primary-50 bg-white text-primary border bg-primary/40">
+          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
             <CopyIcon /> Copy Roaster
           </Button>
-          <Button className="border-primary-50 bg-white text-primary border bg-primary/40">
+          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
             <CopyIcon /> Copy
+          </Button>
+          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold" disabled>
+            <PasteIcon /> Paste
           </Button>
         </div>
       </div>
 
-      {/* Render the table */}
       <PowerTableRoaster props={props} />
+
       <div className="justify-end gap-4 flex">
-        <Button>
+        <Button size={"sm"} type="button">
           <SaveIcon />
           Save
         </Button>
-        <Button variant="success">
+        <Button size={"sm"} type="button" variant="success">
           <LockIcon />
           Finalize
         </Button>
-        <Button className="bg-[#f3f3f3] text-black border">
+        <Button size={"sm"} type="button" className="text-[#979797] bg-[#F3F3F3] border border-[#E7E7E7]">
           <UnlockIcon />
           Un-finalize
         </Button>
-        <Button variant="destructive">
+        <Button size={"sm"} type="button" variant="destructive">
           <DeleteIcon />
           Clear
         </Button>

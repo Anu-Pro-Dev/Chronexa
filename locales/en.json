@@ -38,7 +38,8 @@
       "filters": "Filters",
       "takeAction": "Take Action",
       "punchIn": "Punch In",
-      "punchOut": "Punch Out"
+      "punchOut": "Punch Out",
+      "exportExcel": "Export to excel"
     },
     "modules": {
       "dashboard": {

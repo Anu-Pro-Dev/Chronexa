@@ -1,20 +1,23 @@
 "use client";
-
+import AutoPathMapper from "@/components/custom/auto-path-mapper";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import AddReaderDevices from "@/forms/devices/AddReaderDevices";
+import AddDevicesStatus from "@/forms/devices/AddDevicesStatus";
 
 import React from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
-import AddAnnoucement from "@/forms/settings/AddAnnoucement";
 export default function Page() {
   const { modules } = useLanguage();
   return (
     <div>
-      <PowerHeader items={modules?.settings?.items} disableFeatures />
+      <PowerHeader
+        items={modules?.devices.items}
+        disableFeatures
+        isAddNewPagePath="/devices/devices-status/add"
+      />
 
       <div className="pt-4">
-        <AddAnnoucement />
+        <AddDevicesStatus />
       </div>
     </div>
   );

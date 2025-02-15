@@ -16,12 +16,13 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-white hover:bg-destructive/90",
         outline:
-          "border border-border-grey bg-transparent hover:bg-accent hover:text-accent-foreground",
+          "border bg-transparent hover:bg-accent hover:text-accent-foreground text-border-grey border-border-grey",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         gradient: "bg-gradient-to-r from-[#0078D4] to-[#003E6E]",
+        primaryoutline: `bg-[#F1F8FD] text-primary border border-[#C1DEF5] shadow-button`,
       },
       size: {
         default: "h-9 px-4 py-2",

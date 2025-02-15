@@ -1,15 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { ExportIcon } from "@/icons/icons";
-import { DownloadCloudIcon } from "lucide-react";
+import { ExportExcelIcon } from "@/icons/icons";
 import React from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function PowerExport() {
+  const { translations } = useLanguage();
+
   return (
     <div>
-      <Button className="flex items-center space-y-0.5">
-        <DownloadCloudIcon />
-        <span>Export</span>
-      </Button>
+      <Button
+            variant={"success"}
+            size={"sm"}
+            className="flex items-center space-y-0.5"
+          >
+            <ExportExcelIcon />
+            <span>{translations?.buttons.exportExcel}</span>
+          </Button>
     </div>
   );
 }

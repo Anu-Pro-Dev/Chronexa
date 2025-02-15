@@ -15,8 +15,8 @@ export default function PowerTabs({ items }: { items: any }) {
             href={item?.url || ""}
             className={
               item?.url?.startsWith(pathname)
-                ? "text-primary underline underline-offset-[14px] font-bold"
-                : "text-secondary"
+                ? "text-primary text-base underline underline-offset-[14px] font-bold"
+                : "text-text-secondary font-medium"
             }
           >
             {item?.label}

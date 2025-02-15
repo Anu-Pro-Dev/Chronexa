@@ -36,6 +36,7 @@ export default function Page() {
     on_open_change,
     SearchValue,
     SetSearchValue,
+    EnableBorders: true,
   };
 
   return (
@@ -46,7 +47,7 @@ export default function Page() {
         disableAdd
         disableDelete
       />
-      <PowerTable props={props} api={"/settings/notifications"} />
+      <PowerTable props={props} api={"/settings/notifications"} showCheckbox={false}/>
     </div>
   );
 }

@@ -6,19 +6,20 @@ import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
 import FilterEmailForm from "@/forms/alerts/FilterEmailForm";
+import { FileX } from "lucide-react";
 export default function Page() {
   const { modules } = useLanguage();
 
   const [Columns, setColumns] = useState([
     { field: "email" },
     { field: "subject" },
-    { field: "email_body" },
+    { field: "email_body", headerName: "Email Body" },
     { field: "status" },
-    { field: "cc_email" },
-    { field: "bcc_email" },
-    { field: "complete_violation" },
-    { field: "created_date" },
-    { field: "updatedAt" },
+    { field: "cc_email", headerName: "CC Email" },
+    { field: "bcc_email", headerName: "BCC Email" },
+    { field: "complete_violation", headerName: "Complete Violation" },
+    { field: "created_date", headerName: "Created Date" },
+    { field: "updatedAt", headerName: "Updated Date" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
@@ -38,6 +39,7 @@ export default function Page() {
     SetSortField,
     SortDirection,
     SetSortDirection,
+    EnableBorders: true,
   };
 
   return (
@@ -45,15 +47,18 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.alerts?.items}
-        enableFilters
         disableAdd
-        filter_modal_title="Filter"
-        filter_modal_description="Select the Filter value according to the requirement"
-        filter_modal_component={
-          <FilterEmailForm on_open_change={on_open_change} />
-        }
+        disableDelete
+        isExport
       />
-      <PowerTable props={props} api={"/alerts/email"} />
+      <PowerTable 
+        props={props} 
+        api={"/alerts/email"} 
+        showCheckbox={false}
+        customColDef={{
+          flex: 0,
+        }}
+      />
     </div>
   );
 }

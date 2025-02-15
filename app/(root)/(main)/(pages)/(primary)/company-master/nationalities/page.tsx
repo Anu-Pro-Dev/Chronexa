@@ -1,25 +1,18 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddGradesCompanyMaster from "@/forms/AddGradesCompanyMaster";
+import AddRegionsCompanyMaster from "@/forms/AddRegionsCompanyMaster";
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
-
 export default function Page() {
   const { modules } = useLanguage();
 
   const [Columns, setColumns] = useState([
     { field: "code", headerName: "Code" },
     { field: "description", headerName: "Description" },
-    {
-      field: "overtime_eligible",
-      headerName: "Overtime eligible ",
-    },
-    { field: "senior_employee", headerName: "Senior employee" },
     { field: "updatedAt", headerName: "Updated" },
   ]);
-
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -27,7 +20,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
-
+  
   const props = {
     Data,
     SetData,
@@ -54,13 +47,13 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.companyMaster.items}
-        modal_title="Grades"
-        modal_description="Grades of the employee"
+        modal_title="Nationalities"
+        modal_description="Nationalities of the employee"
         modal_component={
-          <AddGradesCompanyMaster on_open_change={on_open_change} />
+          <AddRegionsCompanyMaster on_open_change={on_open_change}/>
         }
       />
-      <PowerTable props={props} api={"/company-master/grades"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} api={"/company-master/nationalities"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

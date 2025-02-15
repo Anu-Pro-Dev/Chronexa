@@ -13,7 +13,7 @@ export default function Page() {
     <div>
       <PowerHeader items={modules?.settings?.items} disableFeatures />
 
-      <div className="pt-4">
+      <div className="py-5">
         <AddAnnoucement />
       </div>
     </div>

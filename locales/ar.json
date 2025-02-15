@@ -37,7 +37,8 @@
       "filters": "المرشحات",
       "takeAction": "إتخذ إجراء",
       "punchIn": "لكمة في",
-      "punchOut": "لكمة خارج"
+      "punchOut": "لكمة خارج",
+      "exportExcel": "تصدير إلى التفوق"
     },
     "modules": {
       "dashboard": {
