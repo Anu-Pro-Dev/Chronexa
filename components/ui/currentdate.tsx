@@ -2,22 +2,26 @@ import React, { useEffect, useState } from "react";
 import { CalendarIcon, ChevronDown, ChevronUp } from "lucide-react"; // Import the necessary icons
 import { Calendar } from "@/components/ui/calendar"; // Import your existing Calendar component
 import { cn } from "@/lib/utils"; // Assuming you're using utility classes
+import { DateRange } from "react-day-picker";
 
 const CurrentDate: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [currentDate, setCurrentDate] = useState<DateRange>({
+    from: new Date(),
+  }); 
   const [showCalendar, setShowCalendar] = useState<boolean>(false); // State to control calendar visibility
 
   useEffect(() => {
-    // Update the current date when the component mounts
-    setCurrentDate(new Date());
+    setCurrentDate({ from: new Date() }); // Initialize selected date
   }, []);
 
   // Format the date
-  const formattedDate = currentDate.toLocaleDateString("en-US", {
-    month: "short", // e.g., "Feb"
-    day: "numeric", // e.g., "9"
-    year: "numeric", // e.g., "2025"
-  });
+  const formattedDate = currentDate.from
+  ? currentDate.from.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  : "Select Date"; // Fallback text if no date is selected
 
   // Toggle for showing/hiding the calendar
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
@@ -48,7 +52,16 @@ const CurrentDate: React.FC = () => {
         {/* Conditionally render the Calendar component */}
         {showCalendar && (
           <div className="absolute mt-2 bg-white shadow-lg rounded-lg z-50">
-            <Calendar />
+            <Calendar
+            mode="single" // Ensure single date selection mode
+            selected={currentDate.from} // Pass the selected date
+            onSelect={(date) => {
+              if (date) {
+                setCurrentDate({ from: date }); // Update selected date
+                setShowCalendar(false); // Close the calendar after selection
+              }
+            }}
+          />
           </div>
         )}
       </div>

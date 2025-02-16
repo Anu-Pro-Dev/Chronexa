@@ -65,7 +65,7 @@ function TimerCard() {
         className="blur-[2px]"
       />
       <h5 className="text-base font-bold">Clock your hours</h5>
-      <p className={`text-[35px] font-bold align-center py-4 ${isPunchedIn ? 'text-success' : ''}`}>
+      <p className={`text-[35px] font-bold align-center py-4 ${isPunchedIn ? '' : ''}`}>
         {hours.toString().padStart(2, "0")}:
         {minutes.toString().padStart(2, "0")}:
         {remainingSeconds.toString().padStart(2, "0")}

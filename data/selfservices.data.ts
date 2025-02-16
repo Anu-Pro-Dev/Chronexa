@@ -6,6 +6,7 @@ import {
     MovementManualDataType,
     MovementApprovalManualDataType,
     PermissionApplicationDataType,
+    PermissionTypesDataType
   } from "./types/types";
 
 export const workflows_columns = [

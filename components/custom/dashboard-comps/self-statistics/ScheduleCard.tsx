@@ -21,36 +21,19 @@ function ScheduleCard() {
 
   return (
     <div className="shadow-card rounded-[10px] bg-white p-6">
-      <div className="flex flex-row justify-between items-center mb-6">
-        <div className="flex flex-col gap-2">
-          <h5 className="text-lg text-text-primary font-bold">Schedule</h5>
+      <div>
+        <div className="flex flex-col">
+          <div>
+            <div className="flex items-center justify-between">
+              <h5 className="text-lg text-text-primary font-bold">Schedule</h5>   
+              <Link href="/scheduling"  className="text-primary text-sm font-medium"> Show all </Link>
+            </div>
+          </div>
           <p className="text-sm text-text-secondary font-semibold">
             Monthly working hours can be viewed here
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <Select
-            value={selectedMonth}
-            onValueChange={setSelectedMonth}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Select month" />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map((month, index) => (
-                <SelectItem key={index} value={index.toString()}>
-                  {month}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Link
-            href="/scheduling"
-            className="text-primary text-sm font-medium flex items-center justify-center gap-1"
-          >
-            Show all
-          </Link>
-        </div>
+
       </div>
 
       <div className="mb-6">
@@ -63,7 +46,7 @@ function ScheduleCard() {
         />
       </div>
 
-      <MonthlyRoasterTable month={months[parseInt(selectedMonth)]} />
+      {/* <MonthlyRoasterTable month={months[parseInt(selectedMonth)]} /> */}
     </div>
   );
 }
