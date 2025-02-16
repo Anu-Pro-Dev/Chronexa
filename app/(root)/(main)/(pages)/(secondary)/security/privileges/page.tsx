@@ -19,8 +19,9 @@ export default function Page() {
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
   const [SortDirection, SetSortDirection] = useState<string>("asc");
-
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [open, on_open_change] = useState<boolean>(false);
+
   const props = {
     Data,
     SetData,
@@ -35,16 +36,21 @@ export default function Page() {
     on_open_change,
   };
 
+  const handleEditClick = (data: any) => {
+    setSelectedRowData(data);
+    on_open_change(true);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
         items={modules?.security?.items}
-        modal_title="Priveleges"
-        modal_description="Select the Priveleges"
+        modal_title="Privileges"
+        modal_description="Select the privileges"
         modal_component={<AddPrivelege on_open_change={on_open_change} />}
       />
-      <PowerTable props={props} api={"/security/privileges"} />
+      <PowerTable props={props} api={"/security/privileges"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

@@ -28,7 +28,7 @@ export default function PowerTableRoaster({
   const gridRef = useRef<any>();
 
   const [TotalPages, SetTotalPages] = useState<number>(1);
-  const [rows_per_page, set_rows_per_page] = useState<string>("5");
+  const [rows_per_page, set_rows_per_page] = useState<string>("10");
 
   // Fetch Data Function
   const FetchData = async () => {
@@ -165,7 +165,7 @@ export default function PowerTableRoaster({
       <div className="flex justify-between px-3">
         <div className="flex items-center gap-2">
           <Select
-            defaultValue="5"
+            defaultValue="10"
             value={rows_per_page}
             onValueChange={set_rows_per_page}
           >

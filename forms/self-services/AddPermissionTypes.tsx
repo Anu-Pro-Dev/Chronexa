@@ -496,7 +496,7 @@ export default function AddPermissionTypes () {
               <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="choose workflow" />
+                    <SelectValue placeholder="Choose workflow" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -520,7 +520,7 @@ export default function AddPermissionTypes () {
               <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="choose organisation" />
+                    <SelectValue placeholder="Choose organisation" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -544,7 +544,7 @@ export default function AddPermissionTypes () {
               <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="choose group" />
+                    <SelectValue placeholder="Choose group" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -568,7 +568,7 @@ export default function AddPermissionTypes () {
               <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="choose employee" />
+                    <SelectValue placeholder="Choose employee" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -592,7 +592,7 @@ export default function AddPermissionTypes () {
               <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="choose gender" />
+                    <SelectValue placeholder="Choose gender" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -616,7 +616,7 @@ export default function AddPermissionTypes () {
               <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="choose nationality" />
+                    <SelectValue placeholder="Choose nationality" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

@@ -1,10 +1,9 @@
 "use client";
-import PowerHeader from "@/components/custom/power-comps/power-header";
-
 import React from "react";
-
+import PowerHeader from "@/components/custom/power-comps/power-header";
 import { useLanguage } from "@/providers/LanguageProvider";
 import StandardReportGenerator from "@/forms/reports/StandardReportGenerator";
+
 export default function Page() {
   const { modules } = useLanguage();
   

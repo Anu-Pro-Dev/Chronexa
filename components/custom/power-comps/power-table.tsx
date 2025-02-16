@@ -46,7 +46,7 @@ export default function PowerTable({
   const gridRef = useRef<any>();
 
   const [TotalPages, SetTotalPages] = useState<number>(1);
-  const [rows_per_page, set_rows_per_page] = useState<string>("5");
+  const [rows_per_page, set_rows_per_page] = useState<string>("10");
 
   // Fetch Data Function
   const FetchData = async () => {

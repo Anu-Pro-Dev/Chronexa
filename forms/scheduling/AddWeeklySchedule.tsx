@@ -232,7 +232,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -256,7 +256,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -280,7 +280,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -304,7 +304,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -329,7 +329,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -353,7 +353,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -378,7 +378,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -402,7 +402,7 @@ export default function AddWeeklySchedule() {
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

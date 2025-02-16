@@ -69,7 +69,7 @@ export default function AddRole({ on_open_change }: { on_open_change: any }) {
                   Name(English) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Type here..." type="text" {...field} />
+                  <Input placeholder="Enter the name in english" type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -85,7 +85,7 @@ export default function AddRole({ on_open_change }: { on_open_change: any }) {
                   Name [العربية] <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Type here..." type="text" {...field} />
+                  <Input placeholder="Enter the name in arabic" type="text" {...field} />
                 </FormControl>
 
                 <FormMessage />
@@ -93,7 +93,7 @@ export default function AddRole({ on_open_change }: { on_open_change: any }) {
             )}
           />
 
-          <div className="w-full flex gap-2 items-center">
+          <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}
               type="button"

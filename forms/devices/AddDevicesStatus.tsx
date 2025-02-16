@@ -158,7 +158,7 @@ export default function AddDevicesStatus({
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="choose organization" />
+                            <SelectValue placeholder="Choose organization" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

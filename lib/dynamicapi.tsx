@@ -1,4 +1,4 @@
-import { email_data } from "@/data/alerts.data";
+import { email_data, sms_data } from "@/data/alerts.data";
 import { regions_data, nationalities_data, designations_data, grades_data } from "@/data/cm.data"; // Import your datasets
 import { devices_status_data } from "@/data/devices.data";
 import {
@@ -105,6 +105,9 @@ export const DynamicApi = (api: any, params: any) => {
         break;
       case "/alerts/email":
         data = email_data;
+        break;
+      case "/alerts/sms":
+        data = sms_data;
         break;
       default:
         throw new Error("API endpoint not supported");

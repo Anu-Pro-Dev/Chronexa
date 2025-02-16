@@ -4,7 +4,7 @@ export const roles_columns = [
   "select",
   "name",
   "privileges",
-  "user",
+  "assignRole",
   "users",
   "actions",
 ];
@@ -21,37 +21,37 @@ export const roles_data: RolesDataType[] = [
   {
     code: "ADMIN",
     privileges: "View",
-    user: "Users",
+    assignRole: "Users",
     users: "0",
   },
   {
     code: "DEPARTMENT_ADMIN",
     privileges: "View",
-    user: "Users",
+    assignRole: "Users",
     users: "6",
   },
   {
     code: "dev",
     privileges: "View",
-    user: "Users",
+    assignRole: "Users",
     users: "0",
   },
   {
     code: "EMPLOYEE",
     privileges: "View",
-    user: "Users",
+    assignRole: "Users",
     users: "152",
   },
   {
     code: "HR_ADMIN",
     privileges: "View",
-    user: "Users",
+    assignRole: "Users",
     users: "4",
   },
   {
     code: "MANAGER",
     privileges: "View",
-    user: "Users",
+    assignRole: "Users",
     users: "21",
   },
 ];
