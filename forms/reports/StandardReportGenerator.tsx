@@ -77,11 +77,11 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  to_date: z.date({
-    required_error: "To Date is required.",
-  }),
   from_date: z.date({
     required_error: "From Date is required.",
+  }),
+  to_date: z.date({
+    required_error: "To Date is required.",
   }),
   inactive: z.boolean(),
 });

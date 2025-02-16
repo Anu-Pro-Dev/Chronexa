@@ -81,6 +81,12 @@ export default function AddAnnoucement() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-6 bg-white p-6 rounded-2xl">
+          <div className="">
+            <h1 className="font-bold text-xl text-primary">Add Annoucement</h1>
+            <h1 className="font-semibold text-sm text-text-secondary">
+              Select the choices for annoucement
+            </h1>
+          </div>
           <div className="px-5 py-3 flex flex-col">
             <div className="flex justify-start items-center gap-10">
               <FormField
@@ -95,7 +101,7 @@ export default function AddAnnoucement() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="choose organization" />
+                          <SelectValue placeholder="Choose organization" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -119,7 +125,7 @@ export default function AddAnnoucement() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="choose employee" />
+                          <SelectValue placeholder="Choose employee" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -165,7 +171,6 @@ export default function AddAnnoucement() {
               )}
             />
           </div>
-
           <div className="flex justify-end gap-2 items-center py-3">
             <div className="flex gap-4 px-5">
               <Button

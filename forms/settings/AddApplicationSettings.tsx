@@ -133,7 +133,7 @@ export default function AddApplicationSettings({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

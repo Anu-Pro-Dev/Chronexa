@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { Close } from "@radix-ui/react-dialog";
 import { IoMdClose } from "react-icons/io";
-import { ForwardIcon } from "lucide-react";
+import { ActionIcon } from "@/icons/icons";
 
 export default function PowerTakeAction({
   isAddNewPagePath = null,
@@ -50,7 +50,7 @@ export default function PowerTakeAction({
             }}
             className="flex items-center space-y-0.5"
           >
-            <ForwardIcon />
+            <ActionIcon />
             <span>Take Action</span>
           </Button>
         )}
@@ -62,7 +62,7 @@ export default function PowerTakeAction({
               size={"sm"}
               className="flex items-center space-y-0.5"
             >
-              <ForwardIcon />
+              <ActionIcon />
               <span>Take Action</span>
             </Button>
           </ResponsiveModalTrigger>
