@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { CalendarIcon, ChevronDown, ChevronUp } from "lucide-react"; // Import the necessary icons
-import { Calendar } from "@/components/ui/calendar"; // Import your existing Calendar component
-import { cn } from "@/lib/utils"; // Assuming you're using utility classes
+import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
+import { CalendarIcon, FaChevronUpIcon, FaChevronDownIcon } from "@/icons/icons";
 
 const CurrentDate: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<DateRange>({
@@ -27,24 +26,23 @@ const CurrentDate: React.FC = () => {
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
 
   return (
-    <div className="flex justify-center items-center ">
+    <div className="flex justify-center items-center bg-white rounded-md px-2">
       <div className="text-center">
         {/* Displaying calendar icon, current date, and chevron in a row */}
         <div className="flex items-center justify-center gap-1">
-          <CalendarIcon className="w-4 h-5 text-sky-500" /> {/* Calendar Icon */}
-          <p className="text-sm">
-            {formattedDate}
-          </p>
-
-          {/* Chevron icon to toggle calendar visibility */}
           <div 
-            className="cursor-pointer" 
+            className="cursor-pointer flex justify-center items-center gap-2" 
             onClick={toggleCalendar}
           >
+            <div className="w-7 h-7 bg-backdrop rounded-full flex justify-center items-center"><CalendarIcon className="w-4 h-4" /></div> {/* Calendar Icon */}
+            <p className="text-sm text-text-primary font-semibold">
+              {formattedDate}
+            </p>
+          
             {showCalendar ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              <FaChevronUpIcon className="w-4 h-4 text-text-primary" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              <FaChevronDownIcon className="w-4 h-4 text-text-primary" />
             )}
           </div>
         </div>

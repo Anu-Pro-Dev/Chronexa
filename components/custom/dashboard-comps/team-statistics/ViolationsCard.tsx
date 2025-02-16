@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar1Icon } from "@/icons/icons";
 
 const chartData = [
   { month: "January", missedin: 1, missedout: 2, latein: 5, earlyout: 0 },
@@ -50,24 +51,28 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 function VoilationCard() {
-  const [years, setYears] = React.useState();
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState("This year");
+
+  const years = ["This year", ...Array.from({ length: currentYear - 2019 }, (_, i) => (currentYear - i).toString()).slice(1)];
 
   return (
     <div className="shadow-card rounded-[10px] bg-white p-2">
       <div className="flex flex-row justify-between p-4">
         <h5 className="text-lg text-text-primary font-bold">
-          Violations (Missed entries)
+          Violations
         </h5>
-        <Select>
-          <SelectTrigger className="w-[120px] h-9 border border-border-accent shadow-dropdown rounded-lg text-secondary text-sm">
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+            <Calendar1Icon width="14" height="16" />
             <SelectValue placeholder="Select year" />
           </SelectTrigger>
-          <SelectContent className="bg-background rounded-md shadow-dropdown">
-            {["This year", "2023", "2022", "2021"].map((year) => (
+          <SelectContent className="bg-white rounded-md shadow-dropdown">
+            {years.map((year) => (
               <SelectItem
                 key={year}
                 value={year}
-                className="text-text-primary gap-0 bg-background hover:bg-primary hover:text-white"
+                className="text-text-primary gap-0 bg-white hover:bg-primary hover:text-white"
               >
                 {year}
               </SelectItem>

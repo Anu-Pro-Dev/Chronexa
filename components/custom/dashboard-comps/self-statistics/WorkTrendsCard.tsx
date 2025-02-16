@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
   ChartConfig,
@@ -17,8 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { FaCalendarAlt } from "react-icons/fa"
+import { Calendar1Icon } from "@/icons/icons";
 
 const chartData = [
   { date: "1", worked: 10, national: 0, holidays: 0 },
@@ -69,21 +67,25 @@ const chartConfig = {
   }
 } satisfies ChartConfig
 
-
-
-
 function WorkTrendsCard() {
-
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
+  const currentMonthIndex = new Date().getMonth();
+  const [selectedMonth, setSelectedMonth] = useState("This month");
 
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
 
+  const monthsWithThisMonth = months.map((month, index) => {
+    if (index === currentMonthIndex) {
+      return "This month";
+    }
+    return month;
+  })
+
     return(
-        <div className='shadow-card rounded-[10px] bg-white p-6'>
-          <div className="flex justify-between">
+        <div className='shadow-card rounded-[10px] bg-white p-2'>
+          {/* <div className="flex justify-between">
             <div>
               <h5 className='text-lg text-text-primary font-bold'>Work hour trends</h5>
             </div>
@@ -105,35 +107,58 @@ function WorkTrendsCard() {
                 </SelectContent>
               </Select>
             </div>
+          </div> */}
+          <div className="flex flex-row justify-between p-4">
+            <div>
+              <h5 className="text-lg text-text-primary font-bold">
+                Work hour trends
+              </h5>
+              <p className='text-sm text-text-secondary font-semibold pb-4'>Work hour trends can be viewed here</p>
+            </div>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+                <Calendar1Icon width="14" height="16" />
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent className="bg-white rounded-md shadow-dropdown">
+                {monthsWithThisMonth.map((month) => (
+                  <SelectItem
+                    key={month}
+                    value={month}
+                    className="text-text-primary gap-0 bg-white hover:bg-primary hover:text-white"
+                  >
+                    {month}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-            <p className='text-sm text-text-secondary font-semibold pb-6'>Work hour trends can be viewed here</p>
-            <ChartContainer config={chartConfig} className="relative left-[-30px]">
-                <BarChart accessibilityLayer data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    tickMargin={2}
-                    axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <YAxis
-                    type="number"
-                    tickLine={false}
-                    tickMargin={2}
-                    axisLine={false}
-                />
-                <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent/>}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-                <Bar dataKey="worked" fill="var(--color-worked)" radius={0} />
-                <Bar dataKey="national" fill="var(--color-national)" radius={0} />
-                <Bar dataKey="holidays" fill="var(--color-holidays)" radius={0} />
-                </BarChart>
-            </ChartContainer>
+          <ChartContainer config={chartConfig} className="relative left-[-30px]">
+              <BarChart accessibilityLayer data={chartData}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  tickMargin={2}
+                  axisLine={false}
+                  tickFormatter={(value) => value.slice(0, 3)}
+              />
+              <YAxis
+                  type="number"
+                  tickLine={false}
+                  tickMargin={2}
+                  axisLine={false}
+              />
+              <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent/>}
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar dataKey="worked" fill="var(--color-worked)" radius={0} />
+              <Bar dataKey="national" fill="var(--color-national)" radius={0} />
+              <Bar dataKey="holidays" fill="var(--color-holidays)" radius={0} />
+              </BarChart>
+          </ChartContainer>
         </div>
     )
 }

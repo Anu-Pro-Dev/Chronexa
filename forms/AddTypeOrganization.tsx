@@ -19,7 +19,7 @@ import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 const formSchema = z.object({
   description_en: z
     .string()
@@ -70,7 +70,7 @@ export default function AddTypeOrganization({
                   Description (English) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter the description in english" type="text" {...field} />
                 </FormControl>
 
                 <FormMessage />
@@ -86,7 +86,7 @@ export default function AddTypeOrganization({
                   Description (العربية) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter the description in arabic" type="text" {...field} />
                 </FormControl>
 
                 <FormMessage />
@@ -94,7 +94,7 @@ export default function AddTypeOrganization({
             )}
           />
 
-          <div className="w-full flex gap-2 items-center">
+          <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}
               type="button"

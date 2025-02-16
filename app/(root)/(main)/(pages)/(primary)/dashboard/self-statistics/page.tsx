@@ -66,10 +66,11 @@ export default function Dashboard() {
           disableSearch
           items={modules?.dashboard.items}
         />
-        <div className="absolute right-40 bottom-55">
+        {/* <div className="absolute right-40 bottom-55">
           <CurrentDate />
-        </div>
-        <div className="text-white">
+        </div> */}
+        <div className="flex gap-5">
+          <CurrentDate />
           <PunchButton />
         </div>
       </div>
