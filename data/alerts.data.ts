@@ -86,4 +86,14 @@ export const sms_data: SmsDataType[] = [
     created_date: "20-09-2024 10:43",
     updatedAt: "20-09-2024 10:43",
   },
+  {
+    mobile_number: "0551697468",
+    employee_id: "DG763",
+    subject: "Employee Leave Update",
+    sms_content:
+      "Hello Admin,<br>Employee Employee763 (DG763) has just clocked in at [Time] on [Date]. Please review the attendance records for more details.",
+    status: "Not Delivered",
+    created_date: "16-02-2025 11:43",
+    updatedAt: "16-02-2025 11:43",
+  },
 ];

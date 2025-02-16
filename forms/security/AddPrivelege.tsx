@@ -26,7 +26,13 @@ import {
 } from "@/components/ui/select";
 
 const formSchema = z.object({
-  name: z
+  name_en: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  name_ar: z
     .string()
     .min(1, {
       message: "Required",
@@ -48,7 +54,8 @@ export default function AddPrivelege({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      name_en: "",
+      name_ar: "",
       group: "",
     },
   });
@@ -66,21 +73,38 @@ export default function AddPrivelege({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Name <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Type here..." type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+           <FormField
+              control={form.control}
+              name="name_en"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Name(English) <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter the name in english" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+  
+            <FormField
+              control={form.control}
+              name="name_ar"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Name [العربية] <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter the name in arabic" type="text" {...field} />
+                  </FormControl>
+  
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           <FormField
             control={form.control}
@@ -94,12 +118,12 @@ export default function AddPrivelege({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="choose any one" />
+                      <SelectValue placeholder="Choose employee group" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
+                    <SelectItem value="1">HR Privileges</SelectItem>
+                    <SelectItem value="2">Security Privileges</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -108,7 +132,7 @@ export default function AddPrivelege({
             )}
           />
 
-          <div className="w-full flex gap-2 items-center">
+          <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}
               type="button"

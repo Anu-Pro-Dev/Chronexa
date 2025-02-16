@@ -502,13 +502,18 @@ export default function LanguageProvider({
   };
 
   const alerts = {
-    route_name: "Devices",
+    route_name: "Alerts",
     path: "/alerts/",
     items: [
       {
         label: "Email",
         path: "/alerts/email/",
         value: "email",
+      },
+      {
+        label: "SMS",
+        path: "/alerts/sms/",
+        value: "sms",
       },
     ],
   };

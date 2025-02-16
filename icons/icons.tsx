@@ -804,7 +804,7 @@ export const ClockIcon = (color = "#0078D4") => (
   </svg>
 );
 
-export const CalendarIcon = ({ color }: { color: string }) => (
+export const CalendarIcon: React.FC<IconProps> = ({ className, color, width, height }) => (
   <svg
     width="20"
     height="20"

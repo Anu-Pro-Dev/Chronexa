@@ -36,11 +36,8 @@ export default function Page() {
     SetSearchValue,
   };
 
-  // Function to handle edit click
   const handleEditClick = (data: any) => {
-    // Here you can handle the edit logic
     setSelectedRowData(data);
-    // Open the modal by setting `on_open_change` to true
     on_open_change(true);
   };
 

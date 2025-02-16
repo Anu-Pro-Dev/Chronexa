@@ -257,7 +257,7 @@ export type DevicesStatusDataType = {
 export type RolesDataType = {
   code: string;
   privileges: string;
-  user: string;
+  assignRole: string;
   users: string;
 };
 
