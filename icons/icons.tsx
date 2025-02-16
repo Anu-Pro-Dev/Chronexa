@@ -84,6 +84,13 @@ export const LogoutIcon = () => (
   </svg>
 );
 
+export const LoginIcon = () => (
+  <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M13.5 5.5625L16 8M16 8L13.5 10.4375M16 8L7.66667 8M10.1667 3.9375C10.1667 3.18025 10.1667 2.80163 10.04 2.50344C9.95624 2.30615 9.83342 2.12689 9.67856 1.9759C9.52371 1.82492 9.33985 1.70517 9.1375 1.6235C8.83167 1.5 8.44333 1.5 7.66667 1.5L3.66667 1.5C2.73333 1.5 2.26667 1.5 1.91 1.67712C1.59641 1.83292 1.34145 2.0815 1.18167 2.38725C1 2.73419 1 3.18919 1 4.09756L1 11.9033C1 12.8116 1 13.2658 1.18167 13.6128C1.34167 13.9183 1.59667 14.1669 1.91 14.3229C2.26667 14.5 2.7325 14.5 3.66417 14.5H7.66667C8.44333 14.5 8.83167 14.5 9.1375 14.3765C9.33985 14.2948 9.52371 14.1751 9.67856 14.0241C9.83342 13.8731 9.95624 13.6939 10.04 13.4966C10.1667 13.1984 10.1667 12.8197 10.1667 12.0625" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect x="1.53516" y="2.04688" width="8.57143" height="11.9167" fill="white" fillOpacity="0.4"/>
+  </svg>
+);
+
 export const UserPasswordIcon = (color: string = "#23272E") => (
   <svg
     stroke="currentColor"
@@ -811,6 +818,7 @@ export const CalendarIcon: React.FC<IconProps> = ({ className, color, width, hei
     viewBox="0 0 20 20"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
+    className={className}
   >
     <path
       opacity="0.6"

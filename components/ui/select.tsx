@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     dir={undefined}
     className={cn(
-      "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-full border bg-transparent px-3 py-2 text-sm shadow-none ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-full border border-border-grey bg-transparent px-3 py-2 text-sm shadow-none ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       // "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-full border bg-white px-3 py-2 text-sm shadow-none ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       // "flex w-20 h-9 items-center justify-between whitespace-nowrap border-none rounded-lg bg-transparent px-3 py-2 text-sm font-normal shadow-lg ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className

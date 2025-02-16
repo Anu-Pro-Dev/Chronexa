@@ -70,7 +70,7 @@ export default function Page() {
                   <Label className="font-normal text-secondary">
                     From Date :
                   </Label>
-                  <span className="px-1 text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "dd/mm/yy"}</span>
+                  <span className="px-1 text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
                 <CalendarIcon />
               </Button>
@@ -94,7 +94,7 @@ export default function Page() {
                   <Label className="font-normal text-secondary">
                     To Date :
                   </Label>
-                  <span className="px-1 text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "dd/mm/yy"}</span>
+                  <span className="px-1 text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
                 <CalendarIcon />
               </Button>
