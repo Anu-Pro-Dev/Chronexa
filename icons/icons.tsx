@@ -43,13 +43,15 @@ export const MenuUnFold = (color: string = "#64748B") => (
   </svg>
 );
 
-export const SearchIcon = (color: string = "#A3AED0") => (
+export const SearchIcon: React.FC<IconProps> = ({ className, width, height }) => (
+// export const SearchIcon = (color: string = "#A3AED0") => (
   <svg
-    width="15"
-    height="15"
+    width={width || "15"}
+    height={height || "15"}
     viewBox="0 0 15 15"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
+    className={className}
   >
     <path
       d="M6.53408 11.9319C9.51516 11.9319 11.9318 9.51528 11.9318 6.5342C11.9318 3.55312 9.51516 1.13647 6.53408 1.13647C3.553 1.13647 1.13635 3.55312 1.13635 6.5342C1.13635 9.51528 3.553 11.9319 6.53408 11.9319Z"

@@ -1,12 +1,11 @@
 "use client";
-
 import React, { useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -77,11 +76,11 @@ export default function AddDepartment() {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Select onValueChange={setSelectedOption} value={selectedOption}>
-            <SelectTrigger className="">
-              <h1>
-                Organization: <Required />
-              </h1>
-              <SelectValue placeholder="Choose option" />
+            <SelectTrigger className="bg-white">
+              <Label className="font-normal text-secondary">
+                Organization : <Required />
+              </Label>
+              <SelectValue placeholder="Choose organization" />
             </SelectTrigger>
             <SelectContent>
               {options.map((option) => (
@@ -95,13 +94,16 @@ export default function AddDepartment() {
         <div>
           <Popover>
             <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  "w-full pl-3 text-left text-foreground font-normal rounded-2xl bg-white border"
-                )}
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-white px-4 flex justify-between"
               >
-                {fromDate ? format(fromDate, "PPP") : "From date"}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                <p>
+                  <Label className="font-normal text-secondary">
+                    From Date : <Required />
+                  </Label>
+                  <span className="px-1 text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
+                </p>
+                <CalendarIcon />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -115,14 +117,17 @@ export default function AddDepartment() {
         </div>
         <div>
           <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  "w-full pl-3 text-left text-foreground font-normal rounded-2xl bg-white border"
-                )}
+          <PopoverTrigger asChild>
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-white px-4 flex justify-between"
               >
-                {toDate ? format(toDate, "PPP") : "To date"}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                <p>
+                  <Label className="font-normal text-secondary">
+                    To Date : <Required />
+                  </Label>
+                  <span className="px-1 text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
+                </p>
+                <CalendarIcon />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -132,7 +137,7 @@ export default function AddDepartment() {
         </div>
       </div>
 
-      {!showDetails ? (
+      {/* {!showDetails ? (
         <div className="flex justify-end">
           <Button 
             size="lg" 
@@ -142,31 +147,33 @@ export default function AddDepartment() {
             Add
           </Button>
         </div>
-      ) : (
+      ) : ( */}
         <>
-          <div className="bg-white p-3 rounded-md">
-            <h1 className="text-primary text-lg mb-2">Employees</h1>
+          <div className="bg-white p-6 rounded-2xl pb-8">
+            <h1 className="font-bold text-xl text-primary pb-4">Employee</h1>
             <TransferList
               title="Employees"
               items={employees}
               onSelectionChange={handleSelectionChange}
-              height="200px"
+              // height="200px"
             />
           </div>
-          <div className="bg-white p-3 rounded-md">
-            <h1 className="text-primary text-lg mb-2">Organization</h1>
+
+          <div className="bg-white p-6 rounded-2xl pb-8">
+            <h1 className="font-bold text-xl text-primary pb-4">Organization</h1>
             <TransferList
               title="Organizations"
               items={organizations}
               onSelectionChange={handleSelectionChangeOrg}
-              height="200px"
+              // height="200px"
             />
           </div>
 
-          <div className="bg-white p-3 rounded-md">
-            <Label className="text-primary text-lg">Remarks</Label>
+          <div className="bg-white p-6 rounded-2xl pb-4">
+            <Label className="font-bold text-xl text-primary">Remarks</Label>
             <Textarea 
-              className="mt-2 min-h-[100px] border-2 rounded-md p-2 focus:border-primary focus:ring-1 focus:ring-primary" 
+              className="border border-border-accent shadow-searchbar my-4 mx-auto"
+              rows={5} 
               placeholder="Enter your remarks here..."
             />
           </div>
@@ -190,7 +197,7 @@ export default function AddDepartment() {
             </div>
           </div>
         </>
-      )}
+      {/* )} */}
     </div>
   );
 }

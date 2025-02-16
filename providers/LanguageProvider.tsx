@@ -102,7 +102,7 @@ export default function LanguageProvider({
       },
       {
         label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
-        path: "/organization/structures/",
+        path: "/organization/structure/",
         value: "structure",
       },
       {

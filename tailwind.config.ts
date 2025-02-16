@@ -40,6 +40,7 @@ export default {
         text: {
           primary: "var(--text-primary)",
           secondary: "var(--text-secondary)",
+          content: "var(--text-content)",
         },
         border: {
           DEFAULT: "var(--border)",
