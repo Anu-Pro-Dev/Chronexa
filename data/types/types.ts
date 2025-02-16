@@ -238,9 +238,9 @@ export type VerificationPendingDataType = {
     code: string;
     description: string;
     reason: string;
-    max_no_of_permissions_per_day: string;
-    min_per_day: string;
-    max_no_of_permissions_per_month: string;
+    max_no_of_permissions_per_day: number;
+    min_per_day: number;
+    max_no_of_permissions_per_month: number;
   }
 
 // Devices Page DataTypes

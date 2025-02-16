@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
@@ -10,6 +10,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { FaCalendarAlt } from "react-icons/fa"
 
 const chartData = [
   { date: "1", worked: 10, national: 0, holidays: 0 },
@@ -61,12 +70,43 @@ const chartConfig = {
 } satisfies ChartConfig
 
 
+
+
 function WorkTrendsCard() {
+
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
+
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
     return(
         <div className='shadow-card rounded-[10px] bg-white p-6'>
-            <div className='flex flex-row justify-between'>
-                <h5 className='text-lg text-text-primary font-bold'>Work hour trends</h5>
+          <div className="flex justify-between">
+            <div>
+              <h5 className='text-lg text-text-primary font-bold'>Work hour trends</h5>
             </div>
+            <div>
+              <Select onValueChange={setSelectedMonth} value={selectedMonth}>
+                <SelectTrigger className="flex items-center gap-2 border border-gray-300 rounded-md p-2">
+                  <FaCalendarAlt className="w-5 h-5 text-gray-500" />
+                  <SelectValue>{months[parseInt(selectedMonth)]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                      <div className="flex items-center gap-2">
+                        <FaCalendarAlt className="w-4 h-4 text-gray-500" />
+                        {month}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
             <p className='text-sm text-text-secondary font-semibold pb-6'>Work hour trends can be viewed here</p>
             <ChartContainer config={chartConfig} className="relative left-[-30px]">
                 <BarChart accessibilityLayer data={chartData}>

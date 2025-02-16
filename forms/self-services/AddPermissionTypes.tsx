@@ -1005,7 +1005,7 @@ export default function AddPermissionTypes () {
                               field.onChange(
                                 checked
                                   ? [...(field.value || []), option] // Add to array
-                                  : field.value.filter((item: string) => item !== option) // Remove from array
+                                  : field?.value?.filter((item: string) => item !== option) // Remove from array
                               );
                             }}
                           />
