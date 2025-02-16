@@ -4,7 +4,7 @@ import React from 'react';
 import EmployeeCard from './EmployeeCard';
 import TeamAnalyticsCard from './TeamAnalyticsCard';
 import LeaveAnalyticsCard from './LeaveAnalyticsCard';
-import VoilationCard from './VoilationCard';
+import VoilationCard from './ViolationsCard';
 
 function TeamStatisticsPage() {
     const [tab, setTab] = React.useState<string>("");

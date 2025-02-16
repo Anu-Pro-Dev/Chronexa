@@ -44,7 +44,7 @@ function TimerCard() {
   const remainingSeconds = elapsedSeconds % 60;
 
   // Calculate remaining time (8-hour workday)
-  const totalWorkSeconds = 9 * 3600;
+  const totalWorkSeconds = 8 * 3600;
   const remainingWorkSeconds = Math.max(0, totalWorkSeconds - elapsedSeconds);
   const remainingHours = Math.floor(remainingWorkSeconds / 3600);
   const remainingMinutes = Math.floor((remainingWorkSeconds % 3600) / 60);
@@ -63,6 +63,7 @@ function TimerCard() {
         layout="fill"
         style={{ position: "absolute" }}
         className="blur-[2px]"
+        priority
       />
       <h5 className="text-base font-bold">Clock your hours</h5>
       <p className={`text-[35px] font-bold align-center py-4 ${isPunchedIn ? '' : ''}`}>

@@ -1,6 +1,6 @@
 
 "use client"
-
+import { useState } from "react";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts"
 import {
   ChartConfig,
@@ -8,6 +8,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar1Icon } from "@/icons/icons";
 
 const chartData = [
   { activity: "Missed in", value: 24 },
@@ -26,10 +34,42 @@ const chartConfig = {
 } satisfies ChartConfig
 
 function TeamAnalyticsCard() {
+  const currentMonthIndex = new Date().getMonth();
+  const [selectedMonth, setSelectedMonth] = useState("This month");
+
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const monthsWithThisMonth = months.map((month, index) => {
+    if (index === currentMonthIndex) {
+      return "This month";
+    }
+    return month;
+  })
+
   return (
     <div className="shadow-card rounded-[10px] bg-white p-2">
       <div className='flex flex-row justify-between p-4'>
         <h5 className='text-lg text-text-primary font-bold'>Team Analytics</h5>
+        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+            <Calendar1Icon width="14" height="16" />
+            <SelectValue placeholder="Select month" />
+          </SelectTrigger>
+          <SelectContent className="bg-white rounded-md shadow-dropdown">
+            {monthsWithThisMonth.map((month) => (
+              <SelectItem
+                key={month}
+                value={month}
+                className="text-text-primary gap-0 bg-white hover:bg-primary hover:text-white"
+              >
+                {month}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <ChartContainer
         config={chartConfig}
