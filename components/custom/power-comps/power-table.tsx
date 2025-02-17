@@ -180,6 +180,8 @@ export default function PowerTable({
           }}
           defaultColDef={{
             autoHeight: true,
+            wrapHeaderText: true,
+            autoHeaderHeight: true,
             flex: 1,
             wrapText: true,
             resizable: false,

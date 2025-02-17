@@ -87,7 +87,6 @@ export function ScheduleSettings({
           <TabsTrigger value="policy" className="border-none">Policy</TabsTrigger>
         </TabsList>
       
-
         <TabsContent value="normal">
           <ScheduleForm
             data={formData.normal}

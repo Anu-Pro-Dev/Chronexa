@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
@@ -25,7 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 const formSchema = z.object({
@@ -63,9 +62,9 @@ export default function AddRamadanDateRange({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      remarks: "",
       description_en: "",
       description_ar: "",
+      remarks: "",
     },
   });
 
@@ -81,147 +80,142 @@ export default function AddRamadanDateRange({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="grid lg:grid-cols-2 gap-10">
-          <FormField
-            control={form.control}
-            name="description_en"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Description (English) <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Type.." type="text" {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="description_ar"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Description (العربية) <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Type.." type="text" {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div>
-            <FormField
-              control={form.control}
-              name="from_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    From Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+        <div className="flex flex-col gap-6">
+          <div className="p-5 pb-0 flex flex-col">
+            <div className="flex justify-between items-start gap-10">
+              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
+                <FormField
+                  control={form.control}
+                  name="description_en"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Description (English) <Required />
+                      </FormLabel>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Input placeholder="Enter description in english" type="text" {...field} />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
-                      />
-                    </PopoverContent>
-                  </Popover>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div>
-            <FormField
-              control={form.control}
-              name="to_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    To Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="from_date"
+                  render={({ field }) => (
+                    <FormItem className="">
+                      <FormLabel>
+                        From Date <Required />
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button size={"lg"} variant={"outline"}
+                              className="w-full bg-white px-3 flex justify-between text-text-primary"
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yy")
+                              ) : (
+                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                              )}
+                              <CalendarIcon />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            // disabled={(date) =>
+                            //   date > new Date() || date < new Date("1900-01-01")
+                            // }
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="remarks"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Remarks</FormLabel>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Input placeholder="Enter the remark" type="text" {...field} />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
-                      />
-                    </PopoverContent>
-                  </Popover>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
+                <FormField
+                  control={form.control}
+                  name="description_ar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Description (العربية) <Required />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter description in arabic" type="text" {...field} />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="to_date"
+                  render={({ field }) => (
+                    <FormItem className="">
+                      <FormLabel>
+                        To Date <Required />
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button size={"lg"} variant={"outline"}
+                              className="w-full bg-white px-3 flex justify-between text-text-primary"
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yy")
+                              ) : (
+                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                              )}
+                              <CalendarIcon />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            // disabled={(date) =>
+                            //   date > new Date() || date < new Date("1900-01-01")
+                            // }
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
           </div>
-          <FormField
-            control={form.control}
-            name="remarks"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Remarks</FormLabel>
-                <FormControl>
-                  <Input placeholder="Type.." type="text" {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="w-full flex gap-2 items-center col-span-2 justify-end">
-            <Button
+          <div className="flex justify-end gap-2 items-center pb-5">
+            <div className="flex gap-4 px-5">
+              <Button
               variant={"outline"}
               type="button"
               size={"lg"}
@@ -233,6 +227,7 @@ export default function AddRamadanDateRange({
             <Button type="submit" size={"lg"} className="">
               Save
             </Button>
+            </div>
           </div>
         </div>
       </form>

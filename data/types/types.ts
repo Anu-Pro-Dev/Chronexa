@@ -83,9 +83,10 @@ export type EmployeeMasterTypesDataType = {
 
 export type ReasonsDataType = {
   code: string;
-  description: string;
+  description_en: string;
+  description_ar: string;
   reason_mode: string;
-  promt_message: string;
+  prompt_message: string;
   deleteable: string;
   normal_in: string;
   normal_out: string;
@@ -119,7 +120,6 @@ export type RamadanDatesDataType = {
   from_date: string;
   to_date: string;
   updatedAt: string;
-  remarks: string;
 };
 
 // Scheduling Page DataTypes

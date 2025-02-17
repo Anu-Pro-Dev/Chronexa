@@ -9,11 +9,11 @@ export default function Page() {
   const { modules } = useLanguage();
 
   const [Columns, setColumns] = useState([
-    { field: "description_en", headerName: "Description(English)" },
-    { field: "description_ar", headerName: "Description(العربية)" },
+    { field: "description_en", headerName: "Description (English)" },
+    { field: "description_ar", headerName: "Description (العربية)" },
     { field: "subject", headerName: "Subject" },
     { field: "updated_by", headerName: "Updated by" },
-    { field: "updatedAt", headerName: "Updated At" },
+    { field: "updatedAt", headerName: "Updated Date" },
   ]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);

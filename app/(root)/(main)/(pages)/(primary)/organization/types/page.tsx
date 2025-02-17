@@ -10,7 +10,7 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "description" },
-    { field: "updatedAt" },
+    { field: "updatedAt", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

@@ -4,7 +4,7 @@ import React from 'react';
 import EmployeeCard from './EmployeeCard';
 import TeamAnalyticsCard from './TeamAnalyticsCard';
 import LeaveAnalyticsCard from './LeaveAnalyticsCard';
-import VoilationCard from './ViolationsCard';
+import ViolationsCard from './ViolationsCard';
 
 function TeamStatisticsPage() {
     const [tab, setTab] = React.useState<string>("");
@@ -24,7 +24,7 @@ function TeamStatisticsPage() {
                     <LeaveAnalyticsCard/>
                 </div>
                 <div className="card-widget max-w-[50%] w-full h-auto flex flex-col gap-4">
-                    <VoilationCard/>
+                    <ViolationsCard/>
                 </div>
             </div>
         </div>
