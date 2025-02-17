@@ -13,11 +13,11 @@ export default function Page() {
     { field: "number" },
     { field: "name" },
     { field: "organization" },
-    { field: "from_date" },
-    { field: "to_date" },
+    { field: "from_date", headerName: "From date" },
+    { field: "to_date", headerName: "To date" },
     { field: "active" },
-    { field: "created_by" },
-    { field: "updatedAt" },
+    { field: "created_by", headerName: "Created" },
+    { field: "updatedAt", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

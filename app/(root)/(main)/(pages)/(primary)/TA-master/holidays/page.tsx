@@ -16,8 +16,9 @@ export default function Page() {
     { field: "to_date" },
     { field: "recurring" },
     { field: "public_holiday", headerName: "Public Holiday" },
-    { field: "updatedAt" },
+    { field: "updatedAt", headerName: "Updated" },
   ]);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
 
   const [open, on_open_change] = useState<boolean>(false);
   const props = {
@@ -27,15 +28,23 @@ export default function Page() {
     open,
     on_open_change,
   };
+
+  const handleEditClick = (data: any) => {
+    setSelectedRowData(data);
+    on_open_change(true);
+  };
+  
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
         items={modules?.taMaster?.items}
+        modal_title="Holidays"
+        modal_description="Holidays of the employee"
         modal_component={<AddHoliday on_open_change={on_open_change} />}
         isLarge
       />
-      <PowerTable props={props} api={"/ta-master/holidays"} />
+      <PowerTable props={props} api={"/ta-master/holidays"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

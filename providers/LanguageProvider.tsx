@@ -173,7 +173,7 @@ export default function LanguageProvider({
         value: "schedules",
       },
       {
-        label: "Add Schedules",
+        label: "Schedule Settings",
         path: "/TA-master/schedules/add/",
         value: "add-schedules",
         hide: true,

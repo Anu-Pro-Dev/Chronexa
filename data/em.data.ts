@@ -126,7 +126,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "number": "8",
         "name": "Brian Moore",
         "join_date": "01-03-2023", 
-        "manager": "🗴",
+        "manager": "",
         "punch":  "🗸",
         "active":  "🗸",
         "designation": "System Analyst",

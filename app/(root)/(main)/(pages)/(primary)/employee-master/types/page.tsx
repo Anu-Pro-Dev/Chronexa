@@ -11,7 +11,7 @@ export default function Page() {
   const [Columns, setColumns] = useState([
     { field: "code" },
     { field: "description" },
-    { field: "updatedAt", headerName: "updatedAt" },
+    { field: "updatedAt", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

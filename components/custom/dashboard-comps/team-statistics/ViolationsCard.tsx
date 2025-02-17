@@ -50,7 +50,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function VoilationCard() {
+function ViolationsCard() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState("This year");
 
@@ -142,4 +142,4 @@ function VoilationCard() {
   );
 }
 
-export default VoilationCard;
+export default ViolationsCard;
