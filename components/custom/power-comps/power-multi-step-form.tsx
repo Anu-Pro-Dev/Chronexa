@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function PowerMultiStepForm({
   Pages,
@@ -10,19 +11,19 @@ export default function PowerMultiStepForm({
   SetPage: any;
 }) {
   return (
-    <div className="flex flex-col gap-1 bg-white p-6 rounded-md">
+    <div className="flex flex-col gap-2 bg-white p-6 rounded-2xl">
       {Pages?.map((page: any, index: number) => (
         <div key={index}>
           {page?.state_route === Page && (
-            <div className="cursor-pointer">
-              <h1 className="text-primary font-bold">{page?.title}</h1>
-              <h1 className="text-secondary">{page?.description}</h1>
-            </div>
+            <>
+              <h1 className="font-bold text-xl text-primary">{page?.title}</h1>
+              <h1 className="font-semibold text-sm text-text-secondary">{page?.description}</h1>
+            </>
           )}
         </div>
       ))}
 
-      <div className="flex gap-10 mt-2">
+      <div className="flex gap-14 border-b border-border-accent">
         {Pages?.map((page: any, index: number) => (
           <div
             key={index}
@@ -30,12 +31,11 @@ export default function PowerMultiStepForm({
             onClick={() => page.disable === false && SetPage(page?.state_route)}
           >
             <h1
-              className={`${
-                page?.state_route === Page &&
-                "border-b  border-primary text-primary font-bold"
-              }
-              ${page.disable === true && "cursor-not-allowed"}
-              `}
+              className={cn(
+                "text-text-secondary font-medium text-base py-2",
+                page?.state_route === Page && "border-b-[2px] border-primary text-primary font-bold py-2",
+                page.disable && "cursor-not-allowed"
+              )}
             >
               {page.title}
             </h1>
@@ -43,7 +43,7 @@ export default function PowerMultiStepForm({
         ))}
       </div>
 
-      <div className="pt-4 w-10/12 mx-auto">
+      <div className="p-5 flex flex-col">
         {Pages?.map((page: any, index: number) => (
           <div key={index}>
             {page?.state_route === Page && (

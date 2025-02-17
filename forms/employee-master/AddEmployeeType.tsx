@@ -80,13 +80,12 @@ export default function AddEmployeeType({
                   Code <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your Code" type="text" {...field} />
+                  <Input placeholder="Enter the code" type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="description_en"
@@ -96,9 +95,8 @@ export default function AddEmployeeType({
                   Description (English) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter description here..." type="text" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -112,15 +110,14 @@ export default function AddEmployeeType({
                   Description (العربية) <Required />
                 </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Type here..." {...field} />
+                  <Input placeholder="Enter description here..." type="text" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="w-full flex gap-2 items-center">
+          <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}
               type="button"
@@ -134,7 +131,7 @@ export default function AddEmployeeType({
               Save
             </Button>
           </div>
-        </div>
+                </div>
       </form>
     </Form>
   );

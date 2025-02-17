@@ -7,6 +7,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form";
 import PowerForm from "@/components/custom/power-comps/power-form";
+import AddDevicesStatus from "@/forms/devices/AddDevicesStatus";
 
 export default function Page() {
   const { modules } = useLanguage();
@@ -378,10 +379,10 @@ export default function Page() {
       <PowerHeader
         items={modules?.employeeMaster.items}
         disableFeatures
-        modal_title="Employee "
+        modal_title="Employee"
         modal_description="Select the Employee types of the company"
       />
-      <div>
+      <>
         <PowerMultiStepForm
           SetPage={SetPage}
           Page={Page}
@@ -397,7 +398,7 @@ export default function Page() {
                   form={form}
                   onSubmit={onSubmit}
                   state_route="personal-form"
-                  form_class="grid lg:grid-cols-2 gap-10 pt-4"
+                  form_class="grid lg:grid-cols-2 gap-10"
                   next_route="business-form"
                   setPage={SetPage}
                 />
@@ -409,15 +410,16 @@ export default function Page() {
               state_route: "business-form",
               disable: false,
               component: (
-                <PowerForm
-                  fields={fields}
-                  form={form}
-                  onSubmit={onSubmit}
-                  state_route="business-form"
-                  form_class="grid lg:grid-cols-2 gap-10 pt-4"
-                  next_route="flags-form"
-                  setPage={SetPage}
-                />
+                // <PowerForm
+                //   fields={fields}
+                //   form={form}
+                //   onSubmit={onSubmit}
+                //   state_route="business-form"
+                //   form_class="grid grid-cols-2 gap-10"
+                //   next_route="flags-form"
+                //   setPage={SetPage}
+                // />
+                <AddDevicesStatus />
               ),
             },
             {
@@ -431,13 +433,13 @@ export default function Page() {
                   form={form}
                   onSubmit={onSubmit}
                   state_route="flags-form"
-                  form_class="grid lg:grid-cols-2 gap-10 pt-4"
+                  form_class="grid lg:grid-cols-2 gap-10"
                 />
               ),
             },
           ]}
         />
-      </div>
+      </>
     </div>
   );
 }

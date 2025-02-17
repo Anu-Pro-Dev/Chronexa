@@ -75,7 +75,8 @@ export type EmployeeMasterGroupsMembersDataType = {
 
 export type EmployeeMasterTypesDataType = {
   code: string;
-  description: string;
+  description_en: string;
+  description_ar: string;
   updatedAt: string;
 };
 

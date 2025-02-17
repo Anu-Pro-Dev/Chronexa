@@ -135,7 +135,7 @@ export default function LanguageProvider({
         value: "groups",
       },
       {
-        label: "Add Group",
+        label: "Employee Groups",
         path: "/employee-master/groups/add/",
         value: "groups",
         hide: true,
