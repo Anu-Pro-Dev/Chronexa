@@ -10,7 +10,8 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "code" },
-    { field: "description" },
+    { field: "description_en", headerName: "Description (English)" },
+    { field: "description_ar", headerName: "Description (العربية)" },
     { field: "updatedAt", headerName: "Updated" },
   ]);
 
@@ -20,6 +21,7 @@ export default function Page() {
   const [SortDirection, SetSortDirection] = useState<string>("asc");
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const props = {
     Data,
     SetData,
@@ -36,6 +38,11 @@ export default function Page() {
     SetSearchValue,
   };
 
+  const handleEditClick = (data: any) => {
+    setSelectedRowData(data);
+    on_open_change(true);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -47,7 +54,7 @@ export default function Page() {
           <AddEmployeeTypeEmployeeMaster on_open_change={on_open_change} />
         }
       />
-      <PowerTable props={props} api={"/employee-master/types"} />
+      <PowerTable props={props} api={"/employee-master/types"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }
