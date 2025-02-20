@@ -1,23 +1,31 @@
 "use client";
+import React, { useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-
-import React, { useState } from "react";
-
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import FilterWeeklyScheduling from "@/forms/scheduling/FilterWeeklyScheduling";
-import AddWeeklySchedule from "@/forms/scheduling/AddWeeklySchedule";
+
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
-
+  const router = useRouter();
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
+    // { field: "from_date", headerName: "From date" },
+    // { field: "to_date", headerName: "To date" },
+    // { field:"sunday" },
+    { field: "monday" },
+    { field: "tuesday" },
+    { field: "wednesday" },
+    { field: "thursday" },
+    { field: "friday" },
+    // { field:"saturday" },
+    { field: "attachment" },
   ])
 
   const [open, on_open_change] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
 
   const props = {
     Data,
@@ -27,6 +35,11 @@ export default function Page() {
     on_open_change,
     filter_open,
     filter_on_open_change,
+  };
+
+  const handleEditClick = (data: any) => {
+    setSelectedRowData(data);
+    router.push("/scheduling/weekly-schedule/add");
   };
 
   return (
@@ -42,7 +55,7 @@ export default function Page() {
           <FilterWeeklyScheduling on_open_change={filter_on_open_change} />
         }
       />
-      <PowerTable props={props} />
+      <PowerTable props={props} api={"/scheduling/weekly-schedule"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

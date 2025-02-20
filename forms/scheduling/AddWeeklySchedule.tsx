@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import {
@@ -132,31 +132,35 @@ export default function AddWeeklySchedule() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="grid grid-cols-2 gap-6  ">
-          <div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
+        <div className="pb-3">
+          <h1 className="font-bold text-xl text-primary">Scheduling</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            Select the choices for weekly schedule for employee
+          </h1>
+        </div>
+        <div className="flex flex-col gap-6 px-5">
+          <div className="p-5 grid grid-cols-2 gap-y-5 gap-x-20">
             <FormField
               control={form.control}
               name="from_date"
               render={({ field }) => (
                 <FormItem className="">
-                  <FormLabel>From Date</FormLabel>
+                  <FormLabel>
+                    From Date <Required />
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal rounded-2xl",
-                            !field.value && "text-muted-foreground"
-                          )}
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary"
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "dd/MM/yy")
                           ) : (
-                            <span>Enter the date</span>
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
                           )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          <CalendarIcon />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -176,30 +180,26 @@ export default function AddWeeklySchedule() {
                 </FormItem>
               )}
             />
-          </div>
-          <div>
             <FormField
               control={form.control}
               name="to_date"
               render={({ field }) => (
                 <FormItem className="">
-                  <FormLabel>To Date</FormLabel>
+                  <FormLabel>
+                    To Date <Required />
+                  </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal rounded-2xl",
-                            !field.value && "text-muted-foreground"
-                          )}
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary"
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "dd/MM/yy")
                           ) : (
-                            <span>Enter the date</span>
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
                           )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          <CalendarIcon />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -219,238 +219,249 @@ export default function AddWeeklySchedule() {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="schedule"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Schedule <Required />
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="sunday"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Sunday 
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="monday"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Monday 
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tuesday"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Tuesday 
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="wednesday"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Wednesday 
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="thursday"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Thursday 
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="friday"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Friday 
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="saturday"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Saturday 
+                  </FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
+                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
+                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
+                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="attachment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Attachment <Required/>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      className="border-0 p-0 rounded-none h-auto text-text-secondary"
+                      type="file"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-
-          <FormField
-            control={form.control}
-            name="schedule"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Schedule <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="sunday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Sunday <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="monday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Monday <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="tuesday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Tuesday <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="wednesday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Wednesday <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="thursday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Thursday <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="friday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Friday <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="saturday"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Saturday <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="attachment"
-            render={({ field }) => (
-              <FormItem className="flex items-center gap-2">
-                <FormLabel className="flex text-nowrap">
-                  Attachment <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    className="pt-2"
-                    placeholder="Enter your Code"
-                    type="file"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className=" col-span-2 flex justify-end">
-            <div className="flex  gap-2 ">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className=" px-10 "
-                onClick={() => router.push("/scheduling/weekly-schedule")}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" size={"lg"} className=" px-10 ">
-                Submit
-              </Button>
-            </div>
+        </div>
+        <div className="flex justify-end gap-2 items-center py-5 px-5">
+          <div className="flex gap-4 px-5">
+            <Button
+              variant={"outline"}
+              type="button"
+              size={"lg"}
+              className="w-full"
+              onClick={() => router.push("/scheduling/weekly-schedule")}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size={"lg"} className="w-full">
+              Save
+            </Button>
           </div>
         </div>
       </form>

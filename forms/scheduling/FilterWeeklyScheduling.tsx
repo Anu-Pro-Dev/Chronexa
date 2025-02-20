@@ -78,14 +78,14 @@ export default function FilterWeeklyScheduling({
             name="organization"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Organization</FormLabel>
+                <FormLabel>Organization <Required/></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
+                      <SelectValue placeholder="Choose organization" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -103,14 +103,14 @@ export default function FilterWeeklyScheduling({
             name="employee"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Employee</FormLabel>
+                <FormLabel>Employee <Required/></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
+                      <SelectValue placeholder="Choose employee" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -129,14 +129,14 @@ export default function FilterWeeklyScheduling({
             name="group"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Group</FormLabel>
+                <FormLabel>Group <Required/></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose any one" />
+                      <SelectValue placeholder="Choose any group" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

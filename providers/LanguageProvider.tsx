@@ -191,7 +191,7 @@ export default function LanguageProvider({
         value: "weekly_schedule",
       },
       {
-        label: "Add Weekly Schedule",
+        label: "Weekly Schedule",
         path: "/scheduling/weekly-schedule/add/",
         value: "add_weekly_schedule",
         hide: true,

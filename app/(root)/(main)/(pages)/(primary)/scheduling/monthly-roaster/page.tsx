@@ -4,6 +4,7 @@ import PowerHeader from "@/components/custom/power-comps/power-header";
 import { useLanguage } from "@/providers/LanguageProvider";
 import FilterForm from "@/forms/monthly-roaster/FilterForm";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import PowerTableRoaster from "@/components/custom/power-comps/power-table-roaster";
 import {
   CopyIcon,
@@ -145,7 +146,10 @@ export default function Page() {
       />
 
       <div className="flex justify-between bg-white rounded-[15px] items-center px-5 py-3">
-        <input type="file" className="" />
+        <Input
+          className="border-0 p-0 h-auto rounded-none text-text-secondary"
+          type="file"
+        />
         <div className="flex items-center gap-2">
           <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
             <ImportIcon /> Import
