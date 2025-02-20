@@ -23,20 +23,35 @@ export default function Page() {
     { field: "number" },
     { field: "employee" },
     { field: "date" },
-    { field: "time_in", headerName: "Time In" },
-    { field: "time_out", headerName: "Time Out" },
-    { field: "applied_in", headerName: "Applied IN" },
-    { field: "applied_out", headerName: "Applied OUT" },
-    { field: "status" },
+    { field: "from_date" },
+    { field: "to_date" },
+    { field: "from_time" },
+    { field: "to_time" },
+    { field: "remarks" },
   ]);
   const [open, on_open_change] = useState<boolean>(false);
+  const [filter_open, filter_on_open_change] = useState<boolean>(false);
+  const [CurrentPage, SetCurrentPage] = useState<number>(1)
+  const [SortField, SetSortField] = useState<string>("")
+  const [SortDirection, SetSortDirection] = useState<string>("asc")
+  const [SearchValue, SetSearchValue] = useState<string>("")
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  
-  const props = {
+
+   const props = {
     Data,
     SetData,
     Columns,
+    filter_open,
+    filter_on_open_change,
+    SortField,
+    CurrentPage,
+    SetCurrentPage,
+    SetSortField,
+    SortDirection,
+    SetSortDirection,
+    SearchValue,
+    SetSearchValue,
     open,
     on_open_change,
   };
@@ -47,6 +62,9 @@ export default function Page() {
         props={props}
         items={modules?.selfServices?.items}
         disableAdd
+        disableDelete
+        enableApprove
+        enableReject
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
@@ -96,15 +114,15 @@ export default function Page() {
       </div>
       <div className="bg-white rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">Missing Movements</h1>
+          <h1 className="font-bold text-xl text-primary">Approve Manual Movements</h1>
           <h1 className="font-semibold text-sm text-text-secondary">
-            Missing Movements can be viewed in this tab
+            Approve Manual Movements can be viewed in this tab
           </h1>
         </div>
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
         </div>
-        <PowerTable props={props} api={"/self-services/manage-movements/missing"} />
+        <PowerTable props={props} api={"/self-services/manage-movements/approve-manual"}/>
       </div>
     </div>
   );

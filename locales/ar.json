@@ -38,6 +38,8 @@
       "takeAction": "إتخذ إجراء",
       "punchIn": "لكمة في",
       "punchOut": "لكمة خارج",
+      "approve": "يعتمد",
+      "reject": "يرفض",
       "exportExcel": "تصدير إلى التفوق"
     },
     "modules": {

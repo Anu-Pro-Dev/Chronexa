@@ -5,6 +5,13 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -14,7 +21,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import Required from "@/components/ui/required";
 
 export default function Page() {
   const { modules } = useLanguage();
@@ -23,32 +29,73 @@ export default function Page() {
     { field: "number" },
     { field: "employee" },
     { field: "date" },
-    { field: "time_in", headerName: "Time In" },
-    { field: "time_out", headerName: "Time Out" },
-    { field: "applied_in", headerName: "Applied IN" },
-    { field: "applied_out", headerName: "Applied OUT" },
-    { field: "status" },
+    { field: "from_date" },
+    { field: "to_date" },
+    { field: "from_time" },
+    { field: "to_time" },
+    { field: "remarks" },
   ]);
-  const [open, on_open_change] = useState<boolean>(false);
+  const [open, on_open_change] = useState<boolean>(false)
+  const [filter_open, filter_on_open_change] = useState<boolean>(false)
+  const [CurrentPage, SetCurrentPage] = useState<number>(1)
+  const [SortField, SetSortField] = useState<string>("")
+  const [SortDirection, SetSortDirection] = useState<string>("asc")
+  const [SearchValue, SetSearchValue] = useState<string>("")
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  
-  const props = {
+  const [selectedOption, setSelectedOption] = useState<string>("");
+
+  const options = [
+    { value: "option1", label: "All" },
+    { value: "option2", label: "Pending manger" },
+    { value: "option3", label: "Pending HR" },
+    { value: "option4", label: "Approved" },
+    { value: "option5", label: "Rejected" },
+    { value: "option6", label: "Cancelled" },
+  ];
+
+   const props = {
     Data,
     SetData,
     Columns,
+    filter_open,
+    filter_on_open_change,
+    SortField,
+    CurrentPage,
+    SetCurrentPage,
+    SetSortField,
+    SortDirection,
+    SetSortDirection,
+    SearchValue,
+    SetSearchValue,
     open,
     on_open_change,
-  };
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader
-        props={props}
-        items={modules?.selfServices?.items}
-        disableAdd
+      <PowerHeader 
+        props={props} 
+        items={modules?.selfServices?.items} 
       />
       <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Select onValueChange={setSelectedOption} value={selectedOption}>
+            <SelectTrigger className="bg-white border-grey">
+              <Label className="font-normal text-secondary">
+                Status :
+              </Label>
+              <SelectValue placeholder="Choose status"/>
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div>
           <Popover>
             <PopoverTrigger asChild>
@@ -57,7 +104,7 @@ export default function Page() {
               >
                 <p>
                   <Label className="font-normal text-secondary">
-                    From Date : <Required/>
+                    From Date :
                   </Label>
                   <span className="px-1 text-sm text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
@@ -81,7 +128,7 @@ export default function Page() {
               >
                 <p>
                   <Label className="font-normal text-secondary">
-                    To Date : <Required/>
+                    To Date :
                   </Label>
                   <span className="px-1 text-sm text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
@@ -96,15 +143,15 @@ export default function Page() {
       </div>
       <div className="bg-white rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">Missing Movements</h1>
+          <h1 className="font-bold text-xl text-primary">Leave Application</h1>
           <h1 className="font-semibold text-sm text-text-secondary">
-            Missing Movements can be viewed in this tab
+            Leave applications can be viewed in this tab
           </h1>
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
+          <PowerTabs items={modules?.selfServices?.manage_leaves?.items} />
         </div>
-        <PowerTable props={props} api={"/self-services/manage-movements/missing"} />
+        <PowerTable props={props} api={"/self-services/manage-leaves/application"} />
       </div>
     </div>
   );

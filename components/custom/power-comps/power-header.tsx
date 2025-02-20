@@ -10,6 +10,8 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import PowerFilter from "./power-filter";
 import PowerTakeAction from "./power-take-action";
 import PowerClear from "./power-clear";
+import PowerApprove from "./power-approve";
+import PowerReject from "./power-reject";
 
 export default function PowerHeader({
   items,
@@ -28,8 +30,10 @@ export default function PowerHeader({
   modal_description,
   filter_modal_title,
   filter_modal_description,
-  enable_take_action = false,
+  enableTakeAction = false,
   enableClear = false,
+  enableApprove = false,
+  enableReject = false,
 }: {
   items: any;
   props?: any;
@@ -47,8 +51,10 @@ export default function PowerHeader({
   modal_description?: string;
   filter_modal_title?: string;
   filter_modal_description?: string;
-  enable_take_action?: boolean;
+  enableTakeAction?: boolean;
   enableClear?: boolean;
+  enableApprove?: boolean;
+  enableReject?: boolean;
 }) {
   return (
     <div className="flex flex-col">
@@ -88,7 +94,7 @@ export default function PowerHeader({
             {!disableFeatures && !disableDelete && (
               <PowerDelete props={props} />
             )}
-            {enable_take_action && (
+            {enableTakeAction && (
               <PowerTakeAction
                 modal_title={modal_title}
                 modal_description={modal_description}
@@ -103,6 +109,8 @@ export default function PowerHeader({
             )}
             {!disableFeatures && isExport && <PowerExport />}
             {enableClear && <PowerClear props={props} />}
+            {enableApprove && <PowerApprove props={props} />}
+            {enableReject && <PowerReject props={props} />}
           </div>
         }
       </div>

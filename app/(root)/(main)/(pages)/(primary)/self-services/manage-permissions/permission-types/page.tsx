@@ -51,14 +51,18 @@ export default function Page() {
       items={modules?.selfServices?.items} 
       isAddNewPagePath="/self-services/manage-permissions/permission-types/add"
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Permission Types</h1>
-            <h1 className="font-bold text-secondary">
-              Permission types can be viewed in this tab
-            </h1>
+      <div className="bg-white rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Permission Types</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            Permission types can be viewed in this tab
+          </h1>
+        </div>
+        <div className="px-6">
+          <PowerTabs items={modules?.selfServices?.manage_permissions?.items} />
+        </div>
+        <PowerTable props={props} api={"/self-services/manage-permissions/types"} />
       </div>
-      <PowerTabs items={modules?.selfServices?.manage_permissions?.items} />
-      <PowerTable props={props} api={"/self-services/manage-permissions/types"} />
     </div>
   );
 }

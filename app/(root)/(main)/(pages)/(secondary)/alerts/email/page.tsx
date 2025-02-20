@@ -65,13 +65,13 @@ export default function Page() {
           <Popover>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between"
+                className="w-full bg-white px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     From Date :
                   </Label>
-                  <span className="px-1 text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
+                  <span className="px-1 text-sm text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
                 <CalendarIcon />
               </Button>
@@ -89,13 +89,13 @@ export default function Page() {
           <Popover>
           <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between"
+                className="w-full bg-white px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     To Date :
                   </Label>
-                  <span className="px-1 text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
+                  <span className="px-1 text-sm text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
                 <CalendarIcon />
               </Button>

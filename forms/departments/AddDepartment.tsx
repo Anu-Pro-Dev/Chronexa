@@ -76,7 +76,7 @@ export default function AddDepartment() {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Select onValueChange={setSelectedOption} value={selectedOption}>
-            <SelectTrigger className="bg-white">
+            <SelectTrigger className="bg-white border-grey">
               <Label className="font-normal text-secondary">
                 Organization : <Required />
               </Label>
@@ -95,13 +95,13 @@ export default function AddDepartment() {
           <Popover>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between"
+                className="w-full bg-white px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     From Date : <Required />
                   </Label>
-                  <span className="px-1 text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
+                  <span className="px-1 text-sm text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
                 <CalendarIcon />
               </Button>
@@ -119,13 +119,13 @@ export default function AddDepartment() {
           <Popover>
           <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between"
+                className="w-full bg-white px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     To Date : <Required />
                   </Label>
-                  <span className="px-1 text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
+                  <span className="px-1 text-sm text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
                 </p>
                 <CalendarIcon />
               </Button>

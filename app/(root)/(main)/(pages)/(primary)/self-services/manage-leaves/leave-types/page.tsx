@@ -11,18 +11,13 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "employee" },
-    { field: "date" },
-    { field: "from_date" },
-    { field: "to_date" },
-    { field: "from_time" },
-    { field: "to_time" },
-    { field: "remarks" },
+    { field: "code" },
+    { field: "description" },
+    { field: "reason" },
   ]);
 
-  const [open, on_open_change] = useState<boolean>(false);
-  const [filter_open, filter_on_open_change] = useState<boolean>(false);
+  const [open, on_open_change] = useState<boolean>(false)
+  const [filter_open, filter_on_open_change] = useState<boolean>(false)
   const [CurrentPage, SetCurrentPage] = useState<number>(1)
   const [SortField, SetSortField] = useState<string>("")
   const [SortDirection, SetSortDirection] = useState<string>("asc")
@@ -44,24 +39,27 @@ export default function Page() {
     SetSearchValue,
     open,
     on_open_change,
-  };
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader
-        props={props}
-        items={modules?.selfServices?.items}
-            disableAdd
-        disableDelete
+      <PowerHeader 
+      props={props} 
+      items={modules?.selfServices?.items} 
+      isAddNewPagePath="/self-services/manage-leaves/leave-types/add"
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Approve Manual Movements</h1>
-            <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
-            </h1>
+      <div className="bg-white rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Leave Types</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            Leave types can be viewed in this tab
+          </h1>
+        </div>
+        <div className="px-6">
+          <PowerTabs items={modules?.selfServices?.manage_leaves?.items} />
+        </div>
+        <PowerTable props={props} api={"/self-services/manage-leaves/types"} />
       </div>
-      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
-      <PowerTable props={props} api={"/self-services/manage-movements/approval-manual"}/>
     </div>
   );
 }

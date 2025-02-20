@@ -53,33 +53,34 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.selfServices?.items}
-        disableFeatures
-        enableFilters
-        enable_take_action
-        isLarge
-        filter_modal_component={
-          <FilterDataOnVerification on_open_change={filter_on_open_change} />
-        }
+        disableAdd
+        disableDelete
+        enableApprove
+        enableReject
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Pending Approval</h1>
-            <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
-            </h1>
+      <div className="bg-white rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Pending Approval</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            List of items pending for approvals
+          </h1>
+        </div>
+        <div className="px-6">
+          <PowerTabs
+            items={[
+              {
+                url: "/self-services/approvals/verification/",
+                label: "Verification",
+              },
+              {
+                url: "/self-services/approvals/pending/",
+                label: "Pending",
+              },
+            ]}
+          />
+        </div>
+        <PowerTable props={props} api={"/self-services/approvals/pending"} />
       </div>
-      <PowerTabs
-        items={[
-          {
-            url: "/self-services/approvals/verification/",
-            label: "Verification",
-          },
-          {
-            url: "/self-services/approvals/pending/",
-            label: "Pending",
-          },
-        ]}
-      />
-      <PowerTable props={props} api={"/self-services/approvals/pending"} />
     </div>
   );
 }

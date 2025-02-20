@@ -52,18 +52,23 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.selfServices?.items}
+        enableFilters
         modal_title="Manual movements add"
         modal_description="Select the options of the Manual movements to add"
         modal_component={<AddManageMovements on_open_change={on_open_change} />}
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Manual Movements</h1>
-            <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
-            </h1>
+      <div className="bg-white rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Manual Movements</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            Manual Movements can be viewed in this tab
+          </h1>
+        </div>
+        <div className="px-6">
+          <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
+        </div>
+        <PowerTable props={props} api={"/self-services/manage-movements/manual"} />
       </div>
-      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
-      <PowerTable props={props} api={"/self-services/manage-movements/manual"}/>
     </div>
   );
 }

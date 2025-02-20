@@ -1,15 +1,24 @@
 "use client";
+import React, { useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-
-import React, { useState } from "react";
-
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "@/icons/icons";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import Required from "@/components/ui/required";
+
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
-
   const [Columns, setColumns] = useState([
     { field: "number" },
     { field: "employee" },
@@ -20,13 +29,14 @@ export default function Page() {
     { field: "action_by" },
     { field: "action_date" },
   ]);
-
   const [open, on_open_change] = useState<boolean>(false)
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [CurrentPage, SetCurrentPage] = useState<number>(1)
   const [SortField, SetSortField] = useState<string>("")
   const [SortDirection, SetSortDirection] = useState<string>("asc")
   const [SearchValue, SetSearchValue] = useState<string>("")
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
 
   const props = {
     Data,
@@ -52,16 +62,65 @@ export default function Page() {
         props={props}
         items={modules?.selfServices?.items}
         disableAdd
-        disableDelete
       />
-      <div className="col-span-2 mt-4 mb-3">
-            <h1 className="font-bold text-primary">Applied Movements</h1>
-            <h1 className="font-bold text-secondary">
-              Enter the personal information for the process
-            </h1>
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-white px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    From Date : <Required/>
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={fromDate}
+                onSelect={setFromDate}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div>
+          <Popover>
+          <PopoverTrigger asChild>
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-white px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    To Date : <Required/>
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={toDate} onSelect={setToDate} />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
-      <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
-      <PowerTable props={props} api={"/self-services/manage-movements/applied"} />
+      <div className="bg-white rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Applied Movements</h1>
+          <h1 className="font-semibold text-sm text-text-secondary">
+            Applied Movements can be viewed in this tab
+          </h1>
+        </div>
+        <div className="px-6">
+          <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
+        </div>
+        <PowerTable props={props} api={"/self-services/manage-movements/applied"} />
+      </div>
     </div>
   );
 }
