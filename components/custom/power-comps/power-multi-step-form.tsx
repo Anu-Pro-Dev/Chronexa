@@ -44,7 +44,7 @@ export default function PowerMultiStepForm({ Pages, Page, SetPage }: MultiStepFo
       </div>
 
       {Pages.filter((page) => page.state_route === Page).map((page) => (
-        <div key={page.state_route} className="px-5 flex flex-col">
+        <div key={page.state_route} className="">
           {page.component}
         </div>
       ))}
