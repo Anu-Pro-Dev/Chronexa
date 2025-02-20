@@ -6,11 +6,12 @@ import {
   employeeMaster_groups_data,
   employeeMaster_types_data,
 } from "@/data/em.data";
+import { weeklyschedule_data } from "@/data/scheduling.data";
 import { departments_data, organizationtypes_data } from "@/data/org.data";
 import { privileges_data, roles_data } from "@/data/security.data";
 import { workflows_data, approvals_verification_data,approvals_pending_data, movement_applied_data, movement_manual_data, movement_approval_manual_data, permissions_application_data, permissions_types_data } from "@/data/selfservices.data";
 import { notification_data, settings_data } from "@/data/settings.data";
-import {holidays_data, ramadandates_data, reasons_data, schedules_data} from "@/data/tam.data";
+import { holidays_data, ramadandates_data, reasons_data, schedules_data} from "@/data/tam.data";
 
 export const DynamicApi = (api: any, params: any) => {
   try {
@@ -63,6 +64,9 @@ export const DynamicApi = (api: any, params: any) => {
         break;
       case "/ta-master/schedules":
         data = schedules_data;
+        break;
+      case "/scheduling/weekly-schedule":
+        data = weeklyschedule_data;
         break;
       case "/self-services/approvals/verification":
         data = approvals_verification_data;

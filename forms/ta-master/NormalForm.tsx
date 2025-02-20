@@ -166,7 +166,7 @@ export default function NormalForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="C">
+        <div className="flex justify-evenly gap-10 p-5">
           <div className="flex flex-col flex-1 items-end">
             <FormField
               control={form.control}
