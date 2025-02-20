@@ -255,7 +255,7 @@ export default function LanguageProvider({
       },
       {
         label: "Manage Movements",
-        path: "/self-services/manage-movements/approval-manual/",
+        path: "/self-services/manage-movements/approve-manual/",
         value: "approved_manual",
         hide: true,
       },
@@ -313,9 +313,9 @@ export default function LanguageProvider({
           value: "manual",
         },
         {
-          label: "Approval Manual",
-          url: "/self-services/manage-movements/approval-manual/",
-          value: "approval-manual",
+          label: "Approve Manual",
+          url: "/self-services/manage-movements/approve-manual/",
+          value: "approve-manual",
         },
         {
           label: "Missing",

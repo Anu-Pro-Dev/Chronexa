@@ -39,6 +39,8 @@
       "takeAction": "Take Action",
       "punchIn": "Punch In",
       "punchOut": "Punch Out",
+      "approve": "Approve",
+      "reject": "Reject",
       "exportExcel": "Export to excel"
     },
     "modules": {

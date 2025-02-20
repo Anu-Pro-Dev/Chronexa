@@ -207,9 +207,22 @@ export type VerificationPendingDataType = {
     status: string;
   }
 
+  //self services movement missing data type
+
+  export type MovementMissingDataType = {
+    number: string;
+    employee: string;
+    date: string;
+    time_in: string;
+    time_out: string;
+    applied_in: string;
+    applied_out: string;
+    status: string;
+  }
+
   //self services movement approval manual data type
 
-  export type MovementApprovalManualDataType = {
+  export type MovementApproveManualDataType = {
     number: string;
     employee: string;
     date: string;
@@ -218,6 +231,19 @@ export type VerificationPendingDataType = {
     from_time: string;
     to_time: string;
     remarks: string;
+  }
+
+  //self services movement approve missing data type
+
+  export type MovementApproveMissingDataType = {
+    number: string;
+    employee: string;
+    date: string;
+    from_date: string;
+    to_date: string;
+    from_time: string;
+    to_time: string;
+    status: string;
   }
 
   //self-services permission application data type
