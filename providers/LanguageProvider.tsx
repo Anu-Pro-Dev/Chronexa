@@ -215,6 +215,17 @@ export default function LanguageProvider({
     path: "/self-services/",
     items: [
       {
+        label: "Workflow",
+        path: "/self-services/workflow/",
+        value: "workflow",
+      },
+      {
+        label: "Workflow",
+        path: "/self-services/workflow/add/",
+        value: "add_workflow",
+        hide: true,
+      },
+      {
         label: "Manage Permissions",
         path: "/self-services/manage-permissions/permission-types/",
         value: "manage-permissions",
@@ -239,8 +250,32 @@ export default function LanguageProvider({
       },
       {
         label: "Manage Leaves",
-        path: "/self-services/manage-leaves/",
+        path: "/self-services/manage-leaves/leave-types/",
         value: "manage-leaves",
+      },
+      {
+        label: "Manage Leaves",
+        path: "/self-services/manage-leaves/leave-types/add/",
+        value: "manage-leaves",
+        hide:true
+      },
+      {
+        label: "Manage Leaves",
+        path: "/self-services/manage-leaves/leave-application/",
+        value: "leave application",
+        hide:true,
+      },
+      {
+        label: "Manage Leaves",
+        path: "/self-services/manage-leaves/leave-approval/",
+        value: "leave approval",
+        hide:true,
+      },
+      {
+        label: "Manage Leaves",
+        path: "/self-services/manage-leaves/leave-report/",
+        value: "leave report",
+        hide:true,
       },
       {
         label: "Manage Movements",
@@ -286,17 +321,6 @@ export default function LanguageProvider({
         label: "Approvals",
         path: "/self-services/approvals/pending/",
         value: "approvals",
-        hide: true,
-      },
-      {
-        label: "Workflow",
-        path: "/self-services/workflow/",
-        value: "workflow",
-      },
-      {
-        label: "Workflow",
-        path: "/self-services/workflow/add/",
-        value: "add_workflow",
         hide: true,
       },
     ],
@@ -345,6 +369,30 @@ export default function LanguageProvider({
           label: "Approval",
           url: "/self-services/manage-permissions/permission-approval/",
           value: "permission approval",
+        },
+      ],
+    },
+    manage_leaves: { 
+      items: [
+        {
+          label: "Types",
+          url: "/self-services/manage-leaves/leave-types/",
+          value: "leave types",
+        },
+        {
+          label: "Application",
+          url: "/self-services/manage-leaves/leave-application/",
+          value: "leave application",
+        },
+        {
+          label: "Approval",
+          url: "/self-services/manage-leaves/leave-approval/",
+          value: "leave approval",
+        },
+        {
+          label: "Report",
+          url: "/self-services/manage-leaves/leave-report/",
+          value: "leave report",
         },
       ],
     },
