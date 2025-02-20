@@ -69,11 +69,11 @@ export function ScheduleSettings({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 mt-6 bg-white p-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6 bg-white p-6 rounded-2xl">
       <div>
-        <h2 className="text-2xl font-bold text-primary">Schedule settings</h2>
-        <p className="text-sm text-muted-foreground">
-          Select the regions of the employee
+        <h2 className="font-bold text-xl text-primary">Schedule settings</h2>
+        <p className="font-semibold text-sm text-text-secondary">
+          Select the information for employee schedule
         </p>
       </div>
 

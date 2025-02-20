@@ -91,7 +91,7 @@ function TimerCard() {
           <p className="text-[13px] font-bold">00:30</p>
         </div>
       </div>
-      <div className="w-full pt-5 flex justify-between">
+      <div className="w-full pt-5 flex justify-between uppercase">
         <div className="flex items-center gap-2 font-bold text-xs">
           {PunchInIcon()}
           <p>{punchInTime || "_ _ : _ _"}</p>

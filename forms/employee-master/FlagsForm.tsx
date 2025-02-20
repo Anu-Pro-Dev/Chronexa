@@ -1,10 +1,8 @@
 "use client";
-import { useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,24 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import { CalendarIcon } from "@/icons/icons";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
@@ -357,7 +338,7 @@ export default function PersonalForm({
               </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 items-center pb-5">
+          <div className="flex justify-end gap-2 items-center py-5">
             <div className="flex gap-4 px-5">
               <Button
                 variant={"outline"}

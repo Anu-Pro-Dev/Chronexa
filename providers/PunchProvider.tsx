@@ -19,7 +19,7 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const togglePunch = () => {
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     
     if (!isPunchedIn) {
       setPunchInTime(currentTime);
