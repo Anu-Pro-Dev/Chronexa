@@ -572,9 +572,9 @@ export const ActionIcon = () => (
 export const GenerateIcon = () => (
   <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <mask id="mask0_2210_9707" maskUnits="userSpaceOnUse" x="0" y="0" width="17" height="16">
-    <path d="M6.60742 2.89184V1.75674C6.60742 1.55604 6.68715 1.36356 6.82906 1.22164C6.97098 1.07973 7.16346 1 7.36416 1H14.9315C15.1322 1 15.3247 1.07973 15.4666 1.22164C15.6085 1.36356 15.6883 1.55604 15.6883 1.75674V10.0808C15.6883 10.2815 15.6085 10.474 15.4666 10.6159C15.3247 10.7578 15.1322 10.8376 14.9315 10.8376H13.418" stroke="white" strokeWidth="1.8" strokeLinecap="round" stroke-linejoin="round"/>
-    <path d="M9.6366 5.91797H2.06924C1.6513 5.91797 1.3125 6.25677 1.3125 6.67471V14.2421C1.3125 14.66 1.6513 14.9988 2.06924 14.9988H9.6366C10.0545 14.9988 10.3933 14.66 10.3933 14.2421V6.67471C10.3933 6.25677 10.0545 5.91797 9.6366 5.91797Z" fill="white" stroke="white" strokeWidth="1.8" strokeLinecap="round" stroke-linejoin="round"/>
-    <path d="M5.85278 8.56641V12.3501M3.96094 10.4582H7.74462" stroke="black" strokeWidth="1.8" strokeLinecap="round" stroke-linejoin="round"/>
+    <path d="M6.60742 2.89184V1.75674C6.60742 1.55604 6.68715 1.36356 6.82906 1.22164C6.97098 1.07973 7.16346 1 7.36416 1H14.9315C15.1322 1 15.3247 1.07973 15.4666 1.22164C15.6085 1.36356 15.6883 1.55604 15.6883 1.75674V10.0808C15.6883 10.2815 15.6085 10.474 15.4666 10.6159C15.3247 10.7578 15.1322 10.8376 14.9315 10.8376H13.418" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M9.6366 5.91797H2.06924C1.6513 5.91797 1.3125 6.25677 1.3125 6.67471V14.2421C1.3125 14.66 1.6513 14.9988 2.06924 14.9988H9.6366C10.0545 14.9988 10.3933 14.66 10.3933 14.2421V6.67471C10.3933 6.25677 10.0545 5.91797 9.6366 5.91797Z" fill="white" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5.85278 8.56641V12.3501M3.96094 10.4582H7.74462" stroke="black" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
     </mask>
     <g mask="url(#mask0_2210_9707)">
     <path d="M-0.582031 -0.890625H17.5796V17.271H-0.582031V-0.890625Z" fill="white"/>

@@ -621,7 +621,7 @@ export const GenerateIcon = () => (
         stroke="white"
         strokeWidth="1.8"
         strokeLinecap="round"
-        stroke-linejoin="round"
+        strokeLinejoin="round"
       />
       <path
         d="M9.6366 5.91797H2.06924C1.6513 5.91797 1.3125 6.25677 1.3125 6.67471V14.2421C1.3125 14.66 1.6513 14.9988 2.06924 14.9988H9.6366C10.0545 14.9988 10.3933 14.66 10.3933 14.2421V6.67471C10.3933 6.25677 10.0545 5.91797 9.6366 5.91797Z"
@@ -629,14 +629,14 @@ export const GenerateIcon = () => (
         stroke="white"
         strokeWidth="1.8"
         strokeLinecap="round"
-        stroke-linejoin="round"
+        strokeLinejoin="round"
       />
       <path
         d="M5.85278 8.56641V12.3501M3.96094 10.4582H7.74462"
         stroke="black"
         strokeWidth="1.8"
         strokeLinecap="round"
-        stroke-linejoin="round"
+        strokeLinejoin="round"
       />
     </mask>
     <g mask="url(#mask0_2210_9707)">
