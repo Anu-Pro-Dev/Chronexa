@@ -28,81 +28,25 @@ import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { nationalities_columns } from "@/data/cm.data";
 
-const formSchema = z.object({
-  employee_type: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  designation: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  region: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  buildings: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  manager: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  grade: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  schedule_type: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  nationality: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  manager_flag: z.boolean(),
-});
+
 
 export default function BusinessForm({
-  on_open_change,
+  Page,
+  SetPage,
+  buisnessFormSchema,
+  buisnessForm
 }: {
-  on_open_change?: any;
+  Page?: any;
+  SetPage?:any;
+  buisnessFormSchema:any;
+  buisnessForm:any
 }) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      employee_type: "",
-      designation: "",
-      region: "",
-      buildings: "",
-      manager: "",
-      grade: "",
-      schedule_type: "",
-      nationality: "",
-      manager_flag: false,
-    },
-  });
+  
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof buisnessFormSchema>) {
     try {
-      console.log(values);
+      console.log(values)
+      SetPage("flags-form")
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(values, null, 2)}</code>
@@ -117,11 +61,11 @@ export default function BusinessForm({
   const router = useRouter();
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+    <Form {...buisnessForm}>
+      <form onSubmit={buisnessForm.handleSubmit(onSubmit)}>
         <div className="px-5 pt-5">
           <FormField
-            control={form.control}
+            control={buisnessForm.control}
             name="manager_flag"
             render={({ field }) => (
               <FormItem className=" ">
@@ -142,7 +86,7 @@ export default function BusinessForm({
         <div className="flex justify-evenly gap-10 p-5">
           <div className="flex flex-col flex-1 items-end">
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="employee_type"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -169,7 +113,7 @@ export default function BusinessForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="designation"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -197,7 +141,7 @@ export default function BusinessForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="region"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -225,7 +169,7 @@ export default function BusinessForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="buildings"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -258,7 +202,7 @@ export default function BusinessForm({
           </div>
           <div className="flex flex-col flex-1 items-end">
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="manager"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -285,7 +229,7 @@ export default function BusinessForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="grade"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -312,7 +256,7 @@ export default function BusinessForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="schedule_type"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -341,7 +285,7 @@ export default function BusinessForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={buisnessForm.control}
               name="nationality"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">

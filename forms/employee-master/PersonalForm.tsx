@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import { toast } from "sonner"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -14,126 +14,43 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import Required from "@/components/ui/required";
-import { useRouter } from "next/navigation";
-import { CalendarIcon } from "@/icons/icons";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+} from "@/components/ui/popover"
+import Required from "@/components/ui/required"
+import { useRouter } from "next/navigation"
+import { CalendarIcon } from "@/icons/icons"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
 
-const formSchema = z.object({
-  organization: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  code: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  card_number: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  pin: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  username: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  password: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  name_en: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  name_ar: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  mobile: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  sex: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  email: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  remarks: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  employee_system_activation: z.date({
-    required_error: "Employee system activation Date is required.",
-  }),
-  join_date: z.date({
-    required_error: "Join Date is required.",
-  }),
-  inactive_date: z.date({
-    required_error: "Inactive Date is required.",
-  }),
-});
+
 
 export default function PersonalForm({
-  on_open_change,
+  Page, SetPage,personalFormSchema,personalForm
 }: {
-  on_open_change?: any;
+  Page?: any;
+  SetPage?:any;
+  personalFormSchema:any;
+  personalForm:any
 }) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      organization: "",
-      code: "",
-    },
-  });
+ 
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof personalFormSchema>) {
     try {
-      console.log(values);
+      console.log(values)
+      SetPage("business-form")
+      console.log(1)
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(values, null, 2)}</code>
@@ -148,12 +65,12 @@ export default function PersonalForm({
   const router = useRouter();
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+    <Form {...personalForm}>
+      <form onSubmit={personalForm.handleSubmit(onSubmit)}>
         <div className="flex justify-evenly gap-10 p-5">
           <div className="flex flex-col flex-1 items-end">
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="organization"
               render={({ field }) => (
               <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -180,7 +97,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="card_number"
               render={({ field }) => (
                   <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -197,7 +114,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="username"
               render={({ field }) => (
                   <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -214,7 +131,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="name_en"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -231,7 +148,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="mobile"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -248,7 +165,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="email"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -265,7 +182,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="remarks"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -282,7 +199,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="employee_system_activation"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -324,7 +241,7 @@ export default function PersonalForm({
           </div>
           <div className="flex flex-col flex-1 items-end">
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="code"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -341,7 +258,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="pin"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -358,7 +275,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="password"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -375,7 +292,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="name_ar"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -392,7 +309,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="sex"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -420,7 +337,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="join_date"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -460,7 +377,7 @@ export default function PersonalForm({
               )}
             />
             <FormField
-              control={form.control}
+              control={personalForm.control}
               name="inactive_date"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
