@@ -16,18 +16,18 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import Required from "@/components/ui/required";
-import { TransferList } from "@/components/ui/transfer-list";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
+} from "@/components/ui/select"
+import Required from "@/components/ui/required"
+import { TransferList } from "@/components/ui/transfer-list"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation"
 
 export default function AddDepartment() {
-  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
-  const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [selectedOption, setSelectedOption] = useState<string>("");
-  const [showDetails, setShowDetails] = useState(false);
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined)
+  const [toDate, setToDate] = useState<Date | undefined>(undefined)
+  const [selectedOption, setSelectedOption] = useState<string>("")
+  const [showDetails, setShowDetails] = useState(false)
 
   const options = [
     { value: "option1", label: "Organization 1" },
