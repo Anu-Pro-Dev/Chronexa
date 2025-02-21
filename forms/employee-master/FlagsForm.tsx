@@ -16,49 +16,18 @@ import {
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const formSchema = z.object({
-  active: z.boolean(),
-  punch: z.boolean(),
-  overtime: z.boolean(),
-  inpayroll: z.boolean(),
-  email_notification: z.boolean(),
-  open_shift: z.boolean(),
-  monthly_missed_hours: z.boolean(),
-  exclude_from_integration: z.boolean(),
-  shift: z.boolean(),
-  on_report: z.boolean(),
-  share_roster: z.boolean(),
-  include_in_email: z.boolean(),
-  web_punch: z.boolean(),
-  check_selfie: z.boolean(),
-});
 
-export default function PersonalForm({
-  on_open_change,
+
+export default function FlagsForm({
+  flagForm,
+  flagsFormSchema
 }: {
-  on_open_change?: any;
+  flagForm:any,
+  flagsFormSchema:any
 }) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      active: false,
-      punch: false,
-      overtime: false,
-      inpayroll: false,
-      email_notification: false,
-      open_shift: false,
-      monthly_missed_hours: false,
-      exclude_from_integration: false,
-      shift: false,
-      on_report: false,
-      share_roster: false,
-      include_in_email: false,
-      web_punch: false,
-      check_selfie: false,
-    },
-  });
+  
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof flagsFormSchema>) {
     try {
       console.log(values);
       toast(
@@ -75,14 +44,14 @@ export default function PersonalForm({
   const router = useRouter();
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-11/12 mx-auto">
+    <Form {...flagForm}>
+      <form onSubmit={flagForm.handleSubmit(onSubmit)} className="w-11/12 mx-auto">
         <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col">
             <div className="flex justify-between items-start gap-20">
               <div className="flex flex-col flex-1 gap-5">
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="active"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -100,7 +69,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="punch"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -118,7 +87,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="overtime"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -136,7 +105,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="inpayroll"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -154,7 +123,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="email_notification"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -172,7 +141,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="open_shift"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -190,7 +159,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="monthly_missed_hours"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -210,7 +179,7 @@ export default function PersonalForm({
               </div>
               <div className="flex flex-col flex-1 gap-5">
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="exclude_from_integration"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -228,7 +197,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="on_report"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -246,7 +215,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="share_roster"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -264,7 +233,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="include_in_email"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -282,7 +251,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="web_punch"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -300,7 +269,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="shift"
                   render={({ field }) => (
                   <FormItem className=" ">
@@ -318,7 +287,7 @@ export default function PersonalForm({
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={flagForm.control}
                   name="check_selfie"
                   render={({ field }) => (
                   <FormItem className=" ">
