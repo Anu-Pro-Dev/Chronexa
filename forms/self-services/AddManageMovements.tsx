@@ -37,17 +37,17 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
+  from_date: z.date({
+      required_error: "From Date is required.",
+    }),
   to_date: z.date({
     required_error: "To Date is required.",
   }),
-  from_date: z.date({
-    required_error: "From Date is required.",
-  }),
   from_time: z.date({
-    required_error: "From Date is required.",
+    required_error: "From Time is required.",
   }),
   to_time: z.date({
-    required_error: "From Date is required.",
+    required_error: "To Time is required.",
   }),
 });
 
@@ -89,9 +89,9 @@ export default function AddManageMovements({
         newDate.setHours(hours + 12);
       }
     }
-
     form.setValue("from_time", newDate);
   }
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
