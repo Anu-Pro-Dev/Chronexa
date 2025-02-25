@@ -244,6 +244,12 @@ export default function LanguageProvider({
       },
       {
         label: "Manage Permissions",
+        path: "/self-services/manage-permissions/permission-application/add/",
+        value: "manage-permissions",
+        hide:true
+      },
+      {
+        label: "Manage Permissions",
         path: "/self-services/manage-permissions/permission-approval/",
         value: "permission approval",
         hide:true,
