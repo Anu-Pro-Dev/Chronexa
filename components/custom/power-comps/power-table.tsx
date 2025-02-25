@@ -206,7 +206,7 @@ export default function PowerTable({
       <div className="flex justify-between px-3">
         <div className="flex items-center gap-2">
           <Select value={rows_per_page} onValueChange={set_rows_per_page}>
-            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-white rounded-lg">
+            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-white rounded-lg" iconSize={24}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
