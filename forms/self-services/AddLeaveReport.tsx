@@ -1,11 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -14,11 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { USER_TOKEN } from "@/lib/Instance";
-import { useRouter } from "next/navigation";
-import Required from "@/components/ui/required";
 import {
   Popover,
   PopoverContent,
@@ -27,6 +28,8 @@ import {
 import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import Required from "@/components/ui/required";
+
 const formSchema = z.object({
   remarks: z
     .string()
@@ -34,13 +37,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  employee: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  leave_types: z
     .string()
     .min(1, {
       message: "Required",
@@ -62,8 +65,8 @@ export default function AddLeaveReport({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      description_en: "",
-      description_ar: "",
+      employee: "",
+      leave_types: "",
       remarks: "",
     },
   });
@@ -86,15 +89,29 @@ export default function AddLeaveReport({
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
                   control={form.control}
-                  name="description_en"
+                  name="employee"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
                         Employee <Required />
                       </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter description in english" type="text" {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose employee" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Emp 109</SelectItem>
+                          <SelectItem value="2">OG123</SelectItem>
+                          <SelectItem value="3">Emp 213</SelectItem>
+                          <SelectItem value="4">Employee 02</SelectItem>
+                        </SelectContent>
+                      </Select>
+
 
                       <FormMessage />
                     </FormItem>
@@ -157,15 +174,27 @@ export default function AddLeaveReport({
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
                   control={form.control}
-                  name="description_ar"
+                  name="leave_types"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Leave <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter description in arabic" type="text" {...field} />
-                      </FormControl>
+                      <FormLabel>Leave types <Required /></FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose leave types" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Annual leave</SelectItem>
+                          <SelectItem value="2">Sick leave</SelectItem>
+                          <SelectItem value="3">Medical leave</SelectItem>
+                          <SelectItem value="4">Maternity leave</SelectItem>
+                          <SelectItem value="5">Vacation</SelectItem>
+                        </SelectContent>
+                      </Select>
 
                       <FormMessage />
                     </FormItem>

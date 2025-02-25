@@ -10,7 +10,8 @@ import {
     PermissionApplicationDataType,
     PermissionTypesDataType,
     LeaveApplicationDataType,
-    LeaveTypesDataType
+    LeaveTypesDataType,
+    LeaveApprovalDataType
   } from "./types/types";
 
 export const workflows_columns = [
@@ -1164,4 +1165,68 @@ export const leave_types_data : LeaveTypesDataType[] = [
   },
 ]
 
-
+export const leave_approval_data : LeaveApprovalDataType[] = [
+  {
+    number: "REC1001",
+    name: "John Doe",
+    leave_type: "Sick Leave",
+    from_date: "2024-01-12",
+    to_date: "2024-01-15",
+    comments: "Personal reason",
+    status: "Applied",
+  },
+  {
+    number: "REC1002",
+    name: "Jane Smith",
+    leave_type: "Annual Leave",
+    from_date: "2024-02-07",
+    to_date: "2024-02-10",
+    comments: "Vacation",
+    status: "Applied",
+  },
+  {
+    number: "REC1003",
+    name: "Robert Brown",
+    leave_type: "Sick Leave",
+    from_date: "2024-03-14",
+    to_date: "2024-03-16",
+    comments: "",
+    status: "Applied",
+  },
+  {
+    number: "REC1004",
+    name: "Emily Johnson",
+    leave_type: "Sick Leave",
+    from_date: "2024-04-22",
+    to_date: "2024-04-24",
+    comments: "",
+    status: "Applied",
+  },
+  {
+    number: "REC1005",
+    name: "Michael Williams",
+    leave_type: "Sick Leave",
+    from_date: "2024-05-03",
+    to_date: "2024-05-06",
+    comments: "Pending",
+    status: "Applied",
+  },
+  {
+    number: "REC1006",
+    name: "Sarah Miller",
+    leave_type: "Vacation",
+    from_date: "2024-06-17",
+    to_date: "2024-06-20",
+    comments: "Vacation",
+    status: "Applied",
+  },
+  {
+    number: "REC1007",
+    name: "David Wilson",
+    leave_type: "Annual Leave",
+    from_date: "2024-07-10",
+    to_date: "2024-07-13",
+    comments: "Marriage leave",
+    status: "Applied",
+  },
+]

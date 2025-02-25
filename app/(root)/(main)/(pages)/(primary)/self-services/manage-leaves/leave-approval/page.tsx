@@ -1,9 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import PowerTable from "@/components/custom/power-comps/power-table";
-import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
+import PowerTable from "@/components/custom/power-comps/power-table";
+import ApprovalModal from "@/components/custom/power-comps/power-approval-modal";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,27 +21,18 @@ import {
 import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
-  const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "employee" },
-    { field: "date" },
-    { field: "from_date", headerName: "From date" },
-    { field: "to_date", headerName: "To date" },
-    { field: "from_time", headerName: "From time" },
-    { field: "to_time", headerName: "To time" },
-    { field: "remarks", headerName: "Status" },
-  ]);
-  const [open, on_open_change] = useState<boolean>(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedOption, setSelectedOption] = useState<string>("");
-
+  const [approve_open, approve_on_open_change] = useState<boolean>(false);
+  const [reject_open, reject_on_open_change] = useState<boolean>(false);
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const options = [
     { value: "option1", label: "All" },
     { value: "option2", label: "Pending manger" },
@@ -48,19 +41,43 @@ export default function Page() {
     { value: "option5", label: "Rejected" },
     { value: "option6", label: "Cancelled" },
   ];
-  
+  const [Columns, setColumns] = useState([
+    { field: "number" },
+    { field: "name" },
+    { field: "leave_type", headerName: "Leave type" },
+    { field: "from_date", headerName: "From date" },
+    { field: "to_date", headerName: "To date" },
+    { field: "comments", headerName: "Comments" },
+    { field: "status", headerName: "Status" },
+  ]);
   const props = {
     Data,
     SetData,
     Columns,
-    open,
-    on_open_change,
+  };
+
+  const handleApprove = () => {
+    console.log("Approved");
+    setApproveModalOpen(false); // Close modal after action
+  };
+
+  const handleReject = () => {
+    console.log("Rejected");
+    setRejectModalOpen(false); // Close modal after action
   };
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader 
-        props={props} 
+        props={{
+          ...props,
+          approve_open: approveModalOpen,
+          approve_on_open_change: setApproveModalOpen,
+          onApprove: handleApprove,
+          reject_open: rejectModalOpen,
+          reject_on_open_change: setRejectModalOpen,
+          onReject: handleReject,
+        }} 
         items={modules?.selfServices?.items} 
         disableAdd
         disableDelete
@@ -140,7 +157,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.manage_leaves?.items} />
         </div>
-        <PowerTable props={props} api={"/self-services/manage-leaves/application"} />
+        <PowerTable props={props} api={"/self-services/manage-leaves/leave-approval"} />
       </div>
     </div>
   );

@@ -67,6 +67,9 @@ export default function AddLeaveTypes({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
+      description_en: "",
+      description_ar: "",
+      workflows: "",
       need_approval: false,
       offical: false,
       attachment: false,

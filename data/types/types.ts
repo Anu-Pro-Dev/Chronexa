@@ -295,6 +295,19 @@ export type LeaveTypesDataType = {
   updated: string;
 }
 
+//se
+// lf-services leave approval data type
+
+export type LeaveApprovalDataType = { 
+  number: string;
+  name: string;
+  leave_type: string;
+  from_date: string;
+  to_date: string;
+  comments: string;
+  status: string;
+}
+
 // Devices Page DataTypes
 
 export type DevicesStatusDataType = {
