@@ -26,14 +26,13 @@ export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
   const [Columns, setColumns] = useState([
-    { field: "number" },
+    { field: "code" },
     { field: "employee" },
     { field: "date" },
-    { field: "from_date" },
-    { field: "to_date" },
-    { field: "from_time" },
-    { field: "to_time" },
-    { field: "remarks" },
+    { field: "from_date", headerName: "From Date" },
+    { field: "to_date", headerName: "To Date" },
+    { field: "attachment" },
+    { field: "comments" },
   ]);
   const [open, on_open_change] = useState<boolean>(false)
   const [filter_open, filter_on_open_change] = useState<boolean>(false)
@@ -76,7 +75,8 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader 
         props={props} 
-        items={modules?.selfServices?.items} 
+        items={modules?.selfServices?.items}
+        isAddNewPagePath="/self-services/manage-leaves/leave-application/add"
       />
       <div className="grid grid-cols-3 gap-4">
         <div>

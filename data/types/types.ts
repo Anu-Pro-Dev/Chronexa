@@ -273,14 +273,13 @@ export type PermissionTypesDataType = {
 //self-services leave application data type
 
 export type LeaveApplicationDataType = {
-  number: string;
+  code: string;
   employee: string;
   date: string;
   from_date: string;
   to_date: string;
-  from_time: string;
-  to_time: string;
-  remarks: string;
+  attachment: string;
+  comments: string;
 }
   
 //self-services leave types data type

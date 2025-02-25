@@ -100,8 +100,8 @@ export default function AddLeaveTypes({
           </h1>
         </div>
         <div className="flex flex-col gap-6">
-          <div className="p-5 flex flex-col">
-            <div className="grid sm:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px]">
+          <div className="p-5">
+            <div className="grid sm:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] [&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px]">
               <FormField
                 control={form.control}
                 name="code"
@@ -256,7 +256,7 @@ export default function AddLeaveTypes({
               </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 items-center pb-5">
+          <div className="flex justify-end gap-2 items-center px-5 pb-5">
             <div className="flex gap-4 px-5">
               <Button
                 variant={"outline"}
