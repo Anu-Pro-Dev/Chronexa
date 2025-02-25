@@ -234,7 +234,7 @@ export default function NormalForm({
                             {field.value ? (
                               format(field.value, "HH:mm")
                             ) : (
-                              <span className="text-text-secondary">_ _ : _ _</span>
+                              <span className="text-text-secondary">Choose time</span>
                             )}
                             <ClockIcon />
                           </Button>
@@ -274,7 +274,7 @@ export default function NormalForm({
                             {field.value ? (
                               format(field.value, "HH:mm")
                             ) : (
-                              <span className="text-text-secondary">_ _ : _ _</span>
+                              <span className="text-text-secondary">Choose time</span>
                             )}
                             <ClockIcon />
                           </Button>
@@ -313,7 +313,7 @@ export default function NormalForm({
                             {field.value ? (
                               format(field.value, "HH:mm")
                             ) : (
-                              <span className="text-text-secondary">_ _ : _ _</span>
+                              <span className="text-text-secondary">Choose time</span>
                             )}
                             <ClockIcon />
                           </Button>
@@ -351,7 +351,7 @@ export default function NormalForm({
                           {field.value ? (
                             format(field.value, "HH:mm")
                           ) : (
-                            <span className="text-text-secondary">_ _ : _ _</span>
+                            <span className="text-text-secondary">Choose time</span>
                           )}
                           <ClockIcon />
                         </Button>
@@ -388,7 +388,7 @@ export default function NormalForm({
                           {field.value ? (
                             format(field.value, "HH:mm")
                           ) : (
-                            <span className="text-text-secondary">_ _ : _ _</span>
+                            <span className="text-text-secondary">Choose time</span>
                           )}
                           <ClockIcon />
                         </Button>
@@ -425,7 +425,7 @@ export default function NormalForm({
                           {field.value ? (
                             format(field.value, "HH:mm")
                           ) : (
-                            <span className="text-text-secondary">_ _ : _ _</span>
+                            <span className="text-text-secondary">Choose time</span>
                           )}
                           <ClockIcon />
                         </Button>
@@ -536,7 +536,7 @@ export default function NormalForm({
                           {field.value ? (
                             format(field.value, "HH:mm")
                           ) : (
-                            <span className="text-text-secondary">_ _ : _ _</span>
+                            <span className="text-text-secondary">Choose time</span>
                           )}
                           <ClockIcon />
                         </Button>
@@ -614,7 +614,7 @@ export default function NormalForm({
                           {field.value ? (
                             format(field.value, "HH:mm")
                           ) : (
-                            <span className="text-text-secondary">_ _ : _ _</span>
+                            <span className="text-text-secondary">Choose time</span>
                           )}
                           <ClockIcon />
                         </Button>
@@ -692,7 +692,7 @@ export default function NormalForm({
                           {field.value ? (
                             format(field.value, "HH:mm")
                           ) : (
-                            <span className="text-text-secondary">_ _ : _ _</span>
+                            <span className="text-text-secondary">Choose time</span>
                           )}
                           <ClockIcon />
                         </Button>

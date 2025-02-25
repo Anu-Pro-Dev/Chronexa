@@ -1,58 +1,75 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react"
-import { MinusIcon } from "@radix-ui/react-icons"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import Link from "next/link"
-import { USER_TOKEN } from "@/lib/Instance"
-import { useRouter } from "next/navigation"
-import Required from "@/components/ui/required"
-import { ClockIcon, ClockIcon2, ExclamationIcon, RefreshIcon } from "@/icons/icons"
-import { IoMdRefresh } from "react-icons/io"
-import { Textarea } from "@/components/ui/textarea"
-import { DatePickerForm } from "@/components/ui/date-picker"
+} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-
-import { Calendar1Icon } from "@/icons/icons";
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, ClockIcon, ExclamationIcon, RefreshIcon } from "@/icons/icons";
+import { format } from "date-fns";
+import { TimePicker } from "@/components/ui/time-picker";
+import Required from "@/components/ui/required";
 
 const formSchema = z.object({
-  employee: z.string().min(1, { message: "Required" }).max(100),
-  permission_types: z.string().min(1, { message: "Required" }).max(100),
-  from_date: z.string().min(1, { message: "Required" }).max(100),
-  to_date: z.string().min(1, { message: "Required" }).max(100),
-  from_time: z.string().min(1, { message: "Required" }).max(100),
-  to_time: z.string().min(1, { message: "Required" }).max(100),
-  justification: z.string().min(1, { message: "Required" }).max(500, {
-    message: "Maximum 500 characters allowed",
+  employee: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  permission_types: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  from_date: z.date({
+    required_error: "From Date is required.",
   }),
-})
+  to_date: z.date({
+    required_error: "To Date is required.",
+  }),
+  from_time: z.date({
+    required_error: "From Time is required.",
+  }),
+  to_time: z.date({
+    required_error: "To Time is required.",
+  }),
+  justification: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(500, {
+      message: "Maximum 500 characters only allowed",
+    }),
+});
 
 export default function AddPermissionApplication() {
   const router = useRouter()
@@ -64,13 +81,9 @@ export default function AddPermissionApplication() {
     defaultValues: {
       employee: "",
       permission_types: "",
-      from_date: "",
-      to_date: "",
-      from_time:"",
-      to_time:"",
       justification: "",
     },
-  })
+  });
 
   const { watch, setValue } = form
   const justificationValue = watch("justification")
@@ -79,253 +92,289 @@ export default function AddPermissionApplication() {
     setJustificationLength(justificationValue.length)
   }, [justificationValue])
 
-  function onSubmitBasic(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values)
+      console.log(values);
+      toast(
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+        </pre>
+      );
     } catch (error) {
-      console.error("Form submission error", error)
+      console.error("Form submission error", error);
+      toast.error("Failed to submit the form. Please try again.");
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmitBasic)} className="space-y-6 mt-6 bg-white p-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
         <div className="flex justify-between">
-            <div>
-                <h2 className="text-2xl font-bold text-primary">Permission Types</h2>
-                <p className="text-sm text-muted-foreground text-gray-400">
-                Select the basic details to fill
-                </p>
-            </div>
-            <div>
-                {selectedPermission === "personal permission" && (
-                <p className="text-sm text-primary mt-2 border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 ">
-                    Note: Personal permission is allowed for a maximum of 8 Hours per month
-                </p>
-                )}
-                {justificationLength > 500 && (
-                <p className="text-sm text-primary mt-2 border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 flex items-center ">
-                    <ExclamationIcon className="mr-2" /> Maximum 500 characters only allowed
-                </p>
-                )}
-            </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-10 w-11/12 mx-auto bg-white p-4 rounded-md">
-        <FormField
-        control={form.control}
-        name="employee"
-        render={({ field }) => (
-            <FormItem>
-            <FormLabel>
-                Employee <Required />
-            </FormLabel>
-            <Select onValueChange={field.onChange}>
-                <FormControl>
-                <SelectTrigger className={`border border-border-grey ${!field.value ? "text-text-secondary" : ""}`}>
-                    <SelectValue  placeholder="Choose employee" />
-                </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                <SelectItem value="1">Sample Text 1</SelectItem>
-                <SelectItem value="2">Sample Text 2</SelectItem>
-                </SelectContent>
-            </Select>
-            <FormMessage />
-            </FormItem>
-        )}
-        />
-        <FormField
-        control={form.control}
-        name="permission_types"
-        render={({ field }) => (
-            <FormItem>
-            <FormLabel>
-                Permission Types <Required />
-            </FormLabel>
-            <Select
-                onValueChange={(value) => {
-                field.onChange(value)
-                setSelectedPermission(value)
-                }}
-            >
-                <FormControl>
-                <SelectTrigger className={`border border-border-grey ${!field.value ? "text-text-secondary" : ""}`}>
-                    <SelectValue placeholder="Choose permission types" />
-                </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                <SelectItem value="1">Sample Text 1</SelectItem>
-                <SelectItem value="personal permission">Personal permission</SelectItem>
-                </SelectContent>
-            </Select>
-            <FormMessage />
-            </FormItem>
-        )}
-        />
-        <FormField
-        control={form.control}
-        name="from_date"
-        render={({ field }) => (
-            <FormItem>
-            <FormLabel>From Date <Required /></FormLabel>
-            <Popover>
-                <PopoverTrigger asChild>
-                <FormControl>
-                    <Button
-                    variant={"outline"}
-                    className={cn(
-                        "w-full pl-3 text-left font-normal rounded-2xl border border-border-grey",
-                        !field.value && "text-muted-foreground"
-                    )}
-                    >
-                    {field.value ? (
-                        format(field.value, "PPP")
-                    ) : (
-                        <span className="text-text-secondary text-sm">Select date</span>
-                    )}
-                    <Calendar1Icon color="#0078d4" className="ml-auto h-4 w-4 text-primary" />
-                    </Button>
-                </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                />
-                </PopoverContent>
-            </Popover>
-            <FormMessage />
-            </FormItem>
-        )}
-        />
-        <FormField
-        control={form.control}
-        name="to_date"
-        render={({ field }) => (
-            <FormItem>
-            <FormLabel>To Date <Required /></FormLabel>
-            <Popover>
-                <PopoverTrigger asChild>
-                <FormControl>
-                    <Button
-                    variant={"outline"}
-                    className={cn(
-                        "w-full pl-3 text-left font-normal rounded-2xl border border-border-grey",
-                        !field.value && "text-muted-foreground"
-                    )}
-                    >
-                    {field.value ? (
-                        format(field.value, "PPP")
-                    ) : (
-                        <span className="text-text-secondary text-sm">Select date</span>
-                    )}
-                    <Calendar1Icon color="#0078d4" className="ml-auto h-4 w-4 text-primary" />
-                    </Button>
-                </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                />
-                </PopoverContent>
-            </Popover>
-            <FormMessage />
-            </FormItem>
-        )}
-        />
-        <FormField
-            control={form.control}
-            name="from_time"
-            render={({ field }) => (
-                <FormItem className=" ">
-                <FormLabel>From Time <Required /></FormLabel>
-                <FormControl>
-                    <div className="relative">
-                    <Input
-                        type="text"
-                        {...field}
-                        placeholder="Select time"
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <ClockIcon2 />
-                    </div>
-                    </div>
-                </FormControl>
-                <FormMessage />
-                </FormItem>
+          <div className="pb-6">
+            <h1 className="font-bold text-xl text-primary">Permission Application</h1>
+            <h1 className="font-semibold text-sm text-text-secondary">
+              Fill the permission application form
+            </h1>
+          </div>
+          <div>
+            {selectedPermission === "personal permission" && (
+            <p className="text-sm text-primary mt-2 border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 ">
+                Note: Personal permission is allowed for a maximum of 8 Hours per month
+            </p>
             )}
-        />
-        <FormField
-            control={form.control}
-            name="to_time"
-            render={({ field }) => (
+            {justificationLength > 500 && (
+            <p className="text-sm text-primary mt-2 border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 flex items-center ">
+                <ExclamationIcon className="mr-2" /> Maximum 500 characters only allowed
+            </p>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div className="grid sm:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] [&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px]">
+            <FormField
+              control={form.control}
+              name="employee"
+              render={({ field }) => (
                 <FormItem>
-                <FormLabel>To Time <Required /></FormLabel>
-                <FormControl>
-                    <div className="relative">
-                    <Input
-                        type="text"
-                        {...field}
-                        placeholder="Select time"
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <ClockIcon2 />
-                    </div>
-                    </div>
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-        />
-        </div>
-        <div className="grid w-11/12 mx-auto bg-white p-4 rounded-md">
-          <FormField
-            control={form.control}
-            name="justification"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Justification <Required />
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                  className="border border-border-grey"
-                    placeholder="Enter the justification"
-                    {...field}
-                    rows={6}
-                    onChange={(e) => {
-                      field.onChange(e)
-                      setJustificationLength(e.target.value.length)
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                  <FormLabel>
+                    Employee <Required />
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose employee" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">Emp 109</SelectItem>
+                      <SelectItem value="2">OG123</SelectItem>
+                      <SelectItem value="3">Emp 213</SelectItem>
+                      <SelectItem value="4">Employee 02</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-        <div className="col-span-2 flex justify-end">
-          <div className="flex gap-2">
-            <Button
-              variant={"outline"}
-              type="button"
-              size={"lg"}
-              className="px-10"
-              onClick={() => router.push("/self-services/manage-permissions/permission-application")}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" size={"lg"} className="px-10">
-              Apply
-            </Button>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="permission_types"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Permission types <Required /></FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value)
+                      setSelectedPermission(value)
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose permission types" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="personal permission">Personal permission</SelectItem>
+                      <SelectItem value="mission permission">Mission Permission</SelectItem>
+                      <SelectItem value="remote permission">Remote working</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="from_date"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel>
+                    From Date <Required />
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                        >
+                          {field.value ? (
+                            format(field.value, "dd/MM/yy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="to_date"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel>
+                    To Date <Required />
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                        >
+                          {field.value ? (
+                            format(field.value, "dd/MM/yy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="from_time"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel>From time <Required/></FormLabel>
+                  <Popover>
+                    <FormControl>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "flex justify-between h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "HH:mm")
+                          ) : (
+                            <span className="text-text-secondary">Choose time</span>
+                          )}
+                          <ClockIcon />
+                        </Button>
+                      </PopoverTrigger>
+                    </FormControl>
+                    <PopoverContent className="w-auto p-0">
+                        <TimePicker
+                          setDate={field.onChange}
+                          date={field.value}
+                        />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="to_time"
+              render={({ field }) => (
+                <FormItem className="">
+                <FormLabel>To time <Required/></FormLabel>
+                  <Popover>
+                    <FormControl>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "flex justify-between h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "HH:mm")
+                          ) : (
+                            <span className="text-text-secondary">Choose time</span>
+                          )}
+                          <ClockIcon />
+                        </Button>
+                      </PopoverTrigger>
+                    </FormControl>
+                    <PopoverContent className="w-auto p-0">
+                        <TimePicker
+                          setDate={field.onChange}
+                          date={field.value}
+                        />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="px-5">
+            <FormField
+              control={form.control}
+              name="justification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Justification </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter the justification"
+                      {...field}
+                      rows={6}
+                      onChange={(e) => {
+                        field.onChange(e)
+                        setJustificationLength(e.target.value.length)
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex justify-end gap-2 items-center py-5">
+            <div className="flex gap-4 px-5">
+              <Button
+                variant={"outline"}
+                type="button"
+                size={"lg"}
+                className="w-full"
+                onClick={() => router.push("/self-services/manage-permissions/permission-application")}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size={"lg"} className="w-full">
+                Apply
+              </Button>
+            </div>
           </div>
         </div>
       </form>
     </Form>
-  )
+  );
 }
