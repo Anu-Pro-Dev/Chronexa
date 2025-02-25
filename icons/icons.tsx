@@ -1528,3 +1528,40 @@ export const EditIcon = (color = "#2b3674") => (
 //     </path>
 //   </svg>
 // );
+
+export const ClockIcon2: React.FC<IconProps> = ({ className, color }) => (
+  <svg
+    width="17"
+    height="17"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M0 8C0 3.5816 3.5816 0 8 0C12.4184 0 16 3.5816 16 8C16 12.4184 12.4184 16 8 16C3.5816 16 0 12.4184 0 8ZM8.8 4.8C8.8 4.58783 8.71571 4.38434 8.56569 4.23431C8.41566 4.08429 8.21217 4 8 4C7.78783 4 7.58434 4.08429 7.43431 4.23431C7.28429 4.38434 7.2 4.58783 7.2 4.8V8C7.20005 8.21216 7.28436 8.41561 7.4344 8.5656L9.8344 10.9656C9.98528 11.1113 10.1874 11.192 10.3971 11.1901C10.6069 11.1883 10.8075 11.1042 10.9559 10.9559C11.1042 10.8075 11.1883 10.6069 11.1901 10.3971C11.192 10.1874 11.1113 9.98528 10.9656 9.8344L8.8 7.6688V4.8Z"
+      fill={color || "#0078D4" ||'currentColor'}
+    />
+  </svg>
+);
+
+export const ExclamationIcon : React.FC<IconProps> = ({ className, color }) => (
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  strokeWidth="1.7"
+  strokeLinecap="round"
+  strokeLinejoin="round"
+  width="17"
+  height="17"
+  className={className}
+  >
+  <circle cx="12" cy="12" r="10"/> 
+  <line x1="12" y1="7" x2="12" y2="13"/>
+  <circle cx="12" cy="17" r="0.3"/>
+  </svg>
+)
