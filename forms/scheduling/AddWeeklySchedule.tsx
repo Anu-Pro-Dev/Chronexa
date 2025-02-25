@@ -433,7 +433,7 @@ export default function AddWeeklySchedule() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Attachment <Required/>
+                    Attachment
                   </FormLabel>
                   <FormControl>
                     <Input

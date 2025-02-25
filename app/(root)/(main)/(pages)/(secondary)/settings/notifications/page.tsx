@@ -13,7 +13,7 @@ export default function Page() {
     { field: "description_ar", headerName: "Description (العربية)" },
     { field: "subject", headerName: "Subject" },
     { field: "updated_by", headerName: "Updated by" },
-    { field: "updatedAt", headerName: "Updated Date" },
+    { field: "updated", headerName: "Updated Date" },
   ]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);

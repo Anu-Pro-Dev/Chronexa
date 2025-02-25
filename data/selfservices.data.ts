@@ -8,7 +8,9 @@ import {
     MovementApproveManualDataType,
     MovementApproveMissingDataType,
     PermissionApplicationDataType,
-    PermissionTypesDataType
+    PermissionTypesDataType,
+    LeaveApplicationDataType,
+    LeaveTypesDataType
   } from "./types/types";
 
 export const workflows_columns = [
@@ -778,7 +780,7 @@ export const movement_approve_missing_data: MovementApproveMissingDataType[] = [
   },
 ]
 
-export const permissions_application_data : PermissionApplicationDataType[] = [
+export const permission_application_data : PermissionApplicationDataType[] = [
   {
     number: "REC1001",
     employee: "John Doe",
@@ -882,7 +884,7 @@ export const permissions_application_data : PermissionApplicationDataType[] = [
 
 ]
 
-export const permissions_types_data : PermissionTypesDataType[] = [
+export const permission_types_data : PermissionTypesDataType[] = [
   {
     code: "PERM001",
     description: "Short break during work hours",
@@ -962,6 +964,213 @@ export const permissions_types_data : PermissionTypesDataType[] = [
     max_no_of_permissions_per_day: 3,
     min_per_day: 90,
     max_no_of_permissions_per_month: 12,
+  },
+]
+
+export const leave_application_data : LeaveApplicationDataType[] = [
+  {
+    code: "REC1001",
+    employee: "John Doe",
+    date: "2024-01-10",
+    from_date: "2024-01-12",
+    to_date: "2024-01-15",
+    from_time: "09:00",
+    to_time: "17:00",
+    remarks: "Approved",
+  },
+  {
+    code: "REC1002",
+    employee: "Jane Smith",
+    date: "2024-02-05",
+    from_date: "2024-02-07",
+    to_date: "2024-02-10",
+    from_time: "08:30",
+    to_time: "16:30",
+    remarks: "Pending",
+  },
+  {
+    code: "REC1003",
+    employee: "Robert Brown",
+    date: "2024-03-12",
+    from_date: "2024-03-14",
+    to_date: "2024-03-16",
+    from_time: "10:00",
+    to_time: "18:00",
+    remarks: "Rejected",
+  },
+  {
+    code: "REC1004",
+    employee: "Emily Johnson",
+    date: "2024-04-20",
+    from_date: "2024-04-22",
+    to_date: "2024-04-24",
+    from_time: "11:00",
+    to_time: "19:00",
+    remarks: "Approved",
+  },
+  {
+    code: "REC1005",
+    employee: "Michael Williams",
+    date: "2024-05-01",
+    from_date: "2024-05-03",
+    to_date: "2024-05-06",
+    from_time: "09:30",
+    to_time: "17:30",
+    remarks: "Pending",
+  },
+  {
+    code: "REC1006",
+    employee: "Sarah Miller",
+    date: "2024-06-15",
+    from_date: "2024-06-17",
+    to_date: "2024-06-20",
+    from_time: "08:45",
+    to_time: "16:45",
+    remarks: "Rejected",
+  },
+  {
+    code: "REC1007",
+    employee: "David Wilson",
+    date: "2024-07-08",
+    from_date: "2024-07-10",
+    to_date: "2024-07-13",
+    from_time: "09:15",
+    to_time: "17:15",
+    remarks: "Approved",
+  },
+  {
+    code: "REC1008",
+    employee: "Jessica Davis",
+    date: "2024-08-23",
+    from_date: "2024-08-25",
+    to_date: "2024-08-28",
+    from_time: "07:30",
+    to_time: "15:30",
+    remarks: "Pending",
+  },
+  {
+    code: "REC1009",
+    employee: "Daniel Anderson",
+    date: "2024-09-05",
+    from_date: "2024-09-07",
+    to_date: "2024-09-10",
+    from_time: "10:00",
+    to_time: "18:00",
+    remarks: "Rejected",
+  },
+  {
+    code: "REC1010",
+    employee: "Olivia Martinez",
+    date: "2024-10-10",
+    from_date: "2024-10-12",
+    to_date: "2024-10-15",
+    from_time: "09:00",
+    to_time: "17:00",
+    remarks: "Approved",
+  },
+
+]
+
+export const leave_types_data : LeaveTypesDataType[] = [
+  {
+    code: "101",
+    description: "Annual Leave",
+    need_approval: "🗸",
+    offical: "🗸",
+    attachment: "🗴",
+    comments: "🗸",
+    workflows: "Employee Leaves",
+    updated: "2024-12-24",
+  },
+  {
+    code: "384",
+    description: "Sick Leave",
+    need_approval: "🗴",
+    offical: "🗸",
+    attachment: "🗴",
+    comments: "🗸",
+    workflows: "Employee Leaves",
+    updated: "2023-10-20",
+  },
+  {
+    code: "OG11",
+    description: "Special leave",
+    need_approval: "🗸",
+    offical: "🗸",
+    attachment: "🗸",
+    comments: "🗸",
+    workflows: "",
+    updated: "2025-02-22",
+  },
+  {
+    code: "1412",
+    description: "Medical Leave",
+    need_approval: "🗴",
+    offical: "🗸",
+    attachment: "🗸",
+    comments: "🗸",
+    workflows: "Employee Leaves",
+    updated: "2024-04-20",
+  },
+  {
+    code: "7232",
+    description: "Special leave",
+    need_approval: "🗸",
+    offical: "🗸",
+    attachment: "🗴",
+    comments: "🗸",
+    workflows: "",
+    updated: "2023-09-29",
+  },
+  {
+    code: "943",
+    description: "Annual Leave",
+    need_approval: "🗸",
+    offical: "🗸",
+    attachment: "🗴",
+    comments: "🗸",
+    workflows: "",
+    updated: "2025-01-12",
+  },
+  {
+    code: "1201",
+    description: "Vacation",
+    need_approval: "🗸",
+    offical: "🗸",
+    attachment: "🗴",
+    comments: "🗸",
+    workflows: "",
+    updated: "2024-11-29",
+  },
+  {
+    code: "104571",
+    description: "Sick leave",
+    need_approval: "🗴",
+    offical: "🗸",
+    attachment: "🗴",
+    comments: "🗸",
+    workflows: "Employee Leaves",
+    updated: "2023-12-02",
+  },
+  {
+    code: "3211",
+    description: "Medical leave",
+    need_approval: "🗴",
+    offical: "🗸",
+    attachment: "🗸",
+    comments: "🗸",
+    workflows: "Employee Leaves",
+    updated: "2024-03-15",
+  },
+  {
+    code: "7325",
+    description: "Maternity leave",
+    need_approval: "🗸",
+    offical: "🗸",
+    attachment: "🗸",
+    comments: "🗸",
+    workflows: "Employee Leaves",
+    updated: "2023-04-16",
   },
 ]
 

@@ -3,32 +3,32 @@
 export type RegionsDataType = {
   code: string;
   description: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type NationalitiesDataType = {
   code: string;
   description: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type DesignationsDataType = {
   code: string;
   description: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type GradesDataType = {
   code: string;
   description: string;
-  updatedAt: string;
+  updated: string;
   overtime_eligible: string;
   senior_employee: string;
 };
 
 export type OrganizationTypesDataType = {
   description: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type DepartmentsDataType = {
@@ -39,7 +39,7 @@ export type DepartmentsDataType = {
   to_date: string;
   active: any;
   created_by: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type EmployeeMasterEmployeesDataType = {
@@ -63,7 +63,7 @@ export type EmployeeMasterGroupsDataType = {
   reporting_group: string;
   employee: string;
   members: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type EmployeeMasterGroupsMembersDataType = {
@@ -77,7 +77,7 @@ export type EmployeeMasterTypesDataType = {
   code: string;
   description_en: string;
   description_ar: string;
-  updatedAt: string;
+  updated: string;
 };
 
 // TA Master Page DataTypes
@@ -93,7 +93,7 @@ export type ReasonsDataType = {
   normal_out: string;
   web_punch: string;
   geo_fence_required: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type HolidaysDataType = {
@@ -102,7 +102,7 @@ export type HolidaysDataType = {
   to_date: string;
   recurring: string;
   public_holiday: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type SchedulesDataType = {
@@ -112,7 +112,7 @@ export type SchedulesDataType = {
   in_time: string;
   out_time: string;
   inactive_date: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type RamadanDatesDataType = {
@@ -120,7 +120,7 @@ export type RamadanDatesDataType = {
   description_ar: string;
   from_date: string;
   to_date: string;
-  updatedAt: string;
+  updated: string;
 };
 
 // Scheduling Page DataTypes
@@ -159,13 +159,13 @@ export type WorkflowsDataType = {
 //self services verification approval data type
 
 export type VerificationApprovalDataType = {
-number: string;
-name: string;
-type: string;
-date : string;
-time: string;
-approved_by: string;
-remarks: string;
+  number: string;
+  name: string;
+  type: string;
+  date : string;
+  time: string;
+  approved_by: string;
+  remarks: string;
 };
 
 //self services verification pending data type
@@ -179,96 +179,122 @@ export type VerificationPendingDataType = {
   to_date: string;
   from_time: string;
   to_time: string;
-  };
+};
 
 //self services movement applied data type
 
-  export type MovementPendingDataType = {
-    number: string;
-    employee: string;
-    date: string;
-    time: string;
-    reason: string;
-    remarks: string;
-    action_by: string;
-    action_date: string;
-  }
+export type MovementPendingDataType = {
+  number: string;
+  employee: string;
+  date: string;
+  time: string;
+  reason: string;
+  remarks: string;
+  action_by: string;
+  action_date: string;
+}
 
-  //self services movement manual data type
+//self services movement manual data type
 
-  export type MovementManualDataType = {
-    number: string;
-    employee: string;
-    date: string;
-    from_date: string;
-    to_date: string;
-    from_time: string;
-    to_time: string;
-    status: string;
-  }
+export type MovementManualDataType = {
+  number: string;
+  employee: string;
+  date: string;
+  from_date: string;
+  to_date: string;
+  from_time: string;
+  to_time: string;
+  status: string;
+}
 
-  //self services movement missing data type
+//self services movement missing data type
 
-  export type MovementMissingDataType = {
-    number: string;
-    employee: string;
-    date: string;
-    time_in: string;
-    time_out: string;
-    applied_in: string;
-    applied_out: string;
-    status: string;
-  }
+export type MovementMissingDataType = {
+  number: string;
+  employee: string;
+  date: string;
+  time_in: string;
+  time_out: string;
+  applied_in: string;
+  applied_out: string;
+  status: string;
+}
 
-  //self services movement approval manual data type
+//self services movement approval manual data type
 
-  export type MovementApproveManualDataType = {
-    number: string;
-    employee: string;
-    date: string;
-    from_date: string;
-    to_date: string;
-    from_time: string;
-    to_time: string;
-    remarks: string;
-  }
+export type MovementApproveManualDataType = {
+  number: string;
+  employee: string;
+  date: string;
+  from_date: string;
+  to_date: string;
+  from_time: string;
+  to_time: string;
+  remarks: string;
+}
 
-  //self services movement approve missing data type
+//self services movement approve missing data type
 
-  export type MovementApproveMissingDataType = {
-    number: string;
-    employee: string;
-    date: string;
-    from_date: string;
-    to_date: string;
-    from_time: string;
-    to_time: string;
-    status: string;
-  }
+export type MovementApproveMissingDataType = {
+  number: string;
+  employee: string;
+  date: string;
+  from_date: string;
+  to_date: string;
+  from_time: string;
+  to_time: string;
+  status: string;
+}
 
-  //self-services permission application data type
+//self-services permission application data type
 
-  export type PermissionApplicationDataType = {
-    number: string;
-    employee: string;
-    date: string;
-    from_date: string;
-    to_date: string;
-    from_time: string;
-    to_time: string;
-    remarks: string;
-  }
+export type PermissionApplicationDataType = {
+  number: string;
+  employee: string;
+  date: string;
+  from_date: string;
+  to_date: string;
+  from_time: string;
+  to_time: string;
+  remarks: string;
+}
 
-  //self-services permission types data type
+//self-services permission types data type
 
-  export type PermissionTypesDataType = {
-    code: string;
-    description: string;
-    reason: string;
-    max_no_of_permissions_per_day: number;
-    min_per_day: number;
-    max_no_of_permissions_per_month: number;
-  }
+export type PermissionTypesDataType = {
+  code: string;
+  description: string;
+  reason: string;
+  max_no_of_permissions_per_day: number;
+  min_per_day: number;
+  max_no_of_permissions_per_month: number;
+}
+
+//self-services leave application data type
+
+export type LeaveApplicationDataType = {
+  number: string;
+  employee: string;
+  date: string;
+  from_date: string;
+  to_date: string;
+  from_time: string;
+  to_time: string;
+  remarks: string;
+}
+  
+//self-services leave types data type
+
+export type LeaveTypesDataType = {
+  code: string;
+  description: string;
+  need_approval: string;
+  offical: string;
+  attachment: string;
+  comments: string;
+  workflows: string;
+  updated: string;
+}
 
 // Devices Page DataTypes
 
@@ -291,7 +317,7 @@ export type RolesDataType = {
 export type PrivilegesDataType = {
   name: string;
   group: string;
-  updatedAt: string;
+  updated: string;
 };
 
 // Settings Page DataTypes
@@ -302,7 +328,7 @@ export type AllSettingsDataType = {
   deletable: string;
   description: string;
   updated_by: string;
-  updatedAt: string;
+  updated: string;
 };
 
 export type NotificationDataType = {
@@ -310,7 +336,7 @@ export type NotificationDataType = {
   description_ar: string;
   subject: string;
   updated_by: string;
-  updatedAt: string;
+  updated: string;
 };
 
 // Alerts Page DataTypes
@@ -324,7 +350,7 @@ export type EmailDataType = {
   bcc_email: string;
   complete_violation: string;
   created_date: string;
-  updatedAt: string;
+  updated: string;
 };
 export type SmsDataType = {
   mobile_number: string;
@@ -333,5 +359,5 @@ export type SmsDataType = {
   sms_content: string;
   status: string;
   created_date: string;
-  updatedAt: string;
+  updated: string;
 };

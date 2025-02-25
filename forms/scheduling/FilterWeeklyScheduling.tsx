@@ -150,7 +150,7 @@ export default function FilterWeeklyScheduling({
             )}
           />
 
-          <div className="w-full flex gap-2 items-center">
+          <div className="w-full flex gap-2 items-center pt-5">
             <Button
               variant={"outline"}
               type="button"

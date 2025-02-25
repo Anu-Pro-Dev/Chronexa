@@ -247,7 +247,7 @@ export default function StandardReportGenerator() {
                 />
               </div>
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-              <FormField
+                <FormField
                   control={form.control}
                   name="organization"
                   render={({ field }) => (

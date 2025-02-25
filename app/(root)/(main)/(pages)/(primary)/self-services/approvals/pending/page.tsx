@@ -57,6 +57,7 @@ export default function Page() {
         disableDelete
         enableApprove
         enableReject
+        enableFilters
       />
       <div className="bg-white rounded-2xl">
         <div className="col-span-2 p-6">

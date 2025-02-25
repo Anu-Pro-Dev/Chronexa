@@ -12,7 +12,7 @@ export default function Page() {
     { field: "code" },
     { field: "description_en", headerName: "Description (English)" },
     { field: "description_ar", headerName: "Description (العربية)" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

@@ -16,7 +16,7 @@ export default function Page() {
     { field: "to_date" },
     { field: "recurring" },
     { field: "public_holiday", headerName: "Public Holiday" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
 
