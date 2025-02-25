@@ -24,7 +24,7 @@ export default function Page() {
     { field: "sms_content", headerName: "Content" },
     { field: "status" },
     { field: "created_date", headerName: "Created Date" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
 
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);

@@ -28,11 +28,11 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
   const [Columns, setColumns] = useState([
     { field: "number" },
-    { field: "employee" },
-    { field: "date" },
+    { field: "name" },
+    { field: "leave_type", headerName: "Leave type" },
     { field: "from_date", headerName: "From date" },
     { field: "to_date", headerName: "To date" },
-    { field: "remarks", headerName: "Status" },
+    { field: "status", headerName: "Approve" },
   ]);
   const [open, on_open_change] = useState<boolean>(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
@@ -120,7 +120,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.manage_leaves?.items} />
         </div>
-        <PowerTable props={props} api={"/self-services/manage-leaves/application"} showEdit={true} onEditClick={handleEditClick}/>
+        <PowerTable props={props} api={"/self-services/manage-leaves/leave-approval"} showEdit={true} onEditClick={handleEditClick}/>
       </div>
     </div>
   );

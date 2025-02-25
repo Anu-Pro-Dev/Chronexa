@@ -15,7 +15,7 @@ export default function Page() {
     { field: "description_ar", headerName: "Description (العربية)" },
     { field: "from_date", headerName: "From date" },
     { field: "to_date", headerName: "To date" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);

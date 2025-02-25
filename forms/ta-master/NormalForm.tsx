@@ -811,7 +811,7 @@ export default function NormalForm({
               Cancel
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Next
+              Save
             </Button>
           </div>
         </div>

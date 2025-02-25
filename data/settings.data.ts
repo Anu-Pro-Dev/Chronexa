@@ -7,7 +7,7 @@ export const settings_columns = [
   "deletable",
   "description",
   "updated_by",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
@@ -17,7 +17,7 @@ export const notification_columns = [
   "description(العربية)",
   "subject",
   "updated_by",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
@@ -28,7 +28,7 @@ export const settings_data: AllSettingsDataType[] = [
     deletable: "🗴",
     description: "Test case scenario 1 will be displayed here ",
     updated_by: "ADMIN",
-    updatedAt: "21-11-2013",
+    updated: "21-11-2013",
   },
   {
     name: "SHOW_ABSENT",
@@ -36,7 +36,7 @@ export const settings_data: AllSettingsDataType[] = [
     deletable: "🗴",
     description:"If SHOW_ABSENT is false then system will not show ABSENT for OPEN SHIFT SCHEDULE.",
     updated_by: "ADMIN",
-    updatedAt: "31-03-2014",
+    updated: "31-03-2014",
   },
   {
     name: "MIN_PUNCH_DURATION",
@@ -44,7 +44,7 @@ export const settings_data: AllSettingsDataType[] = [
     deletable: "🗴",
     description:"No.of minutes between consecutive punches for the same employee to count as duplicate",
     updated_by: "ADMIN",
-    updatedAt: "21-11-2013",
+    updated: "21-11-2013",
   },
   {
     name: "MIN_PERM_HOURS_PER_DAY",
@@ -52,7 +52,7 @@ export const settings_data: AllSettingsDataType[] = [
     deletable: "🗴",
     description: "MAX_PERM_HOURS_PER_DAY",
     updated_by: "ADMIN",
-    updatedAt: "12-03-2017",
+    updated: "12-03-2017",
   },
   {
     name: "MIN_OT_PER_DAY",
@@ -60,7 +60,7 @@ export const settings_data: AllSettingsDataType[] = [
     deletable: "🗴",
     description: "Minimum overtime work hours per day to get overtime",
     updated_by: "ADMIN",
-    updatedAt: "12-03-2017",
+    updated: "12-03-2017",
   },
   {
     name: "MIN_OT_PER_WEEK",
@@ -68,7 +68,7 @@ export const settings_data: AllSettingsDataType[] = [
     deletable: "🗴",
     description: "Minimum overtime work hours per week to get overtime",
     updated_by: "ADMIN",
-    updatedAt: "12-03-2017",
+    updated: "12-03-2017",
   },
 ];
 
@@ -79,7 +79,7 @@ export const notification_data: NotificationDataType[] = [
     description_ar: "",
     subject: "TAMS - Early Violation Notification",
     updated_by: "ADMIN",
-    updatedAt: "10-08-2022",
+    updated: "10-08-2022",
   },
   {
     description_en:
@@ -87,6 +87,6 @@ export const notification_data: NotificationDataType[] = [
     description_ar: "",
     subject: "TAMS - Late Violation Notification",
     updated_by: "ADMIN",
-    updatedAt: "10-08-2022",
+    updated: "10-08-2022",
   },
 ];

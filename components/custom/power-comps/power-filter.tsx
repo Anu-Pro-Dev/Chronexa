@@ -62,10 +62,10 @@ export default function PowerFilter({
 
         <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
           <ResponsiveModalHeader>
-            <ResponsiveModalTitle className="text-primary font-bold">
+            <ResponsiveModalTitle className="text-text-primary font-bold text-xl">
               {modalTitle}
             </ResponsiveModalTitle>
-            <ResponsiveModalDescription className="text-secondary">
+            <ResponsiveModalDescription className="text-text-secondary text-sm font-semibold">
               {modal_description}
             </ResponsiveModalDescription>
           </ResponsiveModalHeader>

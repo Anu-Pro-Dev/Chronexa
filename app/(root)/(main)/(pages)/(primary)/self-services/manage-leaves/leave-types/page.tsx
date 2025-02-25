@@ -1,29 +1,33 @@
 "use client";
-import PowerHeader from "@/components/custom/power-comps/power-header";
-import PowerTable from "@/components/custom/power-comps/power-table";
-
 import React, { useState } from "react";
-
-import { useLanguage } from "@/providers/LanguageProvider";
+import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
+import PowerTable from "@/components/custom/power-comps/power-table";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useRouter } from "next/navigation";
+
 export default function Page() {
+  const router = useRouter();
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
-
-  const [Columns, setColumns] = useState([
-    { field: "code" },
-    { field: "description" },
-    { field: "reason" },
-  ]);
-
   const [open, on_open_change] = useState<boolean>(false)
   const [filter_open, filter_on_open_change] = useState<boolean>(false)
   const [CurrentPage, SetCurrentPage] = useState<number>(1)
   const [SortField, SetSortField] = useState<string>("")
   const [SortDirection, SetSortDirection] = useState<string>("asc")
   const [SearchValue, SetSearchValue] = useState<string>("")
-
-   const props = {
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [Columns, setColumns] = useState([
+    { field: "code" },
+    { field: "description" },
+    { field: "need_approval", headerName: "Need approval" },
+    { field: "offical", headerName: "Official ( For NON DOF employees )" },
+    { field: "attachment", headerName: "Allow attachment" },
+    { field: "comments" },
+    { field: "workflows" },
+    { field: "updated" },
+  ]);
+  const props = {
     Data,
     SetData,
     Columns,
@@ -40,6 +44,11 @@ export default function Page() {
     open,
     on_open_change,
   }
+  
+  const handleEditClick = (data: any) => {
+    setSelectedRowData(data);
+    router.push("/self-services/manage-leaves/leave-types/add");
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -58,7 +67,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.manage_leaves?.items} />
         </div>
-        <PowerTable props={props} api={"/self-services/manage-leaves/types"} />
+        <PowerTable props={props} api={"/self-services/manage-leaves/leave-types"} showEdit={true} onEditClick={handleEditClick}/>
       </div>
     </div>
   );

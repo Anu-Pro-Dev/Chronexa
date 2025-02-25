@@ -1,8 +1,9 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header"
+import PowerTable from "@/components/custom/power-comps/power-table"
 import React, { useState } from "react"
 import { useLanguage } from "@/providers/LanguageProvider"
-import AddLeaveTypes from "@/forms/self-services/AddLeaveTypes";
+import AddLeaveApplication from "@/forms/self-services/AddLeaveApplication";
 
 export default function Page() {
   const { modules } = useLanguage()
@@ -11,7 +12,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader items={modules?.selfServices.items} disableFeatures />
-      <AddLeaveTypes />
+      <AddLeaveApplication />
     </div>
   )
 }

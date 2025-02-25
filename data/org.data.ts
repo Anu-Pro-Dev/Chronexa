@@ -9,81 +9,81 @@ export const departments_columns = [
   "to_date",
   "active",
   "created_by",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
 export const organizationtypes_columns = [
   "select",
   "description",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
 export const organizationtypes_data: OrganizationTypesDataType[] = [
   {
     description: "body ick dreary",
-    updatedAt: "2024-08-19T21:28:28.520Z",
+    updated: "2024-08-19T21:28:28.520Z",
   },
   {
     description: "consonant carefully boring",
-    updatedAt: "2024-08-19T12:12:25.506Z",
+    updated: "2024-08-19T12:12:25.506Z",
   },
   {
     description: "till",
-    updatedAt: "2024-08-19T09:07:41.709Z",
+    updated: "2024-08-19T09:07:41.709Z",
   },
   {
     description: "harbour regarding afore",
-    updatedAt: "2024-08-19T21:22:04.854Z",
+    updated: "2024-08-19T21:22:04.854Z",
   },
   {
     description: "body ick dreary",
-    updatedAt: "2024-08-19T21:28:28.520Z",
+    updated: "2024-08-19T21:28:28.520Z",
   },
   {
     description: "consonant carefully boring",
-    updatedAt: "2024-08-19T12:12:25.506Z",
+    updated: "2024-08-19T12:12:25.506Z",
   },
   {
     description: "till",
-    updatedAt: "2024-08-19T09:07:41.709Z",
+    updated: "2024-08-19T09:07:41.709Z",
   },
   {
     description: "harbour regarding afore",
-    updatedAt: "2024-08-19T21:22:04.854Z",
+    updated: "2024-08-19T21:22:04.854Z",
   },
   {
     description: "body ick dreary",
-    updatedAt: "2024-08-19T21:28:28.520Z",
+    updated: "2024-08-19T21:28:28.520Z",
   },
   {
     description: "consonant carefully boring",
-    updatedAt: "2024-08-19T12:12:25.506Z",
+    updated: "2024-08-19T12:12:25.506Z",
   },
   {
     description: "till",
-    updatedAt: "2024-08-19T09:07:41.709Z",
+    updated: "2024-08-19T09:07:41.709Z",
   },
   {
     description: "harbour regarding afore",
-    updatedAt: "2024-08-19T21:22:04.854Z",
+    updated: "2024-08-19T21:22:04.854Z",
   },
   {
     description: "body ick dreary",
-    updatedAt: "2024-08-19T21:28:28.520Z",
+    updated: "2024-08-19T21:28:28.520Z",
   },
   {
     description: "consonant carefully boring",
-    updatedAt: "2024-08-19T12:12:25.506Z",
+    updated: "2024-08-19T12:12:25.506Z",
   },
   {
     description: "till",
-    updatedAt: "2024-08-19T09:07:41.709Z",
+    updated: "2024-08-19T09:07:41.709Z",
   },
   {
     description: "harbour regarding afore",
-    updatedAt: "2024-08-19T21:22:04.854Z",
+    updated: "2024-08-19T21:22:04.854Z",
   },
 ];
 
@@ -96,7 +96,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "DGS42",
@@ -106,7 +106,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "OGS1",
@@ -116,7 +116,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "ODGS12",
@@ -126,7 +126,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "ODGS13",
@@ -136,7 +136,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "DGS42",
@@ -146,7 +146,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "OGS1",
@@ -156,7 +156,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "ODGS12",
@@ -166,7 +166,7 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
   {
     number: "OGS1",
@@ -176,6 +176,6 @@ export const departments_data: DepartmentsDataType[] = [
     to_date: "06-09-2024",
     active: "🗸",
     created_by: "ADMIN",
-    updatedAt: "updated1-designation",
+    updated: "updated1-designation",
   },
 ];

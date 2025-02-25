@@ -24,7 +24,7 @@ export const employeeMaster_groups_columns = [
     "reporting_group",
     "employee",
     "members",
-    "updatedAt",
+    "updated",
     "actions",
 ];
 
@@ -41,7 +41,7 @@ export const employeeMaster_types_columns = [
     "code",
     "description_en",
     "description_ar",
-    "updatedAt",
+    "updated",
     "actions",
 ];
 
@@ -223,7 +223,7 @@ export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
         "reporting_group": "🗴",
         "employee": "🗸",
         "members": "🗐",
-        "updatedAt": "08-04-2014"
+        "updated": "08-04-2014"
     },
     {
         "code": "PHY",
@@ -234,7 +234,7 @@ export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
         "reporting_group": "🗴",
         "employee": "🗸",
         "members": "🗐",
-        "updatedAt": "30-10-2023"
+        "updated": "30-10-2023"
     },
     {
         "code": "NM",
@@ -245,7 +245,7 @@ export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
         "reporting_group": "🗴",
         "employee": "🗸",
         "members": "🗐",
-        "updatedAt": "06-06-2024"
+        "updated": "06-06-2024"
     },
     {
         "code": "MD",
@@ -256,7 +256,7 @@ export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
         "reporting_group": "🗴",
         "employee": "🗸",
         "members": "🗐",
-        "updatedAt": "31-03-2014"
+        "updated": "31-03-2014"
     },
     {
         "code": "IT",
@@ -267,7 +267,7 @@ export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
         "reporting_group": "🗴",
         "employee": "🗸",
         "members": "🗐",
-        "updatedAt": "21-05-2024"
+        "updated": "21-05-2024"
     },
     {
         "code": "DNAY23",
@@ -278,7 +278,7 @@ export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
         "reporting_group": "🗴",
         "employee": "🗸",
         "members": "🗐",
-        "updatedAt": "30-08-2022"
+        "updated": "30-08-2022"
     },
     {
         "code": "CD",
@@ -289,7 +289,7 @@ export const employeeMaster_groups_data: EmployeeMasterGroupsDataType[] = [
         "reporting_group": "🗴",
         "employee": "🗸",
         "members": "🗐",
-        "updatedAt": "31-03-2014"
+        "updated": "31-03-2014"
     },
 ];
 
@@ -350,6 +350,6 @@ export const employeeMaster_types_data: EmployeeMasterTypesDataType[] = [
         "code": "EMP",
         "description_en": "Employee",
         "description_ar": "موظف",
-        "updatedAt": "12-03-2023"
+        "updated": "12-03-2023"
     }
 ];

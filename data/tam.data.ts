@@ -16,7 +16,7 @@ export const reasons_columns = [
   "normal_out",
   "web_punch",
   "geo_fence_required",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
@@ -27,7 +27,7 @@ export const holidays_columns = [
   "to_date",
   "recurring",
   "public_holiday",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
@@ -39,7 +39,7 @@ export const schedules_columns = [
   "in_time",
   "out_time",
   "inactive_date",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
@@ -48,7 +48,7 @@ export const ramadandates_columns = [
   "description",
   "from_date",
   "to_date",
-  "updatedAt",
+  "updated",
   "actions",
 ];
 
@@ -64,7 +64,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗴",
     web_punch: "🗴",
     geo_fence_required: "🗸",
-    updatedAt: "2014-04-20",
+    updated: "2014-04-20",
   },
   {
     code: "WEB OUT",
@@ -77,7 +77,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗸",
     web_punch: "🗴",
     geo_fence_required: "🗸",
-    updatedAt: "2020-05-09",
+    updated: "2020-05-09",
   },
   {
     code: "PRY IN",
@@ -90,7 +90,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗸",
     web_punch: "🗸",
     geo_fence_required: "🗴",
-    updatedAt: "2020-01-20",
+    updated: "2020-01-20",
   },
   {
     code: "PRY OUT",
@@ -103,7 +103,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗴",
     web_punch: "🗸",
     geo_fence_required: "🗸",
-    updatedAt: "2022-09-22",
+    updated: "2022-09-22",
   },
   {
     code: "LEA OUT",
@@ -116,7 +116,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗴",
     web_punch: "🗴",
     geo_fence_required: "🗸",
-    updatedAt: "2014-01-04",
+    updated: "2014-01-04",
   },
   {
     code: "NUR IN",
@@ -129,7 +129,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗸",
     web_punch: "🗸",
     geo_fence_required: "🗸",
-    updatedAt: "2014-08-10",
+    updated: "2014-08-10",
   },
   {
     code: "NUR OUT",
@@ -142,7 +142,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗸",
     web_punch: "🗴",
     geo_fence_required: "🗸",
-    updatedAt: "2019-03-06",
+    updated: "2019-03-06",
   },
   {
     code: "OUT",
@@ -155,7 +155,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗴",
     web_punch: "🗸",
     geo_fence_required: "🗴",
-    updatedAt: "2014-03-17",
+    updated: "2014-03-17",
   },
   {
     code: "PER OUT",
@@ -168,7 +168,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗸",
     web_punch: "🗸",
     geo_fence_required: "🗴",
-    updatedAt: "2018-06-27",
+    updated: "2018-06-27",
   },
   {
     code: "PER IN",
@@ -181,7 +181,7 @@ export const reasons_data: ReasonsDataType[] = [
     normal_out: "🗴",
     web_punch: "🗴",
     geo_fence_required: "🗴",
-    updatedAt: "2014-03-14",
+    updated: "2014-03-14",
   },
 ];
 
@@ -192,7 +192,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-06-27",
     recurring: "🗴",
     public_holiday: "🗴",
-    updatedAt: "2024-07-30",
+    updated: "2024-07-30",
   },
   {
     description: "laboris cupidatat",
@@ -200,7 +200,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-01-19",
     recurring: "🗴",
     public_holiday: "🗴",
-    updatedAt: "2024-01-27",
+    updated: "2024-01-27",
   },
   {
     description: "tempor quis",
@@ -208,7 +208,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-06-13",
     recurring: "🗴",
     public_holiday: "🗴",
-    updatedAt: "2024-08-21",
+    updated: "2024-08-21",
   },
   {
     description: "cupidatat aute",
@@ -216,7 +216,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-04-29",
     recurring: "🗴",
     public_holiday: "🗴",
-    updatedAt: "2024-02-29",
+    updated: "2024-02-29",
   },
   {
     description: "in culpa",
@@ -224,7 +224,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-02-22",
     recurring: "🗴",
     public_holiday: "🗴",
-    updatedAt: "2024-07-29",
+    updated: "2024-07-29",
   },
   {
     description: "officia incididunt",
@@ -232,7 +232,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-09-15",
     recurring: "🗴",
     public_holiday: "🗸",
-    updatedAt: "2024-03-16",
+    updated: "2024-03-16",
   },
   {
     description: "do est",
@@ -240,7 +240,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-04-10",
     recurring: "🗴",
     public_holiday: "🗸",
-    updatedAt: "2024-05-17",
+    updated: "2024-05-17",
   },
   {
     description: "irure duis",
@@ -248,7 +248,7 @@ export const holidays_data: HolidaysDataType[] = [
     to_date: "2024-03-09",
     recurring: "🗴",
     public_holiday: "🗴",
-    updatedAt: "2024-07-14",
+    updated: "2024-07-14",
   },
 ];
 
@@ -260,7 +260,7 @@ export const schedules_data: SchedulesDataType[] = [
     in_time: "07:30",
     out_time: "15:30",
     inactive_date: "01-05-2024",
-    updatedAt: "01-09-2024",
+    updated: "01-09-2024",
   },
   {
     code: "Day",
@@ -269,7 +269,7 @@ export const schedules_data: SchedulesDataType[] = [
     in_time: "06:00",
     out_time: "13:00",
     inactive_date: "01-04-2024",
-    updatedAt: "01-05-2024",
+    updated: "01-05-2024",
   },
   {
     code: "Night",
@@ -278,7 +278,7 @@ export const schedules_data: SchedulesDataType[] = [
     in_time: "22:00",
     out_time: "06:00",
     inactive_date: "01-03-2024",
-    updatedAt: "31-05-2024",
+    updated: "31-05-2024",
   },
   {
     code: "Friday",
@@ -287,7 +287,7 @@ export const schedules_data: SchedulesDataType[] = [
     in_time: "07:30",
     out_time: "12:00",
     inactive_date: "01-05-2024",
-    updatedAt: "01-09-2024",
+    updated: "01-09-2024",
   },
 ];
 
@@ -297,13 +297,13 @@ export const ramadandates_data: RamadanDatesDataType[] = [
     description_ar: "رمضان 2024",
     from_date: "10-03-2024",
     to_date: "09-04-2024",
-    updatedAt: "03-03-2024",
+    updated: "03-03-2024",
   },
   {
     description_en: "Ramadan 2025",
     description_ar: "رمضان 2025",
     from_date: "28-02-2025",
     to_date: "29-03-2025",
-    updatedAt: "17-02-2025",
+    updated: "17-02-2025",
   },
 ];

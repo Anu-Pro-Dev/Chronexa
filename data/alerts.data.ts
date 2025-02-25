@@ -10,7 +10,7 @@ export const email_columns = [
   "BCC_email",
   "complete_violation",
   "created_date",
-  "updatedAt",
+  "updated",
 ];
 
 export const sms_columns = [
@@ -21,7 +21,7 @@ export const sms_columns = [
   "sms_content",
   "status",
   "created_date",
-  "updatedAt",
+  "updated",
 ];
 
 export const email_data: EmailDataType[] = [
@@ -35,7 +35,7 @@ export const email_data: EmailDataType[] = [
     bcc_email: "",
     complete_violation: "<i class='icon-remove'></i>",
     created_date: "03-09-2024 08:42",
-    updatedAt: "03-09-2024 08:42",
+    updated: "03-09-2024 08:42",
   },
   {
     email: "ADMIN@timecheck.biz",
@@ -47,7 +47,7 @@ export const email_data: EmailDataType[] = [
     bcc_email: "",
     complete_violation: "<i class='icon-remove'></i>",
     created_date: "05-09-2024 05:23",
-    updatedAt: "05-09-2024 05:23",
+    updated: "05-09-2024 05:23",
   },
   {
     email: "Employee79@timecheck.biz",
@@ -59,7 +59,7 @@ export const email_data: EmailDataType[] = [
     bcc_email: "",
     complete_violation: "<i class='icon-remove'></i>",
     created_date: "16-09-2024 11:43",
-    updatedAt: "16-09-2024 11:43",
+    updated: "16-09-2024 11:43",
   },
   {
     email: "Employee56@timecheck.biz",
@@ -71,7 +71,7 @@ export const email_data: EmailDataType[] = [
     bcc_email: "",
     complete_violation: "<i class='icon-remove'></i>",
     created_date: "19-09-2024 10:43",
-    updatedAt: "19-09-2024 10:43",
+    updated: "19-09-2024 10:43",
   },
 ];
 
@@ -84,7 +84,7 @@ export const sms_data: SmsDataType[] = [
       "Hello Admin,<br>Employee Employee37 (ODGS37) has just clocked in at [Time] on [Date]. Please review the attendance records for more details.",
     status: "Delivered",
     created_date: "20-09-2024 10:43",
-    updatedAt: "20-09-2024 10:43",
+    updated: "20-09-2024 10:43",
   },
   {
     mobile_number: "0551697468",
@@ -94,6 +94,6 @@ export const sms_data: SmsDataType[] = [
       "Hello Admin,<br>Employee Employee763 (DG763) has just clocked in at [Time] on [Date]. Please review the attendance records for more details.",
     status: "Not Delivered",
     created_date: "16-02-2025 11:43",
-    updatedAt: "16-02-2025 11:43",
+    updated: "16-02-2025 11:43",
   },
 ];

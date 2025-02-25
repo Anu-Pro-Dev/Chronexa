@@ -16,7 +16,7 @@ export default function Page() {
     { field: "deletable" },
     { field: "description" },
     { field: "updated_by" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

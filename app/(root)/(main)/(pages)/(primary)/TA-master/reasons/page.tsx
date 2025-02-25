@@ -22,7 +22,7 @@ export default function Page() {
     // { field: "normal_out", headerName: "Normal Out" },
     { field: "web_punch", headerName: "Web Punch" },
     { field: "geo_fence_required", headerName: "Geo Fence Required" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);

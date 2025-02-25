@@ -17,7 +17,7 @@ export default function Page() {
       headerName: "Overtime eligible ",
     },
     { field: "senior_employee", headerName: "Senior employee" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

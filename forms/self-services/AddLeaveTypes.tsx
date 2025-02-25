@@ -4,8 +4,10 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -15,7 +17,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 
@@ -34,37 +34,28 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  name: z
+  workflows: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  ip_address: z
+  description_en: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  port: z
+  description_ar: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  building: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  location: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  enable: z.boolean(),
+  need_approval: z.boolean(),
+  offical: z.boolean(),
+  attachment: z.boolean(),
+  comments: z.boolean(),
 });
 
 export default function AddLeaveTypes({
@@ -76,12 +67,13 @@ export default function AddLeaveTypes({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      name: "",
-      ip_address: "",
-      port: "",
-      building: "",
-      location: "",
-      enable: false,
+      description_en: "",
+      description_ar: "",
+      workflows: "",
+      need_approval: false,
+      offical: false,
+      attachment: false,
+      comments: false,
     },
   });
 
@@ -111,144 +103,170 @@ export default function AddLeaveTypes({
           </h1>
         </div>
         <div className="flex flex-col gap-6">
-          <div className="p-5 flex flex-col">
-            <div className="flex justify-between items-start gap-10">
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Code <Required />
-                      </FormLabel>
+          <div className="p-5">
+            <div className="grid sm:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] [&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px]">
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Code <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the code" type="text" {...field} className="max-w-[350px]"/>
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="workflows"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Workflows <Required /></FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <Input placeholder="Enter the code" type="text" {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose workflows" />
+                        </SelectTrigger>
                       </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">Leaves</SelectItem>
+                        <SelectItem value="2">Permissions</SelectItem>
+                        <SelectItem value="3">Missing movements</SelectItem>
+                        <SelectItem value="4">Manual movements</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description_en"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Description (English) <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the description in english" type="text" {...field} />
+                    </FormControl>
+    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description_ar"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Description (العربية) <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the description in arabic" type="text" {...field} />
+                    </FormControl>
+    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="px-5 pt-5 grid space-y-4">
+              <Label>Leave  attributes</Label>
+              <div className="flex gap-6">
                 <FormField
                   control={form.control}
-                  name="ip_address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        IP Address <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter IP address" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="building"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Choose Buildings <Required/> </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose building" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">building 1</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="enable"
+                  name="need_approval"
                   render={({ field }) => (
                     <FormItem className=" ">
                       <FormControl>
                         <div className="flex items-center gap-2">
                           <Checkbox
-                            id="enable"
+                            id="need_approval"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
-                          <FormLabel htmlFor="enable" className="text-sm font-semibold">Enable</FormLabel>
+                          <FormLabel htmlFor="need_approval" className="text-sm font-semibold">Need approval</FormLabel>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="offical"
+                  render={({ field }) => (
+                    <FormItem className=" ">
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="offical"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <FormLabel htmlFor="offical" className="text-sm font-semibold">Offical</FormLabel>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="attachment"
+                  render={({ field }) => (
+                    <FormItem className=" ">
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="attachment"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <FormLabel htmlFor="attachment" className="text-sm font-semibold">Allow attachment</FormLabel>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="comments"
+                  render={({ field }) => (
+                    <FormItem className=" ">
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="comments"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <FormLabel htmlFor="comments" className="text-sm font-semibold">Mandatory Comments</FormLabel>
                         </div>
                       </FormControl>
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Name <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the name" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="port"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Port <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the port" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Location <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the location" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 items-center pb-5">
+          <div className="flex justify-end gap-2 items-center px-5 pb-5">
             <div className="flex gap-4 px-5">
               <Button
                 variant={"outline"}
                 type="button"
                 size={"lg"}
                 className="w-full"
-                onClick={() => router.push("/devices/devices-status")}
+                onClick={() => router.push("/self-services/manage-leaves/leave-types")}
               >
                 Cancel
               </Button>

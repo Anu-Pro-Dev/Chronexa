@@ -10,8 +10,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import PowerFilter from "./power-filter";
 import PowerTakeAction from "./power-take-action";
 import PowerClear from "./power-clear";
-import PowerApprove from "./power-approve";
-import PowerReject from "./power-reject";
+import ApprovalModal from "./power-approval-modal";
 
 export default function PowerHeader({
   items,
@@ -30,6 +29,10 @@ export default function PowerHeader({
   modal_description,
   filter_modal_title,
   filter_modal_description,
+  approve_modal_title,
+  approve_modal_description,
+  reject_modal_title,
+  reject_modal_description,
   enableTakeAction = false,
   enableClear = false,
   enableApprove = false,
@@ -51,6 +54,10 @@ export default function PowerHeader({
   modal_description?: string;
   filter_modal_title?: string;
   filter_modal_description?: string;
+  approve_modal_title?: string;
+  approve_modal_description?: string;
+  reject_modal_title?: string;
+  reject_modal_description?: string;
   enableTakeAction?: boolean;
   enableClear?: boolean;
   enableApprove?: boolean;
@@ -109,8 +116,56 @@ export default function PowerHeader({
             )}
             {!disableFeatures && isExport && <PowerExport />}
             {enableClear && <PowerClear props={props} />}
-            {enableApprove && <PowerApprove props={props} />}
-            {enableReject && <PowerReject props={props} />}
+            {/* {enableApprove && 
+              <PowerApprove
+                modal_title={approve_modal_title}
+                modal_description={approve_modal_description}
+                modal_component={modal_component}
+                modal_props={{
+                  open: props.approve_open,
+                  on_open_change: props.approve_on_open_change,
+                }}
+              />
+            }
+            {enableReject && 
+              <PowerReject
+                modal_title={reject_modal_title}
+                modal_description={reject_modal_description}
+                modal_component={modal_component}
+                modal_props={{
+                  open: props.reject_open,
+                  on_open_change: props.reject_on_open_change,
+                }}
+              />
+            } */}
+
+            {enableApprove && (
+              <ApprovalModal
+                type="approve"
+                modal_title={approve_modal_title}
+                modal_description={approve_modal_description}
+                modal_component={modal_component}
+                modal_props={{
+                  open: props?.approve_open || false,
+                  on_open_change: props?.approve_on_open_change,
+                  on_confirm: props?.onApprove || (() => {}),
+                }}
+              />
+          )}
+
+          {enableReject && (
+            <ApprovalModal
+              type="reject"
+              modal_title={reject_modal_title}
+              modal_description={reject_modal_description}
+              modal_component={modal_component}
+              modal_props={{
+                open: props?.reject_open || false,
+                on_open_change: props?.reject_on_open_change,
+                on_confirm: props?.onReject || (() => {}),
+              }}
+            />
+          )}
           </div>
         }
       </div>

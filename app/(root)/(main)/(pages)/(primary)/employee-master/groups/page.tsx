@@ -16,7 +16,7 @@ export default function Page() {
     { field: "to_date", headerName: "To date" },
     { field: "reporting_group", headerName: "Reporting group" },
     { field: "members", headerName: "Members" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

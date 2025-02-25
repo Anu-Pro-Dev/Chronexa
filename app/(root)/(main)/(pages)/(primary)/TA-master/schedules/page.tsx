@@ -6,8 +6,15 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 
 export default function Page() {
-  const { modules } = useLanguage();
   const router = useRouter();
+  const { modules } = useLanguage();
+  const [Data, SetData] = useState<any>([]);
+  const [CurrentPage, SetCurrentPage] = useState<number>(1);
+  const [SortField, SetSortField] = useState<string>("");
+  const [SortDirection, SetSortDirection] = useState<string>("asc");
+  const [SearchValue, SetSearchValue] = useState<string>("");
+  const [open, on_open_change] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [Columns, setColumns] = useState([
     { field: "code" },
     {
@@ -27,17 +34,8 @@ export default function Page() {
     { field: "in_time", headerName: "In Time" },
     { field: "out_time", headerName: "Out Time" },
     { field: "inactive_date", headerName: "Inactive Date" },
-    { field: "updatedAt", headerName: "Updated" },
+    { field: "updated", headerName: "Updated" },
   ]);
-
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
-  const [SearchValue, SetSearchValue] = useState<string>("");
-  const [open, on_open_change] = useState<boolean>(false);
-  const [selectedRowData, setSelectedRowData] = useState<any>(null);
-  
   const props = {
     Data,
     SetData,

@@ -267,6 +267,12 @@ export default function LanguageProvider({
       },
       {
         label: "Manage Leaves",
+        path: "/self-services/manage-leaves/leave-application/add/",
+        value: "leave application",
+        hide:true,
+      },
+      {
+        label: "Manage Leaves",
         path: "/self-services/manage-leaves/leave-approval/",
         value: "leave approval",
         hide:true,
