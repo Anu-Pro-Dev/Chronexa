@@ -13,9 +13,21 @@ interface MultiStepFormProps {
   Pages: PageType[];
   Page: string;
   SetPage: (page: string) => void;
+  validateCurrentForm?: () => Promise<boolean>
 }
 
-export default function PowerMultiStepForm({ Pages, Page, SetPage }: MultiStepFormProps) {
+export default function PowerMultiStepForm({ Pages, Page, SetPage, validateCurrentForm }: MultiStepFormProps) {
+
+  const handleTabChange = async (newPage: string) => {
+    if (validateCurrentForm) {
+      const isFormValid = await validateCurrentForm()
+      if (!isFormValid) {
+        return
+      }
+    }
+    SetPage(newPage)
+  }
+
   return (
     <div className="flex flex-col gap-6 bg-white p-6 rounded-2xl">
       {Pages.filter((page) => page.state_route === Page).map((page) => (
@@ -36,7 +48,11 @@ export default function PowerMultiStepForm({ Pages, Page, SetPage }: MultiStepFo
               page.state_route === Page && "border-b-[2px] border-primary text-primary font-bold",
               page.disable && "cursor-not-allowed"
             )}
-            onClick={() => !page.disable && SetPage(page.state_route)}
+            onClick={async () => {
+              if (!page.disable) {
+                await handleTabChange(page.state_route); // Use the validation function if provided
+              }
+            }}
           >
             {page.title}
           </div>

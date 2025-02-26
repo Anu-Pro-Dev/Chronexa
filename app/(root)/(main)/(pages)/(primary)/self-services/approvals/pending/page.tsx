@@ -6,7 +6,7 @@ import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
-import FilterDataOnVerification from "@/forms/self-services/FilterDataOnVerification";
+import FilterPendingApproval from "@/forms/self-services/FilterPendingApproval";
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
@@ -58,6 +58,11 @@ export default function Page() {
         enableApprove
         enableReject
         enableFilters
+        filter_modal_title="none"
+        filter_modal_component={
+          <FilterPendingApproval on_open_change={filter_on_open_change} />
+        }
+        isLarge={true}
       />
       <div className="bg-white rounded-2xl">
         <div className="col-span-2 p-6">

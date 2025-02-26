@@ -117,11 +117,7 @@ export default function Page() {
       })
       .max(100),
     buildings: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
+      .string().optional(),
     manager: z
       .string()
       .min(1, {
@@ -184,11 +180,7 @@ export default function Page() {
       })
       .max(100),
     pin: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
+      .string().optional(),
     username: z
       .string()
       .min(1, {
@@ -214,11 +206,7 @@ export default function Page() {
       })
       .max(100),
     mobile: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
+      .string().optional(),
     sex: z
       .string()
       .min(1, {
@@ -226,26 +214,12 @@ export default function Page() {
       })
       .max(100),
     email: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
+    .string().optional(),
     remarks: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    employee_system_activation: z.date({
-      required_error: "Employee system activation Date is required.",
-    }),
-    join_date: z.date({
-      required_error: "Join Date is required.",
-    }),
-    inactive_date: z.date({
-      required_error: "Inactive Date is required.",
-    }),
+    .string().optional(),
+    employee_system_activation: z.date().optional(),
+    join_date: z.date().optional(),
+    inactive_date: z.date().optional(),
   });
 
   const  personalForm = useForm<z.infer<typeof personalFormSchema>>({
@@ -270,6 +244,19 @@ export default function Page() {
   });
 
 
+  const validateCurrentForm = async () => {
+    switch (Page) {
+      case "personal-form":
+        return await personalForm.trigger();
+      case "business-form":
+        return await buisnessForm.trigger();
+      case "flags-form":
+        return await flagForm.trigger();
+      default:
+        return true;
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -282,6 +269,7 @@ export default function Page() {
         <PowerMultiStepForm
           SetPage={SetPage}
           Page={Page}
+          validateCurrentForm={validateCurrentForm}
           Pages={[
             {
               title: "Personal",
