@@ -16,6 +16,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { Close } from "@radix-ui/react-dialog";
 import { IoMdClose } from "react-icons/io";
 import { ActionIcon } from "@/icons/icons";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function PowerTakeAction({
   isAddNewPagePath = null,
@@ -70,25 +71,25 @@ export default function PowerTakeAction({
         
         <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
           <ResponsiveModalHeader>
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between px-5">
               <div className="flex flex-col text-start">
-                <span className="text-primary font-bold">{modal_title}</span>
+                <span className="text-primary font-bold text-xl pb-2">{modal_title}</span>
                 <ResponsiveModalDescription className="text-secondary">
                   {modal_description}
                 </ResponsiveModalDescription>
               </div>
-              <span
+              {/* <span
                 className="cursor-pointer hover:scale-125 transition-all"
                 onClick={() => {
                   modal_props?.on_open_change(false);
                 }}
               >
                 <IoMdClose />
-              </span>
+              </span> */}
             </div>
             <ResponsiveModalTitle></ResponsiveModalTitle>
           </ResponsiveModalHeader>
-          {<div className="p-1">{modal_component}</div>}
+          {<div className="px-5">{modal_component}</div>}
         </ResponsiveModalContent>
       </ResponsiveModal>
     </div>
