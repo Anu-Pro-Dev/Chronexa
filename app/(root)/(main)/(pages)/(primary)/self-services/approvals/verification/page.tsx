@@ -54,7 +54,9 @@ export default function Page() {
         disableAdd
         disableDelete
         enableFilters
-        isLarge={true}  
+        isLarge={false}  
+        filter_modal_title="Filter"
+        filter_modal_description="Select the Filters for easy search"
         filter_modal_component={
           <FilterDataOnVerification on_open_change={filter_on_open_change} />
         }

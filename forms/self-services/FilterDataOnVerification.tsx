@@ -1,10 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,21 +11,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
-import Required from "@/components/ui/required";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Textarea } from "@/components/ui/textarea";
-import { TimePicker12Demo } from "@/components/ui/time-picker-demo";
-import { TimerIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -38,25 +29,10 @@ import {
 } from "@/components/ui/select";
 
 const formSchema = z.object({
-  verification: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  status: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-
-  to_date: z.date({
-    required_error: "To Date is required.",
-  }),
-  from_date: z.date({
-    required_error: "From Date is required.",
-  }),
+  verification: z.string().optional(),
+  status: z.string().optional(),
+  to_date: z.date().optional(),
+  from_date: z.date().optional(),
 });
 
 export default function FilterDataOnVerification({
@@ -80,14 +56,14 @@ export default function FilterDataOnVerification({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="grid lg:grid-cols-2 gap-10">
+        <div className="flex flex-col gap-8">
           <div>
             <FormField 
               control={form.control}
               name="verification"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>verification</FormLabel>
+                  <FormLabel>Verifications</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -114,7 +90,7 @@ export default function FilterDataOnVerification({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>status</FormLabel>
+                  <FormLabel>Status</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -138,105 +114,91 @@ export default function FilterDataOnVerification({
           
           <div>
             <FormField
-              control={form.control}
-              name="from_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    From Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          className={cn(
-                            "w-full pl-3 text-left font-normal bg-transparent  border rounded-md",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                control={form.control}
+                name="from_date"
+                render={({ field }) => (
+                    <FormItem className="">
+                    <FormLabel>
+                        From Date
+                    </FormLabel>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button size={"lg"} variant={"outline"}
+                            className="w-full bg-white px-3 flex justify-between text-text-primary"
+                            >
+                            {field.value ? (
+                                format(field.value, "dd/MM/yy")
+                            ) : (
+                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            )}
+                            <CalendarIcon />
+                            </Button>
+                        </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                    </FormItem>
+                )}
+              />
           </div>
           <div>
             <FormField
-              control={form.control}
-              name="to_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    To Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          className={cn(
-                            "w-full pl-3 text-left font-normal bg-transparent border rounded-md",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                control={form.control}
+                name="to_date"
+                render={({ field }) => (
+                    <FormItem className="">
+                    <FormLabel>
+                        To Date
+                    </FormLabel>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button size={"lg"} variant={"outline"}
+                            className="w-full bg-white px-3 flex justify-between text-text-primary"
+                            >
+                            {field.value ? (
+                                format(field.value, "dd/MM/yy")
+                            ) : (
+                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            )}
+                            <CalendarIcon />
+                            </Button>
+                        </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                    </FormItem>
+                )}
+              />
           </div>
 
-          <div className="w-full flex gap-2 items-center col-span-2 justify-end">
+          <div className="w-full flex gap-2 justify-between">
             <Button
               variant={"outline"}
               type="button"
               size={"lg"}
-              className=""
+              className="w-full"
               onClick={() => on_open_change(false)}
             >
-              Cancel
+              Clear filter
             </Button>
-            <Button type="submit" size={"lg"} className="">
-              Save
+            <Button type="submit" size={"lg"} className="w-full">
+              Apply
             </Button>
           </div>
         </div>
