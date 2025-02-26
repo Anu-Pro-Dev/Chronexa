@@ -1,7 +1,7 @@
 "use client";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AddIcon } from "@/icons/icons";
-import React, { useState } from "react";
 
 import {
   ResponsiveModal,
@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/responsive-modal";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { Close } from "@radix-ui/react-dialog";
-import { IoMdClose } from "react-icons/io";
 
 export default function PowerAdd({
   isAddNewPagePath = null,
