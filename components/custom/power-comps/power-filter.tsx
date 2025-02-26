@@ -30,7 +30,8 @@ export default function PowerFilter({
 }) {
   const router = useRouter();
   const { translations } = useLanguage();
-  const modalTitle = modal_title || translations?.buttons.filters || "Filters";
+  const modalTitle = modal_title === "none" ? null : translations?.buttons.filters || "Filters";
+  
 
   return (
     <div>

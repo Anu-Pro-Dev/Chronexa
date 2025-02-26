@@ -54,7 +54,7 @@ export default function Page() {
         disableAdd
         disableDelete
         enableFilters
-        isLarge={true}
+        isLarge={true}  
         filter_modal_component={
           <FilterDataOnVerification on_open_change={filter_on_open_change} />
         }
