@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
 import FilterDataOnVerification from "@/forms/self-services/FilterDataOnVerification";
+import TakeActionVerification from "@/forms/self-services/TakeActionVerification";
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
@@ -59,6 +60,12 @@ export default function Page() {
         filter_modal_description="Select the Filters for easy search"
         filter_modal_component={
           <FilterDataOnVerification on_open_change={filter_on_open_change} />
+        }
+        modal_title="Action"
+        modal_description="Verification will be handled here"
+        isLargeAction={true}
+        modal_component={
+          <TakeActionVerification on_open_change={on_open_change}/> 
         }
       />
       <div className="bg-white rounded-2xl">

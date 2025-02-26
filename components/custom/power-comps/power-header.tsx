@@ -25,6 +25,7 @@ export default function PowerHeader({
   modal_component,
   filter_modal_component,
   isLarge,
+  isLargeAction,
   modal_title,
   modal_description,
   filter_modal_title,
@@ -50,6 +51,7 @@ export default function PowerHeader({
   modal_component?: any;
   filter_modal_component?: any;
   isLarge?: any;
+  isLargeAction?:any;
   modal_title?: string;
   modal_description?: string;
   filter_modal_title?: string;
@@ -111,7 +113,7 @@ export default function PowerHeader({
                   open: props.open,
                   on_open_change: props.on_open_change,
                 }}
-                isLarge={isLarge}
+                isLarge={isLargeAction}
               />
             )}
             {!disableFeatures && isExport && <PowerExport />}
