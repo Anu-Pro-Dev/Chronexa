@@ -7,6 +7,8 @@ import React, { useState } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
 import AddManageMovements from "@/forms/self-services/AddManageMovements";
+import FilterManualMovement from "@/forms/self-services/FilterManualMovement";
+
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
@@ -56,6 +58,11 @@ export default function Page() {
         modal_title="Manual movements add"
         modal_description="Select the options of the Manual movements to add"
         modal_component={<AddManageMovements on_open_change={on_open_change} />}
+        filter_modal_title="none"
+        filter_modal_component={
+          <FilterManualMovement on_open_change={filter_on_open_change} />
+        }
+        isLarge={true}
       />
       <div className="bg-white rounded-2xl">
         <div className="col-span-2 p-6">
