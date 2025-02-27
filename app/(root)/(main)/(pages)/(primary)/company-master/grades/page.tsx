@@ -1,9 +1,8 @@
 "use client";
+import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddGradesCompanyMaster from "@/forms/AddGradesCompanyMaster";
-import React, { useState } from "react";
-
+import AddGradesCompanyMaster from "@/forms/company-master/AddGradesCompanyMaster";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
@@ -11,11 +10,8 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "code", headerName: "Code" },
-    { field: "description", headerName: "Description" },
-    {
-      field: "overtime_eligible",
-      headerName: "Overtime eligible ",
-    },
+    { field: "description_en", headerName: "Description (English)" },
+    { field: "overtime_eligible", headerName: "Overtime eligible" },
     { field: "senior_employee", headerName: "Senior employee" },
     { field: "updated", headerName: "Updated" },
   ]);
@@ -44,9 +40,28 @@ export default function Page() {
     SetSearchValue,
   };
 
+  useEffect(() => {
+    if (!open) {
+      setSelectedRowData(null);
+    }
+  }, [open]);
+
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
     on_open_change(true);
+  };
+
+  const handleSave = (id: string | null, newData: any) => {
+    if (id) {
+      // Update existing row
+      SetData((prevData: any) =>
+        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
+      );
+    } else {
+      // Add new row
+      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
+    }
+    setSelectedRowData(null); // Clear selected row data
   };
 
   return (

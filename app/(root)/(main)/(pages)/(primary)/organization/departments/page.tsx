@@ -4,7 +4,7 @@ import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
-import DepartmentAdmins from "@/forms/departments/DepartmentAdmins";
+import DepartmentAdmins from "@/forms/organization/DepartmentAdmins";
 
 export default function Page() {
   const { modules } = useLanguage();

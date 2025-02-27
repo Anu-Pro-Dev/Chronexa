@@ -1,10 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
-
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,14 +13,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
-import { USER_TOKEN } from "@/lib/Instance";
-import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
-import { RefreshIcon } from "@/icons/icons";
-import { IoMdRefresh } from "react-icons/io";
-import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
+
 const formSchema = z.object({
   code: z
     .string()
@@ -44,10 +37,14 @@ const formSchema = z.object({
     .max(100),
 });
 
-export default function AddRegionsCompanyMaster({
+export default function AddCompanyMaster({
   on_open_change,
+  selectedRowData,
+  onSave,
 }: {
   on_open_change: any;
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
 }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,10 +55,47 @@ export default function AddRegionsCompanyMaster({
     },
   });
 
+  // Reset form when modal is opened for Add or when selectedRowData is null
+  useEffect(() => {
+    if (!selectedRowData) {
+      form.reset(); // Reset the form values when in "Add" mode
+    } else {
+      form.reset({
+        code: selectedRowData.code,
+        description_en: selectedRowData.description_en,
+        description_ar: selectedRowData.description_ar,
+      }); // Pre-fill the form when in "Edit" mode
+    }
+  }, [selectedRowData, form]);
+
+  const handleSave = () => {
+    const formData = form.getValues(); // Get the form data directly from the hook
+    if (selectedRowData) {
+      // Update existing row
+      onSave(selectedRowData.id, formData);
+    } else {
+      // Add new row
+      onSave(null, formData);
+    }
+    on_open_change(false); // Close modal after saving
+  };
+
   const router = useRouter();
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
+      // Handle form submission: Add or Update logic based on whether it's edit mode or not
+      if (selectedRowData) {
+        // Update logic (edit mode)
+        onSave(selectedRowData.id, values);
+        console.log("Updating region:", values);
+      } else {
+        // Add logic (create mode)
+        onSave(null, values);
+        console.log("Creating region:", values);
+      }
+      on_open_change(false); // Close the modal after submission
     } catch (error) {
       console.error("Form submission error", error);
     }
@@ -128,7 +162,7 @@ export default function AddRegionsCompanyMaster({
               Cancel
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Save
+              {selectedRowData ? "Update" : "Save"}
             </Button>
           </div>
         </div>
