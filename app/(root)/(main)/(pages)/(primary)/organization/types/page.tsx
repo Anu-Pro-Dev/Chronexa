@@ -1,7 +1,7 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddTypeOrganization from "@/forms/AddTypeOrganization";
+import AddTypeOrganization from "@/forms/organization/AddTypeOrganization";
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";

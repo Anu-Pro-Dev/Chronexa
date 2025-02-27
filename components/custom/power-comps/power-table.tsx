@@ -122,6 +122,23 @@ export default function PowerTable({
     checkboxUncheckedBorderColor: "#E5E7EB",
   });
 
+  const ClickableCellRenderer = ({ value, data, onCellClick }: { value: any, data: any, onCellClick: (data: any) => void }) => {
+    const handleClick = (event: React.MouseEvent) => {
+      event.stopPropagation();  // Prevent row selection
+      if (onCellClick) onCellClick(data);  // Execute the cell click handler
+    };
+  
+    return (
+      <div 
+        onClick={handleClick} 
+        className="w-full h-full flex items-center justify-start cursor-pointer text-blue-500 underline"
+        style={{ padding: "8px" }}
+      >
+        {value}
+      </div>
+    );
+  };  
+
   // Define Table Columns
   const columnDefs = [
     ...(showCheckbox
@@ -139,7 +156,14 @@ export default function PowerTable({
           },
         ]
       : []),
-    ...props.Columns,
+    ...props.Columns.map((col: any) => ({
+      ...col,
+      cellRenderer: col.clickable
+        ? (params: any) => (
+            <ClickableCellRenderer {...params} onCellClick={col.onCellClick} />
+          )
+        : undefined,
+    })),
     ...(showEdit
       ? [
           {
@@ -177,6 +201,7 @@ export default function PowerTable({
             rowSelection: showCheckbox ? "multiple" : undefined,
             suppressCellFocus: true,
             suppressMovableColumns: true,
+            suppressRowClickSelection: true,
           }}
           defaultColDef={{
             autoHeight: true,

@@ -1,30 +1,38 @@
 "use client";
 
+// Company Master Module Data Types
+
 export type RegionsDataType = {
   code: string;
-  description: string;
+  description_en: string;
+  description_ar: string;
   updated: string;
 };
 
 export type NationalitiesDataType = {
   code: string;
-  description: string;
+  description_en: string;
+  // description_ar: string;
   updated: string;
 };
 
 export type DesignationsDataType = {
   code: string;
-  description: string;
+  description_en: string;
+  // description_ar: string;
   updated: string;
 };
 
 export type GradesDataType = {
   code: string;
-  description: string;
+  description_en: string;
+  // description_ar: string;
   updated: string;
   overtime_eligible: string;
   senior_employee: string;
 };
+
+// Organizartion Module Data Types
 
 export type OrganizationTypesDataType = {
   description: string;

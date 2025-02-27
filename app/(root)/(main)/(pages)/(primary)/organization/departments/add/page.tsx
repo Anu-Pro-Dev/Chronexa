@@ -4,7 +4,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
-import AddDepartment from "@/forms/departments/AddDepartment";
+import AddDepartment from "@/forms/organization/AddDepartment";
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);

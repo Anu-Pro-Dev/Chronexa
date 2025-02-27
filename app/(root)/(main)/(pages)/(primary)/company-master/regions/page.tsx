@@ -1,16 +1,17 @@
 "use client";
+import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddRegionsCompanyMaster from "@/forms/AddRegionsCompanyMaster";
-import React, { useState } from "react";
-
+import AddCompanyMaster from "@/forms/company-master/AddCompanyMaster";
 import { useLanguage } from "@/providers/LanguageProvider";
+
 export default function Page() {
   const { modules } = useLanguage();
 
   const [Columns, setColumns] = useState([
     { field: "code", headerName: "Code" },
-    { field: "description", headerName: "Description" },
+    { field: "description_en", headerName: "Description (English)" },
+    { field: "description_ar", headerName: "Description (العربية)" },
     { field: "updated", headerName: "Updated" },
   ]);
   const [Data, SetData] = useState<any>([]);
@@ -36,11 +37,30 @@ export default function Page() {
     SetSearchValue,
   };
 
+  useEffect(() => {
+    if (!open) {
+      setSelectedRowData(null);
+    }
+  }, [open]);
+
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
     on_open_change(true);
   };
 
+  // Save data (Add or Update)
+  const handleSave = (id: string | null, newData: any) => {
+    if (id) {
+      // Update existing row
+      SetData((prevData: any) =>
+        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
+      );
+    } else {
+      // Add new row
+      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
+    }
+    setSelectedRowData(null); // Clear selected row data
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -50,7 +70,11 @@ export default function Page() {
         modal_title="Regions"
         modal_description="Regions of the employee"
         modal_component={
-          <AddRegionsCompanyMaster on_open_change={on_open_change}/>
+          <AddCompanyMaster 
+            on_open_change={on_open_change}
+            selectedRowData={selectedRowData}
+            onSave={handleSave}
+          />
         }
       />
       <PowerTable props={props} api={"/company-master/regions"} showEdit={true} onEditClick={handleEditClick}/>
