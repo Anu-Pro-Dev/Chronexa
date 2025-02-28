@@ -79,7 +79,7 @@ export default function AddPrivelege({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Name(English) <Required />
+                    Name (English) <Required />
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter the name in english" type="text" {...field} />
@@ -95,7 +95,7 @@ export default function AddPrivelege({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Name [العربية] <Required />
+                    Name (العربية)<Required />
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter the name in arabic" type="text" {...field} />

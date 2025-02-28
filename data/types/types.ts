@@ -328,9 +328,10 @@ export type DevicesStatusDataType = {
 // Security Page DataTypes
 
 export type RolesDataType = {
-  code: string;
+  name_en: string;
+  name_ar: string;
   privileges: string;
-  assignRole: string;
+  assign_role: string;
   users: string;
 };
 

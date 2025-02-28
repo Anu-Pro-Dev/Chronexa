@@ -131,7 +131,7 @@ export default function AddEmployeeType({
               Save
             </Button>
           </div>
-                </div>
+        </div>
       </form>
     </Form>
   );
