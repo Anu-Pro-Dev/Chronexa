@@ -21,7 +21,7 @@ export default function DepartmentAdmins({
   return (
     <div>
       <ResponsiveModal open={modal_props.open} onOpenChange={modal_props.on_open_change}>
-        <ResponsiveModalContent>
+        <ResponsiveModalContent size="large">
           <ResponsiveModalHeader>
             <ResponsiveModalTitle>Department Admins</ResponsiveModalTitle>
           </ResponsiveModalHeader>

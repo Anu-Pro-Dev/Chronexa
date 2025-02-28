@@ -23,6 +23,7 @@ import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
 import { Textarea } from "@/components/ui/textarea";
+
 const formSchema = z.object({
   name_en: z
     .string()
@@ -38,7 +39,15 @@ const formSchema = z.object({
     .max(100),
 });
 
-export default function AddRole({ on_open_change }: { on_open_change: any }) {
+export default function AddRole({ 
+  on_open_change,
+  selectedRowData,
+  onSave,
+}: {
+  on_open_change: any;
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
+}) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,10 +56,45 @@ export default function AddRole({ on_open_change }: { on_open_change: any }) {
     },
   });
 
+  useEffect(() => {
+    if (!selectedRowData) {
+      form.reset(); // Reset the form values when in "Add" mode
+    } else {
+      form.reset({
+        name_en: selectedRowData.name_en,
+        name_ar: selectedRowData.name_ar,
+      }); // Pre-fill the form when in "Edit" mode
+    }
+  }, [selectedRowData, form]);
+
+  const handleSave = () => {
+    const formData = form.getValues(); // Get the form data directly from the hook
+    if (selectedRowData) {
+      // Update existing row
+      onSave(selectedRowData.id, formData);
+    } else {
+      // Add new row
+      onSave(null, formData);
+    }
+    on_open_change(false); // Close modal after saving
+  };
+
   const router = useRouter();
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
+      // Handle form submission: Add or Update logic based on whether it's edit mode or not
+      if (selectedRowData) {
+        // Update logic (edit mode)
+        onSave(selectedRowData.id, values);
+        console.log("Updating region:", values);
+      } else {
+        // Add logic (create mode)
+        onSave(null, values);
+        console.log("Creating region:", values);
+      }
+      on_open_change(false); // Close the modal after submission
     } catch (error) {
       console.error("Form submission error", error);
     }
@@ -66,7 +110,7 @@ export default function AddRole({ on_open_change }: { on_open_change: any }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Name(English) <Required />
+                  Name (English) <Required />
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the name in english" type="text" {...field} />
@@ -82,7 +126,7 @@ export default function AddRole({ on_open_change }: { on_open_change: any }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Name [العربية] <Required />
+                  Name (العربية) <Required />
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the name in arabic" type="text" {...field} />
@@ -104,7 +148,7 @@ export default function AddRole({ on_open_change }: { on_open_change: any }) {
               Cancel
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Save
+              {selectedRowData ? "Update" : "Save"}
             </Button>
           </div>
         </div>

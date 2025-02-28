@@ -56,6 +56,7 @@ export default {
         searchbar: "2px 2px 5px rgba(0, 0, 0, 0.03)",
         dropdown: "2px 2px 5px rgba(0, 0, 0, 0.05)",
         sidebar: "0px 16px 44px 0px rgba(0, 0, 0, 0.07)",
+        inner: '-2px -2px 10px 0 rgba(0, 0, 0, 0.03)',
       },
       keyframes: {
         "accordion-down": {
