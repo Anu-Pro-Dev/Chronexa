@@ -96,7 +96,6 @@ export default function Page() {
             open: isModalOpen,
             on_open_change: setIsModalOpen, // Pass function to update modal state
           }}
-          rowData={selectedRowData} // Pass dynamic row data
         />
       )}
 
