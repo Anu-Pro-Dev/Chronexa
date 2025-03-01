@@ -1,21 +1,17 @@
 "use client";
-import React, { useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import { useLanguage } from "@/providers/LanguageProvider";
-import { useRouter } from "next/navigation";
+import AddEmployeeTypeEmployeeMaster from "@/forms/employee-master/AddEmployeeType";
+import React, { useState } from "react";
 
+import { useLanguage } from "@/providers/LanguageProvider";
 export default function Page() {
   const { modules } = useLanguage();
-  const router = useRouter();
+
   const [Columns, setColumns] = useState([
     { field: "code" },
-    { field: "description" },
-    { field: "schedule" },
-    { field: "from_date", headerName: "From date" },
-    { field: "to_date", headerName: "To date" },
-    { field: "reporting_group", headerName: "Reporting group" },
-    { field: "members", headerName: "Members" },
+    { field: "description_en", headerName: "Description (English)" },
+    { field: "description_ar", headerName: "Description (العربية)" },
     { field: "updated", headerName: "Updated" },
   ]);
 
@@ -26,7 +22,6 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
-
   const props = {
     Data,
     SetData,
@@ -45,7 +40,7 @@ export default function Page() {
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
-    router.push("/employee-master/groups/add");
+    on_open_change(true);
   };
 
   return (
@@ -53,9 +48,13 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.employeeMaster.items}
-        isAddNewPagePath="/employee-master/groups/add"
+        modal_title="Employee types"
+        modal_description="Select the Employee types of the company"
+        modal_component={
+          <AddEmployeeTypeEmployeeMaster on_open_change={on_open_change} />
+        }
       />
-      <PowerTable props={props} api={"/employee-master/groups"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} api={"/employee-master/employee-types"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

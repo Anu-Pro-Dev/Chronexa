@@ -334,7 +334,7 @@ export default function AddEmployeeGroup() {
               type="button"
               size={"lg"}
               className="w-full"
-              onClick={() => router.push("/employee-master/groups/")}
+              onClick={() => router.push("/employee-master/employee-groups/")}
             >
               Cancel
             </Button>

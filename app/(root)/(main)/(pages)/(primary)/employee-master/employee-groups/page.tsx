@@ -1,20 +1,13 @@
 "use client";
+import React, { useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddEmployeeTypeEmployeeMaster from "@/forms/employee-master/AddEmployeeType";
-import React, { useState } from "react";
-
 import { useLanguage } from "@/providers/LanguageProvider";
+import { useRouter } from "next/navigation";
+
 export default function Page() {
   const { modules } = useLanguage();
-
-  const [Columns, setColumns] = useState([
-    { field: "code" },
-    { field: "description_en", headerName: "Description (English)" },
-    { field: "description_ar", headerName: "Description (العربية)" },
-    { field: "updated", headerName: "Updated" },
-  ]);
-
+  const router = useRouter();
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -22,6 +15,28 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+
+  const handleCellClickPath = (data: any) => {
+    console.log("Navigating to:", `/employee-master/employee-groups/${data.code}`);
+    router.push(`/employee-master/employee-groups/${data.code}-members`);
+  };
+
+  const handleEditClick = (data: any) => {
+    setSelectedRowData(data);
+    router.push("/employee-master/employee-groups/add");
+  };
+
+  const [Columns, setColumns] = useState([
+    { field: "code" },
+    { field: "description" },
+    { field: "schedule" },
+    { field: "from_date", headerName: "From date" },
+    { field: "to_date", headerName: "To date" },
+    { field: "reporting_group", headerName: "Reporting group" },
+    { field: "members", headerName: "Members", clickable: true, onCellClick: handleCellClickPath },
+    { field: "updated", headerName: "Updated" },
+  ]);
+
   const props = {
     Data,
     SetData,
@@ -38,23 +53,14 @@ export default function Page() {
     SetSearchValue,
   };
 
-  const handleEditClick = (data: any) => {
-    setSelectedRowData(data);
-    on_open_change(true);
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
         items={modules?.employeeMaster.items}
-        modal_title="Employee types"
-        modal_description="Select the Employee types of the company"
-        modal_component={
-          <AddEmployeeTypeEmployeeMaster on_open_change={on_open_change} />
-        }
+        isAddNewPagePath="/employee-master/employee-groups/add"
       />
-      <PowerTable props={props} api={"/employee-master/types"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} api={"/employee-master/employee-groups"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }
