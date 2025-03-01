@@ -47,10 +47,10 @@ export const DynamicApi = (api: any, params: any) => {
       case "/employee-master/employees":
         data = employeeMaster_employees_data;
         break;
-      case "/employee-master/types":
+      case "/employee-master/employee-types":
         data = employeeMaster_types_data;
         break;
-      case "/employee-master/groups":
+      case "/employee-master/employee-groups":
         data = employeeMaster_groups_data;
         break;
       case "/ta-master/ramadan-dates":

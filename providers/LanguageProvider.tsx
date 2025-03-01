@@ -131,18 +131,18 @@ export default function LanguageProvider({
       },
       {
         label: "Employee Groups",
-        path: "/employee-master/groups/",
+        path: "/employee-master/employee-groups/",
         value: "groups",
       },
       {
         label: "Employee Groups",
-        path: "/employee-master/groups/add/",
+        path: "/employee-master/employee-groups/add/",
         value: "groups",
         hide: true,
       },
       {
         label: "Employee Types",
-        path: "/employee-master/types/",
+        path: "/employee-master/employee-types/",
         value: "types",
       },
     ],
