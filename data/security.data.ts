@@ -26,7 +26,7 @@ export const roles_data: RolesDataType[] = [
     users: "0",
   },
   {
-    name_en: "DEPARTMENT ADMIN",
+    name_en: "DEPARTMENT_ADMIN",
     name_ar: "مدير القسم",
     privileges: "View",
     assign_role: "Users",
@@ -47,7 +47,7 @@ export const roles_data: RolesDataType[] = [
     users: "152",
   },
   {
-    name_en: "HR ADMIN",
+    name_en: "HR_ADMIN",
     name_ar: "HR مسؤل",
     privileges: "View",
     assign_role: "Users",
