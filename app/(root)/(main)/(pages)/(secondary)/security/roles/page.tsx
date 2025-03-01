@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import { useLanguage } from "@/providers/LanguageProvider";
 import AddRole from "@/forms/security/AddRole";
 import AssignPriveleges from "@/forms/security/AssignPriveleges";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const { modules } = useLanguage();
+  const router = useRouter();
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -24,12 +26,17 @@ export default function Page() {
 
   const handleCellClick = (data: any) => {
     console.log("Cell Clicked:", data);
-    setSelectedRowData(data); // Store clicked row data
-    setIsModalOpen(true); // Open the modal
+    setSelectedRowData(data);
+    setIsModalOpen(true);
+  };
+
+  const handleCellClickPath = (data: any) => {
+    console.log("Navigating to:", `/security/roles/${data.name_en}`);
+    router.push(`/security/roles/${data.name_en}`);
   };
 
   const handleModalClose = () => {
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false);
   };
 
   const handleEditClick = (data: any) => {
@@ -37,7 +44,6 @@ export default function Page() {
     on_open_change(true);
   };
 
-  // Save data (Add or Update)
   const handleSave = (id: string | null, newData: any) => {
     if (id) {
       // Update existing row
@@ -48,7 +54,7 @@ export default function Page() {
       // Add new row
       SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
     }
-    setSelectedRowData(null); // Clear selected row data
+    setSelectedRowData(null);
   };
 
 
@@ -56,7 +62,7 @@ export default function Page() {
     { field: "name_en", headerName: "Name (English)" },
     { field: "name_ar", headerName: "Name (العربية)" },
     { field: "privileges", clickable: true, onCellClick: handleCellClick },
-    { field: "assign_role", headerName: "Assign Role" },
+    { field: "assign_role", headerName: "Assign Role", clickable: true, onCellClick: handleCellClickPath },
     { field: "users" },
   ]);
 
@@ -94,7 +100,7 @@ export default function Page() {
         <AssignPriveleges
           modal_props={{
             open: isModalOpen,
-            on_open_change: setIsModalOpen, // Pass function to update modal state
+            on_open_change: setIsModalOpen,
           }}
         />
       )}

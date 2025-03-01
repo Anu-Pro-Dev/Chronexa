@@ -94,11 +94,11 @@ function TimerCard() {
       <div className="w-full pt-5 flex justify-between uppercase">
         <div className="flex items-center gap-2 font-bold text-xs">
           {PunchInIcon()}
-          <p>{punchInTime || "Choose time"}</p>
+          <p>{punchInTime || "_ _ : _ _"}</p>
         </div>
         <div className="flex items-center gap-2 font-bold text-xs">
           {PunchOutIcon()}
-          <p>{punchOutTime || "Choose time"}</p>
+          <p>{punchOutTime || "_ _ : _ _"}</p>
         </div>
       </div>
     </div>
