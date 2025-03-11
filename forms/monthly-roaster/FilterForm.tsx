@@ -37,29 +37,17 @@ const formSchema = z.object({
     .max(100),
   version_no: z
     .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+    .optional(),
   manager: z
     .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+    .optional(),
   apply_version_filter: z.boolean(),
   day: z
     .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+    .optional(),
   employee: z
     .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+    .optional(),
 
   month: z
     .string()
@@ -69,10 +57,7 @@ const formSchema = z.object({
     .max(100),
   schedule: z
     .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+    .optional(),
   year: z
     .string()
     .min(1, {
@@ -81,10 +66,7 @@ const formSchema = z.object({
     .max(100),
   group: z
     .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+    .optional(),
 });
 
 export default function FilterForm({
@@ -108,6 +90,14 @@ export default function FilterForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
+        <div className="flex justify-between">
+          <div className="pb-6">
+              <h1 className="font-bold text-xl text-primary pb-2">Filter</h1>
+              <h1 className="font-semibold text-sm text-text-secondary pb-2">
+                Select the Filters for further process
+              </h1>
+          </div>
+          </div>
         <div className="grid lg:grid-cols-2 gap-10">
           <FormField
             control={form.control}
@@ -139,7 +129,7 @@ export default function FilterForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Version no <Required />
+                  Version No 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -163,7 +153,7 @@ export default function FilterForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Manager <Required />
+                  Manager 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -206,11 +196,11 @@ export default function FilterForm({
           />
           <FormField
             control={form.control}
-            name="day"
+            name="employee"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Day <Required />
+                  Employee 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -230,11 +220,11 @@ export default function FilterForm({
           />
           <FormField
             control={form.control}
-            name="employee"
+            name="day"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Employee <Required />
+                  Day 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -252,7 +242,6 @@ export default function FilterForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="month"
@@ -284,7 +273,7 @@ export default function FilterForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Schedule <Required />
+                  Schedule 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -334,7 +323,7 @@ export default function FilterForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Group <Required />
+                  Group
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
@@ -353,19 +342,21 @@ export default function FilterForm({
             )}
           />
         </div>
-        <div className="w-full flex gap-2 items-center col-span-2 justify-end">
-          <Button
-            variant={"outline"}
-            type="button"
-            size={"lg"}
-            className=""
-            onClick={() => on_open_change(false)}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" size={"lg"} className="">
-            Save
-          </Button>
+        <div className="flex justify-end gap-2 items-center py-5">
+          <div className="flex gap-4 px-1">
+            <Button
+              variant={"outline"}
+              type="button"
+              size={"lg"}
+              className=""
+              onClick={() => on_open_change(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size={"lg"} className="">
+              Save
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
