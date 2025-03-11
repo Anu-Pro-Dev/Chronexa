@@ -12,6 +12,7 @@ import FilterManualMovement from "@/forms/self-services/FilterManualMovement";
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
+  const [DataAdd, SetDataAdd] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
     { field: "number" },
@@ -24,11 +25,23 @@ export default function Page() {
     { field: "status" },
   ]);
 
+  const [ColumnsAdd, setColumnsAdd] = useState([
+    { field: "number" },
+    { field: "name" },
+    { field: "designation" },
+    { field: "organization" },
+    { field: "schedule_type" },
+
+  ]);
+
   const [open, on_open_change] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [CurrentPage, SetCurrentPage] = useState<number>(1)
   const [SortField, SetSortField] = useState<string>("")
   const [SortDirection, SetSortDirection] = useState<string>("asc")
+  const [CurrentPageAdd, SetCurrentPageAdd] = useState<number>(1)
+  const [SortFieldAdd, SetSortFieldAdd] = useState<string>("")
+  const [SortDirectionAdd, SetSortDirectionAdd] = useState<string>("asc")
   const [SearchValue, SetSearchValue] = useState<string>("")
 
    const props = {
@@ -49,15 +62,33 @@ export default function Page() {
     on_open_change,
   };
 
+  const propsAdd = {
+    Data:DataAdd,
+    SetData:SetDataAdd,
+    Columns: ColumnsAdd,
+    filter_open,
+    filter_on_open_change,
+    SortField: SortFieldAdd,
+    CurrentPage: CurrentPageAdd,
+    SetCurrentPage: SetCurrentPageAdd,
+    SetSortField : SetSortFieldAdd,
+    SortDirection: SortDirectionAdd,
+    SetSortDirection: SetSortDirectionAdd,
+    SearchValue,
+    SetSearchValue,
+    open,
+    on_open_change,
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
         items={modules?.selfServices?.items}
         enableFilters
-        modal_title="Manual movements add"
-        modal_description="Select the options of the Manual movements to add"
-        modal_component={<AddManageMovements on_open_change={on_open_change} />}
+        modal_title="none"
+        modal_component={<AddManageMovements on_open_change={on_open_change} props={propsAdd} />}
+        isLarge2={true}
         filter_modal_title="none"
         filter_modal_component={
           <FilterManualMovement on_open_change={filter_on_open_change} />

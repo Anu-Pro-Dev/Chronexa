@@ -11,7 +11,8 @@ import {
     PermissionTypesDataType,
     LeaveApplicationDataType,
     LeaveTypesDataType,
-    LeaveApprovalDataType
+    LeaveApprovalDataType,
+    MovementManualDataTypeAdd
   } from "./types/types";
 
 export const workflows_columns = [
@@ -469,6 +470,134 @@ export const movement_manual_data: MovementManualDataType[] = [
     from_time: "09:00",
     to_time: "17:00",
     status: "Approved",
+  },
+  {
+    number: "REC1009",
+    employee: "Daniel Anderson",
+    date: "2024-09-05",
+    from_date: "2024-09-07",
+    to_date: "2024-09-10",
+    from_time: "10:00",
+    to_time: "18:00",
+    status: "Rejected",
+  },
+  {
+    number: "REC1010",
+    employee: "Olivia Martinez",
+    date: "2024-10-10",
+    from_date: "2024-10-12",
+    to_date: "2024-10-15",
+    from_time: "09:00",
+    to_time: "17:00",
+    status: "Approved",
+  },
+]
+
+export const movement_manual_data_add : MovementManualDataTypeAdd[] = [
+  {
+    number: "EMP1001",
+    name: "John Doe",
+    designation: "Software Engineer",
+    organization: "Tech Corp",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1002",
+    name: "Jane Smith",
+    designation: "Product Manager",
+    organization: "Innovate Inc",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1003",
+    name: "Robert Brown",
+    designation: "Data Scientist",
+    organization: "DataWorks",
+    schedule_type: "Part-Time",
+  },
+  {
+    number: "EMP1004",
+    name: "Emily Johnson",
+    designation: "UX Designer",
+    organization: "DesignHub",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1005",
+    name: "Michael Williams",
+    designation: "DevOps Engineer",
+    organization: "Cloudify",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1006",
+    name: "Sarah Miller",
+    designation: "Marketing Specialist",
+    organization: "AdvertiseNow",
+    schedule_type: "Part-Time",
+  },
+  {
+    number: "EMP1007",
+    name: "David Wilson",
+    designation: "QA Engineer",
+    organization: "Testify",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1008",
+    name: "Jessica Davis",
+    designation: "HR Manager",
+    organization: "PeopleFirst",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1009",
+    name: "Daniel Anderson",
+    designation: "Business Analyst",
+    organization: "Analytica",
+    schedule_type: "Part-Time",
+  },
+  {
+    number: "EMP1010",
+    name: "Olivia Martinez",
+    designation: "Financial Analyst",
+    organization: "MoneyMatters",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1011",
+    name: "James Taylor",
+    designation: "Frontend Developer",
+    organization: "WebWorks",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1012",
+    name: "Sophia Clark",
+    designation: "Backend Developer",
+    organization: "CodeCraft",
+    schedule_type: "Part-Time",
+  },
+  {
+    number: "EMP1013",
+    name: "William Rodriguez",
+    designation: "System Administrator",
+    organization: "SysOps",
+    schedule_type: "Full-Time",
+  },
+  {
+    number: "EMP1014",
+    name: "Ava Lewis",
+    designation: "Content Writer",
+    organization: "WriteRight",
+    schedule_type: "Part-Time",
+  },
+  {
+    number: "EMP1015",
+    name: "Ethan Walker",
+    designation: "Network Engineer",
+    organization: "NetSecure",
+    schedule_type: "Full-Time",
   },
 ]
 
