@@ -1,303 +1,409 @@
 "use client";
-import { useEffect, useState } from "react";
-
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { USER_TOKEN } from "@/lib/Instance";
-import { useRouter } from "next/navigation";
-import Required from "@/components/ui/required";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import PowerTable from "@/components/custom/power-comps/power-table";
 import { Calendar } from "@/components/ui/calendar";
+import { AddIcon, CalendarIcon, CancelIcon, CancelIcon2, ClockIcon, SearchIcon } from "@/icons/icons";
 import { format } from "date-fns";
-import { Textarea } from "@/components/ui/textarea";
-import { TimePicker12Demo } from "@/components/ui/time-picker-demo";
-import { TimerIcon } from "lucide-react";
+import { TimePicker } from "@/components/ui/time-picker";
+import Required from "@/components/ui/required";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 const formSchema = z.object({
-  justification: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  from_date: z.date({
+    join_date: z.date({
       required_error: "From Date is required.",
     }),
-  to_date: z.date({
-    required_error: "To Date is required.",
-  }),
-  from_time: z.date({
-    required_error: "From Time is required.",
-  }),
-  to_time: z.date({
-    required_error: "To Time is required.",
-  }),
-});
+    name: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
+    manager: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
+    designation: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100), 
+    organization: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
+    schedule_type: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),           
+  });
 
-export default function AddManageMovements({
-  on_open_change,
-}: {
-  on_open_change: any;
-}) {
+
+export default function AddManageMovements ({
+    on_open_change,props
+  }: {
+    on_open_change: any;
+    props:any;
+  }){
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      justification: "",
+         
     },
   });
 
-  const router = useRouter();
+  const [isChecked, setIsChecked] = useState(false)
+
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
+      toast(
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+        </pre>
+      );
     } catch (error) {
       console.error("Form submission error", error);
+      toast.error("Failed to submit the form. Please try again.");
     }
   }
 
-  function handleTimeChange(type: "hour" | "minute" | "ampm", value: string) {
-    const currentDate = form.getValues("from_time") || new Date();
-    let newDate = new Date(currentDate);
+    return(
+      <>
+      
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white rounded-2xl ">
+              <div className="flex justify-between">
+                <div className="pb-6">
+                    <h1 className="font-bold text-xl text-primary pb-2">Employees</h1>
+                    <h1 className="font-semibold text-sm text-text-secondary pb-2">
+                    Select the holiday for further process
+                    </h1>
+                </div>
+              </div>
 
-    if (type === "hour") {
-      const hour = parseInt(value, 10);
-      newDate.setHours(newDate.getHours() >= 12 ? hour + 12 : hour);
-    } else if (type === "minute") {
-      newDate.setMinutes(parseInt(value, 10));
-    } else if (type === "ampm") {
-      const hours = newDate.getHours();
-      if (value === "AM" && hours >= 12) {
-        newDate.setHours(hours - 12);
-      } else if (value === "PM" && hours < 12) {
-        newDate.setHours(hours + 12);
-      }
-    }
-    form.setValue("from_time", newDate);
-  }
-  
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="grid lg:grid-cols-2 gap-10">
-          <div>
-            <FormField
-              control={form.control}
-              name="from_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    From Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
-                      />
-                    </PopoverContent>
-                  </Popover>
+              <div className="flex flex-col gap-3">
+                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-8 lg:gap-x-10 px-5">
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div>
-            <FormField
-              control={form.control}
-              name="to_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    To Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name="from_time"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-left">
-                  From Time <Required />
-                </FormLabel>
-                <Popover>
-                  <FormControl>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          " justify-between text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full bg-white px-3 flex justify-between text-text-primary border-grey">
+                                  <p>
+                                    <FormLabel className="font-normal text-secondary">
+                                      Name <Required />
+                                    </FormLabel>
+                                    <span className="px-1 text-sm text-text-primary">
+                                      {field.value ? (
+                                        // Display the selected workflow label
+                                        field.value === "1" ? "Leaves" :
+                                        field.value === "2" ? "Permissions" :
+                                        field.value === "3" ? "Missing movements" :
+                                        field.value === "4" ? "Manual movements" :
+                                        "Choose workflows"
+                                      ) : (
+                                        <span className="">Choose Employee</span>
+                                      )}
+                                    </span>
+                                  </p>
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="1">Leaves</SelectItem>
+                                <SelectItem value="2">Permissions</SelectItem>
+                                <SelectItem value="3">Missing movements</SelectItem>
+                                <SelectItem value="4">Manual movements</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      >
-                        {field.value ? (
-                          format(field.value, "HH:mm")
-                        ) : (
-                          <span>From Time</span>
-                        )}
-                        <TimerIcon className=" h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                  </FormControl>
-                  <PopoverContent className="w-auto p-0">
-                    <div className="p-3  bg-background">
-                      <TimePicker12Demo
-                        setDate={field.onChange}
-                        date={field.value}
                       />
+
+                      <FormField
+                        control={form.control}
+                        name="manager"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full bg-white px-3 flex justify-between text-text-primary border-grey">
+                                  <p>
+                                    <FormLabel className="font-normal text-secondary">
+                                      Manager <Required />
+                                    </FormLabel>
+                                    <span className="px-1 text-sm text-text-primary">
+                                      {field.value ? (
+                                        // Display the selected workflow label
+                                        field.value === "1" ? "Leaves" :
+                                        field.value === "2" ? "Permissions" :
+                                        field.value === "3" ? "Missing movements" :
+                                        field.value === "4" ? "Manual movements" :
+                                        "Choose workflows"
+                                      ) : (
+                                        <span className="">Choose Manager</span>
+                                      )}
+                                    </span>
+                                  </p>
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="1">Leaves</SelectItem>
+                                <SelectItem value="2">Permissions</SelectItem>
+                                <SelectItem value="3">Missing movements</SelectItem>
+                                <SelectItem value="4">Manual movements</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="designation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full bg-white px-3 flex justify-between text-text-primary border-grey">
+                                  <p>
+                                    <FormLabel className="font-normal text-secondary">
+                                      Designation <Required />
+                                    </FormLabel>
+                                    <span className="px-1 text-sm text-text-primary">
+                                      {field.value ? (
+                                        // Display the selected workflow label
+                                        field.value === "1" ? "Leaves" :
+                                        field.value === "2" ? "Permissions" :
+                                        field.value === "3" ? "Missing movements" :
+                                        field.value === "4" ? "Manual movements" :
+                                        "Choose workflows"
+                                      ) : (
+                                        <span className="">Choose Designation</span>
+                                      )}
+                                    </span>
+                                  </p>
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="1">Leaves</SelectItem>
+                                <SelectItem value="2">Permissions</SelectItem>
+                                <SelectItem value="3">Missing movements</SelectItem>
+                                <SelectItem value="4">Manual movements</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="organization"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full bg-white px-3 flex justify-between text-text-primary border-grey">
+                                  <p>
+                                    <FormLabel className="font-normal text-secondary">
+                                      Organization <Required />
+                                    </FormLabel>
+                                    <span className="px-1 text-sm text-text-primary">
+                                      {field.value ? (
+                                        // Display the selected workflow label
+                                        field.value === "1" ? "Leaves" :
+                                        field.value === "2" ? "Permissions" :
+                                        field.value === "3" ? "Missing movements" :
+                                        field.value === "4" ? "Manual movements" :
+                                        "Choose workflows"
+                                      ) : (
+                                        <span className="">Choose Organization</span>
+                                      )}
+                                    </span>
+                                  </p>
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="1">Leaves</SelectItem>
+                                <SelectItem value="2">Permissions</SelectItem>
+                                <SelectItem value="3">Missing movements</SelectItem>
+                                <SelectItem value="4">Manual movements</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="schedule_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full bg-white px-3 flex justify-between text-text-primary border-grey">
+                                  <p>
+                                    <FormLabel className="font-normal text-secondary">
+                                      Schedule Type <Required />
+                                    </FormLabel>
+                                    <span className="px-1 text-sm text-text-primary">
+                                      {field.value ? (
+                                        // Display the selected workflow label
+                                        field.value === "1" ? "Leaves" :
+                                        field.value === "2" ? "Permissions" :
+                                        field.value === "3" ? "Missing movements" :
+                                        field.value === "4" ? "Manual movements" :
+                                        "Choose workflows"
+                                      ) : (
+                                        <span className="">Choose Schedule Type</span>
+                                      )}
+                                    </span>
+                                  </p>
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="1">Leaves</SelectItem>
+                                <SelectItem value="2">Permissions</SelectItem>
+                                <SelectItem value="3">Missing movements</SelectItem>
+                                <SelectItem value="4">Manual movements</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="join_date"
+                        render={({ field }) => (
+                          <FormItem className="">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    size={"lg"}
+                                    variant={"outline"}
+                                    className="w-full bg-white px-3 flex justify-between text-text-primary border-grey"
+                                  >
+                                    <p>
+                                      <FormLabel className="font-normal text-secondary">
+                                        Join Date <Required />
+                                      </FormLabel>
+                                      <span className="px-1 text-sm text-text-primary">
+                                        {field.value ? format(field.value, "dd/MM/yy") : "Choose date"}
+                                      </span>
+                                    </p>
+                                    <CalendarIcon />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                        
                     </div>
-                  </PopoverContent>
-                </Popover>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="to_time"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-left">
-                  {" "}
-                  To Time <Required />
-                </FormLabel>
-                <Popover>
-                  <FormControl>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          " justify-between text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "HH:mm")
-                        ) : (
-                          <span>To Time</span>
-                        )}
-                        <TimerIcon className=" h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                  </FormControl>
-                  <PopoverContent className="w-auto p-0 ">
-                    <div className="p-3  bg-background">
-                      <TimePicker12Demo
-                        setDate={field.onChange}
-                        date={field.value}
-                      />
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="justification"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>
-                  Justification <Required />
-                </FormLabel>
-                <FormControl>
-                  <Textarea rows={10} placeholder="Type.." {...field} />
-                </FormControl>
+                    <div className="flex justify-between gap-2 items-center py-5">
+                      <div className="flex items-center gap-2 px-5">
+                        <Input type="checkbox" checked={isChecked} onChange={(e) => setIsChecked(e.target.checked)}/>
+                        <p className="text-sm">Active</p>
+                      </div>
+                      <div className="flex gap-4 px-5">
+                        <Button type="submit" size={"lg"} className="w-full rounded-lg px-4">
+                          <SearchIcon/>  Search
+                        </Button>
+                        <Button type="submit" size={"lg"} className="w-full rounded-lg px-4" variant={"success"}>
+                            <AddIcon/> Add
+                        </Button>
+                        <Button
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="w-full flex gap-2 items-center col-span-2 justify-end">
-            <Button
-              variant={"outline"}
-              type="button"
-              size={"lg"}
-              className=""
-              onClick={() => on_open_change(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" size={"lg"} className="">
-              Save
-            </Button>
-          </div>
+                            variant={"outlineGrey"}
+                            type="button"
+                            size={"lg"}
+                            className="w-full rounded-lg px-4 bg-gray-100 border-gray-300"
+                            onClick={() => on_open_change(false)}
+                        >
+                          <CancelIcon2  />  Cancel
+                        </Button>
+                        
+                      </div>
+                    </div>
+              </div>
+            </form>
+        </Form>
+        <div >
+          <PowerTable props={props} api={"/self-services/manage-movements/manual/add"} ispageValue5 = {true} />
         </div>
-      </form>
-    </Form>
-  );
+      </>  
+    )
 }

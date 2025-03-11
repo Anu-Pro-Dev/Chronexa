@@ -23,6 +23,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         gradient: "bg-gradient-to-r from-[#0078D4] to-[#003E6E]",
         primaryoutline: `bg-[#F1F8FD] text-primary border border-[#C1DEF5] shadow-button`,
+        outlineGrey: "border hover:bg-accent hover:text-accent-foreground text-border-grey"
       },
       size: {
         default: "h-9 px-4 py-2",

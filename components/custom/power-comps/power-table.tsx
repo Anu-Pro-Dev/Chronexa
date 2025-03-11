@@ -34,6 +34,7 @@ export default function PowerTable({
   showCheckbox = true,
   onEditClick,
   customColDef = {},
+  ispageValue5,
 }: {
   props: any;
   api?: any;
@@ -41,12 +42,13 @@ export default function PowerTable({
   showCheckbox?: boolean;
   onEditClick?: (data: any) => void;
   customColDef?: any;
+  ispageValue5?: any;
 }) {
   const { dir } = useLanguage();
   const gridRef = useRef<any>();
 
   const [TotalPages, SetTotalPages] = useState<number>(1);
-  const [rows_per_page, set_rows_per_page] = useState<string>("10");
+  const [rows_per_page, set_rows_per_page] = useState<string>(ispageValue5 === true ? "5" : "10");
 
   // Fetch Data Function
   const FetchData = async () => {

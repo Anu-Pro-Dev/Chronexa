@@ -9,7 +9,7 @@ import {
 import { weeklyschedule_data } from "@/data/scheduling.data";
 import { departments_data, organizationtypes_data } from "@/data/org.data";
 import { privileges_data, roles_data } from "@/data/security.data";
-import { workflows_data, approvals_verification_data, approvals_pending_data, movement_applied_data, movement_manual_data, movement_missing_data, movement_approve_manual_data, movement_approve_missing_data, permission_application_data, permission_types_data, leave_application_data, leave_types_data, leave_approval_data } from "@/data/selfservices.data";
+import { workflows_data, approvals_verification_data, approvals_pending_data, movement_applied_data, movement_manual_data, movement_missing_data, movement_approve_manual_data, movement_approve_missing_data, permission_application_data, permission_types_data, leave_application_data, leave_types_data, leave_approval_data, movement_manual_data_add } from "@/data/selfservices.data";
 import { notification_data, settings_data } from "@/data/settings.data";
 import { holidays_data, ramadandates_data, reasons_data, schedules_data} from "@/data/tam.data";
 
@@ -83,6 +83,9 @@ export const DynamicApi = (api: any, params: any) => {
       case "/self-services/manage-movements/manual":
         data = movement_manual_data;
         break;
+      case "/self-services/manage-movements/manual/add":
+          data = movement_manual_data_add;
+          break;
       case "/self-services/manage-movements/approve-manual":
         data = movement_approve_manual_data;
         break;

@@ -215,6 +215,14 @@ export type MovementManualDataType = {
   status: string;
 }
 
+export type MovementManualDataTypeAdd = {
+  number: string;
+  name:string;
+  designation: string;
+  organization: string;
+  schedule_type: string;
+}
+
 //self services movement missing data type
 
 export type MovementMissingDataType = {

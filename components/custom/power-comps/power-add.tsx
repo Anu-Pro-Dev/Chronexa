@@ -17,10 +17,11 @@ import { useLanguage } from "@/providers/LanguageProvider";
 export default function PowerAdd({
   isAddNewPagePath = null,
   modal_title,
-  modal_description = "Description",
+  modal_description,
   modal_component,
   modal_props,
   isLarge = false,
+  isLarge2 = false,
 }: {
   isAddNewPagePath?: string | null;
   modal_title?: string;
@@ -28,10 +29,11 @@ export default function PowerAdd({
   modal_component?: any;
   modal_props?: any;
   isLarge?: any;
+  isLarge2?: any;
 }) {
   const router = useRouter();
   const { translations } = useLanguage();
-  const modalTitle = modal_title || translations?.buttons.add || "Add";
+  const modalTitle = modal_title === "none" ? null : translations?.buttons.add || "Add";
 
   return (
     <div>
@@ -65,7 +67,7 @@ export default function PowerAdd({
             </Button>
           </ResponsiveModalTrigger>
         )}
-        <ResponsiveModalContent className={isLarge && "max-w-4xl"}>
+        <ResponsiveModalContent className={ isLarge2 && "max-w-6xl" || isLarge && "max-w-4xl" }>
           <ResponsiveModalHeader>
             {/* <div className=""> */}
               {/* <div className=""> */}
