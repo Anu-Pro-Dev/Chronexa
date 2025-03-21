@@ -22,6 +22,8 @@ import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
+import { IoEye, IoEyeOff } from "react-icons/io5";
+
 const formSchema = z.object({
   username: z
     .string()
@@ -44,6 +46,8 @@ const formSchema = z.object({
 });
 
 export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -123,14 +127,22 @@ export default function LoginForm() {
                 <FormLabel>
                   Password <Required />
                 </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter your password"
-                    type="password"
-                    {...field}
-                  />
-                </FormControl>
-
+                <div className="relative">
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your password"
+                      type={showPassword ? "text" : "password"}
+                      {...field}
+                    />
+                  </FormControl>
+                  <button
+                    type="button"
+                    className="absolute right-3 top-3 text-text-secondary"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <IoEyeOff className="w-5 h-5" /> : <IoEye className="w-5 h-5" />}
+                  </button>
+                </div>
                 <FormMessage />
               </FormItem>
             )}

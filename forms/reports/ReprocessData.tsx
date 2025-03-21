@@ -30,8 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ActionIcon, CalendarIcon } from "@/icons/icons";
+import { ActionIcon, CalendarIcon, ExclamationIcon } from "@/icons/icons";
 import { Checkbox } from "@/components/ui/checkbox";
+import ReprocessDataTakeAction from "@/forms/reports/ReprocessDataTakeAction";
 
 const formSchema = z.object({
   employee: z
@@ -56,6 +57,9 @@ const formSchema = z.object({
 });
 
 export default function ReprocessData() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [open, on_open_change] = useState<boolean>(false);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
@@ -71,15 +75,22 @@ export default function ReprocessData() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl relative">
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Reprocess data</h1>
           <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for reprocess the data
           </h1>
         </div>
+        <div className="absolute top-6 right-10">
+          {!form.watch("employee") && (
+            <p className="text-sm text-destructive mt-2 border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center ">
+              <ExclamationIcon className="mr-2" /> Select atleast one employee
+            </p>
+          )}
+        </div>
         <div className="flex flex-col gap-6">
-          <div className="p-5 flex flex-col">
+          <div className="p-5 flex flex-col pb-0">
             <div className="flex justify-between items-start gap-10">
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
@@ -235,12 +246,20 @@ export default function ReprocessData() {
           </div>
           <div className="flex justify-end gap-2 items-center pb-5">
             <div className="flex gap-4 px-5">
-              <Button type="submit" size={"sm"} variant={"destructive"}>
+              <Button type="submit" size={"sm"} variant={"destructive"} onClick={() => setIsModalOpen(true)}>
                 <ActionIcon/>
                 Take Action
               </Button>
             </div>
           </div>
+          {isModalOpen && (
+            <ReprocessDataTakeAction
+              modal_props={{
+                open: isModalOpen,
+                on_open_change: setIsModalOpen,
+              }}
+            />
+          )}
         </div>
       </form>
     </Form>
