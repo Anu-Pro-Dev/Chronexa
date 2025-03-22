@@ -29,10 +29,13 @@ export default function Page() {
     setSelectedRowData(data);
     setIsModalOpen(true);
   };
-
+  
   const handleCellClickPath = (data: any) => {
-    console.log("Navigating to:", `/security/roles/${data.name_en}`);
-    router.push(`/security/roles/${data.name_en}`);
+    console.log("Clicked Data:", data); // Debugging
+    if (data?.name_en) {
+      router.push(`/security/roles/assign-roles?role=${data.name_en}`);    } else {
+      console.error("Error: No code found for this row", data);
+    }
   };
 
   const handleModalClose = () => {

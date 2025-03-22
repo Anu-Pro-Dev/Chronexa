@@ -23,14 +23,14 @@ export const roles_data: RolesDataType[] = [
     name_ar: "مسؤل",
     privileges: "View",
     assign_role: "Users",
-    users: "0",
+    users: "1",
   },
   {
     name_en: "DEPARTMENT_ADMIN",
     name_ar: "مدير القسم",
     privileges: "View",
     assign_role: "Users",
-    users: "6",
+    users: "5",
   },
   {
     name_en: "DEVELOPER",
@@ -44,21 +44,21 @@ export const roles_data: RolesDataType[] = [
     name_ar: "موظف",
     privileges: "View",
     assign_role: "Users",
-    users: "152",
+    users: "4",
   },
   {
     name_en: "HR_ADMIN",
     name_ar: "HR مسؤل",
     privileges: "View",
     assign_role: "Users",
-    users: "4",
+    users: "2",
   },
   {
     name_en: "MANAGER",
     name_ar: "مدير",
     privileges: "View",
     assign_role: "Users",
-    users: "21",
+    users: "3",
   },
 ];
 

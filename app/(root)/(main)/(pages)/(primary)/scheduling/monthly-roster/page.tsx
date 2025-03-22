@@ -2,10 +2,10 @@
 import React, { useState, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import { useLanguage } from "@/providers/LanguageProvider";
-import FilterForm from "@/forms/monthly-roaster/FilterForm";
+import FilterForm from "@/forms/monthly-roster/FilterForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import PowerTableRoaster from "@/components/custom/power-comps/power-table-roaster";
+import PowerTableRoster from "@/components/custom/power-comps/power-table-roster";
 import {
   CopyIcon,
   ExportIcon,
@@ -159,7 +159,7 @@ export default function Page() {
             <ExportIcon /> Export
           </Button>
           <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-            <CopyIcon /> Copy Roaster
+            <CopyIcon /> Copy Roster
           </Button>
           <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
             <CopyIcon /> Copy
@@ -170,7 +170,7 @@ export default function Page() {
         </div>
       </div>
 
-      <PowerTableRoaster props={props} />
+      <PowerTableRoster props={props} />
 
       <div className="justify-end gap-4 flex">
         <Button size={"sm"} type="button">

@@ -204,9 +204,9 @@ export default function LanguageProvider({
         hide: true,
       },
       {
-        label: "Monthly Roaster",
-        path: "/scheduling/monthly-roaster/",
-        value: "monthly_roaster",
+        label: "Monthly Roster",
+        path: "/scheduling/monthly-roster/",
+        value: "monthly_roster",
       },
       {
         label: "Employee Schedule",
@@ -460,6 +460,12 @@ export default function LanguageProvider({
         label: "Roles",
         path: "/security/roles/",
         value: "roles",
+      },
+      {
+        label: "Roles",
+        path: `/security/roles/assign-roles/`,
+        value: "roles",
+        hide: true,
       },
       {
         label: "Privileges",

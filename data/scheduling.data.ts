@@ -71,7 +71,7 @@ export const  weeklyschedule_data: WeeklyScheduleDataType[] = [
 ];
 
 
-export const monthlyRoaster_data = [
+export const monthlyRoster_data = [
   {
     category: "ADMIN - ADMIN",
     subcategory: "A/ Executive Director Corporate Support Services Centre - A/ Executive Director Corporate Support Services Centre",

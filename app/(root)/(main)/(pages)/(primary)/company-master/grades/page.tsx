@@ -9,11 +9,11 @@ export default function Page() {
   const { modules } = useLanguage();
 
   const [Columns, setColumns] = useState([
-    { field: "code", headerName: "Code" },
+    // { field: "code", headerName: "Code" },
     { field: "description_en", headerName: "Description (English)" },
     { field: "overtime_eligible", headerName: "Overtime eligible" },
     { field: "senior_employee", headerName: "Senior employee" },
-    { field: "updated", headerName: "Updated" },
+    // { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

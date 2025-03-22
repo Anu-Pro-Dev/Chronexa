@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import MonthlyRoasterTable from "./MonthlyRoasterTable";
+import MonthlyRosterTable from "./MonthlyRosterTable";
 
 function ScheduleCard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
@@ -46,7 +46,7 @@ function ScheduleCard() {
         />
       </div>
 
-      {/* <MonthlyRoasterTable month={months[parseInt(selectedMonth)]} /> */}
+      {/* <MonthlyRosterTable month={months[parseInt(selectedMonth)]} /> */}
     </div>
   );
 }

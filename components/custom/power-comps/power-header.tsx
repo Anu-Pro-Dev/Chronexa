@@ -102,9 +102,8 @@ export default function PowerHeader({
                 isLarge2={isLarge2}
               />
             )}
-
-            {!disableFeatures && !disableDelete && (
-              <PowerDelete props={props} />
+            {!disableFeatures && !disableDelete && props?.selectedRows?.length > 0 && (
+              <PowerDelete props={props} label={props?.selectedRows?.length === props?.Data?.length ? "Delete All" : "Delete"}/>
             )}
             {enableTakeAction && (
               <PowerTakeAction
