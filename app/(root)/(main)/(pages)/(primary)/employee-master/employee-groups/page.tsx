@@ -17,9 +17,13 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
 
   const handleCellClickPath = (data: any) => {
-    console.log("Navigating to:", `/employee-master/employee-groups/${data.code}`);
-    router.push(`/employee-master/employee-groups/${data.code}-members`);
+    console.log("Clicked Data:", data); // Debugging
+    if (data?.code) {
+      router.push(`/employee-master/employee-groups/group-members?group=${data.code}`);    } else {
+      console.error("Error: No code found for this row", data);
+    }
   };
+  
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);

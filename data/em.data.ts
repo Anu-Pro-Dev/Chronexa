@@ -1,4 +1,5 @@
 import { EmployeeMasterEmployeesDataType, EmployeeMasterGroupsDataType, EmployeeMasterGroupsMembersDataType, EmployeeMasterTypesDataType } from "./types/types";
+import { MembersIcon } from "@/icons/icons";
 
 export const employeeMaster_employees_columns = [
     "select",
@@ -12,6 +13,7 @@ export const employeeMaster_employees_columns = [
     "organization",
     "manager_name",
     "actions",
+    "code",
 ];
 
 export const employeeMaster_groups_columns = [
@@ -55,7 +57,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Senior Developer",
         "organization": "IT",
-        "manager_name": "ADMIN"
+        "manager_name": "ADMIN",
+        "code": "WD",
     },
     {
         "number": "2",
@@ -66,7 +69,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗴",
         "designation": "Junior Developer",
         "organization": "HR",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "PHY",
     },
     {
         "number": "3",
@@ -77,7 +81,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Team Lead",
         "organization": "Finance",
-        "manager_name": ""
+        "manager_name": "",
+        "code": "WD",
     },
     {
         "number": "4",
@@ -88,7 +93,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Developer",
         "organization": "Marketing",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "CD",
     },
     {
         "number": "5",
@@ -99,7 +105,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Project Manager",
         "organization": "IT",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "MD",
     },
     {
         "number": "6",
@@ -110,7 +117,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "QA Engineer",
         "organization": "IT",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "PHY",
     },
     {
         "number": "7",
@@ -121,7 +129,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "UX Designer",
         "organization": "HR",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "DNAY23",
     },
     {
         "number": "8",
@@ -132,7 +141,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "System Analyst",
         "organization": "Finance",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "IT",
     },
     {
         "number": "9",
@@ -143,7 +153,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "HR Specialist",
         "organization": "HR",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "IT",
     },
     {
         "number": "10",
@@ -154,7 +165,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Data Scientist",
         "organization": "Marketing",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "WD",
     },
     {
         "number": "11",
@@ -165,7 +177,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Business Analyst",
         "organization": "IT",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "IT",
     },
     {
         "number": "12",
@@ -176,7 +189,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Network Engineer",
         "organization": "IT",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "IT",
     },
     {
         "number": "13",
@@ -187,7 +201,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Sales Manager",
         "organization": "Sales",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "CD",
     },
     {
         "number": "14",
@@ -198,7 +213,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Software Engineer",
         "organization": "IT",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "NM",
     },
     {
         "number": "15",
@@ -209,7 +225,8 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "active":  "🗸",
         "designation": "Marketing Lead",
         "organization": "Marketing",
-        "manager_name": "Employee 03"
+        "manager_name": "Employee 03",
+        "code": "MD",
     },
 ];
 

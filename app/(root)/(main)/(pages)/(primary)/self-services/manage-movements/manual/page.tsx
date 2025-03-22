@@ -31,7 +31,6 @@ export default function Page() {
     { field: "designation" },
     { field: "organization" },
     { field: "schedule_type" },
-
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
