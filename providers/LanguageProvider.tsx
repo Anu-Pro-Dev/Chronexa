@@ -40,6 +40,7 @@ export default function LanguageProvider({
   const [isMounted, setIsMounted] = useState(false);
 
   const currentLanguageData = allLanguages[language] || allLanguages["en"];
+  const groupCode = typeof window !== "undefined" ? localStorage.getItem("groupCode") || "defaultCode" : "defaultCode";
 
   const dashboard = {
     route_name: "Dashboard",
@@ -137,6 +138,12 @@ export default function LanguageProvider({
       {
         label: "Employee Groups",
         path: "/employee-master/employee-groups/add/",
+        value: "groups",
+        hide: true,
+      },
+      {
+        label: "Employee Groups",
+        path: `/employee-master/employee-groups/group-members/`,
         value: "groups",
         hide: true,
       },
