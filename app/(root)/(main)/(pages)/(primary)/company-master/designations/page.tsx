@@ -9,9 +9,9 @@ export default function Page() {
   const { modules } = useLanguage();
 
   const [Columns, setColumns] = useState([
-    { field: "code", headerName: "Code" },
+    // { field: "code", headerName: "Code" },
     { field: "description_en", headerName: "Description (English)" },
-    { field: "updated", headerName: "Updated" },
+    // { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);

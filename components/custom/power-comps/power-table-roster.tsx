@@ -13,7 +13,7 @@ import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
 import { useLanguage } from "@/providers/LanguageProvider";
 
-export default function PowerTableRoaster({
+export default function PowerTableRoster({
   props,
   api,
   showCheckbox = true,

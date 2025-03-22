@@ -49,6 +49,17 @@ export default function PowerTable({
 
   const [TotalPages, SetTotalPages] = useState<number>(1);
   const [rows_per_page, set_rows_per_page] = useState<string>(ispageValue5 === true ? "5" : "10");
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+
+  const onSelectionChanged = (event: any) => {
+    const selectedNodes = event.api.getSelectedNodes();
+    const newSelectedRows = selectedNodes.map((node: any) => node.data);
+
+    if (JSON.stringify(selectedRows) !== JSON.stringify(newSelectedRows)) {
+        setSelectedRows(newSelectedRows);
+        if (props?.setSelectedRows) props.setSelectedRows(newSelectedRows);
+    }
+};
 
   // Fetch Data Function
   const FetchData = async () => {
@@ -199,6 +210,7 @@ export default function PowerTable({
           rowData={props.Data}
           columnDefs={columnDefs}
           domLayout="autoHeight"
+          onSelectionChanged={onSelectionChanged}
           gridOptions={{
             rowSelection: showCheckbox ? "multiple" : undefined,
             suppressCellFocus: true,

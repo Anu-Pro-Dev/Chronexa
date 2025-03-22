@@ -3,21 +3,21 @@ import { Button } from "@/components/ui/button";
 import { DeleteIcon } from "@/icons/icons";
 import { useLanguage } from "@/providers/LanguageProvider";
 
-export default function PowerDelete({ props }: { props: any }) {
+export default function PowerDelete({ props, label }: { props: any, label: string }) {
   const { translations } = useLanguage();
   
   return (
     <div>
       <Button
         disabled={
-          props?.SelectedKeys?.length === 0 || props?.SelectedKeys === undefined
+          props?.selectedRows?.length === 0 || props?.selectedRows === undefined
         }
         variant={"destructive"}
         size={"sm"}
         className="flex items-center space-y-0.5"
       >
         <DeleteIcon />
-        <span>{translations?.buttons.delete}</span>
+        <span>{label}</span>
       </Button>
     </div>
   );

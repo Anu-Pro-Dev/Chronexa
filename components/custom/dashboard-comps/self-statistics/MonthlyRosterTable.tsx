@@ -10,11 +10,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface MonthlyRoasterTableProps {
+interface MonthlyRosterTableProps {
   month: string;
 }
 
-const MonthlyRoasterTable: React.FC<MonthlyRoasterTableProps> = ({ month }) => {
+const MonthlyRosterTable: React.FC<MonthlyRosterTableProps> = ({ month }) => {
   // Sample data - in a real app, this would come from an API
   const data = [
     {
@@ -37,7 +37,7 @@ const MonthlyRoasterTable: React.FC<MonthlyRoasterTableProps> = ({ month }) => {
   return (
     <div className="w-full">
       <div className="bg-primary/5 p-4 mb-4 rounded-lg">
-        <h3 className="text-lg font-semibold text-primary">Monthly Roaster Schedule</h3>
+        <h3 className="text-lg font-semibold text-primary">Monthly Roster Schedule</h3>
         <p className="text-sm text-muted-foreground">Schedule for {month}</p>
       </div>
       
@@ -67,4 +67,4 @@ const MonthlyRoasterTable: React.FC<MonthlyRoasterTableProps> = ({ month }) => {
   );
 };
 
-export default MonthlyRoasterTable;
+export default MonthlyRosterTable;

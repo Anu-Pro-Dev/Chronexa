@@ -43,7 +43,7 @@ export default function PowerAdd({
       >
         {isAddNewPagePath && (
           <Button
-            variant={"success"}
+            // variant={"default"}
             size={"sm"}
             onClick={() => {
               router.push(isAddNewPagePath);
@@ -58,7 +58,7 @@ export default function PowerAdd({
         {isAddNewPagePath === null && (
           <ResponsiveModalTrigger asChild>
             <Button
-              variant={"success"}
+              // variant={"success"}
               size={"sm"}
               className="flex items-center space-y-0.5"
             >

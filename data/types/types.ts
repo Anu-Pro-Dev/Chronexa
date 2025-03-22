@@ -61,6 +61,7 @@ export type EmployeeMasterEmployeesDataType = {
   organization: string;
   manager_name: string;
   code: string;
+  role: string;
 };
 
 export type EmployeeMasterGroupsDataType = {

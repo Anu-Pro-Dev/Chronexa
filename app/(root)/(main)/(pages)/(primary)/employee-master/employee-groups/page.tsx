@@ -23,7 +23,6 @@ export default function Page() {
       console.error("Error: No code found for this row", data);
     }
   };
-  
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);

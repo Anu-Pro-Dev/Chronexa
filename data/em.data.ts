@@ -1,5 +1,4 @@
 import { EmployeeMasterEmployeesDataType, EmployeeMasterGroupsDataType, EmployeeMasterGroupsMembersDataType, EmployeeMasterTypesDataType } from "./types/types";
-import { MembersIcon } from "@/icons/icons";
 
 export const employeeMaster_employees_columns = [
     "select",
@@ -14,6 +13,7 @@ export const employeeMaster_employees_columns = [
     "manager_name",
     "actions",
     "code",
+    "role",
 ];
 
 export const employeeMaster_groups_columns = [
@@ -59,6 +59,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "IT",
         "manager_name": "ADMIN",
         "code": "WD",
+        "role": "ADMIN"
     },
     {
         "number": "2",
@@ -71,6 +72,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "HR",
         "manager_name": "Employee 03",
         "code": "PHY",
+        "role": "EMPLOYEE"
     },
     {
         "number": "3",
@@ -83,6 +85,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "Finance",
         "manager_name": "",
         "code": "WD",
+        "role": "DEPARTMENT_ADMIN"
     },
     {
         "number": "4",
@@ -95,6 +98,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "Marketing",
         "manager_name": "Employee 03",
         "code": "CD",
+        "role": "MANAGER"
     },
     {
         "number": "5",
@@ -107,6 +111,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "IT",
         "manager_name": "Employee 03",
         "code": "MD",
+        "role": "MANAGER"
     },
     {
         "number": "6",
@@ -119,6 +124,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "IT",
         "manager_name": "Employee 03",
         "code": "PHY",
+        "role": "DEPARTMENT_ADMIN"
     },
     {
         "number": "7",
@@ -131,6 +137,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "HR",
         "manager_name": "Employee 03",
         "code": "DNAY23",
+        "role": "EMPLOYEE"
     },
     {
         "number": "8",
@@ -143,6 +150,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "Finance",
         "manager_name": "Employee 03",
         "code": "IT",
+        "role": "DEPARTMENT_ADMIN"
     },
     {
         "number": "9",
@@ -155,6 +163,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "HR",
         "manager_name": "Employee 03",
         "code": "IT",
+        "role": "HR_ADMIN"
     },
     {
         "number": "10",
@@ -167,6 +176,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "Marketing",
         "manager_name": "Employee 03",
         "code": "WD",
+        "role": "HR_ADMIN"
     },
     {
         "number": "11",
@@ -179,6 +189,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "IT",
         "manager_name": "Employee 03",
         "code": "IT",
+        "role": "EMPLOYEE"
     },
     {
         "number": "12",
@@ -191,6 +202,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "IT",
         "manager_name": "Employee 03",
         "code": "IT",
+        "role": "EMPLOYEE"
     },
     {
         "number": "13",
@@ -203,6 +215,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "Sales",
         "manager_name": "Employee 03",
         "code": "CD",
+        "role": "MANAGER"
     },
     {
         "number": "14",
@@ -215,6 +228,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "IT",
         "manager_name": "Employee 03",
         "code": "NM",
+        "role": "DEPARTMENT_ADMIN"
     },
     {
         "number": "15",
@@ -227,6 +241,7 @@ export const  employeeMaster_employees_data: EmployeeMasterEmployeesDataType[] =
         "organization": "Marketing",
         "manager_name": "Employee 03",
         "code": "MD",
+        "role": "DEPARTMENT_ADMIN"
     },
 ];
 

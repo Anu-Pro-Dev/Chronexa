@@ -130,9 +130,9 @@
 //       value: "weekly_schedule",
 //     },
 //     {
-//       label: "Monthly Roaster",
-//       path: "/scheduling/monthly-roaster",
-//       value: "monthly_roaster",
+//       label: "Monthly Roster",
+//       path: "/scheduling/monthly-roster",
+//       value: "monthly_roster",
 //     },
 //     {
 //       label: "Employee Schedule",
