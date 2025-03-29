@@ -85,10 +85,10 @@ export default function Page() {
         props={props}
         items={modules?.selfServices?.items}
         enableFilters
-        modal_title="none"
+        // modal_title="none"
         modal_component={<AddManageMovements on_open_change={on_open_change} props={propsAdd} />}
         isLarge2={true}
-        filter_modal_title="none"
+        // filter_modal_title="none"
         filter_modal_component={
           <FilterManualMovement on_open_change={filter_on_open_change} />
         }

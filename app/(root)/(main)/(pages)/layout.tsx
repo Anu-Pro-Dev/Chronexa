@@ -9,8 +9,8 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 export default function Layout({ children }: { children: any }) {
   return (
     <>
-      {/* <div className="">
-        <div className=""> */}
+      <div className="bg-background">
+        {/* <div className=""> */}
           <SidebarProvider>
             <AppSidebar />
             <div className="w-full bg-background">
@@ -28,8 +28,8 @@ export default function Layout({ children }: { children: any }) {
               </div>
             </div>
           </SidebarProvider>
-        {/* </div>
-      </div> */}
+        {/* </div> */}
+      </div>
     </>
   );
 }

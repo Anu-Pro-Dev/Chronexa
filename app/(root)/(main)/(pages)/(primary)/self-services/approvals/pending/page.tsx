@@ -58,7 +58,7 @@ export default function Page() {
         enableApprove
         enableReject
         enableFilters
-        filter_modal_title="none"
+        // filter_modal_title="none"
         filter_modal_component={
           <FilterPendingApproval on_open_change={filter_on_open_change} />
         }

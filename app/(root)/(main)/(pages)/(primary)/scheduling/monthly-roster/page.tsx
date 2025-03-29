@@ -143,7 +143,7 @@ export default function Page() {
           <FilterForm on_open_change={filter_on_open_change} />
         }
         isLarge
-        filter_modal_title="none"
+        // filter_modal_title="none"
       />
 
       <div className="flex justify-between bg-white rounded-[15px] items-center px-5 py-3">

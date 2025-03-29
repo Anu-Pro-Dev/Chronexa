@@ -17,9 +17,8 @@ export const regions_columns = [
 export const nationalities_columns = [
   "select",
   "code",
-  "description_en",
-  "description_ar",
-  "updated",
+  "name",
+  "nameAr",
   "actions",
 ];
 
@@ -574,6 +573,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "97",
     description_en: "body ick dreary",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T00:52:14.982Z",
     overtime_eligible: "✡️",
     senior_employee: "😱",
@@ -581,6 +581,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "944",
     description_en: "release pish",
+    description_ar: "الجسم مريض",
     updated: "2024-08-19T14:45:11.984Z",
     overtime_eligible: "㊗️",
     senior_employee: "❣️",
@@ -588,6 +589,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "3",
     description_en: "till",
+    description_ar: "الجسم",
     updated: "2024-08-19T12:31:28.171Z",
     overtime_eligible: "🍱",
     senior_employee: "🤲🏼",
@@ -595,6 +597,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "31",
     description_en: "ozone septicaemia bootie",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T04:28:00.901Z",
     overtime_eligible: "🇪🇬",
     senior_employee: "👌🏻",
@@ -602,6 +605,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "106",
     description_en: "authorized dill reciprocate",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T23:40:49.014Z",
     overtime_eligible: "🍘",
     senior_employee: "💋",
@@ -609,6 +613,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "161",
     description_en: "maracas justly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T22:35:29.515Z",
     overtime_eligible: "🙌🏾",
     senior_employee: "🇬🇱",
@@ -616,6 +621,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "67",
     description_en: "ritualize silly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T01:14:22.219Z",
     overtime_eligible: "🔸",
     senior_employee: "👻",
@@ -623,6 +629,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "60",
     description_en: "underweight",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T01:43:06.258Z",
     overtime_eligible: "🐏",
     senior_employee: "🛋️",
@@ -630,6 +637,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "6307",
     description_en: "ha abaft",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T05:03:27.449Z",
     overtime_eligible: "🇸🇸",
     senior_employee: "⛳",
@@ -637,6 +645,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "1141",
     description_en: "robotics or oh",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T23:16:41.772Z",
     overtime_eligible: "🙍🏾‍♀️",
     senior_employee: "♌",
@@ -644,6 +653,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "359",
     description_en: "so shore howl",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T14:47:19.717Z",
     overtime_eligible: "⚒️",
     senior_employee: "🍚",
@@ -651,6 +661,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "23",
     description_en: "sedate",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T06:05:47.809Z",
     overtime_eligible: "🪄",
     senior_employee: "😓",
@@ -658,6 +669,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "110",
     description_en: "pfft",
+    description_ar: "الجسمكئيب مريض",
     updated: "2024-08-20T07:51:44.372Z",
     overtime_eligible: "⛑️",
     senior_employee: "🦻🏿",
@@ -665,6 +677,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "490",
     description_en: "yet as inspect",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T03:53:49.076Z",
     overtime_eligible: "🔥",
     senior_employee: "🤛🏾",
@@ -672,6 +685,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "4",
     description_en: "barring as",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T06:28:10.046Z",
     overtime_eligible: "🙉",
     senior_employee: "🖐🏾",
@@ -679,6 +693,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "30",
     description_en: "teeming what unless",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T11:10:43.469Z",
     overtime_eligible: "🧅",
     senior_employee: "💼",
@@ -686,6 +701,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "9399",
     description_en: "emigrate whoever",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T16:06:49.211Z",
     overtime_eligible: "🇬🇲",
     senior_employee: "🦎",
@@ -693,6 +709,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "1131",
     description_en: "wearily",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T12:26:32.020Z",
     overtime_eligible: "🔁",
     senior_employee: "😲",
@@ -700,6 +717,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "1",
     description_en: "however",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T12:57:04.523Z",
     overtime_eligible: "🦜",
     senior_employee: "⚫",
@@ -707,6 +725,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "8",
     description_en: "shock",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T21:39:50.804Z",
     overtime_eligible: "🙆‍♂️",
     senior_employee: "🧊",
@@ -714,6 +733,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "309",
     description_en: "daffodil suspiciously",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T21:22:53.688Z",
     overtime_eligible: "🧨",
     senior_employee: "😄",
@@ -721,6 +741,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "16",
     description_en: "gasp fooey",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T21:43:14.370Z",
     overtime_eligible: "🍡",
     senior_employee: "🦒",
@@ -728,6 +749,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "667",
     description_en: "towards",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T11:24:05.965Z",
     overtime_eligible: "🐪",
     senior_employee: "🏒",
@@ -735,6 +757,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "43",
     description_en: "questioningly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T22:02:19.377Z",
     overtime_eligible: "🥔",
     senior_employee: "🇭🇺",
@@ -742,6 +765,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "712",
     description_en: "upon fondly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T04:20:32.830Z",
     overtime_eligible: "🔰",
     senior_employee: "🪐",
@@ -749,6 +773,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "2507",
     description_en: "for",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T16:01:52.623Z",
     overtime_eligible: "🦕",
     senior_employee: "💌",
@@ -756,6 +781,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "70",
     description_en: "surname",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T09:45:31.089Z",
     overtime_eligible: "🪀",
     senior_employee: "💒",
@@ -763,6 +789,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "5",
     description_en: "gosh foolishly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T06:15:54.886Z",
     overtime_eligible: "☝️",
     senior_employee: "👍🏾",
@@ -770,6 +797,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "37",
     description_en: "haste",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T07:43:54.148Z",
     overtime_eligible: "🎽",
     senior_employee: "👨🏿‍🎨",
@@ -777,6 +805,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "9",
     description_en: "ram rider",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T08:02:27.634Z",
     overtime_eligible: "👩🏽",
     senior_employee: "🌥️",
@@ -784,6 +813,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "7033",
     description_en: "which functional",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T09:08:37.539Z",
     overtime_eligible: "👹",
     senior_employee: "🗄️",
@@ -791,6 +821,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "6477",
     description_en: "happily",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T05:20:38.340Z",
     overtime_eligible: "💃",
     senior_employee: "🥎",
@@ -798,6 +829,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "8546",
     description_en: "hm popular strident",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T08:15:48.035Z",
     overtime_eligible: "🥩",
     senior_employee: "🚺",
@@ -805,6 +837,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "257",
     description_en: "recall openly pfft",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T06:06:15.359Z",
     overtime_eligible: "🧖🏿",
     senior_employee: "🛁",
@@ -812,6 +845,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "20",
     description_en: "egghead condition moist",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T06:14:42.209Z",
     overtime_eligible: "🇵🇸",
     senior_employee: "☮️",
@@ -819,6 +853,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "6",
     description_en: "legging before influence",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T17:07:28.974Z",
     overtime_eligible: "🖲️",
     senior_employee: "🇸🇽",
@@ -826,6 +861,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "48",
     description_en: "properly amid joyfully",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T17:35:14.132Z",
     overtime_eligible: "✖️",
     senior_employee: "🇮🇴",
@@ -833,6 +869,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "564",
     description_en: "annual",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T19:49:30.730Z",
     overtime_eligible: "🧤",
     senior_employee: "🙏🏻",
@@ -840,6 +877,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "706",
     description_en: "unlike deceivingly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T20:44:47.201Z",
     overtime_eligible: "🦿",
     senior_employee: "🔮",
@@ -847,6 +885,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "5987",
     description_en: "exemplary pish friendly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T04:45:20.400Z",
     overtime_eligible: "🇿🇦",
     senior_employee: "🧘🏿‍♂️",
@@ -854,6 +893,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "537",
     description_en: "astride pish upwardly",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T14:53:09.853Z",
     overtime_eligible: "✔️",
     senior_employee: "🕑",
@@ -861,6 +901,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "58",
     description_en: "dash incompatible",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T07:37:37.599Z",
     overtime_eligible: "👩🏾‍❤️‍👨🏼",
     senior_employee: "🐩",
@@ -868,6 +909,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "8958",
     description_en: "cuckoo boo",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T01:35:15.419Z",
     overtime_eligible: "🇸🇲",
     senior_employee: "🤏🏽",
@@ -875,6 +917,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "71",
     description_en: "domain",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T06:01:19.599Z",
     overtime_eligible: "👻",
     senior_employee: "👎🏼",
@@ -882,6 +925,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "5115",
     description_en: "chip anchored",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-19T18:26:50.946Z",
     overtime_eligible: "🤫",
     senior_employee: "😉",
@@ -889,6 +933,7 @@ export const grades_data: GradesDataType[] = [
   {
     code: "83",
     description_en: "speedily",
+    description_ar: "الجسم مريض كئيب",
     updated: "2024-08-20T06:48:44.036Z",
     overtime_eligible: "↩️",
     senior_employee: "🛷",
@@ -897,536 +942,1340 @@ export const grades_data: GradesDataType[] = [
 
 export const nationalities_data: NationalitiesDataType[] = [
   {
-    updated: "04-03-2012",
-    code: "Afghanistan",
-    description_en: "Afghan",
+    "code": "AF",
+    "name": "Afghanistan",
+    "nameAr": "أفغانستان",
+    "flag": "https://flagcdn.com/w40/af.png"
   },
   {
-    updated: "24-08-2023",
-    code: "\u00c5land Islands",
-    description_en: "\u00c5land Island",
+    "code": "AL",
+    "name": "Albania",
+    "nameAr": "ألبانيا",
+    "flag": "https://flagcdn.com/w40/al.png"
   },
   {
-    updated: "08-12-2021",
-    code: "Albania",
-    description_en: "Albanian",
+    "code": "DZ",
+    "name": "Algeria",
+    "nameAr": "الجزائر",
+    "flag": "https://flagcdn.com/w40/dz.png"
   },
   {
-    updated: "12-04-2014",
-    code: "Algeria",
-    description_en: "Algerian",
+    "code": "AD",
+    "name": "Andorra",
+    "nameAr": "أندورا",
+    "flag": "https://flagcdn.com/w40/ad.png"
   },
   {
-    updated: "16-09-2018",
-    code: "American Samoa",
-    description_en: "American Samoan",
+    "code": "AO",
+    "name": "Angola",
+    "nameAr": "أنغولا",
+    "flag": "https://flagcdn.com/w40/ao.png"
   },
   {
-    updated: "20-02-2011",
-    code: "Andorra",
-    description_en: "Andorran",
+    "code": "AG",
+    "name": "Antigua and Barbuda",
+    "nameAr": "أنتيغوا وباربودا",
+    "flag": "https://flagcdn.com/w40/ag.png"
   },
   {
-    updated: "24-06-2024",
-    code: "Angola",
-    description_en: "Angolan",
+    "code": "AR",
+    "name": "Argentina",
+    "nameAr": "الأرجنتين",
+    "flag": "https://flagcdn.com/w40/ar.png"
   },
   {
-    updated: "06-10-2016",
-    code: "Anguilla",
-    description_en: "Anguillan",
+    "code": "AM",
+    "name": "Armenia",
+    "nameAr": "أرمينيا",
+    "flag": "https://flagcdn.com/w40/am.png"
   },
   {
-    updated: "10-10-2020",
-    code: "Antarctica",
-    description_en: "Antarctic",
+    "code": "AU",
+    "name": "Australia",
+    "nameAr": "أستراليا",
+    "flag": "https://flagcdn.com/w40/au.png"
   },
   {
-    updated: "28-11-2022",
-    code: "Antigua and Barbuda",
-    description_en: "Antiguan or Barbudan",
+    "code": "AT",
+    "name": "Austria",
+    "nameAr": "النمسا",
+    "flag": "https://flagcdn.com/w40/at.png"
   },
   {
-    updated: "03-02-2023",
-    code: "Argentina",
-    description_en: "Argentine",
+    "code": "AZ",
+    "name": "Azerbaijan",
+    "nameAr": "أذربيجان",
+    "flag": "https://flagcdn.com/w40/az.png"
   },
   {
-    updated: "05=01-2013",
-    code: "Armenia",
-    description_en: "Armenian",
+    "code": "BS",
+    "name": "Bahamas",
+    "nameAr": "الباهاماس",
+    "flag": "https://flagcdn.com/w40/bs.png"
   },
   {
-    updated: "05-03-2003",
-    code: "Aruba",
-    description_en: "Aruban",
+    "code": "BH",
+    "name": "Bahrain",
+    "nameAr": "البحرين",
+    "flag": "https://flagcdn.com/w40/bh.png"
   },
   {
-    updated: "03-06-2023",
-    code: "Australia",
-    description_en: "Australian",
+    "code": "BD",
+    "name": "Bangladesh",
+    "nameAr": "بنغلاديش",
+    "flag": "https://flagcdn.com/w40/bd.png"
   },
   {
-    updated: "04-10-2020",
-    code: "Austria",
-    description_en: "Austrian",
+    "code": "BB",
+    "name": "Barbados",
+    "nameAr": "بربادوس",
+    "flag": "https://flagcdn.com/w40/bb.png"
   },
   {
-    updated: "31-08-2024",
-    code: "Azerbaijan",
-    description_en: "Azerbaijani, Azeri",
+    "code": "BY",
+    "name": "Belarus",
+    "nameAr": "بيلاروس",
+    "flag": "https://flagcdn.com/w40/by.png"
   },
   {
-    updated: "04-04-2004",
-    code: "Bahamas",
-    description_en: "Bahamian",
+    "code": "BE",
+    "name": "Belgium",
+    "nameAr": "بلجيكا",
+    "flag": "https://flagcdn.com/w40/be.png"
   },
   {
-    updated: "14-08-2023",
-    code: "Bahrain",
-    description_en: "Bahraini",
+    "code": "BZ",
+    "name": "Belize",
+    "nameAr": "بليز",
+    "flag": "https://flagcdn.com/w40/bz.png"
   },
   {
-    updated: "05-10-2021",
-    code: "Bangladesh",
-    description_en: "Bangladeshi",
+    "code": "BJ",
+    "name": "Benin",
+    "nameAr": "بنين",
+    "flag": "https://flagcdn.com/w40/bj.png"
   },
   {
-    updated: "25-02-2014",
-    code: "Barbados",
-    description_en: "Barbadian",
+    "code": "BT",
+    "name": "Bhutan",
+    "nameAr": "بوتان",
+    "flag": "https://flagcdn.com/w40/bt.png"
   },
   {
-    updated: "11-02-2021",
-    code: "Belarus",
-    description_en: "Belarusian",
+    "code": "BO",
+    "name": "Bolivia",
+    "nameAr": "بوليفيا",
+    "flag": "https://flagcdn.com/w40/bo.png"
   },
   {
-    updated: "05-06-2012",
-    code: "Belgium",
-    description_en: "Belgian",
+    "code": "BA",
+    "name": "Bosnia and Herzegovina",
+    "nameAr": "البوسنة والهرسك",
+    "flag": "https://flagcdn.com/w40/ba.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Belize",
-    description_en: "Belizean",
+    "code": "BW",
+    "name": "Botswana",
+    "nameAr": "بوتسوانا",
+    "flag": "https://flagcdn.com/w40/bw.png"
   },
   {
-    updated: "20-04-2012",
-    code: "Benin",
-    description_en: "Beninese, Beninois",
+    "code": "BR",
+    "name": "Brazil",
+    "nameAr": "البرازيل",
+    "flag": "https://flagcdn.com/w40/br.png"
   },
   {
-    updated: "10-07-2021",
-    code: "Bermuda",
-    description_en: "Bermudian, Bermudan",
+    "code": "BN",
+    "name": "Brunei",
+    "nameAr": "بروناي",
+    "flag": "https://flagcdn.com/w40/bn.png"
   },
   {
-    updated: "16-04-2024",
-    code: "Bhutan",
-    description_en: "Bhutanese",
+    "code": "BG",
+    "name": "Bulgaria",
+    "nameAr": "بلغاريا",
+    "flag": "https://flagcdn.com/w40/bg.png"
   },
   {
-    updated: "26-08-2023",
-    code: "Bolivia (Plurinational State of)",
-    description_en: "Bolivian",
+    "code": "BF",
+    "name": "Burkina Faso",
+    "nameAr": "بوركينا فاسو",
+    "flag": "https://flagcdn.com/w40/bf.png"
   },
   {
-    updated: "12-08-2012",
-    code: "Bonaire, Sint Eustatius and Saba",
-    description_en: "Bonaire",
+    "code": "BI",
+    "name": "Burundi",
+    "nameAr": "بوروندي",
+    "flag": "https://flagcdn.com/w40/bi.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Bosnia and Herzegovina",
-    description_en: "Bosnian or Herzegovinian",
+    "code": "KH",
+    "name": "Cambodia",
+    "nameAr": "كمبوديا",
+    "flag": "https://flagcdn.com/w40/kh.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Botswana",
-    description_en: "Motswana, Botswanan",
+    "code": "CM",
+    "name": "Cameroon",
+    "nameAr": "الكاميرون",
+    "flag": "https://flagcdn.com/w40/cm.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Bouvet Island",
-    description_en: "Bouvet Island",
+    "code": "CA",
+    "name": "Canada",
+    "nameAr": "كندا",
+    "flag": "https://flagcdn.com/w40/ca.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Brazil",
-    description_en: "Brazilian",
+    "code": "CV",
+    "name": "Cape Verde",
+    "nameAr": "الرأس الأخضر",
+    "flag": "https://flagcdn.com/w40/cv.png"
   },
   {
-    updated: "15-03-2015",
-    code: "British Indian Ocean Territory",
-    description_en: "BIOT",
+    "code": "CF",
+    "name": "Central African Republic",
+    "nameAr": "جمهورية أفريقيا الوسطى",
+    "flag": "https://flagcdn.com/w40/cf.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Brunei Darussalam",
-    description_en: "Bruneian",
+    "code": "TD",
+    "name": "Chad",
+    "nameAr": "تشاد",
+    "flag": "https://flagcdn.com/w40/td.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Bulgaria",
-    description_en: "Bulgarian",
+    "code": "CL",
+    "name": "Chile",
+    "nameAr": "تشيلي",
+    "flag": "https://flagcdn.com/w40/cl.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Burkina Faso",
-    description_en: "Burkinab\u00e9",
+    "code": "CN",
+    "name": "China",
+    "nameAr": "الصين",
+    "flag": "https://flagcdn.com/w40/cn.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Burundi",
-    description_en: "Burundian",
+    "code": "CO",
+    "name": "Colombia",
+    "nameAr": "كولومبيا",
+    "flag": "https://flagcdn.com/w40/co.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cabo Verde",
-    description_en: "Cabo Verdean",
+    "code": "KM",
+    "name": "Comoros",
+    "nameAr": "جزر القمر",
+    "flag": "https://flagcdn.com/w40/km.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cambodia",
-    description_en: "Cambodian",
+    "code": "CD",
+    "name": "Congo (DRC)",
+    "nameAr": "جمهورية الكونغو الديمقراطية",
+    "flag": "https://flagcdn.com/w40/cd.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cameroon",
-    description_en: "Cameroonian",
+    "code": "CG",
+    "name": "Congo (Republic)",
+    "nameAr": "جمهورية الكونغو",
+    "flag": "https://flagcdn.com/w40/cg.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Canada",
-    description_en: "Canadian",
+    "code": "CR",
+    "name": "Costa Rica",
+    "nameAr": "كوستاريكا",
+    "flag": "https://flagcdn.com/w40/cr.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cayman Islands",
-    description_en: "Caymanian",
+    "code": "HR",
+    "name": "Croatia",
+    "nameAr": "كرواتيا",
+    "flag": "https://flagcdn.com/w40/hr.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Central African Republic",
-    description_en: "Central African",
+    "code": "CU",
+    "name": "Cuba",
+    "nameAr": "كوبا",
+    "flag": "https://flagcdn.com/w40/cu.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Chad",
-    description_en: "Chadian",
+    "code": "CY",
+    "name": "Cyprus",
+    "nameAr": "قبرص",
+    "flag": "https://flagcdn.com/w40/cy.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Chile",
-    description_en: "Chilean",
+    "code": "CZ",
+    "name": "Czech Republic",
+    "nameAr": "جمهورية التشيك",
+    "flag": "https://flagcdn.com/w40/cz.png"
   },
   {
-    updated: "28-04-2022",
-    code: "China",
-    description_en: "Chinese",
+    "code": "DK",
+    "name": "Denmark",
+    "nameAr": "الدنمارك",
+    "flag": "https://flagcdn.com/w40/dk.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Christmas Island",
-    description_en: "Christmas Island",
+    "code": "DJ",
+    "name": "Djibouti",
+    "nameAr": "جيبوتي",
+    "flag": "https://flagcdn.com/w40/dj.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cocos (Keeling) Islands",
-    description_en: "Cocos Island",
+    "code": "DM",
+    "name": "Dominica",
+    "nameAr": "دومينيكا",
+    "flag": "https://flagcdn.com/w40/dm.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Colombia",
-    description_en: "Colombian",
+    "code": "DO",
+    "name": "Dominican Republic",
+    "nameAr": "جمهورية الدومينيكان",
+    "flag": "https://flagcdn.com/w40/do.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Comoros",
-    description_en: "Comoran, Comorian",
+    "code": "EC",
+    "name": "Ecuador",
+    "nameAr": "الإكوادور",
+    "flag": "https://flagcdn.com/w40/ec.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Congo (Republic of the)",
-    description_en: "Congolese",
+    "code": "EG",
+    "name": "Egypt",
+    "nameAr": "مصر",
+    "flag": "https://flagcdn.com/w40/eg.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Congo (Democratic Republic of the)",
-    description_en: "Congolese",
+    "code": "SV",
+    "name": "El Salvador",
+    "nameAr": "السلفادور",
+    "flag": "https://flagcdn.com/w40/sv.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cook Islands",
-    description_en: "Cook Island",
+    "code": "GQ",
+    "name": "Equatorial Guinea",
+    "nameAr": "غينيا الاستوائية",
+    "flag": "https://flagcdn.com/w40/gq.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Costa Rica",
-    description_en: "Costa Rican",
+    "code": "ER",
+    "name": "Eritrea",
+    "nameAr": "إريتريا",
+    "flag": "https://flagcdn.com/w40/er.png"
   },
   {
-    updated: "28-04-2022",
-    code: "C\u00f4te d'Ivoire",
-    description_en: "Ivorian",
+    "code": "EE",
+    "name": "Estonia",
+    "nameAr": "إستونيا",
+    "flag": "https://flagcdn.com/w40/ee.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Croatia",
-    description_en: "Croatian",
+    "code": "SZ",
+    "name": "Eswatini",
+    "nameAr": "إسواتيني",
+    "flag": "https://flagcdn.com/w40/sz.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cuba",
-    description_en: "Cuban",
+    "code": "ET",
+    "name": "Ethiopia",
+    "nameAr": "إثيوبيا",
+    "flag": "https://flagcdn.com/w40/et.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cura\u00e7ao",
-    description_en: "Cura\u00e7aoan",
+    "code": "FJ",
+    "name": "Fiji",
+    "nameAr": "فيجي",
+    "flag": "https://flagcdn.com/w40/fj.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Cyprus",
-    description_en: "Cypriot",
+    "code": "FI",
+    "name": "Finland",
+    "nameAr": "فنلندا",
+    "flag": "https://flagcdn.com/w40/fi.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Czech Republic",
-    description_en: "Czech",
+    "code": "FR",
+    "name": "France",
+    "nameAr": "فرنسا",
+    "flag": "https://flagcdn.com/w40/fr.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Denmark",
-    description_en: "Danish",
+    "code": "GA",
+    "name": "Gabon",
+    "nameAr": "الغابون",
+    "flag": "https://flagcdn.com/w40/ga.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Djibouti",
-    description_en: "Djiboutian",
+    "code": "GM",
+    "name": "Gambia",
+    "nameAr": "غامبيا",
+    "flag": "https://flagcdn.com/w40/gm.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Dominica",
-    description_en: "Dominican",
+    "code": "GE",
+    "name": "Georgia",
+    "nameAr": "جورجيا",
+    "flag": "https://flagcdn.com/w40/ge.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Dominican Republic",
-    description_en: "Dominican",
+    "code": "DE",
+    "name": "Germany",
+    "nameAr": "ألمانيا",
+    "flag": "https://flagcdn.com/w40/de.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Ecuador",
-    description_en: "Ecuadorian",
+    "code": "GH",
+    "name": "Ghana",
+    "nameAr": "غانا",
+    "flag": "https://flagcdn.com/w40/gh.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Egypt",
-    description_en: "Egyptian",
+    "code": "GR",
+    "name": "Greece",
+    "nameAr": "اليونان",
+    "flag": "https://flagcdn.com/w40/gr.png"
   },
   {
-    updated: "28-04-2022",
-    code: "El Salvador",
-    description_en: "Salvadoran",
+    "code": "GD",
+    "name": "Grenada",
+    "nameAr": "غرينادا",
+    "flag": "https://flagcdn.com/w40/gd.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Equatorial Guinea",
-    description_en: "Equatorial Guinean, Equatoguinean",
+    "code": "GT",
+    "name": "Guatemala",
+    "nameAr": "غواتيمالا",
+    "flag": "https://flagcdn.com/w40/gt.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Eritrea",
-    description_en: "Eritrean",
+    "code": "GN",
+    "name": "Guinea",
+    "nameAr": "غينيا",
+    "flag": "https://flagcdn.com/w40/gn.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Estonia",
-    description_en: "Estonian",
+    "code": "GW",
+    "name": "Guinea-Bissau",
+    "nameAr": "غينيا بيساو",
+    "flag": "https://flagcdn.com/w40/gw.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Ethiopia",
-    description_en: "Ethiopian",
+    "code": "GY",
+    "name": "Guyana",
+    "nameAr": "غيانا",
+    "flag": "https://flagcdn.com/w40/gy.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Falkland Islands (Malvinas)",
-    description_en: "Falkland Island",
+    "code": "HT",
+    "name": "Haiti",
+    "nameAr": "هايتي",
+    "flag": "https://flagcdn.com/w40/ht.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Faroe Islands",
-    description_en: "Faroese",
+    "code": "HN",
+    "name": "Honduras",
+    "nameAr": "هندوراس",
+    "flag": "https://flagcdn.com/w40/hn.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Fiji",
-    description_en: "Fijian",
+    "code": "HU",
+    "name": "Hungary",
+    "nameAr": "المجر",
+    "flag": "https://flagcdn.com/w40/hu.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Finland",
-    description_en: "Finnish",
+    "code": "IS",
+    "name": "Iceland",
+    "nameAr": "آيسلندا",
+    "flag": "https://flagcdn.com/w40/is.png"
   },
   {
-    updated: "28-04-2022",
-    code: "France",
-    description_en: "French",
+    "code": "IN",
+    "name": "India",
+    "nameAr": "الهند",
+    "flag": "https://flagcdn.com/w40/in.png"
   },
   {
-    updated: "28-04-2022",
-    code: "French Guiana",
-    description_en: "French Guianese",
+    "code": "ID",
+    "name": "Indonesia",
+    "nameAr": "إندونيسيا",
+    "flag": "https://flagcdn.com/w40/id.png"
   },
   {
-    updated: "28-04-2022",
-    code: "French Polynesia",
-    description_en: "French Polynesian",
+    "code": "IR",
+    "name": "Iran",
+    "nameAr": "إيران",
+    "flag": "https://flagcdn.com/w40/ir.png"
   },
   {
-    updated: "28-04-2022",
-    code: "French Southern Territories",
-    description_en: "French Southern Territories",
+    "code": "IQ",
+    "name": "Iraq",
+    "nameAr": "العراق",
+    "flag": "https://flagcdn.com/w40/iq.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Gabon",
-    description_en: "Gabonese",
+    "code": "IE",
+    "name": "Ireland",
+    "nameAr": "أيرلندا",
+    "flag": "https://flagcdn.com/w40/ie.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Gambia",
-    description_en: "Gambian",
+    "code": "IL",
+    "name": "Israel",
+    "nameAr": "إسرائيل",
+    "flag": "https://flagcdn.com/w40/il.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Georgia",
-    description_en: "Georgian",
+    "code": "IT",
+    "name": "Italy",
+    "nameAr": "إيطاليا",
+    "flag": "https://flagcdn.com/w40/it.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Germany",
-    description_en: "German",
+    "code": "CI",
+    "name": "Ivory Coast",
+    "nameAr": "ساحل العاج",
+    "flag": "https://flagcdn.com/w40/ci.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Ghana",
-    description_en: "Ghanaian",
+    "code": "JM",
+    "name": "Jamaica",
+    "nameAr": "جامايكا",
+    "flag": "https://flagcdn.com/w40/jm.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Gibraltar",
-    description_en: "Gibraltar",
+    "code": "JP",
+    "name": "Japan",
+    "nameAr": "اليابان",
+    "flag": "https://flagcdn.com/w40/jp.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Greece",
-    description_en: "Greek, Hellenic",
+    "code": "JO",
+    "name": "Jordan",
+    "nameAr": "الأردن",
+    "flag": "https://flagcdn.com/w40/jo.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Greenland",
-    description_en: "Greenlandic",
+    "code": "KZ",
+    "name": "Kazakhstan",
+    "nameAr": "كازاخستان",
+    "flag": "https://flagcdn.com/w40/kz.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Grenada",
-    description_en: "Grenadian",
+    "code": "KE",
+    "name": "Kenya",
+    "nameAr": "كينيا",
+    "flag": "https://flagcdn.com/w40/ke.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Guadeloupe",
-    description_en: "Guadeloupe",
+    "code": "KW",
+    "name": "Kuwait",
+    "nameAr": "الكويت",
+    "flag": "https://flagcdn.com/w40/kw.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Guam",
-    description_en: "Guamanian, Guambat",
+    "code": "KG",
+    "name": "Kyrgyzstan",
+    "nameAr": "قيرغيزستان",
+    "flag": "https://flagcdn.com/w40/kg.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Guatemala",
-    description_en: "Guatemalan",
+    "code": "LA",
+    "name": "Laos",
+    "nameAr": "لاوس",
+    "flag": "https://flagcdn.com/w40/la.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Guernsey",
-    description_en: "Channel Island",
+    "code": "LV",
+    "name": "Latvia",
+    "nameAr": "لاتفيا",
+    "flag": "https://flagcdn.com/w40/lv.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Wallis and Futuna",
-    description_en: "Wallis and Futuna, Wallisian or Futunan",
+    "code": "LB",
+    "name": "Lebanon",
+    "nameAr": "لبنان",
+    "flag": "https://flagcdn.com/w40/lb.png"
   },
   {
-    updated: "28-04-2022",
-    code: "Western Sahara",
-    description_en: "Sahrawi, Sahrawian, Sahraouian",
+    "code": "LY",
+    "name": "Libya",
+    "nameAr": "ليبيا",
+    "flag": "https://flagcdn.com/w40/ly.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Yemen",
-    description_en: "Yemeni",
+    "code": "LT",
+    "name": "Lithuania",
+    "nameAr": "ليتوانيا",
+    "flag": "https://flagcdn.com/w40/lt.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Zambia",
-    description_en: "Zambian",
+    "code": "LU",
+    "name": "Luxembourg",
+    "nameAr": "لوكسمبورغ",
+    "flag": "https://flagcdn.com/w40/lu.png"
   },
   {
-    updated: "15-03-2015",
-    code: "Zimbabwe",
-    description_en: "Zimbabwean",
+    "code": "MG",
+    "name": "Madagascar",
+    "nameAr": "مدغشقر",
+    "flag": "https://flagcdn.com/w40/mg.png"
   },
+  {
+    "code": "MY",
+    "name": "Malaysia",
+    "nameAr": "ماليزيا",
+    "flag": "https://flagcdn.com/w40/my.png"
+  },
+  {
+    "code": "MV",
+    "name": "Maldives",
+    "nameAr": "المالديف",
+    "flag": "https://flagcdn.com/w40/mv.png"
+  },
+  {
+    "code": "ML",
+    "name": "Mali",
+    "nameAr": "مالي",
+    "flag": "https://flagcdn.com/w40/ml.png"
+  },
+  {
+    "code": "MT",
+    "name": "Malta",
+    "nameAr": "مالطا",
+    "flag": "https://flagcdn.com/w40/mt.png"
+  },
+  {
+    "code": "MX",
+    "name": "Mexico",
+    "nameAr": "المكسيك",
+    "flag": "https://flagcdn.com/w40/mx.png"
+  },
+  {
+    "code": "MA",
+    "name": "Morocco",
+    "nameAr": "المغرب",
+    "flag": "https://flagcdn.com/w40/ma.png"
+  },
+  {
+    "code": "MZ",
+    "name": "Mozambique",
+    "nameAr": "موزمبيق",
+    "flag": "https://flagcdn.com/w40/mz.png"
+  },
+  {
+    "code": "NA",
+    "name": "Namibia",
+    "nameAr": "ناميبيا",
+    "flag": "https://flagcdn.com/w40/na.png"
+  },
+  {
+    "code": "NP",
+    "name": "Nepal",
+    "nameAr": "نيبال",
+    "flag": "https://flagcdn.com/w40/np.png"
+  },
+  {
+    "code": "NL",
+    "name": "Netherlands",
+    "nameAr": "هولندا",
+    "flag": "https://flagcdn.com/w40/nl.png"
+  },
+  {
+    "code": "NZ",
+    "name": "New Zealand",
+    "nameAr": "نيوزيلندا",
+    "flag": "https://flagcdn.com/w40/nz.png"
+  },
+  {
+    "code": "NG",
+    "name": "Nigeria",
+    "nameAr": "نيجيريا",
+    "flag": "https://flagcdn.com/w40/ng.png"
+  },
+  {
+    "code": "NO",
+    "name": "Norway",
+    "nameAr": "النرويج",
+    "flag": "https://flagcdn.com/w40/no.png"
+  },
+  {
+    "code": "OM",
+    "name": "Oman",
+    "nameAr": "عمان",
+    "flag": "https://flagcdn.com/w40/om.png"
+  },
+  {
+    "code": "PK",
+    "name": "Pakistan",
+    "nameAr": "باكستان",
+    "flag": "https://flagcdn.com/w40/pk.png"
+  },
+  {
+    "code": "PS",
+    "name": "Palestine",
+    "nameAr": "فلسطين",
+    "flag": "https://flagcdn.com/w40/ps.png"
+  },
+  {
+    "code": "PH",
+    "name": "Philippines",
+    "nameAr": "الفلبين",
+    "flag": "https://flagcdn.com/w40/ph.png"
+  },
+  {
+    "code": "PL",
+    "name": "Poland",
+    "nameAr": "بولندا",
+    "flag": "https://flagcdn.com/w40/pl.png"
+  },
+  {
+    "code": "PT",
+    "name": "Portugal",
+    "nameAr": "البرتغال",
+    "flag": "https://flagcdn.com/w40/pt.png"
+  },
+  {
+    "code": "QA",
+    "name": "Qatar",
+    "nameAr": "قطر",
+    "flag": "https://flagcdn.com/w40/qa.png"
+  },
+  {
+    "code": "RO",
+    "name": "Romania",
+    "nameAr": "رومانيا",
+    "flag": "https://flagcdn.com/w40/ro.png"
+  },
+  {
+    "code": "RU",
+    "name": "Russia",
+    "nameAr": "روسيا",
+    "flag": "https://flagcdn.com/w40/ru.png"
+  },
+  {
+    "code": "SA",
+    "name": "Saudi Arabia",
+    "nameAr": "السعودية",
+    "flag": "https://flagcdn.com/w40/sa.png"
+  },
+  {
+    "code": "RS",
+    "name": "Serbia",
+    "nameAr": "صربيا",
+    "flag": "https://flagcdn.com/w40/rs.png"
+  },
+  {
+    "code": "SG",
+    "name": "Singapore",
+    "nameAr": "سنغافورة",
+    "flag": "https://flagcdn.com/w40/sg.png"
+  },
+  {
+    "code": "ZA",
+    "name": "South Africa",
+    "nameAr": "جنوب أفريقيا",
+    "flag": "https://flagcdn.com/w40/za.png"
+  },
+  {
+    "code": "ES",
+    "name": "Spain",
+    "nameAr": "إسبانيا",
+    "flag": "https://flagcdn.com/w40/es.png"
+  },
+  {
+    "code": "SE",
+    "name": "Sweden",
+    "nameAr": "السويد",
+    "flag": "https://flagcdn.com/w40/se.png"
+  },
+  {
+    "code": "CH",
+    "name": "Switzerland",
+    "nameAr": "سويسرا",
+    "flag": "https://flagcdn.com/w40/ch.png"
+  },
+  {
+    "code": "TR",
+    "name": "Turkey",
+    "nameAr": "تركيا",
+    "flag": "https://flagcdn.com/w40/tr.png"
+  },
+  {
+    "code": "UA",
+    "name": "Ukraine",
+    "nameAr": "أوكرانيا",
+    "flag": "https://flagcdn.com/w40/ua.png"
+  },
+  {
+    "code": "AE",
+    "name": "United Arab Emirates",
+    "nameAr": "الإمارات",
+    "flag": "https://flagcdn.com/w40/ae.png"
+  },
+  {
+    "code": "GB",
+    "name": "United Kingdom",
+    "nameAr": "المملكة المتحدة",
+    "flag": "https://flagcdn.com/w40/gb.png"
+  },
+  {
+    "code": "US",
+    "name": "United States",
+    "nameAr": "الولايات المتحدة",
+    "flag": "https://flagcdn.com/w40/us.png"
+  },
+  {
+    "code": "VN",
+    "name": "Vietnam",
+    "nameAr": "فيتنام",
+    "flag": "https://flagcdn.com/w40/vn.png"
+  }
 ];
+
+// export const nationalities_data: NationalitiesDataType[] = [
+//   {
+//     updated: "04-03-2012",
+//     code: "Afghanistan",
+//     description_en: "Afghan",
+//   },
+//   {
+//     updated: "24-08-2023",
+//     code: "\u00c5land Islands",
+//     description_en: "\u00c5land Island",
+//   },
+//   {
+//     updated: "08-12-2021",
+//     code: "Albania",
+//     description_en: "Albanian",
+//   },
+//   {
+//     updated: "12-04-2014",
+//     code: "Algeria",
+//     description_en: "Algerian",
+//   },
+//   {
+//     updated: "16-09-2018",
+//     code: "American Samoa",
+//     description_en: "American Samoan",
+//   },
+//   {
+//     updated: "20-02-2011",
+//     code: "Andorra",
+//     description_en: "Andorran",
+//   },
+//   {
+//     updated: "24-06-2024",
+//     code: "Angola",
+//     description_en: "Angolan",
+//   },
+//   {
+//     updated: "06-10-2016",
+//     code: "Anguilla",
+//     description_en: "Anguillan",
+//   },
+//   {
+//     updated: "10-10-2020",
+//     code: "Antarctica",
+//     description_en: "Antarctic",
+//   },
+//   {
+//     updated: "28-11-2022",
+//     code: "Antigua and Barbuda",
+//     description_en: "Antiguan or Barbudan",
+//   },
+//   {
+//     updated: "03-02-2023",
+//     code: "Argentina",
+//     description_en: "Argentine",
+//   },
+//   {
+//     updated: "05=01-2013",
+//     code: "Armenia",
+//     description_en: "Armenian",
+//   },
+//   {
+//     updated: "05-03-2003",
+//     code: "Aruba",
+//     description_en: "Aruban",
+//   },
+//   {
+//     updated: "03-06-2023",
+//     code: "Australia",
+//     description_en: "Australian",
+//   },
+//   {
+//     updated: "04-10-2020",
+//     code: "Austria",
+//     description_en: "Austrian",
+//   },
+//   {
+//     updated: "31-08-2024",
+//     code: "Azerbaijan",
+//     description_en: "Azerbaijani, Azeri",
+//   },
+//   {
+//     updated: "04-04-2004",
+//     code: "Bahamas",
+//     description_en: "Bahamian",
+//   },
+//   {
+//     updated: "14-08-2023",
+//     code: "Bahrain",
+//     description_en: "Bahraini",
+//   },
+//   {
+//     updated: "05-10-2021",
+//     code: "Bangladesh",
+//     description_en: "Bangladeshi",
+//   },
+//   {
+//     updated: "25-02-2014",
+//     code: "Barbados",
+//     description_en: "Barbadian",
+//   },
+//   {
+//     updated: "11-02-2021",
+//     code: "Belarus",
+//     description_en: "Belarusian",
+//   },
+//   {
+//     updated: "05-06-2012",
+//     code: "Belgium",
+//     description_en: "Belgian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Belize",
+//     description_en: "Belizean",
+//   },
+//   {
+//     updated: "20-04-2012",
+//     code: "Benin",
+//     description_en: "Beninese, Beninois",
+//   },
+//   {
+//     updated: "10-07-2021",
+//     code: "Bermuda",
+//     description_en: "Bermudian, Bermudan",
+//   },
+//   {
+//     updated: "16-04-2024",
+//     code: "Bhutan",
+//     description_en: "Bhutanese",
+//   },
+//   {
+//     updated: "26-08-2023",
+//     code: "Bolivia (Plurinational State of)",
+//     description_en: "Bolivian",
+//   },
+//   {
+//     updated: "12-08-2012",
+//     code: "Bonaire, Sint Eustatius and Saba",
+//     description_en: "Bonaire",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Bosnia and Herzegovina",
+//     description_en: "Bosnian or Herzegovinian",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Botswana",
+//     description_en: "Motswana, Botswanan",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Bouvet Island",
+//     description_en: "Bouvet Island",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Brazil",
+//     description_en: "Brazilian",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "British Indian Ocean Territory",
+//     description_en: "BIOT",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Brunei Darussalam",
+//     description_en: "Bruneian",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Bulgaria",
+//     description_en: "Bulgarian",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Burkina Faso",
+//     description_en: "Burkinab\u00e9",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Burundi",
+//     description_en: "Burundian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cabo Verde",
+//     description_en: "Cabo Verdean",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cambodia",
+//     description_en: "Cambodian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cameroon",
+//     description_en: "Cameroonian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Canada",
+//     description_en: "Canadian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cayman Islands",
+//     description_en: "Caymanian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Central African Republic",
+//     description_en: "Central African",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Chad",
+//     description_en: "Chadian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Chile",
+//     description_en: "Chilean",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "China",
+//     description_en: "Chinese",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Christmas Island",
+//     description_en: "Christmas Island",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cocos (Keeling) Islands",
+//     description_en: "Cocos Island",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Colombia",
+//     description_en: "Colombian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Comoros",
+//     description_en: "Comoran, Comorian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Congo (Republic of the)",
+//     description_en: "Congolese",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Congo (Democratic Republic of the)",
+//     description_en: "Congolese",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cook Islands",
+//     description_en: "Cook Island",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Costa Rica",
+//     description_en: "Costa Rican",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "C\u00f4te d'Ivoire",
+//     description_en: "Ivorian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Croatia",
+//     description_en: "Croatian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cuba",
+//     description_en: "Cuban",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cura\u00e7ao",
+//     description_en: "Cura\u00e7aoan",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Cyprus",
+//     description_en: "Cypriot",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Czech Republic",
+//     description_en: "Czech",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Denmark",
+//     description_en: "Danish",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Djibouti",
+//     description_en: "Djiboutian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Dominica",
+//     description_en: "Dominican",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Dominican Republic",
+//     description_en: "Dominican",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Ecuador",
+//     description_en: "Ecuadorian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Egypt",
+//     description_en: "Egyptian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "El Salvador",
+//     description_en: "Salvadoran",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Equatorial Guinea",
+//     description_en: "Equatorial Guinean, Equatoguinean",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Eritrea",
+//     description_en: "Eritrean",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Estonia",
+//     description_en: "Estonian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Ethiopia",
+//     description_en: "Ethiopian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Falkland Islands (Malvinas)",
+//     description_en: "Falkland Island",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Faroe Islands",
+//     description_en: "Faroese",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Fiji",
+//     description_en: "Fijian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Finland",
+//     description_en: "Finnish",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "France",
+//     description_en: "French",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "French Guiana",
+//     description_en: "French Guianese",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "French Polynesia",
+//     description_en: "French Polynesian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "French Southern Territories",
+//     description_en: "French Southern Territories",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Gabon",
+//     description_en: "Gabonese",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Gambia",
+//     description_en: "Gambian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Georgia",
+//     description_en: "Georgian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Germany",
+//     description_en: "German",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Ghana",
+//     description_en: "Ghanaian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Gibraltar",
+//     description_en: "Gibraltar",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Greece",
+//     description_en: "Greek, Hellenic",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Greenland",
+//     description_en: "Greenlandic",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Grenada",
+//     description_en: "Grenadian",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Guadeloupe",
+//     description_en: "Guadeloupe",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Guam",
+//     description_en: "Guamanian, Guambat",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Guatemala",
+//     description_en: "Guatemalan",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Guernsey",
+//     description_en: "Channel Island",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Wallis and Futuna",
+//     description_en: "Wallis and Futuna, Wallisian or Futunan",
+//   },
+//   {
+//     updated: "28-04-2022",
+//     code: "Western Sahara",
+//     description_en: "Sahrawi, Sahrawian, Sahraouian",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Yemen",
+//     description_en: "Yemeni",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Zambia",
+//     description_en: "Zambian",
+//   },
+//   {
+//     updated: "15-03-2015",
+//     code: "Zimbabwe",
+//     description_en: "Zimbabwean",
+//   },
+// ];
 
 export const designations_data: DesignationsDataType[] = [
   {
     code: "#1",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated1-designation",
   },
   {
     code: "#2",
-    description_en: "CEO-designation",
+    description_en: "Designation 1",
+    description_ar: "مريض كئيب",
     updated: "updated2-designation",
   },
   {
     code: "#3",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated3-designation",
   },
   {
     code: "#4",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated4-designation",
   },
   {
     code: "#5",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated5-designation",
   },
   {
     code: "#6",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated6-designation",
   },
   {
     code: "#7",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated7-designation",
   },
   {
     code: "#8",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated8-designation",
   },
   {
     code: "#9",
     description_en: "CEO-designation",
+    description_ar: "الجسم مريض كئيب",
     updated: "updated9-designation",
   },
 ];

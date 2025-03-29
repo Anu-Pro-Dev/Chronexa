@@ -6,7 +6,6 @@ import * as z from "zod"
 import { useLanguage } from "@/providers/LanguageProvider"
 import PowerHeader from "@/components/custom/power-comps/power-header"
 import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form"
-import PowerForm from "@/components/custom/power-comps/power-form"
 import PersonalForm from "@/forms/employee-master/PersonalForm"
 import BusinessForm from "@/forms/employee-master/BusinessForm"
 import FlagsForm from "@/forms/employee-master/FlagsForm";
@@ -50,15 +49,7 @@ export default function Page() {
     }, {}),
   });
 
-  // function onSubmit(values: z.infer<typeof formSchema>) {
-  //   try {
-  //     console.log(values);
-  //   } catch (error) {
-  //     console.error("Form submission error", error);
-  //   }
-  // }
-
-  const [Page, SetPage] = useState<string>("personal-form")
+  const [Page, SetPage] = useState<string>("personal-form");
 
   const flagsFormSchema = z.object({
     active: z.boolean(),
@@ -142,6 +133,36 @@ export default function Page() {
         message: "Required",
       })
       .max(100),
+    passport_number: z
+      .string()
+      .min(6, {
+        message: "Required",
+      })
+      .max(9),
+    passport_expiry: z
+      .string()
+      .min(4, {
+        message: "Required",
+      })
+      .max(4),
+    passport_issued: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
+    national_id_number: z
+      .string()
+      .min(6, {
+        message: "Required",
+      })
+      .max(25),
+    national_id_expiry: z
+      .string()
+      .min(4, {
+        message: "Required",
+      })
+      .max(4),
     manager_flag: z.boolean(),
   });
 
@@ -156,6 +177,11 @@ export default function Page() {
       grade: "",
       schedule_type: "",
       nationality: "",
+      passport_number: "",
+      passport_expiry: "",
+      passport_issued: "",
+      national_id_number: "",
+      national_id_expiry: "",
       manager_flag: false,
     },
   });
@@ -257,6 +283,30 @@ export default function Page() {
     }
   };
 
+  const Pages = [
+    { 
+      title: "Personal",
+      description: "Enter the personal information for the process",
+      state_route: "personal-form",
+      disable: false,
+      component: <PersonalForm Page={Page} SetPage={SetPage} personalFormSchema={personalFormSchema} personalForm={personalForm} /> 
+    },
+    { 
+      title: "Business",
+      description: "Enter the business information for the process",
+      state_route: "business-form",
+      disable: false,
+      component: <BusinessForm Page={Page} SetPage={SetPage} buisnessFormSchema={buisnessFormSchema} buisnessForm={buisnessForm} /> 
+    },
+    { 
+      title: "Flags",
+      description: "Enter the flags information for the process",
+      state_route: "flags-form",
+      disable: false, 
+      component: <FlagsForm flagForm={flagForm} flagsFormSchema={flagsFormSchema} /> 
+    },
+  ];  
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -270,72 +320,7 @@ export default function Page() {
           SetPage={SetPage}
           Page={Page}
           validateCurrentForm={validateCurrentForm}
-          Pages={[
-            {
-              title: "Personal",
-              description: "Enter the personal information for the process",
-              state_route: "personal-form",
-              disable: false,
-              component: (
-                // <PowerForm
-                //   fields={fields}
-                //   form={form}
-                //   onSubmit={onSubmit}
-                //   state_route="personal-form"
-                //   form_class="grid lg:grid-cols-2 gap-10"
-                //   next_route="business-form"
-                //   setPage={SetPage}
-                // />
-                <PersonalForm
-                  Page={Page}
-                  SetPage={SetPage}
-                  personalFormSchema = {personalFormSchema}
-                  personalForm = {personalForm}
-                />
-              ),
-            },
-            {
-              title: "Business",
-              description: "Enter the business information for the process",
-              state_route: "business-form",
-              disable: false,
-              component: (
-                // <PowerForm
-                //   fields={fields}
-                //   form={form}
-                //   onSubmit={onSubmit}
-                //   state_route="business-form"
-                //   form_class="grid grid-cols-2 gap-10"
-                //   next_route="flags-form"
-                //   setPage={SetPage}
-                // />
-                <BusinessForm 
-                  Page={Page}
-                  SetPage={SetPage}
-                  buisnessFormSchema = {buisnessFormSchema}
-                  buisnessForm = {buisnessForm} />
-              ),
-            },
-            {
-              title: "Flags",
-              description: "Enter the flags information for the process",
-              state_route: "flags-form",
-              disable: false,
-              component: (
-                // <PowerForm
-                //   fields={fields}
-                //   form={form}
-                //   onSubmit={onSubmit}
-                //   state_route="flags-form"
-                //   form_class="grid lg:grid-cols-2 gap-10"
-                // />
-                <FlagsForm 
-                flagForm = {flagForm}
-                flagsFormSchema = {flagsFormSchema}
-                />
-              ),
-            },
-          ]}
+          Pages={Pages}
         />
       </>
     </div>

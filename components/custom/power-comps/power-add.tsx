@@ -33,7 +33,8 @@ export default function PowerAdd({
 }) {
   const router = useRouter();
   const { translations } = useLanguage();
-  const modalTitle = modal_title === "none" ? null : translations?.buttons.add || "Add";
+  // const modalTitle = modal_title === "none" ? null : translations?.buttons.add || "Add";
+  const modalTitle = modal_title;
 
   return (
     <div>

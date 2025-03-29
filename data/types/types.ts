@@ -11,22 +11,22 @@ export type RegionsDataType = {
 
 export type NationalitiesDataType = {
   code: string;
-  description_en: string;
-  // description_ar: string;
-  updated: string;
+  name: string;
+  nameAr: string;
+  flag: string;
 };
 
 export type DesignationsDataType = {
   code: string;
   description_en: string;
-  // description_ar: string;
+  description_ar: string;
   updated: string;
 };
 
 export type GradesDataType = {
   code: string;
   description_en: string;
-  // description_ar: string;
+  description_ar: string;
   updated: string;
   overtime_eligible: string;
   senior_employee: string;
