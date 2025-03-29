@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
+import NationalityDropdown from "@/components/custom/NationalityDropdown";
 
 const formSchema = z.object({
   code: z
@@ -23,13 +24,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  name: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  nameAr: z
     .string()
     .min(1, {
       message: "Required",
@@ -50,8 +51,8 @@ export default function AddCompanyMaster({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      description_en: "",
-      description_ar: "",
+      name: "",
+      nameAr: "",
     },
   });
 
@@ -64,9 +65,9 @@ export default function AddCompanyMaster({
     } else {
       form.reset({
         code: selectedRowData.code,
-        description_en: selectedRowData.description_en,
-        description_ar: selectedRowData.description_ar,
-      }); // Pre-fill the form when in "Edit" mode
+        name: selectedRowData.name,
+        nameAr: selectedRowData.nameAr,
+      });
     }
   }, [selectedRowData, form]);
 
@@ -91,11 +92,9 @@ export default function AddCompanyMaster({
       if (selectedRowData) {
         // Update logic (edit mode)
         onSave(selectedRowData.id, values);
-        console.log("Updating region:", values);
       } else {
         // Add logic (create mode)
         onSave(null, values);
-        console.log("Creating region:", values);
       }
       on_open_change(false); // Close the modal after submission
     } catch (error) {
@@ -107,52 +106,11 @@ export default function AddCompanyMaster({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <FormField
-            control={form.control}
-            name="code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Code <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter the code" type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="description_en"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Description (English) <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter description here..." type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="description_ar"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Description (العربية) <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter description here..." type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+          <div>
+            <NationalityDropdown onChange={setSelectedNationality} />
+            {selectedNationality && <p>Selected Nationality: {selectedNationality}</p>}
+          </div>
+        
           <div className="w-full flex gap-2 items-center py-3">
             <Button
               variant={"outline"}

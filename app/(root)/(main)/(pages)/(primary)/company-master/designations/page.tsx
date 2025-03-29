@@ -6,12 +6,11 @@ import AddCompanyMaster from "@/forms/company-master/AddCompanyMaster";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
-  const { modules } = useLanguage();
+  const { modules, language } = useLanguage();
 
   const [Columns, setColumns] = useState([
-    // { field: "code", headerName: "Code" },
+    { field: "code", headerName: "Code" },
     { field: "description_en", headerName: "Description (English)" },
-    // { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
@@ -44,6 +43,17 @@ export default function Page() {
     }
   }, [open]);
 
+    useEffect(() => {
+      // Dynamically update columns based on selected language
+      setColumns([
+        { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
+        {
+          field: language === "ar" ? "description_ar" : "description_en",
+          headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
+        },
+      ]);
+    }, [language]);
+
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
     on_open_change(true);
@@ -68,7 +78,7 @@ export default function Page() {
         props={props}
         items={modules?.companyMaster.items}
         modal_title="Designations"
-        modal_description="Designations of the employee"
+        modal_description="Select the designations of the employee"
         modal_component={
           <AddCompanyMaster 
             on_open_change={on_open_change}

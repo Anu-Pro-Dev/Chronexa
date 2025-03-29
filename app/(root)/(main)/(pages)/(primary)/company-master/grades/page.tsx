@@ -6,13 +6,13 @@ import AddGradesCompanyMaster from "@/forms/company-master/AddGradesCompanyMaste
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
-  const { modules } = useLanguage();
+  const { modules, language } = useLanguage();
 
   const [Columns, setColumns] = useState([
-    // { field: "code", headerName: "Code" },
+    { field: "code", headerName: "Code" },
     { field: "description_en", headerName: "Description (English)" },
-    { field: "overtime_eligible", headerName: "Overtime eligible" },
-    { field: "senior_employee", headerName: "Senior employee" },
+    // { field: "overtime_eligible", headerName: "Overtime eligible" },
+    // { field: "senior_employee", headerName: "Senior employee" },
     // { field: "updated", headerName: "Updated" },
   ]);
 
@@ -46,6 +46,17 @@ export default function Page() {
     }
   }, [open]);
 
+  useEffect(() => {
+    // Dynamically update columns based on selected language
+    setColumns([
+      { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
+      {
+        field: language === "ar" ? "description_ar" : "description_en",
+        headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
+      },
+    ]);
+  }, [language]);
+
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
     on_open_change(true);
@@ -70,7 +81,7 @@ export default function Page() {
         props={props}
         items={modules?.companyMaster.items}
         modal_title="Grades"
-        modal_description="Grades of the employee"
+        modal_description="Select the grades of the employee"
         modal_component={
           <AddGradesCompanyMaster on_open_change={on_open_change} />
         }

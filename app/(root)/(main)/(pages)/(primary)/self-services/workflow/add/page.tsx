@@ -32,6 +32,7 @@ export default function Add() {
       <PowerHeader 
         props={props} 
         items={modules?.selfServices?.items} 
+        disableFeatures
       />
       <div className="pt-4">
         <AddWorkflow />

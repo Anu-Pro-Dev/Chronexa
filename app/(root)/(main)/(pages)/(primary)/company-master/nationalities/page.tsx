@@ -2,17 +2,15 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddCompanyMaster from "@/forms/company-master/AddCompanyMaster";
+import AddNationalities from "@/forms/company-master/AddNationalities";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
-  const { modules } = useLanguage();
+  const { modules, language } = useLanguage();
 
   const [Columns, setColumns] = useState([
-    // { field: "code", headerName: "Code" },
-    { field: "description_en", headerName: "Description (English)" },
-    // { field: "description_ar", headerName: "Description (العربية)" },
-    // { field: "updated", headerName: "Updated" },
+    { field: "code", headerName: "Code" },
+    { field: "name", headerName: "Name (English)" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
@@ -45,6 +43,17 @@ export default function Page() {
     }
   }, [open]);
 
+  useEffect(() => {
+    // Dynamically update columns based on selected language
+    setColumns([
+      { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
+      {
+        field: language === "ar" ? "nameAr" : "name",
+        headerName: language === "ar" ? "الاسم" : "Name",
+      },
+    ]);
+  }, [language]);
+
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
     on_open_change(true);
@@ -69,10 +78,9 @@ export default function Page() {
         props={props}
         items={modules?.companyMaster.items}
         modal_title="Nationalities"
-        modal_description="Nationalities of the employee"
+        modal_description="Select the nationalities of the employee"
         modal_component={
-          <AddCompanyMaster 
-            on_open_change={on_open_change}
+          <AddNationalities             on_open_change={on_open_change}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />

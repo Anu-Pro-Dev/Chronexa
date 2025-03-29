@@ -174,7 +174,7 @@ const Sidebar = React.forwardRef<
       return (
         <div
           className={cn(
-            "flex h-full flex-col bg-sidebar text-sidebar-foreground",
+            "flex h-full flex-col",
             className
           )}
           ref={ref}
@@ -209,7 +209,7 @@ const Sidebar = React.forwardRef<
       <div
         ref={ref}
         // className="group peer hidden md:block text-sidebar-foreground"
-        className="group peer text-secondary"
+        className="group peer text-secondary bg-white"
         style={
           {
             "--sidebar-width": SIDEBAR_WIDTH,

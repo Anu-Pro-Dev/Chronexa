@@ -26,9 +26,11 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import { nationalities_columns } from "@/data/cm.data";
-
-
+import NationalityDropdown from "@/components/custom/NationalityDropdown";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "@/icons/icons";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 export default function BusinessForm({
   Page,
@@ -59,6 +61,7 @@ export default function BusinessForm({
   }
 
   const router = useRouter();
+  const [step, setStep] = useState(1);
 
   return (
     <Form {...buisnessForm}>
@@ -142,6 +145,33 @@ export default function BusinessForm({
             />
             <FormField
               control={buisnessForm.control}
+              name="grade"
+              render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                  <div className="flex justify-end pr-2">
+                    <FormLabel className="flex gap-1">Grade <Required/> </FormLabel>
+                  </div>
+                  <div>
+                    <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    >
+                    <FormControl>
+                        <SelectTrigger>
+                        <SelectValue placeholder="Choose grade" />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        <SelectItem value="1">grade 1</SelectItem>
+                    </SelectContent>
+                    </Select>
+                    <FormMessage className="mt-1"/>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={buisnessForm.control}
               name="region"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -170,39 +200,6 @@ export default function BusinessForm({
             />
             <FormField
               control={buisnessForm.control}
-              name="buildings"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Buildings</FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose buildings" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">DGS - Abu Dhabi Office</SelectItem>
-                        <SelectItem value="2">DGS - Al Ain Office</SelectItem>
-                        <SelectItem value="3">SJI - SEWA HO</SelectItem>
-                        <SelectItem value="4">KEMP - KEMPSTON</SelectItem>
-                        <SelectItem value="5">UK - London</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="flex flex-col flex-1 items-end">
-            <FormField
-              control={buisnessForm.control}
               name="manager"
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
@@ -221,33 +218,6 @@ export default function BusinessForm({
                     </FormControl>
                     <SelectContent>
                         <SelectItem value="1">ADMIN - ADMIN</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={buisnessForm.control}
-              name="grade"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Grade <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose grade" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">grade 1</SelectItem>
                     </SelectContent>
                     </Select>
                     <FormMessage className="mt-1"/>
@@ -284,6 +254,39 @@ export default function BusinessForm({
                 </FormItem>
               )}
             />
+                        <FormField
+              control={buisnessForm.control}
+              name="buildings"
+              render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                  <div className="flex justify-end pr-2">
+                    <FormLabel className="flex gap-1">Buildings</FormLabel>
+                  </div>
+                  <div>
+                    <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    >
+                    <FormControl>
+                        <SelectTrigger>
+                        <SelectValue placeholder="Choose buildings" />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        <SelectItem value="1">DGS - Abu Dhabi Office</SelectItem>
+                        <SelectItem value="2">DGS - Al Ain Office</SelectItem>
+                        <SelectItem value="3">SJI - SEWA HO</SelectItem>
+                        <SelectItem value="4">KEMP - KEMPSTON</SelectItem>
+                        <SelectItem value="5">UK - London</SelectItem>
+                    </SelectContent>
+                    </Select>
+                    <FormMessage className="mt-1"/>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex flex-col flex-1 items-end">
             <FormField
               control={buisnessForm.control}
               name="nationality"
@@ -293,20 +296,135 @@ export default function BusinessForm({
                     <FormLabel className="flex gap-1">Nationality <Required/> </FormLabel>
                   </div>
                   <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
+                    <NationalityDropdown onChange={field.onChange} />
+                    <FormMessage className="mt-1"/>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={buisnessForm.control}
+              name="passport_number"
+              render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                  <div className="flex justify-end pr-2">
+                    <FormLabel className="flex gap-1">Passport number <Required/> </FormLabel>
+                  </div>  
+                  <div>
                     <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose nationality" />
-                        </SelectTrigger>
+                      <Input placeholder="Enter the passport number" type="text" {...field} />
                     </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">American</SelectItem>
-                        <SelectItem value="2">Bharin</SelectItem>
-                    </SelectContent>
-                    </Select>
+                    <FormMessage className="mt-1"/>
+                  </div>  
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={buisnessForm.control}
+              name="passport_expiry"
+              render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                  <div className="flex justify-end pr-2">
+                    <FormLabel className="flex gap-1 text-right">Passport expiry date <Required/></FormLabel>
+                  </div>
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button size={"lg"} variant={"outline"}
+                            className="w-full bg-white px-3 flex justify-between text-text-primary"
+                          >
+                            {field.value ? (
+                              format(field.value, "dd/MM/yy")
+                            ) : (
+                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            )}
+                            <CalendarIcon />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          // disabled={(date) =>
+                          //   date > new Date() || date < new Date("1900-01-01")
+                          // }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage className="mt-1"/>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={buisnessForm.control}
+              name="passport_issued"
+              render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                  <div className="flex justify-end pr-2">
+                    <FormLabel className="flex gap-1">Passport issued <Required/> </FormLabel>
+                  </div>  
+                  <div>
+                    <FormControl>
+                      <Input placeholder="Passport issued country" type="text" {...field} />
+                    </FormControl>
+                    <FormMessage className="mt-1"/>
+                  </div>  
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={buisnessForm.control}
+              name="national_id_number"
+              render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                  <div className="flex justify-end pr-2">
+                    <FormLabel className="flex gap-1">National ID<Required/> </FormLabel>
+                  </div>  
+                  <div>
+                    <FormControl>
+                      <Input placeholder="Enter the national id" type="text" {...field} />
+                    </FormControl>
+                    <FormMessage className="mt-1"/>
+                  </div>  
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={buisnessForm.control}
+              name="national_id_expiry"
+              render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                  <div className="flex justify-end pr-2">
+                    <FormLabel className="flex gap-1 text-right">National ID expiry date <Required/></FormLabel>
+                  </div>
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button size={"lg"} variant={"outline"}
+                            className="w-full bg-white px-3 flex justify-between text-text-primary"
+                          >
+                            {field.value ? (
+                              format(field.value, "dd/MM/yy")
+                            ) : (
+                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            )}
+                            <CalendarIcon />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage className="mt-1"/>
                   </div>
                 </FormItem>
@@ -321,9 +439,9 @@ export default function BusinessForm({
               type="button"
               size={"lg"}
               className="w-full"
-              onClick={() => router.push("/employee-master/employees")}
+              onClick={() => setStep((prev) => prev - 1)}
             >
-              Cancel
+              Back
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
               Next

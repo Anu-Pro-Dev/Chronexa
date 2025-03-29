@@ -97,7 +97,7 @@ export default function MembersTable() {
       <PowerHeader
         props={props}
         items={modules?.employeeMaster.items}
-        modal_title="none"
+        // modal_title="none"
         modal_component={<AddGroupMembers on_open_change={on_open_change} props={propsAdd} />}
         isLarge={true}
       />
