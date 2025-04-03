@@ -4,13 +4,14 @@ import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddCompanyMaster from "@/forms/company-master/AddCompanyMaster";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { getAllRegions } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();
 
   const [Columns, setColumns] = useState([
-    { field: "code", headerName: "Code" },
-    { field: "description_en", headerName: "Description (English)" },
+    { field: "regionId", headerName: "Code" },
+    { field: "descriptionEng", headerName: "Description (English)" },
   ]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
@@ -44,13 +45,26 @@ export default function Page() {
   useEffect(() => {
     // Dynamically update columns based on selected language
     setColumns([
-      { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
+      { field: "regionId", headerName: language === "ar" ? "الرمز" : "Code" },
       {
-        field: language === "ar" ? "description_ar" : "description_en",
+        field: language === "ar" ? "descriptionArb" : "descriptionEng",
         headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
       },
     ]);
   }, [language]);
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const response = await getAllRegions(); // Call the API
+        SetData(response); // Update state with API response
+      } catch (error) {
+        console.error("Error fetching regions:", error);
+      }
+    };
+
+    fetchRegions();
+  }, []);
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
@@ -86,7 +100,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} api={"/company-master/regions"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

@@ -29,6 +29,7 @@ const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data
 
 export default function PowerTable({
   props,
+  Data,
   api,
   showEdit = false,
   showCheckbox = true,
@@ -37,6 +38,7 @@ export default function PowerTable({
   ispageValue5,
 }: {
   props: any;
+  Data: any[];
   api?: any;
   showEdit?: boolean;
   showCheckbox?: boolean;

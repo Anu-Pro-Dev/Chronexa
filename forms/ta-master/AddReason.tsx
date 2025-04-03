@@ -41,13 +41,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  descriptionEng: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  descriptionArb: z
     .string()
     .min(1, {
       message: "Required",
@@ -78,8 +78,8 @@ export default function AddHoliday({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      description_en: "",
-      description_ar: "",
+      descriptionEng: "",
+      descriptionArb: "",
     },
   });
 
@@ -117,7 +117,7 @@ export default function AddHoliday({
                 />
                 <FormField
                   control={form.control}
-                  name="description_en"
+                  name="descriptionEng"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -174,7 +174,7 @@ export default function AddHoliday({
                 />
                 <FormField
                   control={form.control}
-                  name="description_ar"
+                  name="descriptionArb"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>

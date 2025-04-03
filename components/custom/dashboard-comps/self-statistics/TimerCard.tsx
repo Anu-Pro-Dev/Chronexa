@@ -61,8 +61,7 @@ function TimerCard() {
         alt="Clock Your Hours"
         objectFit="cover"
         layout="fill"
-        style={{ position: "absolute" }}
-        className="blur-[2px]"
+        className="blur-[2px] !absolute"
         priority
       />
       <h5 className="text-base font-bold">Clock your hours</h5>

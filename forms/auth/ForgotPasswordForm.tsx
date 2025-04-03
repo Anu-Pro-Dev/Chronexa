@@ -18,6 +18,7 @@ import Link from "next/link";
 import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
+import { apiPath } from "@/lib/api";
 
 const formSchema = z.object({
   username: z
@@ -35,12 +36,30 @@ export default function ForgotPassword() {
   });
 
   const router = useRouter();
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
+      const response = await fetch(apiPath("/auth/forgot-password"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ employeeId: Number(values.username) }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send reset link. Please try again.");
+      }
+
+      alert("Password reset link has been sent to your registered email.");
       router.push("/");
     } catch (error) {
-      console.error("Form submission error", error);
+      console.error("Forgot password error:", error);
+      if (error instanceof Error) {
+        alert("Error: " + error.message);
+      } else {
+        alert("An unknown error occurred.");
+      }
     }
   }
 

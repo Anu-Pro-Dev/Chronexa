@@ -55,8 +55,8 @@ export const ramadandates_columns = [
 export const reasons_data: ReasonsDataType[] = [
   {
     code: "WEB IN",
-    description_en: "Web Checkin",
-    description_ar: "فحص الويب",
+    descriptionEng: "Web Checkin",
+    descriptionArb: "فحص الويب",
     reason_mode: "IN",
     prompt_message: "Web in",
     deleteable: "🗴",
@@ -68,8 +68,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "WEB OUT",
-    description_en: "Web Checkout",
-    description_ar: "الخروج على شبكة الإنترنت",
+    descriptionEng: "Web Checkout",
+    descriptionArb: "الخروج على شبكة الإنترنت",
     reason_mode: "OUT",
     prompt_message: "Web out",
     deleteable: "🗴",
@@ -81,8 +81,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "PRY IN",
-    description_en: "Prayer In",
-    description_ar: "الصلاة في",
+    descriptionEng: "Prayer In",
+    descriptionArb: "الصلاة في",
     reason_mode: "IN",
     prompt_message: "Prayer in",
     deleteable: "🗴",
@@ -94,8 +94,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "PRY OUT",
-    description_en: "	Prayer Out",
-    description_ar: "صلاة خارج",
+    descriptionEng: "	Prayer Out",
+    descriptionArb: "صلاة خارج",
     reason_mode: "OUT",
     prompt_message: "Prayer out",
     deleteable: "🗴",
@@ -107,8 +107,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "LEA OUT",
-    description_en: "Learning Out",
-    description_ar: "التعلم خارجا",
+    descriptionEng: "Learning Out",
+    descriptionArb: "التعلم خارجا",
     reason_mode: "OUT",
     prompt_message: "Learning out",
     deleteable: "🗴",
@@ -120,8 +120,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "NUR IN",
-    description_en: "Nursing In",
-    description_ar: "التمريض في",
+    descriptionEng: "Nursing In",
+    descriptionArb: "التمريض في",
     reason_mode: "IN",
     prompt_message: "Nursing in",
     deleteable: "🗴",
@@ -133,8 +133,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "NUR OUT",
-    description_en: "Nursing Out",
-    description_ar: "التمريض خارج",
+    descriptionEng: "Nursing Out",
+    descriptionArb: "التمريض خارج",
     reason_mode: "OUT",
     prompt_message: "Nursing out",
     deleteable: "🗴",
@@ -146,8 +146,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "OUT",
-    description_en: "Normal Out",
-    description_ar: "عادي خارج",
+    descriptionEng: "Normal Out",
+    descriptionArb: "عادي خارج",
     reason_mode: "OUT",
     prompt_message: "Normal out",
     deleteable: "🗴",
@@ -159,8 +159,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "PER OUT",
-    description_en: "Personal Out",
-    description_ar: "الخروج الشخصي",
+    descriptionEng: "Personal Out",
+    descriptionArb: "الخروج الشخصي",
     reason_mode: "OUT",
     prompt_message: "Personal out",
     deleteable: "🗴",
@@ -172,8 +172,8 @@ export const reasons_data: ReasonsDataType[] = [
   },
   {
     code: "PER IN",
-    description_en: "Personal In",
-    description_ar: "شخصي في",
+    descriptionEng: "Personal In",
+    descriptionArb: "شخصي في",
     reason_mode: "IN",
     prompt_message: "Personal in",
     deleteable: "🗴",
@@ -293,15 +293,15 @@ export const schedules_data: SchedulesDataType[] = [
 
 export const ramadandates_data: RamadanDatesDataType[] = [
   {
-    description_en: "Ramadan 2024",
-    description_ar: "رمضان 2024",
+    descriptionEng: "Ramadan 2024",
+    descriptionArb: "رمضان 2024",
     from_date: "10-03-2024",
     to_date: "09-04-2024",
     updated: "03-03-2024",
   },
   {
-    description_en: "Ramadan 2025",
-    description_ar: "رمضان 2025",
+    descriptionEng: "Ramadan 2025",
+    descriptionArb: "رمضان 2025",
     from_date: "28-02-2025",
     to_date: "29-03-2025",
     updated: "17-02-2025",

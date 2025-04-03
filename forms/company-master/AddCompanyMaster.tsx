@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
+import { addRegionRequest } from "@/lib/apiHandler"; // Import API request function
 
 const formSchema = z.object({
   code: z
@@ -23,13 +24,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  descriptionEng: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  descriptionArb: z
     .string()
     .min(1, {
       message: "Required",
@@ -50,8 +51,8 @@ export default function AddCompanyMaster({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      description_en: "",
-      description_ar: "",
+      descriptionEng: "",
+      descriptionArb: "",
     },
   });
 
@@ -64,8 +65,8 @@ export default function AddCompanyMaster({
     } else {
       form.reset({
         code: selectedRowData.code,
-        description_en: selectedRowData.description_en,
-        description_ar: selectedRowData.description_ar,
+        descriptionEng: selectedRowData.descriptionEng,
+        descriptionArb: selectedRowData.descriptionArb,
       }); // Pre-fill the form when in "Edit" mode
     }
   }, [selectedRowData, form]);
@@ -84,19 +85,22 @@ export default function AddCompanyMaster({
 
   const router = useRouter();
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
-      // Handle form submission: Add or Update logic based on whether it's edit mode or not
+      console.log("Submitting:", values);
+
       if (selectedRowData) {
         // Update logic (edit mode)
         onSave(selectedRowData.id, values);
         console.log("Updating region:", values);
       } else {
-        // Add logic (create mode)
-        onSave(null, values);
-        console.log("Creating region:", values);
+        // Add logic (create mode) - Call API
+        const response = await addRegionRequest(values.code, values.descriptionArb, values.descriptionEng);
+        console.log("Region added successfully:", response);
+        
+        onSave(null, response); // Use response data if needed
       }
+
       on_open_change(false); // Close the modal after submission
     } catch (error) {
       console.error("Form submission error", error);
@@ -124,7 +128,7 @@ export default function AddCompanyMaster({
           />
           <FormField
             control={form.control}
-            name="description_en"
+            name="descriptionEng"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -139,7 +143,7 @@ export default function AddCompanyMaster({
           />
           <FormField
             control={form.control}
-            name="description_ar"
+            name="descriptionArb"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>

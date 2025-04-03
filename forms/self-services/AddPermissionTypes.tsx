@@ -47,13 +47,13 @@ const formSchemaBasic = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  descriptionEng: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  descriptionArb: z
     .string()
     .min(1, {
       message: "Required",
@@ -132,8 +132,8 @@ export default function AddPermissionTypes () {
     resolver: zodResolver(formSchemaBasic),
     defaultValues: {
       code: "",
-      description_en: "",
-      description_ar: "",
+      descriptionEng: "",
+      descriptionArb: "",
       reason: "",
       permission_comments_en:"",
       permission_comments_ar:"",
@@ -327,7 +327,7 @@ export default function AddPermissionTypes () {
             />
             <FormField
               control={formBasic.control}
-              name="description_en"
+              name="descriptionEng"
               render={({ field }) => (
                 <FormItem className=" ">
                   <FormLabel>
@@ -343,7 +343,7 @@ export default function AddPermissionTypes () {
             />
             <FormField
               control={formBasic.control}
-              name="description_ar"
+              name="descriptionArb"
               render={({ field }) => (
                 <FormItem className=" ">
                   <FormLabel>

@@ -10,8 +10,8 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "code" },
-    { field: "description_en", headerName: "Description (English)" },
-    { field: "description_ar", headerName: "Description (العربية)" },
+    { field: "descriptionEng", headerName: "Description (English)" },
+    { field: "descriptionArb", headerName: "Description (العربية)" },
     { field: "updated", headerName: "Updated" },
   ]);
 

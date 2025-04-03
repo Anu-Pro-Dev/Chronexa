@@ -41,8 +41,8 @@ export const employeeMaster_groups_member_columns = [
 export const employeeMaster_types_columns = [
     "select",
     "code",
-    "description_en",
-    "description_ar",
+    "descriptionEng",
+    "descriptionArb",
     "updated",
     "actions",
 ];
@@ -380,8 +380,8 @@ export const employeeMaster_groups_member_data : EmployeeMasterGroupsMembersData
 export const employeeMaster_types_data: EmployeeMasterTypesDataType[] = [
     {
         "code": "EMP",
-        "description_en": "Employee",
-        "description_ar": "موظف",
+        "descriptionEng": "Employee",
+        "descriptionArb": "موظف",
         "updated": "12-03-2023"
     }
 ];

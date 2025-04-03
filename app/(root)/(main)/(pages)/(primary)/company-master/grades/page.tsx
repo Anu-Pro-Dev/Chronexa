@@ -10,7 +10,7 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "code", headerName: "Code" },
-    { field: "description_en", headerName: "Description (English)" },
+    { field: "descriptionEng", headerName: "Description (English)" },
     // { field: "overtime_eligible", headerName: "Overtime eligible" },
     // { field: "senior_employee", headerName: "Senior employee" },
     // { field: "updated", headerName: "Updated" },
@@ -51,7 +51,7 @@ export default function Page() {
     setColumns([
       { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
       {
-        field: language === "ar" ? "description_ar" : "description_en",
+        field: language === "ar" ? "descriptionArb" : "descriptionEng",
         headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
       },
     ]);

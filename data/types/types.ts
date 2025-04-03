@@ -4,8 +4,8 @@
 
 export type RegionsDataType = {
   code: string;
-  description_en: string;
-  description_ar: string;
+  descriptionEng: string;
+  descriptionArb: string;
   updated: string;
 };
 
@@ -18,15 +18,15 @@ export type NationalitiesDataType = {
 
 export type DesignationsDataType = {
   code: string;
-  description_en: string;
-  description_ar: string;
+  descriptionEng: string;
+  descriptionArb: string;
   updated: string;
 };
 
 export type GradesDataType = {
   code: string;
-  description_en: string;
-  description_ar: string;
+  descriptionEng: string;
+  descriptionArb: string;
   updated: string;
   overtime_eligible: string;
   senior_employee: string;
@@ -85,8 +85,8 @@ export type EmployeeMasterGroupsMembersDataType = {
 
 export type EmployeeMasterTypesDataType = {
   code: string;
-  description_en: string;
-  description_ar: string;
+  descriptionEng: string;
+  descriptionArb: string;
   updated: string;
 };
 
@@ -94,8 +94,8 @@ export type EmployeeMasterTypesDataType = {
 
 export type ReasonsDataType = {
   code: string;
-  description_en: string;
-  description_ar: string;
+  descriptionEng: string;
+  descriptionArb: string;
   reason_mode: string;
   prompt_message: string;
   deleteable: string;
@@ -126,8 +126,8 @@ export type SchedulesDataType = {
 };
 
 export type RamadanDatesDataType = {
-  description_en: string;
-  description_ar: string;
+  descriptionEng: string;
+  descriptionArb: string;
   from_date: string;
   to_date: string;
   updated: string;
@@ -363,8 +363,8 @@ export type AllSettingsDataType = {
 };
 
 export type NotificationDataType = {
-  description_en: string;
-  description_ar: string;
+  descriptionEng: string;
+  descriptionArb: string;
   subject: string;
   updated_by: string;
   updated: string;
