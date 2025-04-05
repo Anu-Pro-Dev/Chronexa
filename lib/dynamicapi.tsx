@@ -56,9 +56,9 @@ export const DynamicApi = (api: any, params: any) => {
       case "/ta-master/ramadan-dates":
         data = ramadandates_data;
         break;
-      case "/ta-master/reasons":
-        data = reasons_data;
-        break;
+      // case "/ta-master/reasons":
+      //   data = reasons_data;
+      //   break;
       case "/ta-master/holidays":
         data = holidays_data;
         break;

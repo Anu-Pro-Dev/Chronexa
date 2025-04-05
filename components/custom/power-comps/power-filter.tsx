@@ -11,7 +11,7 @@ import {
   ResponsiveModalTrigger,
 } from "@/components/ui/responsive-modal";
 import { useRouter } from "next/navigation";
-import { FiltersIcon } from "@/lib/svg/icons";
+import { FiltersIcon } from "@/icons/icons";
 
 export default function PowerFilter({
   isAddNewPagePath = null,

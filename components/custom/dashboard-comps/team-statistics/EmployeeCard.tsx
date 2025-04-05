@@ -8,7 +8,7 @@ import {
   ManagerIcon,
   EmployeeCountIcon,
   VoilationIcon,
-} from "@/lib/svg/icons";
+} from "@/icons/icons";
 
 function LeaveCard() {
   return (

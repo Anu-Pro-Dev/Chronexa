@@ -160,11 +160,6 @@ export default function LanguageProvider({
     path: "/TA-master/",
     items: [
       {
-        label: "Reasons",
-        path: "/TA-master/reasons/",
-        value: "reasons",
-      },
-      {
         label: "Holidays",
         path: "/TA-master/holidays/",
         value: "holidays",
@@ -185,6 +180,11 @@ export default function LanguageProvider({
         value: "add-schedules",
         hide: true,
       },
+      // {
+      //   label: "Reasons",
+      //   path: "/TA-master/reasons/",
+      //   value: "reasons",
+      // },
     ],
   };
 
@@ -426,12 +426,12 @@ export default function LanguageProvider({
         path: "/devices/devices-status/",
         value: "devices_status",
       },
-      {
-        label: "Devices Status",
-        path: "/devices/devices-status/add/",
-        value: "add_devices_status",
-        hide: true,
-      },
+      // {
+      //   label: "Devices Status",
+      //   path: "/devices/devices-status/add/",
+      //   value: "add_devices_status",
+      //   hide: true,
+      // },
     ],
   };
 

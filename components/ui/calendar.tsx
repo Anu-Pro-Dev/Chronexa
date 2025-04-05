@@ -20,7 +20,7 @@ export type CalendarProps = DayPickerProps & {
 function Calendar({
   className,
   classNames,
-  showOutsideDays = true,
+  showOutsideDays = false,
   yearRange = 12,
   numberOfMonths,
   ...props
@@ -46,7 +46,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 bg-background", className)}
+      className={cn("p-3 bg-white rounded-md", className)}
       style={{
         width: 248.8 * (columnsDisplayed ?? 1) + "px",
       }}
@@ -54,7 +54,7 @@ function Calendar({
         months: "flex flex-col relative",
         month_caption: "flex justify-center h-7 mx-10 relative items-center",
         weekdays: "flex flex-row",
-        weekday: "text-muted-foreground w-8 font-normal text-[0.8rem]",
+        weekday: "text-text-secondary w-8 font-normal text-[0.8rem]",
         month: "gap-y-4 overflow-x-hidden w-full",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium truncate",
@@ -75,14 +75,14 @@ function Calendar({
         nav: "flex items-start",
         month_grid: "mt-4",
         week: "flex w-full mt-2",
-        day: "p-0 size-8 text-sm flex-1 flex items-center justify-center has-[button]:hover:!bg-accent rounded-md has-[button]:hover:aria-selected:!bg-primary has-[button]:hover:text-accent-foreground has-[button]:hover:aria-selected:text-primary-foreground",
+        day: "p-0 size-7 text-sm flex-1 flex items-center justify-center has-[button]:hover:!bg-accent rounded-md has-[button]:hover:aria-selected:!bg-primary has-[button]:hover:text-accent-foreground has-[button]:hover:aria-selected:text-primary-foreground",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "size-8 p-0 font-normal transition-none hover:bg-transparent hover:text-inherit aria-selected:opacity-100"
+          "size-6 p-0 font-normal text-sm transition-none hover:bg-transparent hover:text-inherit aria-selected:opacity-100"
         ),
         selected:
-          "bg-primary text-primary-foreground hover:!bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        today: "bg-accent text-accent-foreground",
+          "bg-primary text-white hover:!bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        today: "bg-backdrop text-text-primary",
         outside:
           "text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         disabled: "text-muted-foreground opacity-50",

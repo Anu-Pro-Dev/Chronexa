@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "../ui/button";
 import { usePunch } from "../../providers/PunchProvider";
-import { PunchInIcon, PunchOutIcon } from "../../lib/svg/icons";
+import { PunchInIcon, PunchOutIcon } from "@/icons/icons";
 
 export function PunchButton() {
   const { isPunchedIn, punchInTime, togglePunch } = usePunch();
@@ -15,12 +15,12 @@ export function PunchButton() {
     >
       {isPunchedIn ? (
         <>
-          {PunchOutIcon()}
+          <PunchOutIcon/>
           <span>Punch Out</span>
         </>
       ) : (
         <>
-          {PunchInIcon()}
+          <PunchInIcon/>
           <span>Punch In</span>
         </>
       )}

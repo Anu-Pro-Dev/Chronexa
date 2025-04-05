@@ -9,9 +9,9 @@ export default function Page() {
   const { modules } = useLanguage();
   const router = useRouter();
   const [Columns, setColumns] = useState([
-    { field: "code" },
+    // { field: "code" },
     { field: "name" },
-    { field: "buildings" },
+    // { field: "buildings" },
     { field: "active" },
   ]);
   const [Data, SetData] = useState<any>([]);
@@ -44,7 +44,7 @@ export default function Page() {
         items={modules?.devices?.items}
         isAddNewPagePath="/devices/devices-status/add"
       />
-      <PowerTable props={props} api={"/devices/devices-status"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} api={"/devices/devices-status"} showEdit={true} onEditClick={handleEditClick} Data={[null]}/>
     </div>
   );
 }

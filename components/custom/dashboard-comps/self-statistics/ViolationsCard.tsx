@@ -14,7 +14,7 @@ import {
   LateInIcon,
   TrendingUpIcon,
   TrendingDownIcon,
-} from "@/lib/svg/icons";
+} from "@/icons/icons";
 
 function ViolationsCard() {
   return (

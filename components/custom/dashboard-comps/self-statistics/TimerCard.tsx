@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import Image from "next/legacy/image";
-import { PunchInIcon, PunchOutIcon } from "@/lib/svg/icons";
+import { PunchInIcon, PunchOutIcon } from "@/icons/icons";
 import { usePunch } from "@/providers/PunchProvider";
 
 function TimerCard() {
@@ -92,11 +92,11 @@ function TimerCard() {
       </div>
       <div className="w-full pt-5 flex justify-between uppercase">
         <div className="flex items-center gap-2 font-bold text-xs">
-          {PunchInIcon()}
+          <PunchInIcon/>
           <p>{punchInTime || "_ _ : _ _"}</p>
         </div>
         <div className="flex items-center gap-2 font-bold text-xs">
-          {PunchOutIcon()}
+          <PunchOutIcon/>
           <p>{punchOutTime || "_ _ : _ _"}</p>
         </div>
       </div>
