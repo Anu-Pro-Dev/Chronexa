@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddGrades from "@/forms/company-master/AddGrades";
-import { getAllGrades } from "@/lib/apiHandler";
+import AddLocations from "@/forms/company-master/AddLocations";
+import { getAllLocations } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
@@ -16,7 +16,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
-
+  
   const props = {
     Data,
     SetData,
@@ -42,23 +42,24 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionArb",
-        headerName: language === "ar" ? "درجة" : "Grade",
+        field: language === "ar" ? "descriptionArb" : "descriptionEng",
+        headerName: language === "ar" ? "منظمة" : "Organization",
       },
     ]);
   }, [language]);
 
   useEffect(() => {
-    const fetchGrades = async () => {
+    const fetchRegions = async () => {
       try {
-        const response = await getAllGrades();
+        const response = await getAllLocations();
+        console.log(response);
         SetData(response);
       } catch (error) {
-        console.error("Error fetching grades:", error);
+        console.error("Error fetching locations:", error);
       }
     };
-    fetchGrades();
-  }, []); 
+    fetchRegions();
+  }, []);
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
@@ -81,9 +82,9 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.companyMaster.items}
-        modal_title="Grades"
+        modal_title="Locations"
         modal_component={
-          <AddGrades
+          <AddLocations
             on_open_change={on_open_change}
             selectedRowData={selectedRowData}
             onSave={handleSave}

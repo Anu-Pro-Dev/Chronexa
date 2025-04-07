@@ -83,6 +83,16 @@ export default function LanguageProvider({
         path: "/company-master/grades/", 
         value: "grades" 
       },
+      { 
+        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Type",
+        path: "/company-master/organization-type/", 
+        value: "organization-type" 
+      },
+      { 
+        label: currentLanguageData.translations?.modules?.organization?.organization || "Organization",
+        path: "/company-master/organization/", 
+        value: "organization" 
+      },
     ],
   };
 

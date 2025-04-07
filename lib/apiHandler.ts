@@ -177,7 +177,7 @@ export const getAllGrades = async () => {
 };
 
 // Function to add a new grade
-export const addGradeRequest = async (gradeName: string, descriptionArb: string, descriptionEng: string, numberOfCl: number, numberOfSl: number, numberOfAl: number, overtimeEligibleFlag: string, seniorFlag: string) => {
+export const addGradeRequest = async (gradeName: string, descriptionEng: string, descriptionArb: string, numberOfCl: number, numberOfSl: number, numberOfAl: number, overtimeEligibleFlag: string, seniorFlag: string) => {
   return apiRequest("/grade/add", "POST", {
     gradeName,
     descriptionEng,
@@ -196,6 +196,31 @@ export const deleteGradeRequest = (id: string) => {
     .then(response => response)
     .catch(error => {
       console.error("Error deleting grade:", error);
+      throw error;
+    });
+};
+
+// Function to fetch all organization
+export const getAllOrganization = async () => {
+  return apiRequest("/organization/all", "GET");
+};
+
+// Function to add a new grade
+export const addOrganizationRequest = async (organizationName: string, descriptionEng: string, descriptionArb: string, organizationType: string) => {
+  return apiRequest("/organization/add", "POST", {
+    organizationName,
+    descriptionEng,
+    descriptionArb,
+    organizationType,
+  });
+};
+
+// Function for deleting a grade by ID
+export const deleteOrganizationRequest = (id: string) => {
+  return apiRequest(`/organization/delete/${id}`, "DELETE")
+    .then(response => response)
+    .catch(error => {
+      console.error("Error deleting organization:", error);
       throw error;
     });
 };
