@@ -64,14 +64,14 @@ export default function LanguageProvider({
     path: "/company-master",
     items: [
       {
-        label: currentLanguageData.translations?.modules?.companyMaster?.regions || "Regions",
-        path: "/company-master/regions/",
-        value: "regions",
+        label: currentLanguageData.translations?.modules?.companyMaster?.locations || "Locations",
+        path: "/company-master/locations/",
+        value: "locations",
       },
       {
-        label: currentLanguageData.translations?.modules?.companyMaster?.nationalities || "Nationalities",
-        path: "/company-master/nationalities/",
-        value: "nationalities",
+        label: currentLanguageData.translations?.modules?.companyMaster?.citizenship || "Citizenship",
+        path: "/company-master/citizenship/",
+        value: "citizenship",
       },
       {
         label: currentLanguageData.translations?.modules?.companyMaster?.designations || "Designations",

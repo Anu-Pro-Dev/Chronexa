@@ -97,16 +97,105 @@ export const resetPasswordRequest = async (newPassword: string) => {
     return apiRequest("/auth/reset-password", "POST", { newPassword });
 };
   
-// Function to fetch all regions
-export const getAllRegions = async () => {
+// Function to fetch all location
+export const getAllLocations = async () => {
   return apiRequest("/region/all", "GET");
 };
 
-// Function to add a new region
-export const addRegionRequest = async (regionName: string, descriptionArb: string, descriptionEng: string) => {
+// Function to add a new location
+export const addLocationRequest = async (regionName: string, descriptionEng: string, descriptionArb: string) => {
   return apiRequest("/region/add", "POST", {
     regionName,
-    descriptionArb,
     descriptionEng,
+    descriptionArb,
   });
+};
+
+// Function for deleting a location by ID
+export const deleteLocationRequest = (id: string) => {
+  return apiRequest(`/region/delete/${id}`, "DELETE")
+    .then(response => response)
+    .catch(error => {
+      console.error("Error deleting location:", error);
+      throw error;
+    });
+};
+
+// Function to fetch all citizenship
+export const getAllCitizenship = async () => {
+  return apiRequest("/nationality/all", "GET");
+};
+
+// Function to add a new citizenship
+export const addCitizenshipRequest = async (nationalityName: string, descriptionEng: string, descriptionArb: string) => {
+  return apiRequest("/nationality/add", "POST", {
+    nationalityName,
+    descriptionEng,
+    descriptionArb,
+  });
+};
+
+// Function for deleting a citizenship by ID
+export const deleteCitizenshipRequest = (id: string) => {
+  return apiRequest(`/nationality/delete/${id}`, "DELETE")
+    .then(response => response)
+    .catch(error => {
+      console.error("Error deleting citizenship:", error);
+      throw error;
+    });
+};
+
+// Function to fetch all designations
+export const getAllDesignations = async () => {
+  return apiRequest("/designation/all", "GET");
+};
+
+// Function to add a new designation
+export const addDesignationRequest = async (designationName: string, descriptionEng: string, descriptionArb: string, vacancy: number, remarks: string) => {
+  return apiRequest("/designation/add", "POST", {
+    designationName,
+    descriptionEng,
+    descriptionArb,
+    vacancy,
+    remarks,
+  });
+};
+
+// Function for deleting a designation by ID
+export const deleteDesignationRequest = (id: string) => {
+  return apiRequest(`/designation/delete/${id}`, "DELETE")
+    .then(response => response)
+    .catch(error => {
+      console.error("Error deleting designation:", error);
+      throw error;
+    });
+};
+
+// Function to fetch all grades
+export const getAllGrades = async () => {
+  return apiRequest("/grade/all", "GET");
+};
+
+// Function to add a new grade
+export const addGradeRequest = async (gradeName: string, descriptionArb: string, descriptionEng: string, numberOfCl: number, numberOfSl: number, numberOfAl: number, overtimeEligibleFlag: string, seniorFlag: string) => {
+  return apiRequest("/grade/add", "POST", {
+    gradeName,
+    descriptionEng,
+    descriptionArb,
+    numberOfCl,
+    numberOfSl,
+    numberOfAl,
+    overtimeEligibleFlag,
+    seniorFlag,
+  });
+};
+
+// Function for deleting a grade by ID
+export const deleteGradeRequest = (id: string) => {
+  return apiRequest(`/grade/delete/${id}`, "DELETE")
+    .then(response => response)
+    .catch(error => {
+      console.error("Error deleting grade:", error);
+      throw error;
+    });
 };

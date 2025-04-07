@@ -2,17 +2,13 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddCompanyMaster from "@/forms/company-master/AddCompanyMaster";
+import AddLocations from "@/forms/company-master/AddLocations";
+import { getAllLocations } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { getAllRegions } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-
-  const [Columns, setColumns] = useState([
-    { field: "regionId", headerName: "Code" },
-    { field: "descriptionEng", headerName: "Description (English)" },
-  ]);
+  const [Columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -20,6 +16,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  
   const props = {
     Data,
     SetData,
@@ -43,12 +40,10 @@ export default function Page() {
   }, [open]);
 
   useEffect(() => {
-    // Dynamically update columns based on selected language
     setColumns([
-      { field: "regionId", headerName: language === "ar" ? "الرمز" : "Code" },
       {
         field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
+        headerName: language === "ar" ? "اسم الموقع" : "Location Name",
       },
     ]);
   }, [language]);
@@ -56,13 +51,13 @@ export default function Page() {
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        const response = await getAllRegions(); // Call the API
-        SetData(response); // Update state with API response
+        const response = await getAllLocations();
+        console.log(response);
+        SetData(response);
       } catch (error) {
-        console.error("Error fetching regions:", error);
+        console.error("Error fetching locations:", error);
       }
     };
-
     fetchRegions();
   }, []);
 
@@ -71,18 +66,15 @@ export default function Page() {
     on_open_change(true);
   };
 
-  // Save data (Add or Update)
   const handleSave = (id: string | null, newData: any) => {
     if (id) {
-      // Update existing row
       SetData((prevData: any) =>
         prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
       );
     } else {
-      // Add new row
       SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
     }
-    setSelectedRowData(null); // Clear selected row data
+    setSelectedRowData(null);
   };
 
   return (
@@ -90,10 +82,9 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.companyMaster.items}
-        modal_title="Regions"
-        modal_description="Select the regions of the employee"
+        modal_title="Locations"
         modal_component={
-          <AddCompanyMaster 
+          <AddLocations
             on_open_change={on_open_change}
             selectedRowData={selectedRowData}
             onSave={handleSave}

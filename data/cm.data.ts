@@ -1,20 +1,18 @@
 import {
-  RegionsDataType,
-  NationalitiesDataType,
+  LocationsDataType,
+  CitizenshipDataType,
   DesignationsDataType,
   GradesDataType,
 } from "./types/types";
 
-export const regions_columns = [
+export const locations_columns = [
   "select",
-  "code",
   "descriptionEng",
   "descriptionArb",
-  "updated",
   "actions",
 ];
 
-export const nationalities_columns = [
+export const citizenship_columns = [
   "select",
   "code",
   "name",
@@ -42,7 +40,7 @@ export const grades_columns = [
   "actions",
 ];
 
-export const regions_data: RegionsDataType[] = [
+export const locations_data: LocationsDataType[] = [
   {
     code: "97",
     descriptionEng: "body ick dreary",
@@ -940,7 +938,7 @@ export const grades_data: GradesDataType[] = [
   },
 ];
 
-export const nationalities_data: NationalitiesDataType[] = [
+export const citizenship_data: CitizenshipDataType[] = [
   {
     "code": "AF",
     "name": "Afghanistan",

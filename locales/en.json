@@ -59,8 +59,8 @@
         "breakTime": "Break Time"
       },
       "companyMaster": {
-        "regions": "Regions",
-        "nationalities": "Nationalities",
+        "locations": "Locations",
+        "citizenship": "Citizenship",
         "designations": "Designations",
         "grades": "Grades"
       },

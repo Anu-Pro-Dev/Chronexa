@@ -2,20 +2,13 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddGradesCompanyMaster from "@/forms/company-master/AddGradesCompanyMaster";
+import AddGrades from "@/forms/company-master/AddGrades";
+import { getAllGrades } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-
-  const [Columns, setColumns] = useState([
-    { field: "code", headerName: "Code" },
-    { field: "descriptionEng", headerName: "Description (English)" },
-    // { field: "overtime_eligible", headerName: "Overtime eligible" },
-    // { field: "senior_employee", headerName: "Senior employee" },
-    // { field: "updated", headerName: "Updated" },
-  ]);
-
+  const [Columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -47,15 +40,25 @@ export default function Page() {
   }, [open]);
 
   useEffect(() => {
-    // Dynamically update columns based on selected language
     setColumns([
-      { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
+        field: language === "ar" ? "descriptionArb" : "descriptionArb",
+        headerName: language === "ar" ? "درجة" : "Grade",
       },
     ]);
   }, [language]);
+
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        const response = await getAllGrades();
+        SetData(response);
+      } catch (error) {
+        console.error("Error fetching grades:", error);
+      }
+    };
+    fetchGrades();
+  }, []); 
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
@@ -64,15 +67,13 @@ export default function Page() {
 
   const handleSave = (id: string | null, newData: any) => {
     if (id) {
-      // Update existing row
       SetData((prevData: any) =>
         prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
       );
     } else {
-      // Add new row
       SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
     }
-    setSelectedRowData(null); // Clear selected row data
+    setSelectedRowData(null);
   };
 
   return (
@@ -81,12 +82,15 @@ export default function Page() {
         props={props}
         items={modules?.companyMaster.items}
         modal_title="Grades"
-        modal_description="Select the grades of the employee"
         modal_component={
-          <AddGradesCompanyMaster on_open_change={on_open_change} />
+          <AddGrades
+            on_open_change={on_open_change}
+            selectedRowData={selectedRowData}
+            onSave={handleSave}
+          />
         }
       />
-      <PowerTable props={props} api={"/company-master/grades"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

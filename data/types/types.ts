@@ -2,14 +2,14 @@
 
 // Company Master Module Data Types
 
-export type RegionsDataType = {
+export type LocationsDataType = {
   code: string;
   descriptionEng: string;
   descriptionArb: string;
   updated: string;
 };
 
-export type NationalitiesDataType = {
+export type CitizenshipDataType = {
   code: string;
   name: string;
   nameAr: string;
