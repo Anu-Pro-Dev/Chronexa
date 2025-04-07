@@ -43,7 +43,7 @@ export default function Page() {
     setColumns([
       {
         field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "اسم الموقع" : "Location Name",
+        headerName: language === "ar" ? "الموقع" : "Location",
       },
     ]);
   }, [language]);

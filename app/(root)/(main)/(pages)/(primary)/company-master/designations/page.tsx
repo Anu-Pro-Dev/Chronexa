@@ -42,9 +42,6 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: "designationId", headerName: "Designation ID"
-      },
-      {
         field: language === "ar" ? "descriptionArb" : "descriptionEng",
         headerName: language === "ar" ? "اسم الموقع" : "Designation",
       },
