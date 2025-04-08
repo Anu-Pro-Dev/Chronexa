@@ -309,7 +309,7 @@ export const OrganizationIcon = (color: string = "#64748B") => (
   </svg>
 );
 
-export const EmployeeMasterIcon = (color: string = "#64748B") => (
+export const UserManagementIcon = (color: string = "#64748B") => (
   <svg
     width="17"
     height="18"

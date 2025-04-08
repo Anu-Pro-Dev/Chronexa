@@ -50,7 +50,7 @@ export type DepartmentsDataType = {
   updated: string;
 };
 
-export type EmployeeMasterEmployeesDataType = {
+export type UserManagementEmployeesDataType = {
   number: string;
   name: string;
   join_date: string;
@@ -64,7 +64,7 @@ export type EmployeeMasterEmployeesDataType = {
   role: string;
 };
 
-export type EmployeeMasterGroupsDataType = {
+export type UserManagementGroupsDataType = {
   code: string;
   description: string;
   schedule: string;
@@ -76,14 +76,14 @@ export type EmployeeMasterGroupsDataType = {
   updated: string;
 };
 
-export type EmployeeMasterGroupsMembersDataType = {
+export type UserManagementGroupsMembersDataType = {
   number: string;
   name: string;
   designation: string;
   organization: string;
 };
 
-export type EmployeeMasterTypesDataType = {
+export type UserManagementTypesDataType = {
   code: string;
   descriptionEng: string;
   descriptionArb: string;

@@ -16,7 +16,7 @@
         "dashboard": "لوحة القيادة",
         "companyMaster": "سجل الشركة",
         "organization": "المؤسسة",
-        "employeeMaster": "سجل الموظفين",
+        "userManagement": "سجل الموظفين",
         "taMaster": "سجل الحضور والغياب",
         "scheduling": "الجدولة",
         "selfServices": "الخدمات الذاتية"

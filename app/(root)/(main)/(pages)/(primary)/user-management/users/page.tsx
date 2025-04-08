@@ -54,10 +54,10 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.employeeMaster.items}
+        items={modules?.userManagement.items}
         isAddNewPagePath="/employee-master/employees/add"
       />
-      <PowerTable props={props} api={"/employee-master/employees"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} api={"/employee-master/employees"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

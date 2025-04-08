@@ -31,7 +31,7 @@ import {
   CompanyMasterIcon,
   DashboardIcon,
   DevicesIcon,
-  EmployeeMasterIcon,
+  UserManagementIcon,
   OrganizationIcon,
   ReportsIcon,
   SchedulingIcon,
@@ -74,10 +74,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: OrganizationIcon,
       },
       {
-        title: translations.navbar.primary.employeeMaster,
-        url: modules.employeeMaster.items[0].path,
-        path: modules.employeeMaster.path,
-        icon: EmployeeMasterIcon,
+        title: translations.navbar.primary.userManagement,
+        url: modules.userManagement.items[0].path,
+        path: modules.userManagement.path,
+        icon: UserManagementIcon,
       },
       {
         title: translations.navbar.primary.taMaster,

@@ -116,50 +116,50 @@ export default function LanguageProvider({
         path: "/organization/structure/",
         value: "structure",
       },
-      {
-        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
-        path: "/organization/types/",
-        value: "types",
-      },
+      // {
+      //   label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
+      //   path: "/organization/types/",
+      //   value: "types",
+      // },
     ],
   };
 
-  const employeeMaster = {
-    route_name: "Employee Master",
-    path: "/employee-master/",
+  const userManagement = {
+    route_name: "User Management",
+    path: "/user-management/",
 
     items: [
       {
-        label: "Employees",
-        path: "/employee-master/employees/",
-        value: "employees",
+        label: "Users",
+        path: "/user-management/users/",
+        value: "users",
       },
       {
-        label: "Employees",
-        path: "/employee-master/employees/add/",
-        value: "add-employee",
+        label: "Users",
+        path: "/user-management/users/add/",
+        value: "add-user",
         hide: true,
       },
       {
-        label: "Employee Groups",
-        path: "/employee-master/employee-groups/",
+        label: "Groups",
+        path: "/user-management/groups/",
         value: "groups",
       },
       {
-        label: "Employee Groups",
-        path: "/employee-master/employee-groups/add/",
-        value: "groups",
-        hide: true,
-      },
-      {
-        label: "Employee Groups",
-        path: `/employee-master/employee-groups/group-members/`,
+        label: "Groups",
+        path: "/user-management/groups/add/",
         value: "groups",
         hide: true,
       },
       {
-        label: "Employee Types",
-        path: "/employee-master/employee-types/",
+        label: "Groups",
+        path: `/user-management/groups/group-members/`,
+        value: "groups",
+        hide: true,
+      },
+      {
+        label: "Types",
+        path: "/user-management/types/",
         value: "types",
       },
     ],
@@ -605,7 +605,7 @@ export default function LanguageProvider({
     dashboard,
     companyMaster,
     organization,
-    employeeMaster,
+    userManagement,
     taMaster,
     scheduling,
     selfServices,

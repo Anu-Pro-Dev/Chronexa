@@ -271,28 +271,24 @@ export default function Page() {
   const Pages = [
     { 
       title: "Personal",
-      // description: "Enter the personal information for the process",
       state_route: "personal-form",
       disable: false,
       component: <PersonalForm Page={Page} SetPage={SetPage} personalFormSchema={personalFormSchema} personalForm={personalForm} /> 
     },
     { 
       title: "Credentials",
-      // description: "Enter the personal information for the process",
       state_route: "credentials-form",
       disable: false,
       component: <CredentialsForm Page={Page} SetPage={SetPage} credentialsFormSchema={credentialsFormSchema} credentialsForm={credentialsForm} /> 
     },
     { 
-      title: "Business",
-      // description: "Enter the business information for the process",
+      title: "Official",
       state_route: "business-form",
       disable: false,
       component: <BusinessForm Page={Page} SetPage={SetPage} buisnessFormSchema={buisnessFormSchema} buisnessForm={buisnessForm} /> 
     },
     { 
       title: "Flags",
-      // description: "Enter the flags information for the process",
       state_route: "flags-form",
       disable: false, 
       component: <FlagsForm flagForm={flagForm} flagsFormSchema={flagsFormSchema} /> 
@@ -302,10 +298,9 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        items={modules?.employeeMaster.items}
+        items={modules?.userManagement.items}
         disableFeatures
-        modal_title="Employee"
-        modal_description="Select the Employee types of the company"
+        modal_title="User"
       />
       <>
         <PowerMultiStepForm

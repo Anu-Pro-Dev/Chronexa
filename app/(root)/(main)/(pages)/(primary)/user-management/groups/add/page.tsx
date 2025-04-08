@@ -1,7 +1,6 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import PowerTable from "@/components/custom/power-comps/power-table";
-import AddEmployeeGroup from "@/forms/employee-master/AddEmployeeGroup";
+// import AddEmployeeGroup from "@/forms/employee-master/AddEmployeeGroup";
 
 import React, { useState } from "react";
 
@@ -12,8 +11,8 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader items={modules?.employeeMaster.items} disableFeatures />
-      <AddEmployeeGroup />
+      <PowerHeader items={modules?.userManagement.items} disableFeatures />
+      {/* <AddEmployeeGroup /> */}
     </div>
   );
 }

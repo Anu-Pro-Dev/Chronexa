@@ -96,13 +96,12 @@ export default function MembersTable() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.employeeMaster.items}
-        // modal_title="none"
+        items={modules?.userManagement.items}
         modal_component={<AddGroupMembers on_open_change={on_open_change} props={propsAdd} />}
         isLarge={true}
       />
       {/* Pass filtered data to PowerTable */}
-      <PowerTable props={props} api={"/employee-master/employees"} />
+      <PowerTable props={props} Data={Data} api={"/employee-master/employees"} />
     </div>
   );
 }

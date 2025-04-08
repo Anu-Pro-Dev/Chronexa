@@ -17,7 +17,7 @@
         "dashboard": "Dashboard",
         "companyMaster": "Company Master",
         "organization": "Organization",
-        "employeeMaster": "Employee Master",
+        "userManagement": "User Management",
         "taMaster": "TA Master",
         "scheduling": "Scheduling",
         "selfServices": "Self Services"

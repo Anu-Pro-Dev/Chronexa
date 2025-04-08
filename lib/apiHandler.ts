@@ -224,3 +224,31 @@ export const deleteOrganizationRequest = (id: string) => {
       throw error;
     });
 };
+
+// Function to fetch all user groups
+export const getAllUserGroups = async () => {
+  return apiRequest("/employeeGroup/all", "GET");
+};
+
+// Function to add a new user group
+export const addUserGroupRequest = async (groupName: string, descriptionEng: string, descriptionArb: string) => {
+  return apiRequest("/employeeGroup/add", "POST", {
+    groupName,
+    descriptionEng,
+    descriptionArb,
+  });
+};
+
+// Function to fetch all user types
+export const getAllUserTypes = async () => {
+  return apiRequest("/employeeType/all", "GET");
+};
+
+// Function to add a new user type
+export const addUserTypeRequest = async (typeName: string, descriptionEng: string, descriptionArb: string) => {
+  return apiRequest("/employeeType/add", "POST", {
+    typeName,
+    descriptionEng,
+    descriptionArb,
+  });
+};
