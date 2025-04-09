@@ -1,10 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,22 +14,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
-import { USER_TOKEN } from "@/lib/Instance";
-import { useRouter } from "next/navigation";
-import Required from "@/components/ui/required";
-import { RefreshIcon } from "@/icons/icons";
-import { IoMdRefresh } from "react-icons/io";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePickerForm } from "@/components/ui/date-picker";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "@/icons/icons";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -39,56 +26,109 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CalendarIcon } from "@/icons/icons";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import Required from "@/components/ui/required";
+import { useRouter } from "next/navigation";
+import { addUserGroupRequest } from "@/lib/apiHandler"; // Import API request function
 import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
-  groupName: z.string().min(1, { message: "Required" }).max(100),
-  descriptionEng: z.string().default(""),
-  descriptionArb: z.string().default(""),
-  from_date: z.date({
-    required_error: "From Date is required.",
-  }),
-  to_date: z.date({
-    required_error: "To Date is required.",
-  }),
-  schedule_flag: z.boolean().optional(),
-  reporting_group: z.boolean().optional(),
-  user: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  refresh_member: z.boolean().optional(),
+    groupName: z.string().min(1, { message: "Required" }).max(100),
+    descriptionEng: z.string().default(""),
+    descriptionArb: z.string().default(""),
+    from_date: z.date({
+      required_error: "From Date is required.",
+    }),
+    to_date: z.date({
+      required_error: "To Date is required.",
+    }),
+    schedule_flag: z.boolean().optional(),
+    reporting_group: z.boolean().optional(),
+    user: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
+    refresh_member: z.boolean().optional(),
 });
 
 const getSchema = (lang: "en" | "ar") =>
-  formSchema.refine((data) => {
-      if (lang === "en") return !!data.descriptionEng;
-      if (lang === "ar") return !!data.descriptionArb;
-      return true;
-  }, {
-      message: "Required",
-      path: [lang === "en" ? "descriptionEng" : "descriptionArb"],
+    formSchema.refine((data) => {
+        if (lang === "en") return !!data.descriptionEng;
+        if (lang === "ar") return !!data.descriptionArb;
+        return true;
+    }, {
+        message: "Required",
+        path: [lang === "en" ? "descriptionEng" : "descriptionArb"],
 });
 
+export default function AddUserGroups({
+  on_open_change,
+  selectedRowData,
+  onSave,
+}: {
+  on_open_change: any;
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
+}) {
 
-export default function AddUserGroups() {
+  const {language } = useLanguage();
+    
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      groupName: "",
       descriptionEng: "",
       descriptionArb: "",
     },
   });
 
-  const {language } = useLanguage();
+  useEffect(() => {
+    form.reset(form.getValues());
+  }, [language]);
+
+  useEffect(() => {
+    if (!selectedRowData) {
+      form.reset();
+    } else {
+      form.reset({
+        groupName: selectedRowData.groupName,
+        descriptionEng: selectedRowData.descriptionEng,
+        descriptionArb: selectedRowData.descriptionArb,
+      });
+    }
+  }, [selectedRowData, form]);
+
+  const handleSave = () => {
+    const formData = form.getValues();
+    if (selectedRowData) {
+      onSave(selectedRowData.id, formData);
+    } else {
+      onSave(null, formData);
+    }
+    on_open_change(false);
+  };
+
   const router = useRouter();
   const reportingGroupChecked = form.watch("reporting_group");
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
+      console.log("Submitting:", values);
+
+      if (selectedRowData) {
+        onSave(selectedRowData.id, values);
+      } else {
+        const response = await addUserGroupRequest(values.groupName, values.descriptionEng, values.descriptionArb);
+        console.log("User group added successfully:", response);
+        
+        onSave(null, response);
+      }
+
+      on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
     }
@@ -96,10 +136,7 @@ export default function AddUserGroups() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
-        <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">User groups</h1>
-        </div>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="py-5 flex flex-col">
             <div className="flex gap-4 items-center pb-6">
@@ -324,7 +361,7 @@ export default function AddUserGroups() {
               type="button"
               size={"lg"}
               className="w-full"
-              onClick={() => router.push("/employee-master/employee-groups/")}
+              onClick={() => router.push("/user-management/groups/")}
             >
               Cancel
             </Button>
@@ -337,3 +374,5 @@ export default function AddUserGroups() {
     </Form>
   );
 }
+
+

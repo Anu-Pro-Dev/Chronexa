@@ -145,12 +145,12 @@ export default function LanguageProvider({
         path: "/user-management/groups/",
         value: "groups",
       },
-      {
-        label: "Groups",
-        path: "/user-management/groups/add/",
-        value: "groups",
-        hide: true,
-      },
+      // {
+      //   label: "Groups",
+      //   path: "/user-management/groups/add/",
+      //   value: "groups",
+      //   hide: true,
+      // },
       {
         label: "Groups",
         path: `/user-management/groups/group-members/`,

@@ -112,8 +112,8 @@ export default function AddOrganization({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-4 px-5">
-          <div className="grid grid-cols-2 gap-10 gap-y-4 py-3">
+        <div className="flex flex-col gap-6 py-5 ">
+          <div className="flex gap-4 items-center pb-6">
             <FormField
               control={form.control}
               name="organizationName"

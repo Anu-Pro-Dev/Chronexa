@@ -1,6 +1,6 @@
 "use client";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import AddUserGroups from "@/forms/user-management/AddUserGroups";
+// import AddUserGroups from "@/forms/user-management/AddUserGroups";
 
 import React, { useState } from "react";
 
@@ -12,7 +12,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader items={modules?.userManagement.items} disableFeatures />
-      <AddUserGroups />
+      {/* <AddUserGroups /> */}
     </div>
   );
 }
