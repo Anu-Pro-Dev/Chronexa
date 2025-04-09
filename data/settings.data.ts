@@ -75,7 +75,7 @@ export const settings_data: AllSettingsDataType[] = [
 export const notification_data: NotificationDataType[] = [
   {
     descriptionEng:
-      "Dear {EmployeeName},You were recorded in TIMECHECK attendance system as early out on {date} by {time} minutes, please Click here to take necessary action for the same.Regards,HC Department Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HC Department",
+      "Dear {EmployeeName},You were recorded in chronologix attendance system as early out on {date} by {time} minutes, please Click here to take necessary action for the same.Regards,HC Department Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HC Department",
     descriptionArb: "",
     subject: "TAMS - Early Violation Notification",
     updated_by: "ADMIN",
@@ -83,7 +83,7 @@ export const notification_data: NotificationDataType[] = [
   },
   {
     descriptionEng:
-      "Dear {EmployeeName}, You were recorded in TIMECHECK attendance system as late in on {date} by {time} minutes, please Click here to take necessary action for the same. Regards, HC Department Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HC Department .",
+      "Dear {EmployeeName}, You were recorded in chronologix attendance system as late in on {date} by {time} minutes, please Click here to take necessary action for the same. Regards, HC Department Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HC Department .",
     descriptionArb: "",
     subject: "TAMS - Late Violation Notification",
     updated_by: "ADMIN",

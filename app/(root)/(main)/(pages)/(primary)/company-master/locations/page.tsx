@@ -49,7 +49,7 @@ export default function Page() {
   }, [language]);
 
   useEffect(() => {
-    const fetchRegions = async () => {
+    const fetchLocations = async () => {
       try {
         const response = await getAllLocations();
         console.log(response);
@@ -58,7 +58,7 @@ export default function Page() {
         console.error("Error fetching locations:", error);
       }
     };
-    fetchRegions();
+    fetchLocations();
   }, []);
 
   const handleEditClick = (data: any) => {
@@ -91,7 +91,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={false} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

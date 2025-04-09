@@ -51,15 +51,15 @@ export default function Page() {
   }, [language]);
 
   useEffect(() => {
-    const fetchRegions = async () => {
+    const fetchOrganizations = async () => {
       try {
         const response = await getAllOrganization();
         SetData(response.data);
       } catch (error) {
-        console.error("Error fetching locations:", error);
+        console.error("Error fetching organizations:", error);
       }
     };
-    fetchRegions();
+    fetchOrganizations();
   }, []);
 
   const handleEditClick = (data: any) => {
@@ -83,7 +83,7 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.companyMaster.items}
-        modal_title="Locations"
+        modal_title="Organization"
         modal_component={
           <AddOrganization
             on_open_change={on_open_change}
@@ -91,8 +91,9 @@ export default function Page() {
             onSave={handleSave}
           />
         }
+        isLarge
       />
-      <PowerTable props={props} Data={Data} showEdit={false} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

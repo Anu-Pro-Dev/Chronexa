@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import { addLocationRequest } from "@/lib/apiHandler"; // Import API request function
+import { addLocationRequest } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
@@ -91,7 +91,7 @@ export default function AddLocations({
       if (selectedRowData) {
         onSave(selectedRowData.id, values);
       } else {
-        const response = await addLocationRequest(values.regionName, values.locationNameEng, values.locationNameArb);
+        const response = await addLocationRequest(values.locationNameEng, values.locationNameArb);
         console.log("Location added successfully:", response);
         
         onSave(null, response);

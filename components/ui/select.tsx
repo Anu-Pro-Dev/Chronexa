@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     dir={undefined}
     className={cn(
-      "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-full border border-border-grey bg-transparent px-3 py-2 text-sm shadow-none ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-full border border-border-grey bg-transparent px-3 py-2 text-sm shadow-none ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 max-w-[350px]",
       !field?.value ? "text-text-secondary" : "text-text-primary",      className
     )}
     {...props}
@@ -89,10 +89,11 @@ const SelectContent = React.forwardRef<
       position={position}
       {...props}
     >
-      <SelectScrollUpButton />
+      {/* <SelectScrollUpButton /> */}
       <SelectPrimitive.Viewport
         className={cn(
           "",
+          "max-h-52 overflow-y-auto",
           position === "popper" &&
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}

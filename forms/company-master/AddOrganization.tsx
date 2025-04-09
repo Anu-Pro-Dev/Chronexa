@@ -112,7 +112,8 @@ export default function AddOrganization({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 px-5">
+          <div className="grid grid-cols-2 gap-10 gap-y-4 py-3">
             <FormField
               control={form.control}
               name="organizationName"
@@ -188,20 +189,23 @@ export default function AddOrganization({
                 </FormItem>
               )}
             />
-            <div className="w-full flex gap-2 items-center py-3">
-                <Button
-                  variant={"outline"}
-                  type="button"
-                  size={"lg"}
-                  className="w-full"
-                  onClick={() => on_open_change(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" size={"lg"} className="w-full">
-                  {selectedRowData ? "Update" : "Save"}
-                </Button>
+          </div>
+          <div className="flex justify-end gap-2 items-center py-5">
+            <div className="flex gap-4 px-5">
+              <Button
+                variant={"outline"}
+                type="button"
+                size={"lg"}
+                className="w-full"
+                onClick={() => on_open_change(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size={"lg"} className="w-full">
+                {selectedRowData ? "Update" : "Save"}
+              </Button>
             </div>
+          </div>
         </div>
       </form>
     </Form>

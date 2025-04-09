@@ -6,10 +6,10 @@ import * as z from "zod";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form";
-import PersonalForm from "@/forms/employee-master/PersonalForm";
-import CredentialsForm from "@/forms/employee-master/CredentialsForm";
-import BusinessForm from "@/forms/employee-master/BusinessForm";
-import FlagsForm from "@/forms/employee-master/FlagsForm";
+import PersonalForm from "@/forms/user-management/PersonalForm";
+import CredentialsForm from "@/forms/user-management/CredentialsForm";
+import OfficialForm from "@/forms/user-management/OfficialForm";
+import FlagsForm from "@/forms/user-management/FlagsForm";
 
 export default function Page() {
   const { modules } = useLanguage();
@@ -51,78 +51,60 @@ export default function Page() {
   const [Page, SetPage] = useState<string>("personal-form");
 
   const personalFormSchema = z.object({
-    organization: z
+    emp_no: z
       .string()
       .min(1, {
         message: "Required",
       })
       .max(100),
-    code: z
+    emp_id: z
       .string()
       .min(1, {
         message: "Required",
       })
       .max(100),
-    card_number: z
+    firstname: z
       .string()
       .min(1, {
         message: "Required",
       })
       .max(100),
-    pin: z
-      .string().optional(),
-    name_en: z
-      .string().optional(),
-    name_ar: z
-      .string().optional(),
+    lastname: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
     mobile: z
-      .string().optional(),
-    sex: z
       .string()
       .min(1, {
         message: "Required",
       })
       .max(100),
     email: z
-    .string().optional(),
-    passport_number: z
-      .string()
-      .min(6, {
-        message: "Required",
-      })
-      .max(9),
-    passport_expiry:  z.date().optional(),
-    passport_issued: z
       .string()
       .min(1, {
         message: "Required",
       })
       .max(100),
-    national_id_number: z
-      .string()
-      .min(6, {
-        message: "Required",
-      })
-      .max(25),
-    national_id_expiry:  z.date().optional(),
-    inactive_date: z.date().optional(),
+    join_date: z.date({
+      required_error: "From Date is required.",
+    }),
+    inactive_date: z.date({
+      required_error: "From Date is required.",
+    }),
   });
 
   const  personalForm = useForm<z.infer<typeof personalFormSchema>>({
     resolver: zodResolver(personalFormSchema),
     defaultValues: {
-      organization: "", 
-      code: "", 
-      card_number: "", 
-      pin: "",  
-      name_en: "", 
-      name_ar: "", 
-      mobile: "", 
-      sex: "",
+      emp_no: "", 
+      emp_id: "", 
+      firstname: "", 
+      lastname: "",
+      mobile: "",
       email: "",
-      passport_number: "",
-      passport_issued: "",
-      national_id_number: "",
+      join_date: undefined,
       inactive_date: undefined,
     },
   });
@@ -150,7 +132,7 @@ export default function Page() {
     },
   });
 
-  const buisnessFormSchema = z.object({
+  const officialFormSchema = z.object({
     employee_type: z
       .string()
       .min(1, {
@@ -199,8 +181,8 @@ export default function Page() {
     manager_flag: z.boolean(),
   });
 
-  const buisnessForm = useForm<z.infer<typeof buisnessFormSchema>>({
-    resolver: zodResolver(buisnessFormSchema),
+  const officialForm = useForm<z.infer<typeof officialFormSchema>>({
+    resolver: zodResolver(officialFormSchema),
     defaultValues: {
       employee_type: "",
       designation: "",
@@ -259,8 +241,8 @@ export default function Page() {
         return await personalForm.trigger();
       case "credentials-form":
         return await credentialsForm.trigger();
-      case "business-form":
-        return await buisnessForm.trigger();
+      case "official-form":
+        return await officialForm.trigger();
       case "flags-form":
         return await flagForm.trigger();
       default:
@@ -283,9 +265,9 @@ export default function Page() {
     },
     { 
       title: "Official",
-      state_route: "business-form",
+      state_route: "official-form",
       disable: false,
-      component: <BusinessForm Page={Page} SetPage={SetPage} buisnessFormSchema={buisnessFormSchema} buisnessForm={buisnessForm} /> 
+      component: <OfficialForm Page={Page} SetPage={SetPage} officialFormSchema={officialFormSchema} officialForm={officialForm} /> 
     },
     { 
       title: "Flags",

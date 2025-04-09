@@ -101,6 +101,11 @@ export default function LanguageProvider({
     path: "/organization/",
     items: [
       {
+        label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
+        path: "/organization/structure/",
+        value: "structure",
+      },
+      {
         label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
         path: "/organization/departments/",
         value: "departments",
@@ -110,11 +115,6 @@ export default function LanguageProvider({
         path: "/organization/departments/add/",
         value: "add-department",
         hide: true,
-      },
-      {
-        label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
-        path: "/organization/structure/",
-        value: "structure",
       },
       // {
       //   label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",

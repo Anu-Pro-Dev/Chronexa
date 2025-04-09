@@ -106,9 +106,9 @@ export default function AddDevicesStatus({
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Readers</h1>
-          <h1 className="font-semibold text-sm text-text-secondary">
+          {/* <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for readers devices status
-          </h1>
+          </h1> */}
         </div>
         <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col">

@@ -45,7 +45,7 @@ export default function Page() {
     setColumns([
       {
         field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "نوع الموظف" : "Type of Employee",
+        headerName: "Type of Employee",
       },
     ]);
   }, [language]);
@@ -55,7 +55,7 @@ export default function Page() {
       try {
         const response = await getAllUserGroups();
         console.log(response);
-        SetData(response);
+        SetData(response.data);
       } catch (error) {
         console.error("Error fetching user groups:", error);
       }

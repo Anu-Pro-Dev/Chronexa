@@ -13,48 +13,65 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { addLocationRequest } from "@/lib/apiHandler"; // Import API request function
 import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
-    regionName: z.string().min(1, { message: "Required" }).max(100),
-    locationNameEng: z.string().default(""),
-    locationNameArb: z.string().default(""),
+    hierarchy: z.string().min(1, { message: "Required" }).max(100),
+    organizationTypeEng: z.string().default(""),
+    organizationTypeArb: z.string().default(""),
 });
 
 const getSchema = (lang: "en" | "ar") =>
     formSchema.refine((data) => {
-        if (lang === "en") return !!data.locationNameEng;
-        if (lang === "ar") return !!data.locationNameArb;
+        if (lang === "en") return !!data.organizationTypeEng;
+        if (lang === "ar") return !!data.organizationTypeArb;
         return true;
     }, {
         message: "Required",
-        path: [lang === "en" ? "locationNameEng" : "locationNameArb"],
+        path: [lang === "en" ? "organizationTypeEng" : "organizationTypeArb"],
 });
 
 export default function AddOrganizationType({
   on_open_change,
   selectedRowData,
   onSave,
+  existingRows = [],
 }: {
   on_open_change: any;
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
+  existingRows: any[];
 }) {
 
   const {language } = useLanguage();
-    
+  const allHierarchyOptions = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"];
+  const [usedHierarchyOptions, setUsedHierarchyOptions] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      regionName: "",
-      locationNameEng: "",
-      locationNameArb: "",
+      hierarchy: "",
+      organizationTypeEng: "",
+      organizationTypeArb: "",
     },
   });
+
+  useEffect(() => {
+    const used = existingRows
+      .filter(row => row.hierarchy !== undefined && row.hierarchy !== null)
+      .map(row => String(row.hierarchy)); // Ensure it's string
+    setUsedHierarchyOptions(used);
+  }, [existingRows]);
 
   useEffect(() => {
     form.reset(form.getValues());
@@ -65,12 +82,16 @@ export default function AddOrganizationType({
       form.reset();
     } else {
       form.reset({
-        regionName: selectedRowData.regionName,
-        locationNameEng: selectedRowData.locationNameEng,
-        locationNameArb: selectedRowData.locationNameArb,
+        hierarchy: selectedRowData.hierarchy,
+        organizationTypeEng: selectedRowData.organizationTypeEng,
+        organizationTypeArb: selectedRowData.organizationTypeArb,
       });
     }
   }, [selectedRowData, form]);
+
+  const availableHierarchyOptions = selectedRowData
+  ? allHierarchyOptions
+  : allHierarchyOptions.filter((opt) => !usedHierarchyOptions.includes(opt));
 
   const handleSave = () => {
     const formData = form.getValues();
@@ -91,7 +112,7 @@ export default function AddOrganizationType({
       if (selectedRowData) {
         onSave(selectedRowData.id, values);
       } else {
-        const response = await addLocationRequest(values.regionName, values.locationNameEng, values.locationNameArb);
+        const response = await addLocationRequest(values.hierarchy, values.organizationTypeEng);
         console.log("Location added successfully:", response);
         
         onSave(null, response);
@@ -107,65 +128,79 @@ export default function AddOrganizationType({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-            <FormField
-                control={form.control}
-                name="regionName"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>
-                      Region Name <Required />
-                    </FormLabel>
+          <FormField
+            control={form.control}
+            name="hierarchy"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel className="flex gap-1">Hierarchy <Required/> </FormLabel>
+                <div>
+                  <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  >
                     <FormControl>
-                        <Input placeholder="Enter the code" type="text" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose hierarchy" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="locationNameEng"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>
-                        Location name (English) {language === "en" && <Required />}
-                    </FormLabel>
-                    <FormControl>
-                    <Input placeholder="Enter location name" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="locationNameArb"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>
-                        Location name (العربية) {language === "ar" && <Required />}
-                    </FormLabel>
-                    <FormControl>
-                    <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <div className="w-full flex gap-2 items-center py-3">
-                <Button
-                  variant={"outline"}
-                  type="button"
-                  size={"lg"}
-                  className="w-full"
-                  onClick={() => on_open_change(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" size={"lg"} className="w-full">
-                  {selectedRowData ? "Update" : "Save"}
-                </Button>
-            </div>
+                    <SelectContent>
+                      {availableHierarchyOptions.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="mt-1"/>
+                </div>
+            </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="organizationTypeEng"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>
+                  Organization type (English) {language === "en" && <Required />}
+                </FormLabel>
+                <FormControl>
+                <Input placeholder="Enter organization type" type="text" {...field} />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="organizationTypeArb"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>
+                  Organization type (العربية) {language === "ar" && <Required />}
+                </FormLabel>
+                <FormControl>
+                <Input placeholder="أدخل نوع المنظمة" type="text" {...field} />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+          />
+          <div className="w-full flex gap-2 items-center py-3">
+              <Button
+                variant={"outline"}
+                type="button"
+                size={"lg"}
+                className="w-full"
+                onClick={() => on_open_change(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size={"lg"} className="w-full">
+                {selectedRowData ? "Update" : "Save"}
+              </Button>
+          </div>
         </div>
       </form>
     </Form>

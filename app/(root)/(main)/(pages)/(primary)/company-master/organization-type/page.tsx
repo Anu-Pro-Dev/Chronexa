@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddLocations from "@/forms/company-master/AddLocations";
+import AddOrganizationType from "@/forms/company-master/AddOrganizationType";
 import { getAllLocations } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
@@ -41,24 +41,25 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+      {field: "hierarchy", headerName: "Hierarchy"},
       {
         field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "منظمة" : "Organization",
+        headerName: language === "ar" ? "منظمة" : "Organization Type",
       },
     ]);
   }, [language]);
 
   useEffect(() => {
-    const fetchRegions = async () => {
+    const fetchOrganizationTypes = async () => {
       try {
         const response = await getAllLocations();
         console.log(response);
         SetData(response);
       } catch (error) {
-        console.error("Error fetching locations:", error);
+        console.error("Error fetching organization types:", error);
       }
     };
-    fetchRegions();
+    fetchOrganizationTypes();
   }, []);
 
   const handleEditClick = (data: any) => {
@@ -82,16 +83,17 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.companyMaster.items}
-        modal_title="Locations"
+        modal_title="Organization Type"
         modal_component={
-          <AddLocations
+          <AddOrganizationType
             on_open_change={on_open_change}
             selectedRowData={selectedRowData}
             onSave={handleSave}
+            existingRows={Data}
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={false} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} api={"/organization/types"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

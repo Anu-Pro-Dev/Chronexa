@@ -90,7 +90,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={false} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

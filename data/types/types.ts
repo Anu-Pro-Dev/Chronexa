@@ -35,8 +35,9 @@ export type GradesDataType = {
 // Organizartion Module Data Types
 
 export type OrganizationTypesDataType = {
-  description: string;
-  updated: string;
+  descriptionEng: string;
+  descriptionArb: string;
+  hierarchy: number;
 };
 
 export type DepartmentsDataType = {

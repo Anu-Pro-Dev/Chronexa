@@ -106,7 +106,8 @@ export default function Page() {
         </div>
       </div>
       <PowerTable 
-        props={props} 
+        props={props}
+        Data={Data}
         api={"/alerts/sms"} 
         showCheckbox={false}
         customColDef={{

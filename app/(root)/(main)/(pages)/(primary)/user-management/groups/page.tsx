@@ -53,7 +53,7 @@ export default function Page() {
     setColumns([
       {
         field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "Group Name" : "Group Name",
+        headerName: "Group Name",
       },
       { field: "groupName", headerName: "Grouping", clickable: true, onCellClick: handleCellClickPath },
       { field: "createdDate", headerName: "From date" },
@@ -66,7 +66,7 @@ export default function Page() {
       try {
         const response = await getAllUserGroups();
         console.log(response);
-        SetData(response);
+        SetData(response.data);
       } catch (error) {
         console.error("Error fetching user groups:", error);
       }
@@ -74,15 +74,15 @@ export default function Page() {
     fetchUserGroups();
   }, []);
 
-  // const handleEditClick = (data: any) => {
-  //   setSelectedRowData(data);
-  //   router.push("/user-management/groups/add");
-  // };
-
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
-    on_open_change(true);
+    router.push("/user-management/groups/add");
   };
+
+  // const handleEditClick = (data: any) => {
+  //   setSelectedRowData(data);
+  //   on_open_change(true);
+  // };
 
   const handleSave = (id: string | null, newData: any) => {
     if (id) {
@@ -100,16 +100,16 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.userManagement.items}
-        modal_title="User Groups"
-        modal_component={
-          <AddUserGroups
-            on_open_change={on_open_change}
-            selectedRowData={selectedRowData}
-            onSave={handleSave}
-          />
-        }
-        isLarge
-        // isAddNewPagePath="/user-management/groups/add"
+        // modal_title="User Groups"
+        // modal_component={
+        //   <AddUserGroups
+        //     on_open_change={on_open_change}
+        //     selectedRowData={selectedRowData}
+        //     onSave={handleSave}
+        //   />
+        // }
+        // isLarge
+        isAddNewPagePath="/user-management/groups/add"
       />
       <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>

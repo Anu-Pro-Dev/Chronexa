@@ -99,21 +99,20 @@ export const resetPasswordRequest = async (newPassword: string) => {
   
 // Function to fetch all location
 export const getAllLocations = async () => {
-  return apiRequest("/region/all", "GET");
+  return apiRequest("/location/all", "GET");
 };
 
 // Function to add a new location
-export const addLocationRequest = async (regionName: string, descriptionEng: string, descriptionArb: string) => {
-  return apiRequest("/region/add", "POST", {
-    regionName,
-    descriptionEng,
-    descriptionArb,
+export const addLocationRequest = async (locationNameEnglish: string, locationNameArab: string) => {
+  return apiRequest("/location/add", "POST", {
+    locationNameEnglish,
+    locationNameArab,
   });
 };
 
 // Function for deleting a location by ID
 export const deleteLocationRequest = (id: string) => {
-  return apiRequest(`/region/delete/${id}`, "DELETE")
+  return apiRequest(`/location/delete/${id}`, "DELETE")
     .then(response => response)
     .catch(error => {
       console.error("Error deleting location:", error);
