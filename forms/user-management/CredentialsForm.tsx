@@ -77,7 +77,7 @@ export default function credentialsForm({
   return (
     <Form {...credentialsForm}>
       <form onSubmit={credentialsForm.handleSubmit(onSubmit)}>
-        <div className="grid gap-y-2 px-6">
+        <div className="grid gap-y-5 px-8 pt-5">
           <FormField
             control={credentialsForm.control}
             name="username"

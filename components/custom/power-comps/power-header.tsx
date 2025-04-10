@@ -11,10 +11,13 @@ import PowerFilter from "./power-filter";
 import PowerTakeAction from "./power-take-action";
 import PowerClear from "./power-clear";
 import ApprovalModal from "./power-approval-modal";
+import { deleteEntityRequest } from "@/lib/apiHandler";
+import { toast } from "sonner";
 
 export default function PowerHeader({
   items,
   props,
+  selectedRows,
   isExport = false,
   disableSearch = false,
   disableAdd = false,
@@ -39,9 +42,11 @@ export default function PowerHeader({
   enableClear = false,
   enableApprove = false,
   enableReject = false,
+  entityName,
 }: {
   items: any;
   props?: any;
+  selectedRows?: any[];
   isExport?: boolean;
   disableSearch?: boolean;
   disableAdd?: boolean;
@@ -66,7 +71,22 @@ export default function PowerHeader({
   enableClear?: boolean;
   enableApprove?: boolean;
   enableReject?: boolean;
+  entityName?: string;
 }) {
+  console.log("Props in PowerHeader", selectedRows);
+
+  const handleDelete = async () => {
+    try {
+      const selectedRowId = selectedRows?.[0]?.id; // Assuming single selection
+      if (selectedRowId) {
+        await deleteEntityRequest(entityName, selectedRowId);
+        toast.success(`${entityName} deleted successfully!`);
+      }
+    } catch (error) {
+      toast.error(`Failed to delete ${entityName}`);
+    }
+  };
+
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center">
@@ -102,8 +122,8 @@ export default function PowerHeader({
                 isLarge2={isLarge2}
               />
             )}
-            {!disableFeatures && !disableDelete && props?.selectedRows?.length > 0 && (
-              <PowerDelete props={props} label={props?.selectedRows?.length === props?.Data?.length ? "Delete All" : "Delete"}/>
+            {!disableFeatures && !disableDelete && (selectedRows ?? []).length > 0 && (
+              <PowerDelete props={props} label={selectedRows?.length === props?.Data?.length ? "Delete All" : "Delete"} onClick={handleDelete}/>
             )}
             {enableTakeAction && (
               <PowerTakeAction

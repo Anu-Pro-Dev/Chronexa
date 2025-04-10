@@ -18,7 +18,8 @@ import Link from "next/link";
 import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
-import { apiPath } from "@/lib/api";
+import { toast } from "sonner";
+import { forgotPasswordRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
   username: z
@@ -39,29 +40,27 @@ export default function ForgotPassword() {
   
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await fetch(apiPath("/auth/forgot-password"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ employeeId: Number(values.username) }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send reset link. Please try again.");
+      const employeeId = Number(values.username);
+  
+      if (isNaN(employeeId)) {
+        toast.error("Username must be a number.");
+        return;
       }
-
-      alert("Password reset link has been sent to your registered email.");
+  
+      await forgotPasswordRequest(employeeId);
+  
+      toast.success("Password reset link sent to your registered email.");
       router.push("/");
     } catch (error) {
       console.error("Forgot password error:", error);
       if (error instanceof Error) {
-        alert("Error: " + error.message);
+        toast.error(error.message);
       } else {
-        alert("An unknown error occurred.");
+        toast.error("An unknown error occurred.");
       }
     }
   }
+  
 
   return (
     <Form {...form}>

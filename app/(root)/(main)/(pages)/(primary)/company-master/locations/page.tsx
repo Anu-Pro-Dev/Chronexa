@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddLocations from "@/forms/company-master/AddLocations";
-import { getAllLocations } from "@/lib/apiHandler";
+import { getAllLocations, editLocationRequest } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
@@ -16,7 +16,8 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
-  
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+
   const props = {
     Data,
     SetData,
@@ -42,7 +43,7 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
+        field: language === "ar" ? "locationNameArab" : "locationNameEnglish",
         headerName: language === "ar" ? "الموقع" : "Location",
       },
     ]);
@@ -53,7 +54,13 @@ export default function Page() {
       try {
         const response = await getAllLocations();
         console.log(response);
-        SetData(response);
+        const mapped = response.map((loc: any) => ({
+          ...loc,
+          id: loc.locationId,
+        }));
+  
+        SetData(mapped);
+        // SetData(response);
       } catch (error) {
         console.error("Error fetching locations:", error);
       }
@@ -77,11 +84,18 @@ export default function Page() {
     setSelectedRowData(null);
   };
 
+  const handleRowSelection = (rows: any[]) => {
+    console.log("Selected rows:", selectedRows);
+    setSelectedRows(rows); // Update selected rows
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.companyMaster.items}
+        entityName="location"
         modal_title="Locations"
         modal_component={
           <AddLocations
@@ -91,7 +105,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

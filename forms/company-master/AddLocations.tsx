@@ -15,23 +15,22 @@ import {
 import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import { addLocationRequest } from "@/lib/apiHandler";
+import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
-    regionName: z.string().min(1, { message: "Required" }).max(100),
-    locationNameEng: z.string().default(""),
-    locationNameArb: z.string().default(""),
+    locationNameEnglish: z.string().default(""),
+    locationNameArab: z.string().default(""),
 });
 
 const getSchema = (lang: "en" | "ar") =>
     formSchema.refine((data) => {
-        if (lang === "en") return !!data.locationNameEng;
-        if (lang === "ar") return !!data.locationNameArb;
+        if (lang === "en") return !!data.locationNameEnglish;
+        if (lang === "ar") return !!data.locationNameArab;
         return true;
     }, {
         message: "Required",
-        path: [lang === "en" ? "locationNameEng" : "locationNameArb"],
+        path: [lang === "en" ? "locationNameEnglish" : "locationNameArab"],
 });
 
 export default function AddLocations({
@@ -50,9 +49,8 @@ export default function AddLocations({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      regionName: "",
-      locationNameEng: "",
-      locationNameArb: "",
+      locationNameEnglish: "",
+      locationNameArab: "",
     },
   });
 
@@ -65,9 +63,8 @@ export default function AddLocations({
       form.reset();
     } else {
       form.reset({
-        regionName: selectedRowData.regionName,
-        locationNameEng: selectedRowData.locationNameEng,
-        locationNameArb: selectedRowData.locationNameArb,
+        locationNameEnglish: selectedRowData.locationNameEnglish,
+        locationNameArab: selectedRowData.locationNameArab,
       });
     }
   }, [selectedRowData, form]);
@@ -89,13 +86,22 @@ export default function AddLocations({
       console.log("Submitting:", values);
 
       if (selectedRowData) {
+        const response = await editLocationRequest(
+          selectedRowData.id,
+          values.locationNameEnglish,
+          values.locationNameArab
+        );
+        console.log("Location updated successfully:", response);
         onSave(selectedRowData.id, values);
       } else {
-        const response = await addLocationRequest(values.locationNameEng, values.locationNameArb);
+        const response = await addLocationRequest(
+          values.locationNameEnglish,
+          values.locationNameArab
+        );
         console.log("Location added successfully:", response);
-        
         onSave(null, response);
       }
+
 
       on_open_change(false);
     } catch (error) {
@@ -109,22 +115,7 @@ export default function AddLocations({
         <div className="flex flex-col gap-4">
             <FormField
                 control={form.control}
-                name="regionName"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>
-                      Region Name <Required />
-                    </FormLabel>
-                    <FormControl>
-                        <Input placeholder="Enter the code" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="locationNameEng"
+                name="locationNameEnglish"
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>
@@ -139,7 +130,7 @@ export default function AddLocations({
             />
             <FormField
                 control={form.control}
-                name="locationNameArb"
+                name="locationNameArab"
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>

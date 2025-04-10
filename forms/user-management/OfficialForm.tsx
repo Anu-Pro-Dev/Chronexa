@@ -36,12 +36,12 @@ export default function OfficialForm({
   Page,
   SetPage,
   officialFormSchema,
-  buisnessForm
+  officialForm
 }: {
   Page?: any;
   SetPage?:any;
   officialFormSchema:any;
-  buisnessForm:any
+  officialForm:any
 }) {
   
 
@@ -61,14 +61,15 @@ export default function OfficialForm({
   }
 
   const router = useRouter();
+  const managerFlagChecked = officialForm.watch("manager_flag");
   const [step, setStep] = useState(1);
 
   return (
-    <Form {...buisnessForm}>
-      <form onSubmit={buisnessForm.handleSubmit(onSubmit)}>
-        <div className="px-5 pt-5">
+    <Form {...officialForm}>
+      <form onSubmit={officialForm.handleSubmit(onSubmit)}>
+        <div className="p-8">
           <FormField
-            control={buisnessForm.control}
+            control={officialForm.control}
             name="manager_flag"
             render={({ field }) => (
               <FormItem className=" ">
@@ -86,232 +87,163 @@ export default function OfficialForm({
             )}
           />
         </div>
-        <div className="grid grid-cols-2 gap-y-2 px-5 py-6">
-          {/* <div className="flex flex-col flex-1 items-end"> */}
+        <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+          <FormField
+            control={officialForm.control}
+            name="user_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Employee type <Required/> </FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose employee type" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">Employee 1</SelectItem>
+                </SelectContent>
+                </Select>
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={officialForm.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Location <Required/> </FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose region" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">RYD</SelectItem>
+                    <SelectItem value="2">Not defined</SelectItem>
+                </SelectContent>
+                </Select>
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={officialForm.control}
+            name="citizenship"
+            render={({ field }) => (
+              <FormItem className="">
+                <FormLabel className="flex gap-1">Citizenship <Required/> </FormLabel>
+                <NationalityDropdown value={field.value} onChange={field.onChange} />
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={officialForm.control}
+            name="designation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Designation <Required/> </FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose designation" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">Unknown</SelectItem>
+                    <SelectItem value="2">A/ Executive Director Corporate Support Services Centre</SelectItem>
+                </SelectContent>
+                </Select>
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={officialForm.control}
+            name="grade"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Grade <Required/> </FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose grade" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">grade 1</SelectItem>
+                </SelectContent>
+                </Select>
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={officialForm.control}
+            name="organization_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Organization type <Required/> </FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose schedule type" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">Miscellaneous</SelectItem>
+                    <SelectItem value="2">Calendar Days</SelectItem>
+                    <SelectItem value="3">Working Days</SelectItem>
+                </SelectContent>
+                </Select>
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          />
+          {!managerFlagChecked && (
             <FormField
-              control={buisnessForm.control}
-              name="employee_type"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Employee type <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose employee type" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">Employee 1</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div> 
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={buisnessForm.control}
-              name="nationality"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Nationality <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <NationalityDropdown onChange={field.onChange} />
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={buisnessForm.control}
-              name="designation"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                  <FormLabel className="flex gap-1">Designation <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose designation" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">Unknown</SelectItem>
-                        <SelectItem value="2">A/ Executive Director Corporate Support Services Centre</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={buisnessForm.control}
-              name="grade"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Grade <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose grade" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">grade 1</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={buisnessForm.control}
-              name="region"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Region <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose region" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">RYD</SelectItem>
-                        <SelectItem value="2">Not defined</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={buisnessForm.control}
+              control={officialForm.control}
               name="manager"
               render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Manager <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose manager" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">ADMIN - ADMIN</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
+                <FormItem>
+                  <FormLabel className="flex gap-1">Manager </FormLabel>
+                  <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  >
+                  <FormControl>
+                      <SelectTrigger>
+                      <SelectValue placeholder="Choose manager" />
+                      </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                      <SelectItem value="1">ADMIN - ADMIN</SelectItem>
+                  </SelectContent>
+                  </Select>
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
-            <FormField
-              control={buisnessForm.control}
-              name="organization_type"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Organization type <Required/> </FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose schedule type" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">Miscellaneous</SelectItem>
-                        <SelectItem value="2">Calendar Days</SelectItem>
-                        <SelectItem value="3">Working Days</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            {/* <FormField
-              control={buisnessForm.control}
-              name="employee_system_activation"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1 text-right">Employee system activation</FormLabel>
-                  </div>
-                  <div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-white px-3 flex justify-between text-text-primary"
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yy")
-                            ) : (
-                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                            )}
-                            <CalendarIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          // disabled={(date) =>
-                          //   date > new Date() || date < new Date("1900-01-01")
-                          // }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            /> */}
-            
-          </div>
-        {/* </div> */}
+          )}         
+        </div>
         <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-5">
             <Button

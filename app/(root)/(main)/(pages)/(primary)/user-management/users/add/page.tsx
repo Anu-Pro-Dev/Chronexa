@@ -5,7 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form";
+// import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form";
+import PowerMultiStepCard from "@/components/custom/power-comps/power-multi-step-card";
 import PersonalForm from "@/forms/user-management/PersonalForm";
 import CredentialsForm from "@/forms/user-management/CredentialsForm";
 import OfficialForm from "@/forms/user-management/OfficialForm";
@@ -13,8 +14,8 @@ import FlagsForm from "@/forms/user-management/FlagsForm";
 
 export default function Page() {
   const { modules } = useLanguage();
-
   const [fields, set_fields] = useState<any>([]);
+  const [loading, setLoading] = useState(false);
 
   const formSchema = z.object(
     fields.reduce((acc: any, field: any) => {
@@ -93,6 +94,17 @@ export default function Page() {
     inactive_date: z.date({
       required_error: "From Date is required.",
     }),
+    organization: z.string().optional(),
+    card_number: z.string().optional(),
+    pin: z.string().optional(),
+    sex: z.string().optional(),
+    passport_number: z.string().optional(),
+    passport_expiry: z.date().optional(),
+    passport_issued: z.string().optional(),
+    national_id_number: z.string().optional(),
+    national_id_expiry: z.date().optional(),
+    remarks: z.string().optional(),
+    employee_system_activation: z.date().optional(),
   });
 
   const  personalForm = useForm<z.infer<typeof personalFormSchema>>({
@@ -106,6 +118,17 @@ export default function Page() {
       email: "",
       join_date: undefined,
       inactive_date: undefined,
+      organization: "",
+      card_number: "",
+      pin: "",
+      sex: "",
+      passport_number: "",
+      passport_expiry: undefined,
+      passport_issued: "",
+      national_id_number: "",
+      national_id_expiry: undefined,
+      remarks: "",
+      employee_system_activation: undefined,
     },
   });
 
@@ -133,25 +156,25 @@ export default function Page() {
   });
 
   const officialFormSchema = z.object({
-    employee_type: z
+    user_type: z
       .string()
       .min(1, {
         message: "Required",
       })
       .max(100),
+    location: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
+    citizenship: z.object({
+      code: z.string(),
+      name: z.string(),
+      nameAr: z.string(),
+      flag: z.string(),
+    }).nullable(), 
     designation: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    region: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    manager: z
       .string()
       .min(1, {
         message: "Required",
@@ -169,32 +192,22 @@ export default function Page() {
         message: "Required",
       })
       .max(100),
-    nationality: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    employee_system_activation: z.date().optional(),
-    join_date: z.date().optional(),
-    inactive_date: z.date().optional(),
+  
+    manager: z.string().optional(),
     manager_flag: z.boolean(),
   });
 
   const officialForm = useForm<z.infer<typeof officialFormSchema>>({
     resolver: zodResolver(officialFormSchema),
     defaultValues: {
-      employee_type: "",
+      user_type: "",
+      location: "",
+      citizenship: null,
       designation: "",
-      region: "",
-      manager: "",
       grade: "",
       organization_type: "",
-      nationality: "",
+      manager: "",
       manager_flag: false,
-      employee_system_activation: undefined, 
-      join_date: undefined,
-      inactive_date: undefined, 
     },
   });
 
@@ -250,6 +263,47 @@ export default function Page() {
     }
   };
 
+  const handleFinalSubmit = async () => {
+    setLoading(true);
+  
+    const isPersonalValid = await personalForm.trigger();
+    const isCredentialsValid = await credentialsForm.trigger();
+    const isOfficialValid = await officialForm.trigger();
+    const isFlagsValid = await flagForm.trigger();
+  
+    if (isPersonalValid && isCredentialsValid && isOfficialValid && isFlagsValid) {
+      const allFormData = {
+        ...personalForm.getValues(),
+        ...credentialsForm.getValues(),
+        ...officialForm.getValues(),
+        ...flagForm.getValues(),
+      };
+  
+      try {
+        const response = await fetch("/api/employee", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(allFormData),
+        });
+  
+        if (!response.ok) throw new Error("Submission failed");
+    
+        personalForm.reset();
+        credentialsForm.reset();
+        officialForm.reset();
+        flagForm.reset();
+  
+        SetPage("personal-form");
+      } catch (err) {
+        console.error("Submit error", err);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setLoading(false);
+    }
+  };
+
   const Pages = [
     { 
       title: "Personal",
@@ -273,7 +327,7 @@ export default function Page() {
       title: "Flags",
       state_route: "flags-form",
       disable: false, 
-      component: <FlagsForm flagForm={flagForm} flagsFormSchema={flagsFormSchema} /> 
+      component: <FlagsForm flagForm={flagForm} flagsFormSchema={flagsFormSchema} handleFinalSubmit={handleFinalSubmit} loading={loading}/> 
     },
   ];  
 
@@ -285,7 +339,7 @@ export default function Page() {
         modal_title="User"
       />
       <>
-        <PowerMultiStepForm
+        <PowerMultiStepCard
           SetPage={SetPage}
           Page={Page}
           validateCurrentForm={validateCurrentForm}

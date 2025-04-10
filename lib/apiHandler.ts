@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "sonner";
 
 // Base API URL from environment variables
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -78,13 +79,20 @@ export const logoutRequest = async () => {
     try {
       await apiRequest("/auth/logout", "POST", );
     } catch (error) {
-      console.error("Logout failed:", error);
+      toast.error("Logout failed:");
     } finally {
       // Always remove token from storage
       localStorage.removeItem(USER_TOKEN);
       sessionStorage.removeItem(USER_TOKEN);
     }
 };  
+
+// Function for initiating forgot password
+export const forgotPasswordRequest = async (employeeId: number) => {
+  return apiRequest("/auth/forgot-password", "POST", {
+    employeeId,
+  });
+};
 
 // Function for resetting password
 export const resetPasswordRequest = async (newPassword: string) => {
@@ -97,6 +105,16 @@ export const resetPasswordRequest = async (newPassword: string) => {
     return apiRequest("/auth/reset-password", "POST", { newPassword });
 };
   
+// Function to delete tanle entity dynamically
+export const deleteEntityRequest = (entity: string | undefined, id: string) => {
+  return apiRequest(`/${entity}/delete/${id}`, "DELETE")
+    .then(response => response)
+    .catch(error => {
+      toast.error(`Error deleting ${entity}:`, error);
+      throw error;
+    });
+};
+
 // Function to fetch all location
 export const getAllLocations = async () => {
   return apiRequest("/location/all", "GET");
@@ -115,22 +133,34 @@ export const deleteLocationRequest = (id: string) => {
   return apiRequest(`/location/delete/${id}`, "DELETE")
     .then(response => response)
     .catch(error => {
-      console.error("Error deleting location:", error);
+      toast.error("Error deleting location:", error);
       throw error;
     });
 };
 
+// Function to edit a location by ID
+export const editLocationRequest = async (
+  id: string,
+  locationNameEnglish: string,
+  locationNameArab: string,
+) => {
+  return apiRequest(`/location/edit/${id}`, "PUT", {
+    locationNameEnglish,
+    locationNameArab,
+  });
+};
+
 // Function to fetch all citizenship
 export const getAllCitizenship = async () => {
-  return apiRequest("/nationality/all", "GET");
+  return apiRequest("/citizenship/all", "GET");
 };
 
 // Function to add a new citizenship
-export const addCitizenshipRequest = async (nationalityName: string, descriptionEng: string, descriptionArb: string) => {
-  return apiRequest("/nationality/add", "POST", {
-    nationalityName,
-    descriptionEng,
-    descriptionArb,
+export const addCitizenshipRequest = async (countryCode: string, citizenshipEng: string, citizenshipArb: string) => {
+  return apiRequest("/citizenship/add", "POST", {
+    countryCode,
+    citizenshipEng,
+    citizenshipArb,
   });
 };
 
@@ -139,7 +169,7 @@ export const deleteCitizenshipRequest = (id: string) => {
   return apiRequest(`/nationality/delete/${id}`, "DELETE")
     .then(response => response)
     .catch(error => {
-      console.error("Error deleting citizenship:", error);
+      toast.error("Error deleting citizenship:", error);
       throw error;
     });
 };
@@ -165,7 +195,7 @@ export const deleteDesignationRequest = (id: string) => {
   return apiRequest(`/designation/delete/${id}`, "DELETE")
     .then(response => response)
     .catch(error => {
-      console.error("Error deleting designation:", error);
+      toast.error("Error deleting designation:", error);
       throw error;
     });
 };
@@ -194,7 +224,7 @@ export const deleteGradeRequest = (id: string) => {
   return apiRequest(`/grade/delete/${id}`, "DELETE")
     .then(response => response)
     .catch(error => {
-      console.error("Error deleting grade:", error);
+      toast.error("Error deleting grade:", error);
       throw error;
     });
 };
@@ -219,7 +249,7 @@ export const deleteOrganizationRequest = (id: string) => {
   return apiRequest(`/organization/delete/${id}`, "DELETE")
     .then(response => response)
     .catch(error => {
-      console.error("Error deleting organization:", error);
+      toast.error("Error deleting organization:", error);
       throw error;
     });
 };
