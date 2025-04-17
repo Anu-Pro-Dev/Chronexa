@@ -1,5 +1,6 @@
 import React, { useEffect, useState, ReactNode, MemoExoticComponent } from "react";
 import { cn } from "@/lib/utils";
+import { DropDownIcon } from "@/icons/icons";
 
 interface PageType {
   state_route: string;
@@ -61,13 +62,16 @@ export default function PowerMultiStepCard({
             key={page.state_route}
             className={cn(
               "bg-white p-6 rounded-2xl transition-all duration-300",
-              !isCurrentPage && "cursor-pointer"
+              !isCurrentPage && "cursor-pointer py-4 rounded-xl"
             )}
             onClick={() => {
               if (!isCurrentPage) SetPage(page.state_route);
             }}
           >
-            <h1 className="font-bold text-xl text-primary">{page.title}</h1>
+            <h1 className="font-bold text-xl text-primary flex items-center justify-between">
+              {page.title}
+              {!isCurrentPage && <DropDownIcon width="26px" height="36px" />}
+            </h1>
             {isCurrentPage &&
               React.cloneElement(page.component as React.ReactElement<any>, {
                 handleTabChange,
