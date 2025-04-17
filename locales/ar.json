@@ -16,7 +16,7 @@
         "dashboard": "لوحة القيادة",
         "companyMaster": "سجل الشركة",
         "organization": "المؤسسة",
-        "employeeMaster": "سجل الموظفين",
+        "userManagement": "سجل الموظفين",
         "taMaster": "سجل الحضور والغياب",
         "scheduling": "الجدولة",
         "selfServices": "الخدمات الذاتية"
@@ -57,8 +57,8 @@
         "breakTime": "وقت الاستراحة"
       },
       "companyMaster": {
-        "regions": "مناطق",
-        "nationalities": "الجنسيات",
+        "locations": "المواقع",
+        "citizenship": "المواطنة",
         "designations": "المسميات الوظيفية",
         "grades": "الدرجات"
       },

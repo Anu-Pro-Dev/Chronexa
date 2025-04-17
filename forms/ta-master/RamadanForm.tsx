@@ -214,7 +214,7 @@ export default function RamadanForm({
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
                   <div className="flex justify-end pr-2">
-                    <FormLabel className="text-left">In time 1<Required /></FormLabel>
+                    <FormLabel className="text-left">In time <Required /></FormLabel>
                   </div>
                   <div>
                     <Popover>
@@ -287,7 +287,7 @@ export default function RamadanForm({
                 </FormItem>
               )}
             />
-            <FormField
+            {/* <FormField
               control={form.control}
               name="in_time_2"
               render={({ field }) => (
@@ -436,7 +436,7 @@ export default function RamadanForm({
                   </Popover>
                 </FormItem>
               )}
-            />
+            /> */}
             <FormField
               control={form.control}
               name="grace_in"
@@ -517,7 +517,7 @@ export default function RamadanForm({
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
                   <div className="flex justify-end pr-2">
-                    <FormLabel className="text-left">Out time 1 <Required/></FormLabel>
+                    <FormLabel className="text-left">Out time <Required/></FormLabel>
                   </div>
                   <Popover>
                     <FormControl>
@@ -589,7 +589,7 @@ export default function RamadanForm({
                 />
               </div>
             </div>
-            <FormField
+            {/* <FormField
               control={form.control}
               name="out_time_2"
               render={({ field }) => (
@@ -744,7 +744,7 @@ export default function RamadanForm({
                   )}
                 />
               </div>
-            </div>
+            </div> */}
             <FormField
               control={form.control}
               name="grace_out"

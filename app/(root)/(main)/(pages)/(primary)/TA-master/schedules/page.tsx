@@ -34,7 +34,6 @@ export default function Page() {
     { field: "in_time", headerName: "In Time" },
     { field: "out_time", headerName: "Out Time" },
     { field: "inactive_date", headerName: "Inactive Date" },
-    { field: "updated", headerName: "Updated" },
   ]);
   const props = {
     Data,

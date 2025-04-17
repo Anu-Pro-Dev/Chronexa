@@ -59,6 +59,7 @@ const CurrentDate: React.FC = () => {
                 setShowCalendar(false); // Close the calendar after selection
               }
             }}
+            disabled={{ after: new Date() }}
           />
           </div>
         )}

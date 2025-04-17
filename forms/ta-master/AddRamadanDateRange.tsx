@@ -34,13 +34,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  descriptionEng: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  descriptionArb: z
     .string()
     .min(1, {
       message: "Required",
@@ -62,8 +62,8 @@ export default function AddRamadanDateRange({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      description_en: "",
-      description_ar: "",
+      descriptionEng: "",
+      descriptionArb: "",
       remarks: "",
     },
   });
@@ -86,7 +86,7 @@ export default function AddRamadanDateRange({
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
                   control={form.control}
-                  name="description_en"
+                  name="descriptionEng"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -157,7 +157,7 @@ export default function AddRamadanDateRange({
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
                   control={form.control}
-                  name="description_ar"
+                  name="descriptionArb"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>

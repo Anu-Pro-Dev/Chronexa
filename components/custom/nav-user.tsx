@@ -15,12 +15,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
-import { logout } from "@/lib/utils";
 import { DropDownIcon, LogoutIcon, UserPasswordIcon } from "@/icons/icons";
 import { useLanguage } from "@/providers/LanguageProvider";
-
+import { logoutRequest } from "@/lib/apiHandler";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -29,8 +27,18 @@ export function NavUser() {
     email: "Admin",
   };
   const router = useRouter();
+
   const { translations, dir } = useLanguage();
-  
+
+  async function logout() {
+    try {
+      await logoutRequest(); // Call the logoutRequest function to log out the user
+      router.push("/"); // Redirect to home/login page after logout
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  }
+
   return (
     <div className="flex items-center gap-4">
       

@@ -1,10 +1,10 @@
 import { email_data, sms_data } from "@/data/alerts.data";
-import { regions_data, nationalities_data, designations_data, grades_data } from "@/data/cm.data"; // Import your datasets
+import { locations_data, citizenship_data, designations_data, grades_data } from "@/data/cm.data"; // Import your datasets
 import { devices_status_data } from "@/data/devices.data";
 import {
-  employeeMaster_employees_data,
-  employeeMaster_groups_data,
-  employeeMaster_types_data,
+  userManagement_employees_data,
+  userManagement_groups_data,
+  userManagement_types_data,
 } from "@/data/em.data";
 import { weeklyschedule_data } from "@/data/scheduling.data";
 import { departments_data, organizationtypes_data } from "@/data/org.data";
@@ -23,11 +23,11 @@ export const DynamicApi = (api: any, params: any) => {
 
     let data: any = [];
     switch (api) {
-      case "/company-master/regions":
-        data = regions_data;
+      case "/company-master/locations":
+        data = locations_data;
         break;
-      case "/company-master/nationalities":
-        data = nationalities_data;
+      case "/company-master/citizenship":
+        data = citizenship_data;
         break;
       case "/company-master/designations":
         data = designations_data;
@@ -45,20 +45,20 @@ export const DynamicApi = (api: any, params: any) => {
         data = organizationtypes_data;
         break;
       case "/employee-master/employees":
-        data = employeeMaster_employees_data;
+        data = userManagement_employees_data;
         break;
       case "/employee-master/employee-types":
-        data = employeeMaster_types_data;
+        data = userManagement_types_data;
         break;
       case "/employee-master/employee-groups":
-        data = employeeMaster_groups_data;
+        data = userManagement_groups_data;
         break;
       case "/ta-master/ramadan-dates":
         data = ramadandates_data;
         break;
-      case "/ta-master/reasons":
-        data = reasons_data;
-        break;
+      // case "/ta-master/reasons":
+      //   data = reasons_data;
+      //   break;
       case "/ta-master/holidays":
         data = holidays_data;
         break;

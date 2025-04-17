@@ -11,12 +11,10 @@ export default function Page() {
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "description" },
-    { field: "from_date" },
-    { field: "to_date" },
-    { field: "recurring" },
+    { field: "description", headerName: "Holiday Name" },
+    { field: "from_date", headerName: "From Date" },
+    { field: "to_date", headerName: "To Date" },
     { field: "public_holiday", headerName: "Public Holiday" },
-    { field: "updated", headerName: "Updated" },
   ]);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
 
@@ -40,7 +38,7 @@ export default function Page() {
         props={props}
         items={modules?.taMaster?.items}
         modal_title="Holidays"
-        modal_description="Holidays of the employee"
+       //modal_description="Holidays of the employee"
         modal_component={<AddHoliday on_open_change={on_open_change} />}
         isLarge
       />

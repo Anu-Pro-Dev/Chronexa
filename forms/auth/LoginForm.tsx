@@ -17,12 +17,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import { USER_TOKEN } from "@/lib/Instance";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
 import { IoEye, IoEyeOff } from "react-icons/io5";
+import { loginRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
   username: z
@@ -61,35 +61,38 @@ export default function LoginForm() {
   });
 
   useEffect(() => {
-    form.setValue("captcha_1", getRandomInt(1, 9));
-    form.setValue("captcha_2", getRandomInt(1, 9));
-  }, []);
+    form.setValue("captcha_1", getRandomInt(0, 9));
+    form.setValue("captcha_2", getRandomInt(0, 9));
+  }, [form]);
+  
   const router = useRouter();
-  function onSubmit(values: z.infer<typeof formSchema>) {
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      if (
-        values.captcha_1 + values.captcha_2 !==
-        Number(values.captcha_result)
-      ) {
+      // Validate CAPTCHA
+      if (values.captcha_1 + values.captcha_2 !== Number(values.captcha_result)) {
         form.setError("captcha_result", {
           type: "custom",
           message: "Incorrect Captcha Result",
         });
         return;
       }
-
-      const token = "something bro";
-      if (values.remember_me === true) {
-        localStorage.setItem(USER_TOKEN, token);
+  
+      // Call the login API with `remember_me`
+      const response = await loginRequest(Number(values.username), values.password, values.remember_me ?? false);
+  
+      // Redirect only if login is successful and a token is received
+      if (response?.token) {
+        router.push("/dashboard");
       } else {
-        sessionStorage.setItem(USER_TOKEN, token);
+        console.error("Login failed: No token received.");
+        form.setError("username", { type: "manual", message: "Invalid credentials" });
       }
-      console.log(values);
-      router.push("/dashboard");
     } catch (error) {
-      console.error("Form submission error", error);
+      console.error("Login error:", error);
+      form.setError("username", { type: "manual", message: "An error occurred. Please try again." });
     }
-  }
+  }  
 
   return (
     <Form {...form}>
@@ -169,8 +172,8 @@ export default function LoginForm() {
                   </div>
                   <IoMdRefresh
                     onClick={() => {
-                      form.setValue("captcha_1", getRandomInt(1, 9));
-                      form.setValue("captcha_2", getRandomInt(1, 9));
+                      form.setValue("captcha_1", getRandomInt(0, 9));
+                      form.setValue("captcha_2", getRandomInt(0, 9));
                     }}
                     className="text-primary text-2xl"
                   />
@@ -194,7 +197,7 @@ export default function LoginForm() {
                       <Checkbox
                         id="remember_me"
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
                       <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">Remember me</FormLabel>
                     </div>

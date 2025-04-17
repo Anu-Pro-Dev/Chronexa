@@ -1,26 +1,15 @@
 "use client";
+import React, { useState, useEffect } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import React, { useState } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 
 export default function Page() {
-  const { modules } = useLanguage();
-  const [SelectedKeys, SetSelectedKeys] = useState<any>([]);
+  const { modules, language } = useLanguage();
   const router = useRouter();
-  const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "name" },
-    // { field: "join_date", headerName: "Join Date" },
-    // { field: "manager" },
-    // { field: "punch" },
-    { field: "active" },
-    { field: "designation" },
-    { field: "organization" },
-    { field: "manager_name", headerName: "Manager Name" },
-  ]);
-
+  const [Columns, setColumns] = useState<{ field: string; headerName: string;}[]>([]);
+  const [SelectedKeys, SetSelectedKeys] = useState<any>([]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -45,19 +34,34 @@ export default function Page() {
     SetSearchValue,
   };
 
+  useEffect(() => {
+    if (!open) {
+      setSelectedRowData(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    setColumns([
+      {field: "employeeId", headerName: "Emp No"},
+      {field: "firstname", headerName: "Name"},
+      {field: "hireDate", headerName: "Join Date"},
+      {field: "position", headerName: "Designation"},
+    ]);
+  }, [language]);
+
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
-    router.push("/employee-master/employees/add");
+    router.push("/user-management/users/add");
   };
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.employeeMaster.items}
-        isAddNewPagePath="/employee-master/employees/add"
+        items={modules?.userManagement.items}
+        isAddNewPagePath="/user-management/users/add"
       />
-      <PowerTable props={props} api={"/employee-master/employees"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

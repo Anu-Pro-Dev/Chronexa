@@ -29,14 +29,12 @@ export default function Page() {
   };
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
+    // { field: "number" },
     { field: "name" },
     { field: "organization", clickable: true, onCellClick: handleCellClick },
     { field: "from_date", headerName: "From date" },
     { field: "to_date", headerName: "To date" },
     { field: "active" },
-    { field: "created_by", headerName: "Created" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
@@ -66,7 +64,7 @@ export default function Page() {
         items={modules?.organization.items}
         isAddNewPagePath="/organization/departments/add"
       />
-      <PowerTable props={props} api={"/organization/departments"} showEdit={true} onEditClick={handleEditClick} />
+      <PowerTable props={props} api={"/organization/departments"} Data={Data} showEdit={true} onEditClick={handleEditClick} />
       
       {isModalOpen && selectedRowData && (
         <DepartmentAdmins

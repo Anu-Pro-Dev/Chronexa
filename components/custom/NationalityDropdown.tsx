@@ -9,7 +9,11 @@ interface Country {
   flag: string;
 }
 
-const NationalityDropdown = ({ onChange }: { onChange: (value: string) => void }) => {
+interface NationalityDropdownProps {
+  value: Country | null;
+  onChange: (value: Country | null) => void;
+}
+const NationalityDropdown = ({ value, onChange }: NationalityDropdownProps) => {
   const [countries, setCountries] = useState<Country[]>([]);
 
   useEffect(() => {
@@ -36,6 +40,7 @@ const NationalityDropdown = ({ onChange }: { onChange: (value: string) => void }
       transition: "border-color 0.2s ease-in-out",
       "&:hover": { borderColor: "#007bff" },
       "&:focus": { outline: "none", borderColor: "#007bff" },
+      maxWidth: "350px",
     }),
     placeholder: (provided: any) => ({
       ...provided,
@@ -79,20 +84,20 @@ const NationalityDropdown = ({ onChange }: { onChange: (value: string) => void }
   return (
     <Select
       options={countries}
-      getOptionLabel={(country) => country.name}
+      value={value}
+      getOptionLabel={(country) => country.name} // Return a string (name)
       getOptionValue={(country) => country.code}
-      formatOptionLabel={(country) => (
+      formatOptionLabel={(country) => ( // Render custom JSX in the dropdown
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src={country.flag} alt={country.code} width="20" height="15" />
           <span>{country.name} - {country.nameAr}</span>
         </div>
       )}
-      onChange={(selected) => onChange(selected?.code || "")}
-      placeholder="Choose nationality"
+      onChange={(selected) => onChange(selected as Country)} // Pass the whole country object
+      placeholder="Choose citizenship"
       styles={customStyles}
       components={{ DropdownIndicator }}
       menuPlacement="bottom"
-      menuPortalTarget={document.body}
     />
   );
 };

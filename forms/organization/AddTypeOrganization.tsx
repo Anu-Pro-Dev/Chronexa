@@ -21,13 +21,13 @@ import Required from "@/components/ui/required";
 
 import { Input } from "@/components/ui/input";
 const formSchema = z.object({
-  description_en: z
+  descriptionEng: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  descriptionArb: z
     .string()
     .min(1, {
       message: "Required",
@@ -43,8 +43,8 @@ export default function AddTypeOrganization({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      description_en: "",
-      description_ar: "",
+      descriptionEng: "",
+      descriptionArb: "",
     },
   });
 
@@ -63,7 +63,7 @@ export default function AddTypeOrganization({
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="description_en"
+            name="descriptionEng"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -79,7 +79,7 @@ export default function AddTypeOrganization({
           />
           <FormField
             control={form.control}
-            name="description_ar"
+            name="descriptionArb"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>

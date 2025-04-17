@@ -35,9 +35,9 @@ export default function AddDepartment() {
     { value: "option3", label: "Organization 3" },
   ];
 
-  const initialEmployees = Array.from({ length: 7 }, (_, i) => ({
+  const initialUsers = Array.from({ length: 7 }, (_, i) => ({
     id: `emp-${i + 1}`,
-    name: `DSG12 - Employee ${i + 1}`,
+    name: `DSG12 - User ${i + 1}`,
     selected: false,
   }));
 
@@ -47,9 +47,9 @@ export default function AddDepartment() {
     selected: false,
   }));
 
-  const [employees, setEmployees] = useState(initialEmployees);
-  const handleSelectionChange = (selectedItems: typeof initialEmployees) => {
-    setEmployees((prev) =>
+  const [users, setUsers] = useState(initialUsers);
+  const handleSelectionChange = (selectedItems: typeof initialUsers) => {
+    setUsers((prev) =>
       prev.map((emp) => ({
         ...emp,
         selected: selectedItems.some((item) => item.id === emp.id),
@@ -73,8 +73,8 @@ export default function AddDepartment() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-4">
-        <div>
+      {/* <div className="grid grid-cols-3 gap-4"> */}
+        <div className="py-2">
           <Select onValueChange={setSelectedOption} value={selectedOption}>
             <SelectTrigger className="bg-white border-grey">
               <Label className="font-normal text-secondary">
@@ -91,51 +91,7 @@ export default function AddDepartment() {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    From Date : <Required />
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
-                </p>
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={fromDate}
-                onSelect={setFromDate}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div>
-          <Popover>
-          <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    To Date : <Required />
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
-                </p>
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={toDate} onSelect={setToDate} />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
+      {/* </div> */}
 
       {/* {!showDetails ? (
         <div className="flex justify-end">
@@ -149,37 +105,15 @@ export default function AddDepartment() {
         </div>
       ) : ( */}
         <>
-          <div className="bg-white p-6 rounded-2xl pb-8">
-            <h1 className="font-bold text-xl text-primary pb-4">Employee</h1>
+          <div className="bg-white rounded-2xl flex flex-col gap-8 px-6 py-8">
+            {/* <h1 className="font-bold text-xl text-primary">User</h1> */}
             <TransferList
-              title="Employees"
-              items={employees}
+              title="Users"
+              items={users}
               onSelectionChange={handleSelectionChange}
               // height="200px"
             />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl pb-8">
-            <h1 className="font-bold text-xl text-primary pb-4">Organization</h1>
-            <TransferList
-              title="Organizations"
-              items={organizations}
-              onSelectionChange={handleSelectionChangeOrg}
-              // height="200px"
-            />
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl pb-4">
-            <Label className="font-bold text-xl text-primary">Remarks</Label>
-            <Textarea 
-              className="border border-border-accent shadow-searchbar my-4 mx-auto"
-              rows={5} 
-              placeholder="Enter your remarks here..."
-            />
-          </div>
-
-          <div>
-            <div className="w-full flex gap-2 items-center col-span-2 justify-end">
+            <div className="w-full flex gap-2 items-center col-span-2 justify-end pt-2">
               <Button
                 variant="outline"
                 type="button"
@@ -196,6 +130,44 @@ export default function AddDepartment() {
               </Button>
             </div>
           </div>
+
+          {/* <div className="bg-white p-6 rounded-2xl pb-8">
+            <h1 className="font-bold text-xl text-primary pb-4">Organization</h1>
+            <TransferList
+              title="Organizations"
+              items={organizations}
+              onSelectionChange={handleSelectionChangeOrg}
+              // height="200px"
+            />
+          </div> */}
+
+          {/* <div className="bg-white p-6 rounded-2xl pb-4">
+            <Label className="font-bold text-xl text-primary">Remarks</Label>
+            <Textarea 
+              className="border border-border-accent shadow-searchbar my-4 mx-auto"
+              rows={5} 
+              placeholder="Enter your remarks here..."
+            />
+          </div> */}
+
+          {/* <div>
+            <div className="w-full flex gap-2 items-center col-span-2 justify-end">
+              <Button
+                variant="outline"
+                type="button"
+                size="lg"
+                onClick={() => {
+                  router.push("/organization/departments");
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button size="lg" type="submit">
+                Save
+              </Button>
+            </div>
+          </div> */}
         </>
       {/* )} */}
     </div>

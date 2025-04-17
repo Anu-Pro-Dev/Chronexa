@@ -15,8 +15,6 @@ export default function Page() {
     { field: "value" },
     { field: "deletable" },
     { field: "description" },
-    { field: "updated_by" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
@@ -54,7 +52,7 @@ export default function Page() {
         props={props}
         items={modules?.settings?.items}
         modal_title="Application Settings"
-        modal_description="Choose the data to add new application settings"
+       //modal_description="Choose the data to add new application settings"
         modal_component={
           <AddApplicationSettings on_open_change={on_open_change} />
         }

@@ -2,17 +2,13 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddCompanyMaster from "@/forms/company-master/AddCompanyMaster";
+import AddDesignations from "@/forms/company-master/AddDesignations";
+import { getAllDesignations } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-
-  const [Columns, setColumns] = useState([
-    { field: "code", headerName: "Code" },
-    { field: "description_en", headerName: "Description (English)" },
-  ]);
-
+  const [Columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);  
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -20,7 +16,8 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
-
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  
   const props = {
     Data,
     SetData,
@@ -43,16 +40,36 @@ export default function Page() {
     }
   }, [open]);
 
-    useEffect(() => {
-      // Dynamically update columns based on selected language
-      setColumns([
-        { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
-        {
-          field: language === "ar" ? "description_ar" : "description_en",
-          headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
-        },
-      ]);
-    }, [language]);
+  useEffect(() => {
+    setColumns([
+      {
+        field: language === "ar" ? "descriptionArb" : "descriptionEng",
+        headerName: language === "ar" ? "اسم الموقع" : "Designation",
+      },
+    ]);
+  }, [language]);
+
+  useEffect(() => {
+    const fetchDesignations = async () => {
+      try {
+        const response = await getAllDesignations();
+        if (response?.success && Array.isArray(response?.data)) {
+          const mapped = response.data.map((desi: any) => ({
+            ...desi,
+            id: desi.designationId,
+          }));
+    
+          SetData(mapped);
+        } else {
+          console.error("Unexpected response structure:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching designations:", error);
+      }
+    };
+
+    fetchDesignations();
+  }, []);  
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
@@ -61,33 +78,37 @@ export default function Page() {
 
   const handleSave = (id: string | null, newData: any) => {
     if (id) {
-      // Update existing row
       SetData((prevData: any) =>
         prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
       );
     } else {
-      // Add new row
       SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
     }
-    setSelectedRowData(null); // Clear selected row data
+    setSelectedRowData(null);
+  };
+
+  const handleRowSelection = (rows: any[]) => {
+    console.log("Selected rows:", selectedRows);
+    setSelectedRows(rows); // Update selected rows
   };
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.companyMaster.items}
-        modal_title="Designations"
-        modal_description="Select the designations of the employee"
+        entityName="designation"
+        modal_title="Designation"
         modal_component={
-          <AddCompanyMaster 
+          <AddDesignations
             on_open_change={on_open_change}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
         }
       />
-      <PowerTable props={props} api={"/company-master/designations"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

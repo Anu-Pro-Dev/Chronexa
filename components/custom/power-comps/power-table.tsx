@@ -29,20 +29,24 @@ const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data
 
 export default function PowerTable({
   props,
+  Data,
   api,
   showEdit = false,
   showCheckbox = true,
   onEditClick,
   customColDef = {},
   ispageValue5,
+  onRowSelection,
 }: {
   props: any;
+  Data: any[];
   api?: any;
   showEdit?: boolean;
   showCheckbox?: boolean;
   onEditClick?: (data: any) => void;
   customColDef?: any;
   ispageValue5?: any;
+  onRowSelection?: (selectedRows: any[]) => void;
 }) {
   const { dir } = useLanguage();
   const gridRef = useRef<any>();
@@ -54,12 +58,22 @@ export default function PowerTable({
   const onSelectionChanged = (event: any) => {
     const selectedNodes = event.api.getSelectedNodes();
     const newSelectedRows = selectedNodes.map((node: any) => node.data);
-
+  
     if (JSON.stringify(selectedRows) !== JSON.stringify(newSelectedRows)) {
-        setSelectedRows(newSelectedRows);
-        if (props?.setSelectedRows) props.setSelectedRows(newSelectedRows);
+      setSelectedRows(newSelectedRows);
+      // Call onRowSelection passed from the parent to notify about the selection change
+      if (onRowSelection) {
+        onRowSelection(newSelectedRows);
+      }
+      if (props?.setSelectedRows) {
+        props.setSelectedRows(newSelectedRows);
+      }
     }
-};
+  };  
+  
+  useEffect(() => {
+    console.log("Selected rows in parent: ", selectedRows);
+  }, [selectedRows]);
 
   // Fetch Data Function
   const FetchData = async () => {

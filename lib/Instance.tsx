@@ -1,8 +1,27 @@
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-export const USER_TOKEN: any = process.env.NEXT_PUBLIC_USER_TOKEN;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+export const USER_TOKEN = "userToken";
+
+export const getStoredToken = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(USER_TOKEN);
+  }
+  return null;
+};
+
+export const setAuthToken = (newToken: string | null) => {
+  if (typeof window !== "undefined") {
+    if (newToken) {
+      localStorage.setItem(USER_TOKEN, newToken);
+    } else {
+      localStorage.removeItem(USER_TOKEN);
+    }
+  }
+};
+
+// Public API instance (no auth required)
 export const PublicAxiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,6 +30,7 @@ export const PublicAxiosInstance = axios.create({
   },
 });
 
+// Authenticated User API instance
 export const UserAxiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -19,27 +39,7 @@ export const UserAxiosInstance = axios.create({
   },
 });
 
-UserAxiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem(USER_TOKEN);
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-UserAxiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.data.auth === "invalid") {
-      localStorage.removeItem(USER_TOKEN);
-      window.location.href = "/signin";
-    }
-
-    return Promise.reject(error);
-  }
-);
-
+// Form Data API instance (for file uploads)
 export const UserFormAxiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -48,22 +48,26 @@ export const UserFormAxiosInstance = axios.create({
   },
 });
 
-UserFormAxiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem(USER_TOKEN);
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+const authInterceptor = (config: any) => {
+  const token = getStoredToken(); // Always get the latest token
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+};
 
-UserFormAxiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.data.auth === "invalid") {
-      localStorage.removeItem(USER_TOKEN);
-      window.location.href = "/signin";
+UserAxiosInstance.interceptors.request.use(authInterceptor, (error) => Promise.reject(error));
+UserFormAxiosInstance.interceptors.request.use(authInterceptor, (error) => Promise.reject(error));
+
+const authErrorInterceptor = (error: any) => {
+  if (typeof window !== "undefined") {
+    if (error.response?.status === 401 || error.response?.data?.auth === "invalid") {
+      setAuthToken(null); // Remove token from storage
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login"; // Redirect user to login page
+      }
     }
-    return Promise.reject(error);
   }
-);
+  return Promise.reject(error);
+};
+
+UserAxiosInstance.interceptors.response.use((response) => response, authErrorInterceptor);
+UserFormAxiosInstance.interceptors.response.use((response) => response, authErrorInterceptor);

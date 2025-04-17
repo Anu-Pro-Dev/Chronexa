@@ -64,14 +64,14 @@ export default function LanguageProvider({
     path: "/company-master",
     items: [
       {
-        label: currentLanguageData.translations?.modules?.companyMaster?.regions || "Regions",
-        path: "/company-master/regions/",
-        value: "regions",
+        label: currentLanguageData.translations?.modules?.companyMaster?.locations || "Locations",
+        path: "/company-master/locations/",
+        value: "locations",
       },
       {
-        label: currentLanguageData.translations?.modules?.companyMaster?.nationalities || "Nationalities",
-        path: "/company-master/nationalities/",
-        value: "nationalities",
+        label: currentLanguageData.translations?.modules?.companyMaster?.citizenship || "Citizenship",
+        path: "/company-master/citizenship/",
+        value: "citizenship",
       },
       {
         label: currentLanguageData.translations?.modules?.companyMaster?.designations || "Designations",
@@ -83,6 +83,16 @@ export default function LanguageProvider({
         path: "/company-master/grades/", 
         value: "grades" 
       },
+      { 
+        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Type",
+        path: "/company-master/organization-type/", 
+        value: "organization-type" 
+      },
+      { 
+        label: currentLanguageData.translations?.modules?.organization?.organization || "Organization",
+        path: "/company-master/organization/", 
+        value: "organization" 
+      },
     ],
   };
 
@@ -90,6 +100,11 @@ export default function LanguageProvider({
     route_name: "Organization",
     path: "/organization/",
     items: [
+      {
+        label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
+        path: "/organization/structure/",
+        value: "structure",
+      },
       {
         label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
         path: "/organization/departments/",
@@ -101,55 +116,50 @@ export default function LanguageProvider({
         value: "add-department",
         hide: true,
       },
-      {
-        label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
-        path: "/organization/structure/",
-        value: "structure",
-      },
-      {
-        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
-        path: "/organization/types/",
-        value: "types",
-      },
+      // {
+      //   label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
+      //   path: "/organization/types/",
+      //   value: "types",
+      // },
     ],
   };
 
-  const employeeMaster = {
-    route_name: "Employee Master",
-    path: "/employee-master/",
+  const userManagement = {
+    route_name: "User Management",
+    path: "/user-management/",
 
     items: [
       {
-        label: "Employees",
-        path: "/employee-master/employees/",
-        value: "employees",
+        label: "Users",
+        path: "/user-management/users/",
+        value: "users",
       },
       {
-        label: "Employees",
-        path: "/employee-master/employees/add/",
-        value: "add-employee",
+        label: "Users",
+        path: "/user-management/users/add/",
+        value: "add-user",
         hide: true,
       },
       {
-        label: "Employee Groups",
-        path: "/employee-master/employee-groups/",
+        label: "Groups",
+        path: "/user-management/groups/",
         value: "groups",
       },
+      // {
+      //   label: "Groups",
+      //   path: "/user-management/groups/add/",
+      //   value: "groups",
+      //   hide: true,
+      // },
       {
-        label: "Employee Groups",
-        path: "/employee-master/employee-groups/add/",
+        label: "Groups",
+        path: `/user-management/groups/group-members/`,
         value: "groups",
         hide: true,
       },
       {
-        label: "Employee Groups",
-        path: `/employee-master/employee-groups/group-members/`,
-        value: "groups",
-        hide: true,
-      },
-      {
-        label: "Employee Types",
-        path: "/employee-master/employee-types/",
+        label: "Types",
+        path: "/user-management/types/",
         value: "types",
       },
     ],
@@ -159,11 +169,6 @@ export default function LanguageProvider({
     route_name: "TA Master",
     path: "/TA-master/",
     items: [
-      {
-        label: "Reasons",
-        path: "/TA-master/reasons/",
-        value: "reasons",
-      },
       {
         label: "Holidays",
         path: "/TA-master/holidays/",
@@ -185,6 +190,11 @@ export default function LanguageProvider({
         value: "add-schedules",
         hide: true,
       },
+      // {
+      //   label: "Reasons",
+      //   path: "/TA-master/reasons/",
+      //   value: "reasons",
+      // },
     ],
   };
 
@@ -426,12 +436,12 @@ export default function LanguageProvider({
         path: "/devices/devices-status/",
         value: "devices_status",
       },
-      {
-        label: "Devices Status",
-        path: "/devices/devices-status/add/",
-        value: "add_devices_status",
-        hide: true,
-      },
+      // {
+      //   label: "Devices Status",
+      //   path: "/devices/devices-status/add/",
+      //   value: "add_devices_status",
+      //   hide: true,
+      // },
     ],
   };
 
@@ -595,7 +605,7 @@ export default function LanguageProvider({
     dashboard,
     companyMaster,
     organization,
-    employeeMaster,
+    userManagement,
     taMaster,
     scheduling,
     selfServices,

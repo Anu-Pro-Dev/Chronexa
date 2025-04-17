@@ -135,38 +135,43 @@ export default function Page() {
         enableClear
         props={props}
         items={modules?.scheduling?.items}
-        enableFilters
+        // enableFilters
         disableAdd
         disableDelete
         
-        filter_modal_component={
-          <FilterForm on_open_change={filter_on_open_change} />
-        }
-        isLarge
+        // filter_modal_component={
+        //   <FilterForm on_open_change={filter_on_open_change} />
+        // }
+        // isLarge
         // filter_modal_title="none"
       />
 
-      <div className="flex justify-between bg-white rounded-[15px] items-center px-5 py-3">
-        <Input
-          className="border-0 p-0 h-auto rounded-none text-text-secondary"
-          type="file"
-        />
-        <div className="flex items-center gap-2">
-          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-            <ImportIcon /> Import
-          </Button>
-          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-            <ExportIcon /> Export
-          </Button>
-          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-            <CopyIcon /> Copy Roster
-          </Button>
-          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-            <CopyIcon /> Copy
-          </Button>
-          <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold" disabled>
-            <PasteIcon /> Paste
-          </Button>
+      <div className="flex flex-col justify-between bg-white rounded-[15px] items-center px-5 py-3">
+        <div className="w-full py-3">
+          <FilterForm />
+        </div>
+        <div className="w-full flex py-3">
+          <Input
+            className="border-0 p-0 h-auto rounded-none text-text-secondary"
+            type="file"
+          />
+          <div className="flex items-center gap-2">
+            <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
+              <ImportIcon /> Import
+            </Button>
+            <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
+              <ExportIcon /> Export
+            </Button>
+            <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
+              <CopyIcon /> Copy Roster
+            </Button>
+            <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
+              <CopyIcon /> Copy
+            </Button>
+            <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold" disabled>
+              <PasteIcon /> Paste
+            </Button>
+          </div>
         </div>
       </div>
 

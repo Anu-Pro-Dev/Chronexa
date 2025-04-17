@@ -4,7 +4,7 @@ import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
-import { FaChevronLeftIcon, FaChevronRightIcon, PunchOutIcon } from "@/lib/svg/icons"
+import { CarouselLeftIcon, CarouselRightIcon } from "@/icons/icons"
 import { cn } from "@/lib/utils"
 import CustomButton from "@/components/ui/CustomButton"
 
@@ -204,7 +204,7 @@ const CarouselPrevious = React.forwardRef<
       width = "auto" 
       height="35px"
       btnText=''
-      btnIcon={FaChevronLeftIcon()}
+      btnIcon={CarouselLeftIcon()}
       onClick={scrollPrev}
       disabled={!canScrollPrev}
       className={cn(
@@ -230,7 +230,7 @@ const CarouselNext = React.forwardRef<
       width = "auto" 
       height="35px"
       btnText=''
-      btnIcon={FaChevronRightIcon()}
+      btnIcon={CarouselRightIcon()}
       onClick={scrollNext}
       disabled={!canScrollNext}
       className={cn(

@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 import {
@@ -47,9 +48,9 @@ const formSchema = z.object({
 });
 
 export default function FilterWeeklyScheduling({
-  on_open_change,
+  // on_open_change,
 }: {
-  on_open_change: any;
+  // on_open_change: any;
 }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -72,25 +73,27 @@ export default function FilterWeeklyScheduling({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-3 gap-4 pb-4">
           <FormField
             control={form.control}
             name="organization"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Organization <Required/></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-grey">
+                      <Label className="font-normal text-secondary">
+                        Organization :
+                      </Label>
                       <SelectValue placeholder="Choose organization" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="1">1 </SelectItem>
-                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="1">Organization 1 </SelectItem>
+                    <SelectItem value="2">Organization 2</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -103,19 +106,21 @@ export default function FilterWeeklyScheduling({
             name="employee"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Employee <Required/></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose employee" />
+                    <SelectTrigger className="bg-white border-grey">
+                      <Label className="font-normal text-secondary">
+                        User :
+                      </Label>
+                      <SelectValue placeholder="Choose user" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="1">1 </SelectItem>
-                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="1">User 1 </SelectItem>
+                    <SelectItem value="2">User 2</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -123,19 +128,20 @@ export default function FilterWeeklyScheduling({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="group"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Group <Required/></FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-grey">
+                      <Label className="font-normal text-secondary">
+                        Group :
+                      </Label>
                       <SelectValue placeholder="Choose any group" />
                     </SelectTrigger>
                   </FormControl>
@@ -144,26 +150,10 @@ export default function FilterWeeklyScheduling({
                     <SelectItem value="2">WorK Groups</SelectItem>
                   </SelectContent>
                 </Select>
-
                 <FormMessage />
               </FormItem>
             )}
           />
-
-          <div className="w-full flex gap-2 items-center pt-5">
-            <Button
-              variant={"outline"}
-              type="button"
-              size={"lg"}
-              className="w-full"
-              onClick={() => on_open_change(false)}
-            >
-              Clear Filter
-            </Button>
-            <Button type="submit" size={"lg"} className="w-full">
-              Apply
-            </Button>
-          </div>
         </div>
       </form>
     </Form>

@@ -1,17 +1,16 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddCompanyMaster from "@/forms/company-master/AddCompanyMaster";
+import AddUserTypes from "@/forms/user-management/AddUserTypes";
+import { getAllUserGroups } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-
-  const [Columns, setColumns] = useState([
-    { field: "code", headerName: "Code" },
-    { field: "description_en", headerName: "Description (English)" },
-  ]);
+  const router = useRouter();
+  const [Columns, setColumns] = useState<{ field: string; headerName: string;}[]>([]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -19,6 +18,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  
   const props = {
     Data,
     SetData,
@@ -34,59 +34,66 @@ export default function Page() {
     SearchValue,
     SetSearchValue,
   };
-
+  
   useEffect(() => {
     if (!open) {
       setSelectedRowData(null);
     }
   }, [open]);
-
+  
   useEffect(() => {
-    // Dynamically update columns based on selected language
     setColumns([
-      { field: "code", headerName: language === "ar" ? "الرمز" : "Code" },
       {
-        field: language === "ar" ? "description_ar" : "description_en",
-        headerName: language === "ar" ? "Description (العربية)" : "Description (English)",
+        field: language === "ar" ? "descriptionArb" : "descriptionEng",
+        headerName: "Type of Employee",
       },
     ]);
   }, [language]);
+  
+  useEffect(() => {
+    const fetchUserGroups = async () => {
+      try {
+        const response = await getAllUserGroups();
+        console.log(response);
+        SetData(response.data);
+      } catch (error) {
+        console.error("Error fetching user groups:", error);
+      }
+    };
+    fetchUserGroups();
+  }, []);
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
     on_open_change(true);
   };
 
-  // Save data (Add or Update)
   const handleSave = (id: string | null, newData: any) => {
     if (id) {
-      // Update existing row
       SetData((prevData: any) =>
         prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
       );
     } else {
-      // Add new row
       SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
     }
-    setSelectedRowData(null); // Clear selected row data
+    setSelectedRowData(null);
   };
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        items={modules?.companyMaster.items}
-        modal_title="Regions"
-        modal_description="Select the regions of the employee"
+        items={modules?.userManagement.items}
+        modal_title="User Types"
         modal_component={
-          <AddCompanyMaster 
+          <AddUserTypes 
             on_open_change={on_open_change}
             selectedRowData={selectedRowData}
             onSave={handleSave}
-          />
+         />
         }
       />
-      <PowerTable props={props} api={"/company-master/regions"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

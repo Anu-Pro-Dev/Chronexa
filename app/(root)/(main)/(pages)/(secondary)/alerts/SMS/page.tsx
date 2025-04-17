@@ -19,12 +19,10 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "mobile_number", headerName: "Mobile Number" },
-    { field: "employee_id", headerName: "Employee ID" },
+    { field: "employee_id", headerName: "User ID" },
     { field: "subject" },
     { field: "sms_content", headerName: "Content" },
     { field: "status" },
-    { field: "created_date", headerName: "Created Date" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
@@ -106,7 +104,8 @@ export default function Page() {
         </div>
       </div>
       <PowerTable 
-        props={props} 
+        props={props}
+        Data={Data}
         api={"/alerts/sms"} 
         showCheckbox={false}
         customColDef={{

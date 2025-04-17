@@ -11,11 +11,10 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
 
   const [Columns] = useState([
-    { field: "description_en", headerName: "Description (English)" },
-    { field: "description_ar", headerName: "Description (العربية)" },
+    { field: "descriptionEng", headerName: "Description (English)" },
+    { field: "descriptionArb", headerName: "Description (العربية)" },
     { field: "from_date", headerName: "From date" },
     { field: "to_date", headerName: "To date" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
@@ -39,7 +38,7 @@ export default function Page() {
         props={props}
         items={modules?.taMaster?.items}
         modal_title="Ramadan Dates"
-        modal_description="Ramadan Dates of the employee"
+       //modal_description="Ramadan Dates of the employee"
         modal_component={
           <AddRamadanDateRange on_open_change={on_open_change} />
         }

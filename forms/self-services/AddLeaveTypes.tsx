@@ -40,13 +40,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  descriptionEng: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  descriptionArb: z
     .string()
     .min(1, {
       message: "Required",
@@ -67,8 +67,8 @@ export default function AddLeaveTypes({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      description_en: "",
-      description_ar: "",
+      descriptionEng: "",
+      descriptionArb: "",
       workflows: "",
       need_approval: false,
       offical: false,
@@ -98,9 +98,9 @@ export default function AddLeaveTypes({
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Leave Types</h1>
-          <h1 className="font-semibold text-sm text-text-secondary">
+          {/* <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for leave types
-          </h1>
+          </h1> */}
         </div>
         <div className="flex flex-col gap-6">
           <div className="p-5">
@@ -150,7 +150,7 @@ export default function AddLeaveTypes({
               />
               <FormField
                 control={form.control}
-                name="description_en"
+                name="descriptionEng"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
@@ -166,7 +166,7 @@ export default function AddLeaveTypes({
               />
               <FormField
                 control={form.control}
-                name="description_ar"
+                name="descriptionArb"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>

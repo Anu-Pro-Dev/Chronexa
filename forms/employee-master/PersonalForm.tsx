@@ -34,8 +34,6 @@ import { CalendarIcon } from "@/icons/icons"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 
-
-
 export default function PersonalForm({
   Page, SetPage,personalFormSchema,personalForm
 }: {
@@ -49,7 +47,7 @@ export default function PersonalForm({
   function onSubmit(values: z.infer<typeof personalFormSchema>) {
     try {
       console.log(values)
-      SetPage("business-form")
+      SetPage("credentials-form")
       console.log(1)
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
@@ -67,356 +65,391 @@ export default function PersonalForm({
   return (
     <Form {...personalForm}>
       <form onSubmit={personalForm.handleSubmit(onSubmit)}>
-        <div className="flex justify-evenly gap-10 p-5">
-          <div className="flex flex-col flex-1 items-end">
-            <FormField
-              control={personalForm.control}
-              name="organization"
-              render={({ field }) => (
+        <div className="grid grid-cols-2 gap-y-2 px-5 py-6">
+          <FormField
+            control={personalForm.control}
+            name="organization"
+            render={({ field }) => (
+            <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Organization <Required/> </FormLabel>
+                </div>
+                <div>
+                  <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  >
+                  <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose organization" />
+                      </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                      <SelectItem value="1">organization 1</SelectItem>
+                  </SelectContent>
+                  </Select>
+                  <FormMessage className="mt-1"/>
+                </div>
+            </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="code"
+            render={({ field }) => (
               <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Code <Required /></FormLabel>
+                </div>
+                <div>
+                  <FormControl>
+                  <Input placeholder="Enter the code" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="name_en"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Name (English) </FormLabel>
+                </div>
+                <div>
+                  <FormControl>
+                    <Input placeholder="Enter the name in english" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="name_ar"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Name (العربية) </FormLabel>
+                </div>
+                <div> 
+                  <FormControl>
+                    <Input placeholder="Enter the name in arabic" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="mobile"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Mobile</FormLabel>
+                </div>  
+                <div>
+                  <FormControl>
+                    <Input placeholder="Enter the mobile number" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>  
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Email</FormLabel>
+                </div>
+                <div>
+                  <FormControl>
+                    <Input placeholder="Enter the email address" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>  
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="card_number"
+            render={({ field }) => (
+                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
                   <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Organization <Required/> </FormLabel>
+                    <FormLabel className="flex gap-1"> Card <Required /></FormLabel>
                   </div>
                   <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
                     <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose organization" />
-                        </SelectTrigger>
+                      <Input placeholder="Enter the card number" type="text" {...field} />
                     </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">organization 1</SelectItem>
-                    </SelectContent>
-                    </Select>
                     <FormMessage className="mt-1"/>
                   </div>
               </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="card_number"
-              render={({ field }) => (
-                  <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                    <div className="flex justify-end pr-2">
-                      <FormLabel className="flex gap-1"> Card <Required /></FormLabel>
-                    </div>
-                    <div>
+            )}
+          />
+{/*             
+          
+        </div>
+        <div className="flex flex-col flex-1 items-end"> */}
+          
+          <FormField
+            control={personalForm.control}
+            name="pin"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Pin</FormLabel>
+                </div>
+                <div>
+                  <FormControl>
+                    <Input placeholder="Enter the pin" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={personalForm.control}
+            name="sex"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Sex <Required/></FormLabel>
+                </div>
+                <div>
+                  <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  >
+                  <FormControl>
+                      <SelectTrigger>
+                      <SelectValue placeholder="Choose Sex" />
+                      </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                      <SelectItem value="1">Female</SelectItem>
+                      <SelectItem value="2">Male</SelectItem>
+                  </SelectContent>
+                  </Select>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="inactive_date"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Inactive date</FormLabel>
+                </div>
+                <div> 
+                  <Popover>
+                    <PopoverTrigger asChild>
                       <FormControl>
-                        <Input placeholder="Enter the card number" type="text" {...field} />
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                        >
+                          {field.value ? (
+                            format(field.value, "dd/MM/yy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
                       </FormControl>
-                      <FormMessage className="mt-1"/>
-                    </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="username"
-              render={({ field }) => (
-                  <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                    <div className="flex justify-end pr-2">
-                      <FormLabel className="flex gap-1">Username <Required /></FormLabel>
-                    </div>
-                    <div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        // disabled={(date) =>
+                        //   date > new Date() || date < new Date("1900-01-01")
+                        // }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="passport_number"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Passport number <Required/> </FormLabel>
+                </div>  
+                <div>
+                  <FormControl>
+                    <Input placeholder="Enter the passport number" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>  
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="passport_expiry"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1 text-right">Passport expiry date <Required/></FormLabel>
+                </div>
+                <div>
+                  <Popover>
+                    <PopoverTrigger asChild>
                       <FormControl>
-                        <Input placeholder="Enter the username" type="text" {...field} />
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary text-sm font-normal"
+                        >
+                          {field.value ? (
+                            format(field.value, "dd/MM/yy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
                       </FormControl>
-                      <FormMessage className="mt-1"/>
-                    </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="name_en"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Name (English) <Required /></FormLabel>
-                  </div>
-                  <div>
-                    <FormControl>
-                      <Input placeholder="Enter the name in english" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="mobile"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Mobile</FormLabel>
-                  </div>  
-                  <div>
-                    <FormControl>
-                      <Input placeholder="Enter the mobile number" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>  
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Email</FormLabel>
-                  </div>
-                  <div>
-                    <FormControl>
-                      <Input placeholder="Enter the email address" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>  
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="remarks"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Remarks</FormLabel>
-                  </div>
-                  <div>
-                    <FormControl>
-                      <Input placeholder="Enter remarks" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="employee_system_activation"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1 text-right">Employee system activation</FormLabel>
-                  </div>
-                  <div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-white px-3 flex justify-between text-text-primary"
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yy")
-                            ) : (
-                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                            )}
-                            <CalendarIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          // disabled={(date) =>
-                          //   date > new Date() || date < new Date("1900-01-01")
-                          // }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="flex flex-col flex-1 items-end">
-            <FormField
-              control={personalForm.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Code <Required /></FormLabel>
-                  </div>
-                  <div>
-                    <FormControl>
-                    <Input placeholder="Enter the code" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="pin"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Pin</FormLabel>
-                  </div>
-                  <div>
-                    <FormControl>
-                      <Input placeholder="Enter the pin" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Password <Required /></FormLabel>
-                  </div>
-                  <div>
-                    <FormControl>
-                      <Input placeholder="Enter the password" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="name_ar"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Name (العربية) <Required /></FormLabel>
-                  </div>
-                  <div> 
-                    <FormControl>
-                      <Input placeholder="Enter the name in arabic" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="sex"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Sex <Required/></FormLabel>
-                  </div>
-                  <div>
-                    <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    >
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Choose Sex" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="1">Female</SelectItem>
-                        <SelectItem value="2">Male</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="join_date"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Join date</FormLabel>
-                  </div>
-                  <div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-white px-3 flex justify-between text-text-primary"
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yy")
-                            ) : (
-                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                            )}
-                            <CalendarIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          // disabled={(date) =>
-                          //   date > new Date() || date < new Date("1900-01-01")
-                          // }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={personalForm.control}
-              name="inactive_date"
-              render={({ field }) => (
-                <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
-                  <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Inactive date</FormLabel>
-                  </div>
-                  <div> 
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-white px-3 flex justify-between text-text-primary"
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yy")
-                            ) : (
-                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                            )}
-                            <CalendarIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          // disabled={(date) =>
-                          //   date > new Date() || date < new Date("1900-01-01")
-                          // }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage className="mt-1"/>
-                  </div>
-                </FormItem>
-              )}
-            />
-          </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="passport_issued"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Passport issued <Required/> </FormLabel>
+                </div>  
+                <div>
+                  <FormControl>
+                    <Input placeholder="Passport issued country" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>  
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="national_id_number"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">National ID<Required/> </FormLabel>
+                </div>  
+                <div>
+                  <FormControl>
+                    <Input placeholder="Enter the national id" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage className="mt-1"/>
+                </div>  
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="national_id_expiry"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1 text-right">National ID expiry date <Required/></FormLabel>
+                </div>
+                <div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary text-sm font-normal"
+                        >
+                          {field.value ? (
+                            format(field.value, "dd/MM/yy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={personalForm.control}
+            name="join_date"
+            render={({ field }) => (
+              <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
+                <div className="flex justify-end pr-2">
+                  <FormLabel className="flex gap-1">Join date</FormLabel>
+                </div>
+                <div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button size={"lg"} variant={"outline"}
+                          className="w-full bg-white px-3 flex justify-between text-text-primary text-sm font-normal"
+                        >
+                          {field.value ? (
+                            format(field.value, "dd/MM/yy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage className="mt-1"/>
+                </div>
+              </FormItem>
+            )}
+          />
         </div>
         <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-5">

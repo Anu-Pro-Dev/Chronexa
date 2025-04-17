@@ -47,13 +47,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  description_en: z
+  descriptionEng: z
     .string()
     .min(1, {
       message: "Required",
     })
     .max(100),
-  description_ar: z
+  descriptionArb: z
     .string()
     .min(1, {
       message: "Required",
@@ -81,8 +81,8 @@ export default function AddEmployeeGroup() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      description_en: "",
-      description_ar: "",
+      descriptionEng: "",
+      descriptionArb: "",
     },
   });
 
@@ -102,9 +102,9 @@ export default function AddEmployeeGroup() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Employee groups</h1>
-          <h1 className="font-semibold text-sm text-text-secondary">
+          {/* <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for group of employee
-          </h1>
+          </h1> */}
         </div>
         <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col">
@@ -150,7 +150,7 @@ export default function AddEmployeeGroup() {
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
                   control={form.control}
-                  name="description_en"
+                  name="descriptionEng"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -223,7 +223,7 @@ export default function AddEmployeeGroup() {
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
                   control={form.control}
-                  name="description_ar"
+                  name="descriptionArb"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>

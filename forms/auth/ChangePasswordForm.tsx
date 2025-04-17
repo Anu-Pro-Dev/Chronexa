@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt, logout } from "@/lib/utils";
+// import { logout } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,18 +16,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
+import { resetPasswordRequest, logoutRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  old_password: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
   new_password: z
     .string()
-    .min(1, {
-      message: "Required",
+    .min(6, {
+      message: "Password must be at least 6 characters.",
     })
     .max(100),
 });
@@ -36,56 +31,31 @@ export default function ChangePasswordForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      old_password: "",
       new_password: "",
     },
   });
 
   const router = useRouter();
-  function onSubmit(values: z.infer<typeof formSchema>) {
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      if (values.old_password === values.new_password) {
-        form.setError("old_password", {
-          type: "custom",
-          message: "Old Password and New Password can't be the same",
-        });
-        form.setError("new_password", {
-          type: "custom",
-          message: "Old Password and New Password can't be the same",
-        });
-        return;
-      }
-      console.log(values);
-      router.push("/");
-      logout();
+      // Send request to reset password
+      await resetPasswordRequest(values.new_password);
+
+      alert("Password changed successfully. Please log in again.");
+      
+      logoutRequest(); // Log out the user
+      router.push("/"); // Redirect to login
     } catch (error) {
-      console.error("Form submission error", error);
+      console.error("Password reset error", error);
+      alert("Failed to reset password. Please try again.");
     }
-  }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <FormField
-            control={form.control}
-            name="old_password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Old Password <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter your old password"
-                    type="password"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <FormField
             control={form.control}
             name="new_password"
@@ -96,7 +66,7 @@ export default function ChangePasswordForm() {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your New Password"
+                    placeholder="Enter your new password"
                     type="password"
                     {...field}
                   />

@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
         <SelectContent>
           {languageOptions.map((item) => (
             <SelectItem value={item.value} key={item.value}>
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-4 text-sm text-text-primary">
                 <Image
                   width={20}
                   height={20}

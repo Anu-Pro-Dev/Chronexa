@@ -20,18 +20,18 @@ function ScheduleCard() {
   ];
 
   return (
-    <div className="shadow-card rounded-[10px] bg-white p-6">
+    <div className="shadow-card rounded-[10px] bg-white p-5">
       <div>
         <div className="flex flex-col">
           <div>
             <div className="flex items-center justify-between">
               <h5 className="text-lg text-text-primary font-bold">Schedule</h5>   
-              <Link href="/scheduling"  className="text-primary text-sm font-medium"> Show all </Link>
+              {/* <Link href="/scheduling"  className="text-primary text-sm font-medium"> Show all </Link> */}
             </div>
           </div>
-          <p className="text-sm text-text-secondary font-semibold">
+          {/* <p className="text-sm text-text-secondary font-semibold">
             Monthly working hours can be viewed here
-          </p>
+          </p> */}
         </div>
 
       </div>

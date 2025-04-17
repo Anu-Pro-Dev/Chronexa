@@ -22,68 +22,24 @@ export const organizationtypes_columns = [
 
 export const organizationtypes_data: OrganizationTypesDataType[] = [
   {
-    description: "body ick dreary",
-    updated: "2024-08-19T21:28:28.520Z",
+    hierarchy: 0,
+    descriptionEng: "Chronologix",
+    descriptionArb: "Chronologix",
   },
   {
-    description: "consonant carefully boring",
-    updated: "2024-08-19T12:12:25.506Z",
+    hierarchy: 1,
+    descriptionEng: "DIVISION",
+    descriptionArb: "قسم",
   },
   {
-    description: "till",
-    updated: "2024-08-19T09:07:41.709Z",
+    hierarchy: 2,
+    descriptionEng: "DEPARTMENT",
+    descriptionArb: "قسم",
   },
   {
-    description: "harbour regarding afore",
-    updated: "2024-08-19T21:22:04.854Z",
-  },
-  {
-    description: "body ick dreary",
-    updated: "2024-08-19T21:28:28.520Z",
-  },
-  {
-    description: "consonant carefully boring",
-    updated: "2024-08-19T12:12:25.506Z",
-  },
-  {
-    description: "till",
-    updated: "2024-08-19T09:07:41.709Z",
-  },
-  {
-    description: "harbour regarding afore",
-    updated: "2024-08-19T21:22:04.854Z",
-  },
-  {
-    description: "body ick dreary",
-    updated: "2024-08-19T21:28:28.520Z",
-  },
-  {
-    description: "consonant carefully boring",
-    updated: "2024-08-19T12:12:25.506Z",
-  },
-  {
-    description: "till",
-    updated: "2024-08-19T09:07:41.709Z",
-  },
-  {
-    description: "harbour regarding afore",
-    updated: "2024-08-19T21:22:04.854Z",
-  },
-  {
-    description: "body ick dreary",
-    updated: "2024-08-19T21:28:28.520Z",
-  },
-  {
-    description: "consonant carefully boring",
-    updated: "2024-08-19T12:12:25.506Z",
-  },
-  {
-    description: "till",
-    updated: "2024-08-19T09:07:41.709Z",
-  },
-  {
-    description: "harbour regarding afore",
-    updated: "2024-08-19T21:22:04.854Z",
+    hierarchy: 3,
+    descriptionEng: "SECTION",
+    descriptionArb: "قسم",
   },
 ];
 

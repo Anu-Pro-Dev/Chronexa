@@ -25,8 +25,8 @@ export default function Page() {
     { field: "attachment", headerName: "Allow attachment" },
     { field: "comments" },
     { field: "workflows" },
-    { field: "updated" },
   ]);
+  
   const props = {
     Data,
     SetData,
