@@ -96,7 +96,7 @@ export default function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form className="">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <h1 className="text-center text-xl font-bold">Login</h1>
