@@ -42,7 +42,7 @@ export default function Page() {
         modal_component={<AddHoliday on_open_change={on_open_change} />}
         isLarge
       />
-      <PowerTable props={props} api={"/ta-master/holidays"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} api={"/ta-master/holidays"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

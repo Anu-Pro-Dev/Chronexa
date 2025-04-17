@@ -63,7 +63,7 @@ export default function Page() {
         items={modules?.taMaster?.items}
         isAddNewPagePath="/TA-master/schedules/add"
       />
-      <PowerTable props={props} api={"/ta-master/schedules"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} api={"/ta-master/schedules"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

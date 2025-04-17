@@ -122,7 +122,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.manage_movements?.items} />
         </div>
-        <PowerTable props={props} api={"/self-services/manage-movements/approve-manual"}/>
+        <PowerTable props={props} Data={Data} api={"/self-services/manage-movements/approve-manual"}/>
       </div>
     </div>
   );

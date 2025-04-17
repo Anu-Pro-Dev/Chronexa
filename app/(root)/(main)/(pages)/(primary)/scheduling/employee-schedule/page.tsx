@@ -23,7 +23,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader props={props} items={modules?.scheduling?.items} />
-      <PowerTable props={props} />
+      <PowerTable props={props} Data={Data} />
     </div>
   );
 }

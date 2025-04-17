@@ -85,7 +85,7 @@ export default function Page() {
             ]}
           />
         </div>
-        <PowerTable props={props} api={"/self-services/approvals/pending"} />
+        <PowerTable props={props} Data={Data} api={"/self-services/approvals/pending"} />
       </div>
     </div>
   );

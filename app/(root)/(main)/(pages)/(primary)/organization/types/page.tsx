@@ -51,7 +51,7 @@ export default function Page() {
           <AddTypeOrganization on_open_change={on_open_change} />
         }
       />
-      <PowerTable props={props} api={"/organization/types"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} api={"/organization/types"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

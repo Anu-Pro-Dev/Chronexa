@@ -45,7 +45,7 @@ export default function Page() {
         disableAdd
         disableDelete
       />
-      <PowerTable props={props} api={"/settings/notifications"} showCheckbox={false}/>
+      <PowerTable props={props} Data={Data} api={"/settings/notifications"} showCheckbox={false}/>
     </div>
   );
 }

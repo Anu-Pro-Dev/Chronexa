@@ -67,7 +67,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.settings?.manage_movements?.items} />
         </div>
-        <PowerTable props={props} api={"/settings/application-settings"} showEdit={true} onEditClick={handleEditClick}/>
+        <PowerTable props={props} Data={Data} api={"/settings/application-settings"} showEdit={true} onEditClick={handleEditClick}/>
       </div>
     </div>
   );

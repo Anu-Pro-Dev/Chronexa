@@ -102,7 +102,7 @@ export default function MembersTable() {
         isLarge={true}
       />
       {/* Pass filtered data to PowerTable */}
-      <PowerTable props={props} api={"/employee-master/employees"} />
+      <PowerTable props={props} Data={Data} api={"/employee-master/employees"} />
     </div>
   );
 }

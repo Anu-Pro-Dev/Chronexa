@@ -48,7 +48,7 @@ export default function Page() {
        //modal_description="Reasons of the employee permission"
         modal_component={<AddReason on_open_change={on_open_change} />}
       />
-      <PowerTable props={props} api={"/ta-master/reasons"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} api={"/ta-master/reasons"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

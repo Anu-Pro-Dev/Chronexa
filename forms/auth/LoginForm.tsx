@@ -23,6 +23,7 @@ import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { loginRequest } from "@/lib/apiHandler";
+import { USER_TOKEN } from "@/lib/Instance";
 
 const formSchema = z.object({
   username: z
@@ -77,17 +78,25 @@ export default function LoginForm() {
         });
         return;
       }
-  
-      // Call the login API with `remember_me`
-      const response = await loginRequest(Number(values.username), values.password, values.remember_me ?? false);
-  
-      // Redirect only if login is successful and a token is received
-      if (response?.token) {
-        router.push("/dashboard");
+
+      const token = "something bro";
+      if (values.remember_me === true) {
+        localStorage.setItem(USER_TOKEN, token);
       } else {
-        console.error("Login failed: No token received.");
-        form.setError("username", { type: "manual", message: "Invalid credentials" });
+        sessionStorage.setItem(USER_TOKEN, token);
       }
+      router.push("/dashboard");
+  
+    // Uncomment the following lines to use the loginRequest function
+      // const response = await loginRequest(Number(values.username), values.password, values.remember_me ?? false);
+  
+      // // Redirect only if login is successful and a token is received
+      // if (response?.token) {
+      //   router.push("/dashboard");
+      // } else {
+      //   console.error("Login failed: No token received.");
+      //   form.setError("username", { type: "manual", message: "Invalid credentials" });
+      // }
     } catch (error) {
       console.error("Login error:", error);
       form.setError("username", { type: "manual", message: "An error occurred. Please try again." });
@@ -96,7 +105,7 @@ export default function LoginForm() {
 
   return (
     <Form {...form}>
-      <form className="">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <h1 className="text-center text-xl font-bold">Login</h1>

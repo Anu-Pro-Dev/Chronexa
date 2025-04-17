@@ -1,11 +1,8 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { USER_TOKEN, DEFAULT_API_URL, ERROR_GENERIC, ERROR_NETWORK } from "@/utils/constants";
 
-// Base API URL from environment variables
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-// The user's token storage key (you can adjust this if needed)
-const USER_TOKEN = "userToken";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 
 // Centralized axios instance for API requests
 const apiInstance = axios.create({
@@ -36,9 +33,9 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       // If the error is coming from the server, handle it
-      throw new Error(error.response.data.message || "An error occurred.");
+      throw new Error(error.response.data.message || ERROR_GENERIC);
     } else {
-      throw new Error("Network error or something went wrong.");
+      throw new Error(ERROR_NETWORK);
     }
   }
 };

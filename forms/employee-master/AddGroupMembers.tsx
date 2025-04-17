@@ -71,6 +71,8 @@ export default function AddGroupMembers ({
     props:any;
   }){
 
+  const [Data, SetData] = useState<any>([]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -175,7 +177,7 @@ export default function AddGroupMembers ({
             </form>
         </Form>
         <div className="py-3">
-          <PowerTable props={props} api={"/self-services/manage-movements/manual/add"} ispageValue5={true} />
+          <PowerTable props={props} Data={Data} api={"/self-services/manage-movements/manual/add"} ispageValue5={true} />
         </div>
       </>  
     )

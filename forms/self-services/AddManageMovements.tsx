@@ -82,6 +82,9 @@ export default function AddManageMovements ({
     on_open_change: any;
     props:any;
   }){
+    
+  const [Data, SetData] = useState<any>([]);
+  
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -402,7 +405,7 @@ export default function AddManageMovements ({
             </form>
         </Form>
         <div >
-          <PowerTable props={props} api={"/self-services/manage-movements/manual/add"} ispageValue5 = {true} />
+          <PowerTable props={props} Data={Data} api={"/self-services/manage-movements/manual/add"} ispageValue5={true} />
         </div>
       </>  
     )
