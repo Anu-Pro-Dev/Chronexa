@@ -113,50 +113,50 @@ export default function AddLocations({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-            <FormField
-                control={form.control}
-                name="locationNameEnglish"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>
-                        Location name (English) {language === "en" && <Required />}
-                    </FormLabel>
-                    <FormControl>
-                    <Input placeholder="Enter location name" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="locationNameArab"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>
-                        Location name (العربية) {language === "ar" && <Required />}
-                    </FormLabel>
-                    <FormControl>
-                    <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <div className="w-full flex gap-2 items-center py-3">
-                <Button
-                  variant={"outline"}
-                  type="button"
-                  size={"lg"}
-                  className="w-full"
-                  onClick={() => on_open_change(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" size={"lg"} className="w-full">
-                  {selectedRowData ? "Update" : "Save"}
-                </Button>
-            </div>
+          <FormField
+              control={form.control}
+              name="locationNameEnglish"
+              render={({ field }) => (
+              <FormItem>
+                  <FormLabel>
+                      Location name (English) {language === "en" && <Required />}
+                  </FormLabel>
+                  <FormControl>
+                  <Input placeholder="Enter location name" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+              )}
+          />
+          <FormField
+              control={form.control}
+              name="locationNameArab"
+              render={({ field }) => (
+              <FormItem>
+                  <FormLabel>
+                      Location name (العربية) {language === "ar" && <Required />}
+                  </FormLabel>
+                  <FormControl>
+                  <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+              )}
+          />
+          <div className="w-full flex gap-2 items-center py-3">
+              <Button
+                variant={"outline"}
+                type="button"
+                size={"lg"}
+                className="w-full"
+                onClick={() => on_open_change(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size={"lg"} className="w-full">
+                {selectedRowData ? "Update" : "Save"}
+              </Button>
+          </div>
         </div>
       </form>
     </Form>

@@ -121,10 +121,10 @@ export default function BusinessForm({
               render={({ field }) => (
                 <FormItem className="w-full py-2 grid grid-cols-2 gap-y-2 items-center space-y-0">
                   <div className="flex justify-end pr-2">
-                    <FormLabel className="flex gap-1">Nationality <Required/> </FormLabel>
+                    <FormLabel className="flex gap-1">Citizenship <Required/> </FormLabel>
                   </div>
                   <div>
-                    <NationalityDropdown onChange={field.onChange} />
+                    <NationalityDropdown value={field.value} onChange={field.onChange} />
                     <FormMessage className="mt-1"/>
                   </div>
                 </FormItem>

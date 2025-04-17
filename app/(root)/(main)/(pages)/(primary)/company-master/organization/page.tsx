@@ -16,6 +16,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
   
   const props = {
     Data,
@@ -42,11 +43,11 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
+        field: language === "ar" ? "descriptionArb" : "organizationName",
         headerName: language === "ar" ? "اسم المنظمة" : "Organization Name",
       },
       {field: "organizationType", headerName: "Type"},
-      {field: "organizationName", headerName: "Parent"},
+      {field: "parentName", headerName: "Parent"},
     ]);
   }, [language]);
 
@@ -54,13 +55,23 @@ export default function Page() {
     const fetchOrganizations = async () => {
       try {
         const response = await getAllOrganization();
-        SetData(response.data);
+        if (response?.success && Array.isArray(response?.data)) {
+          const mapped = response.data.map((org: any) => ({
+            ...org,
+            id: org.organizationId,
+          }));
+    
+          SetData(mapped);
+        } else {
+          console.error("Unexpected response structure:", response);
+        }
       } catch (error) {
         console.error("Error fetching organizations:", error);
       }
     };
+
     fetchOrganizations();
-  }, []);
+  }, []);  
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
@@ -78,11 +89,18 @@ export default function Page() {
     setSelectedRowData(null);
   };
 
+  const handleRowSelection = (rows: any[]) => {
+    console.log("Selected rows:", selectedRows);
+    setSelectedRows(rows); // Update selected rows
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.companyMaster.items}
+        entityName="organization"
         modal_title="Organization"
         modal_component={
           <AddOrganization
@@ -93,7 +111,7 @@ export default function Page() {
         }
         isLarge
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

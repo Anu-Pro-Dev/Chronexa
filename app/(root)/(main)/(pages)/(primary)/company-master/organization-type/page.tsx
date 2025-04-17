@@ -16,6 +16,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
   
   const props = {
     Data,
@@ -78,11 +79,18 @@ export default function Page() {
     setSelectedRowData(null);
   };
 
+  const handleRowSelection = (rows: any[]) => {
+    console.log("Selected rows:", selectedRows);
+    setSelectedRows(rows); // Update selected rows
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.companyMaster.items}
+        entityName="organizationType"
         modal_title="Organization Type"
         modal_component={
           <AddOrganizationType
@@ -93,7 +101,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={Data} api={"/organization/types"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} api={"/organization/types"} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

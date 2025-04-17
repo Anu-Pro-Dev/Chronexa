@@ -16,6 +16,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   const props = {
     Data,
@@ -52,7 +53,16 @@ export default function Page() {
     const fetchGrades = async () => {
       try {
         const response = await getAllGrades();
-        SetData(response);
+        if (response?.success && Array.isArray(response?.data)) {
+          const mapped = response.data.map((grad: any) => ({
+            ...grad,
+            id: grad.gradeId,
+          }));
+    
+          SetData(mapped);
+        } else {
+          console.error("Unexpected response structure:", response);
+        }
       } catch (error) {
         console.error("Error fetching grades:", error);
       }
@@ -76,11 +86,18 @@ export default function Page() {
     setSelectedRowData(null);
   };
 
+  const handleRowSelection = (rows: any[]) => {
+    console.log("Selected rows:", selectedRows);
+    setSelectedRows(rows); // Update selected rows
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.companyMaster.items}
+        entityName="grade"
         modal_title="Grades"
         modal_component={
           <AddGrades
@@ -90,7 +107,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

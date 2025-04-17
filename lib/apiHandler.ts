@@ -128,16 +128,6 @@ export const addLocationRequest = async (locationNameEnglish: string, locationNa
   });
 };
 
-// Function for deleting a location by ID
-export const deleteLocationRequest = (id: string) => {
-  return apiRequest(`/location/delete/${id}`, "DELETE")
-    .then(response => response)
-    .catch(error => {
-      toast.error("Error deleting location:", error);
-      throw error;
-    });
-};
-
 // Function to edit a location by ID
 export const editLocationRequest = async (
   id: string,
@@ -164,16 +154,6 @@ export const addCitizenshipRequest = async (countryCode: string, citizenshipEng:
   });
 };
 
-// Function for deleting a citizenship by ID
-export const deleteCitizenshipRequest = (id: string) => {
-  return apiRequest(`/nationality/delete/${id}`, "DELETE")
-    .then(response => response)
-    .catch(error => {
-      toast.error("Error deleting citizenship:", error);
-      throw error;
-    });
-};
-
 // Function to fetch all designations
 export const getAllDesignations = async () => {
   return apiRequest("/designation/all", "GET");
@@ -188,16 +168,6 @@ export const addDesignationRequest = async (designationName: string, description
     vacancy,
     remarks,
   });
-};
-
-// Function for deleting a designation by ID
-export const deleteDesignationRequest = (id: string) => {
-  return apiRequest(`/designation/delete/${id}`, "DELETE")
-    .then(response => response)
-    .catch(error => {
-      toast.error("Error deleting designation:", error);
-      throw error;
-    });
 };
 
 // Function to fetch all grades
@@ -219,16 +189,6 @@ export const addGradeRequest = async (gradeName: string, descriptionEng: string,
   });
 };
 
-// Function for deleting a grade by ID
-export const deleteGradeRequest = (id: string) => {
-  return apiRequest(`/grade/delete/${id}`, "DELETE")
-    .then(response => response)
-    .catch(error => {
-      toast.error("Error deleting grade:", error);
-      throw error;
-    });
-};
-
 // Function to fetch all organization
 export const getAllOrganization = async () => {
   return apiRequest("/organization/all", "GET");
@@ -244,15 +204,6 @@ export const addOrganizationRequest = async (organizationName: string, descripti
   });
 };
 
-// Function for deleting a grade by ID
-export const deleteOrganizationRequest = (id: string) => {
-  return apiRequest(`/organization/delete/${id}`, "DELETE")
-    .then(response => response)
-    .catch(error => {
-      toast.error("Error deleting organization:", error);
-      throw error;
-    });
-};
 
 // Function to fetch all user groups
 export const getAllUserGroups = async () => {

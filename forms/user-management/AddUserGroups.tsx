@@ -139,7 +139,7 @@ export default function AddUserGroups({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="py-5 flex flex-col">
-            <div className="flex gap-4 items-center pb-6">
+            <div className="flex gap-4 items-center pb-6 px-5">
               <FormField
                 control={form.control}
                 name="schedule_flag"
@@ -178,7 +178,7 @@ export default function AddUserGroups({
               />
             </div>
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-16 gap-y-4">
+              <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
                 <FormField
                   control={form.control}
                   name="descriptionEng"
@@ -354,14 +354,14 @@ export default function AddUserGroups({
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-2 items-center py-5">
+        <div className="flex justify-end gap-2 items-center pb-5">
           <div className="flex gap-4 px-5">
             <Button
               variant={"outline"}
               type="button"
               size={"lg"}
               className="w-full"
-              onClick={() => router.push("/user-management/groups/")}
+              onClick={() => on_open_change(false)}
             >
               Cancel
             </Button>

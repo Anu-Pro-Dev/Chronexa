@@ -113,7 +113,7 @@ export default function AddOrganizationType({
         onSave(selectedRowData.id, values);
       } else {
         const response = await addLocationRequest(values.hierarchy, values.organizationTypeEng);
-        console.log("Location added successfully:", response);
+        console.log("Organization type added successfully:", response);
         
         onSave(null, response);
       }

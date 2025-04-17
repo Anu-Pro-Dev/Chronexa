@@ -13,27 +13,34 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { addOrganizationRequest } from "@/lib/apiHandler"; // Import API request function
 import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
-    organizationName: z.string().min(1, { message: "Required" }).max(100),
-    descriptionEng: z.string().default(""),
-    descriptionArb: z.string().default(""),
+    parentType: z.string().default(""),
+    parentName: z.string().default(""),
+    organizationNameEng: z.string().min(1, { message: "Required" }).max(100),
+    organizationNameArb: z.string().default(""),
     organizationType: z.string().default(""),
-    organizationParent: z.string().default(""),
 });
 
 const getSchema = (lang: "en" | "ar") =>
     formSchema.refine((data) => {
-        if (lang === "en") return !!data.descriptionEng;
-        if (lang === "ar") return !!data.descriptionArb;
+        if (lang === "en") return !!data.organizationNameEng;
+        if (lang === "ar") return !!data.organizationNameArb;
         return true;
     }, {
         message: "Required",
-        path: [lang === "en" ? "descriptionEng" : "descriptionArb"],
+        path: [lang === "en" ? "organizationNameEng" : "organizationNameArb"],
 });
 
 export default function AddOrganization({
@@ -52,11 +59,11 @@ export default function AddOrganization({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      organizationName: "",
-      descriptionEng: "",
-      descriptionArb: "",
+      parentType: "",
+      parentName: "",
+      organizationNameEng: "",
+      organizationNameArb: "",
       organizationType: "",
-      organizationParent: "",
     },
   });
 
@@ -69,11 +76,11 @@ export default function AddOrganization({
       form.reset();
     } else {
       form.reset({
-        organizationName: selectedRowData.regionName,
-        descriptionEng: selectedRowData.descriptionEng,
-        descriptionArb: selectedRowData.descriptionArb,
+        parentType: selectedRowData.parentType,
+        parentName: selectedRowData.parentName,
+        organizationNameEng: selectedRowData.organizationNameEng,
+        organizationNameArb: selectedRowData.organizationNameArb,
         organizationType: selectedRowData.organizationType,
-        organizationParent: selectedRowData.organizationParent,
       });
     }
   }, [selectedRowData, form]);
@@ -97,9 +104,8 @@ export default function AddOrganization({
       if (selectedRowData) {
         onSave(selectedRowData.id, values);
       } else {
-        const response = await addOrganizationRequest(values.organizationName, values.descriptionEng, values.descriptionArb, values.organizationType);
+        const response = await addOrganizationRequest(values.parentName, values.organizationNameEng, values.organizationNameArb, values.organizationType);
         console.log("Organization added successfully:", response);
-        
         onSave(null, response);
       }
 
@@ -112,18 +118,44 @@ export default function AddOrganization({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-6 py-5 ">
-          <div className="flex gap-4 items-center pb-6">
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
+            <FormField
+              name="parentType"
+              render={({ field }) => (
+              <FormItem >
+                  <FormLabel className="flex gap-1">Parent Type </FormLabel>
+                  <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                  >
+                  <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose parent type" />
+                      </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                      <SelectItem value="1">ROOT</SelectItem>
+                      <SelectItem value="2">DEPARTMENT</SelectItem>
+                      <SelectItem value="3">DIVISION</SelectItem>
+                      <SelectItem value="4">SECTION</SelectItem>
+                  </SelectContent>
+                  </Select>
+                  <FormMessage className="mt-1"/>
+              </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
-              name="organizationName"
+              name="parentName"
               render={({ field }) => (
                 <FormItem>
                 <FormLabel>
-                  Parent Type <Required />
+                  parent <Required />
                 </FormLabel>
                 <FormControl>
-                    <Input placeholder="Enter the parent type" type="text" {...field} />
+                    <Input placeholder="Enter the parent" type="text" {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -131,7 +163,7 @@ export default function AddOrganization({
             />
             <FormField
               control={form.control}
-              name="descriptionEng"
+              name="organizationNameEng"
               render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -146,7 +178,7 @@ export default function AddOrganization({
             />
             <FormField
               control={form.control}
-              name="descriptionArb"
+              name="organizationNameArb"
               render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -160,37 +192,32 @@ export default function AddOrganization({
               )}
             />
             <FormField
-              control={form.control}
               name="organizationType"
               render={({ field }) => (
-                <FormItem>
-                <FormLabel>
-                  Type <Required />
-                </FormLabel>
-                <FormControl>
-                    <Input placeholder="Enter the organization type" type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="organizationParent"
-              render={({ field }) => (
-                <FormItem>
-                <FormLabel>
-                  parent <Required />
-                </FormLabel>
-                <FormControl>
-                    <Input placeholder="Enter the parent" type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
+              <FormItem >
+                  <FormLabel className="flex gap-1">Organization Type </FormLabel>
+                  <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                  >
+                  <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose organization type" />
+                      </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                      <SelectItem value="2">DEPARTMENT</SelectItem>
+                      <SelectItem value="3">DIVISION</SelectItem>
+                      <SelectItem value="4">SECTION</SelectItem>
+                  </SelectContent>
+                  </Select>
+                  <FormMessage className="mt-1"/>
+              </FormItem>
               )}
             />
           </div>
-          <div className="flex justify-end gap-2 items-center py-5">
+          <div className="flex justify-end gap-2 items-center pb-5">
             <div className="flex gap-4 px-5">
               <Button
                 variant={"outline"}

@@ -48,11 +48,16 @@ export default function AddCitizenship({
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
   // Handle the country selection
-  const handleCountryChange = (country: Country) => {
-    setSelectedCountry(country);
-    form.setValue("code", country.code);
+  const handleCountryChange = (country: Country | null) => {
+    if (country) {
+      setSelectedCountry(country);
+      form.setValue("code", country.code);
+    } else {
+      setSelectedCountry(null);
+      form.setValue("code", "");
+    }
   };
-
+  
   // Reset form when modal is opened for Add or when selectedRowData is null
   useEffect(() => {
     if (!selectedRowData) {
@@ -87,12 +92,12 @@ export default function AddCitizenship({
         return;
       }
 
-      const nationalityName = selectedNationality.code;
-      const descriptionEng = selectedNationality.name;
-      const descriptionArb = selectedNationality.nameAr;
+      const countryCode = selectedNationality.code;
+      const citizenshipEng = selectedNationality.name;
+      const citizenshipArb = selectedNationality.nameAr;
 
       if (!selectedRowData) {
-        await addCitizenshipRequest(nationalityName, descriptionEng, descriptionArb);
+        await addCitizenshipRequest(countryCode, citizenshipEng, citizenshipArb);
       } else {
         onSave(selectedRowData.id, values);
       }
@@ -116,14 +121,14 @@ export default function AddCitizenship({
                   Citizenship <Required />
                 </FormLabel>
                 <FormControl>
-                  <NationalityDropdown onChange={handleCountryChange} />
+                  <NationalityDropdown value={selectedCountry} onChange={handleCountryChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <div className="w-full flex gap-2 items-center py-3">
+        <div className="w-full flex gap-2 items-center pt-8 py-3">
           <Button
             variant={"outline"}
             type="button"

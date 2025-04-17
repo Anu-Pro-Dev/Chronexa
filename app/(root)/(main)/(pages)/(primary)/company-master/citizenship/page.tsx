@@ -5,6 +5,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import AddCitizenship from "@/forms/company-master/AddCitizenship";
 import { getAllCitizenship } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { citizenship_columns } from "@/data/cm.data";
 
 export default function Page() {
   const { modules, language } = useLanguage();
@@ -16,6 +17,7 @@ export default function Page() {
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   const props = {
     Data,
@@ -41,9 +43,9 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "nationalityName", headerName: language === "ar" ? "رمز البلد" : "Country Code" },
+      { field: "countryCode", headerName: language === "ar" ? "رمز البلد" : "Country Code" },
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
+        field: language === "ar" ? "citizenshipArb" : "citizenshipEng",
         headerName: language === "ar" ? "المواطنة" : "Citizenship",
       },
     ]);
@@ -52,8 +54,17 @@ export default function Page() {
   useEffect(() => {
     const fetchCitizenship = async () => {
       try {
-        const response = await getAllCitizenship();
-        SetData(response);
+        const response = await getAllCitizenship();        
+        if (response?.success && Array.isArray(response?.data)) {
+          const mapped = response.data.map((citi: any) => ({
+            ...citi,
+            id: citi.citizenshipId,
+          }));
+    
+          SetData(mapped);
+        } else {
+          console.error("Unexpected response structure:", response);
+        }
       } catch (error) {
         console.error("Error fetching citizenship:", error);
       }
@@ -77,11 +88,18 @@ export default function Page() {
     setSelectedRowData(null);
   };
 
+  const handleRowSelection = (rows: any[]) => {
+    console.log("Selected rows:", selectedRows);
+    setSelectedRows(rows);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.companyMaster.items}
+        entityName="citizenship"
         modal_title="Citizenship"
         modal_component={
           <AddCitizenship           
@@ -91,7 +109,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} Data={Data} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

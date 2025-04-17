@@ -60,7 +60,6 @@ export default function Page() {
         }));
   
         SetData(mapped);
-        // SetData(response);
       } catch (error) {
         console.error("Error fetching locations:", error);
       }
