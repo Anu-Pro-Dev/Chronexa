@@ -21,13 +21,17 @@ export default function PowerMultiStepCard({
   SetPage,
   validateCurrentForm,
 }: MultiStepCardProps) {
+
   const [visiblePages, setVisiblePages] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!visiblePages.includes(Page)) {
-      setVisiblePages((prev: string[]) => [...prev, Page]);
-    }
-  }, [Page, visiblePages]);
+    setVisiblePages((prev) => {
+      if (!prev.includes(Page)) {
+        return [...prev, Page];
+      }
+      return prev;
+    });
+  }, [Page]);
 
   const handleTabChange = async (newPage: string) => {
     if (validateCurrentForm) {
@@ -42,9 +46,11 @@ export default function PowerMultiStepCard({
     SetPage(newPage);
   };
 
+  const uniqueVisiblePages = [...new Set(visiblePages)];
+
   return (
     <div className="flex flex-col gap-6">
-      {visiblePages.map((route: string) => {
+      {uniqueVisiblePages.map((route: string) => {
         const page = Pages.find((p) => p.state_route === route);
         if (!page) return null;
 

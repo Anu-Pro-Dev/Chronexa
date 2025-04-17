@@ -26,7 +26,6 @@ export default function Page() {
     { field: "bcc_email", headerName: "BCC Email" },
     { field: "complete_violation", headerName: "Complete Violation" },
     { field: "created_date", headerName: "Created Date" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);

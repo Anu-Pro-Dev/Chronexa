@@ -47,13 +47,9 @@ export default function OfficialForm({
 
   function onSubmit(values: z.infer<typeof officialFormSchema>) {
     try {
-      console.log(values)
-      SetPage("flags-form")
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
+      console.log(values);
+      SetPage("flags-form");
+      toast.success("Data Saved!");
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");

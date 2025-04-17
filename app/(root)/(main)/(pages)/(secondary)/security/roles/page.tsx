@@ -89,7 +89,7 @@ export default function Page() {
         props={props}
         items={modules?.security?.items}
         modal_title="Roles"
-        modal_description="Select the Roles of user"
+       //modal_description="Select the Roles of user"
         modal_component={
           <AddRole 
             on_open_change={on_open_change}

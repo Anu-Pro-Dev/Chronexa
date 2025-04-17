@@ -10,7 +10,6 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "description" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
@@ -47,7 +46,7 @@ export default function Page() {
         props={props}
         items={modules?.organization.items}
         modal_title="Organization Types"
-        modal_description="Organization Types of the employee"
+       //modal_description="Organization Types of the employee"
         modal_component={
           <AddTypeOrganization on_open_change={on_open_change} />
         }

@@ -73,8 +73,8 @@ export default function AddDepartment() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-4">
-        <div>
+      {/* <div className="grid grid-cols-3 gap-4"> */}
+        <div className="py-2">
           <Select onValueChange={setSelectedOption} value={selectedOption}>
             <SelectTrigger className="bg-white border-grey">
               <Label className="font-normal text-secondary">
@@ -91,7 +91,7 @@ export default function AddDepartment() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+      {/* </div> */}
 
       {/* {!showDetails ? (
         <div className="flex justify-end">

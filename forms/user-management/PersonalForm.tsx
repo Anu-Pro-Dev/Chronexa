@@ -48,12 +48,13 @@ export default function PersonalForm({
     try {
       console.log(values)
       SetPage("credentials-form")
-      console.log(1)
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
+      toast.success("Data Saved!")
+      // console.log(1)
+      // toast(
+      //   <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+      //     <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+      //   </pre>
+      // );
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");

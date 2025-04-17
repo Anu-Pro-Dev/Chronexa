@@ -47,15 +47,18 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.scheduling?.items}
-        enableFilters
+        // enableFilters
         isAddNewPagePath="/scheduling/weekly-schedule/add"
-        filter_modal_title="Filters"
-        filter_modal_description="Choose the filter you searching for"
-        filter_modal_component={
-          <FilterWeeklyScheduling on_open_change={filter_on_open_change} />
-        }
+        // filter_modal_title="Filters"
+        // filter_modal_description="Choose the filter you searching for"
+        // filter_modal_component={
+        //   <FilterWeeklyScheduling on_open_change={filter_on_open_change} />
+        // }
       />
-      <PowerTable props={props} api={"/scheduling/weekly-schedule"} showEdit={true} onEditClick={handleEditClick}/>
+      <div className="">
+        <FilterWeeklyScheduling/>
+        <PowerTable props={props} Data={Data} api={"/scheduling/weekly-schedule"} showEdit={true} onEditClick={handleEditClick}/>
+      </div>
     </div>
   );
 }

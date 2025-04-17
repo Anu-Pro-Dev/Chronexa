@@ -57,12 +57,12 @@ export default function Page() {
         enableFilters
         isLarge={false}  
         filter_modal_title="Filter"
-        filter_modal_description="Select the Filters for easy search"
+        // filter_modal_description="Select the Filters for easy search"
         filter_modal_component={
           <FilterDataOnVerification on_open_change={filter_on_open_change} />
         }
         modal_title="Action"
-        modal_description="Verification will be handled here"
+       //modal_description="Verification will be handled here"
         isLargeAction={true}
         modal_component={
           <TakeActionVerification on_open_change={on_open_change}/> 

@@ -22,7 +22,6 @@ export default function Page() {
     // { field: "normal_out", headerName: "Normal Out" },
     { field: "web_punch", headerName: "Web Punch" },
     { field: "geo_fence_required", headerName: "Geo Fence Required" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
@@ -46,7 +45,7 @@ export default function Page() {
         props={props}
         items={modules?.taMaster?.items}
         modal_title="Reasons"
-        modal_description="Reasons of the employee permission"
+       //modal_description="Reasons of the employee permission"
         modal_component={<AddReason on_open_change={on_open_change} />}
       />
       <PowerTable props={props} api={"/ta-master/reasons"} showEdit={true} onEditClick={handleEditClick}/>

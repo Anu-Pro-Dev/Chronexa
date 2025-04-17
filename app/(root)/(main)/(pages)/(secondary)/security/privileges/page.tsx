@@ -12,7 +12,6 @@ export default function Page() {
   const [Columns, setColumns] = useState([
     { field: "name" },
     { field: "group" },
-    { field: "updated", headerName: "Updated" },
   ]);
 
   const [Data, SetData] = useState<any>([]);
@@ -47,7 +46,7 @@ export default function Page() {
         props={props}
         items={modules?.security?.items}
         modal_title="Privileges"
-        modal_description="Select the privileges"
+       //modal_description="Select the privileges"
         modal_component={<AddPrivelege on_open_change={on_open_change} />}
       />
       <PowerTable props={props} api={"/security/privileges"} showEdit={true} onEditClick={handleEditClick}/>
