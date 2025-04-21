@@ -146,7 +146,7 @@ export default function Page() {
         // filter_modal_title="none"
       />
 
-      <div className="flex flex-col justify-between bg-white rounded-[15px] items-center px-5 py-3">
+      <div className="flex flex-col justify-between bg-accent rounded-[15px] items-center px-5 py-3">
         <div className="w-full py-3">
           <FilterForm />
         </div>

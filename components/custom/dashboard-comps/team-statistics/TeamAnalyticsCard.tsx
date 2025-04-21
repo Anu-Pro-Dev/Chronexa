@@ -50,7 +50,7 @@ function TeamAnalyticsCard() {
   })
 
   return (
-    <div className="shadow-card rounded-[10px] bg-white p-2">
+    <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className='flex flex-row justify-between p-4'>
         <h5 className='text-lg text-text-primary font-bold'>Team Analytics</h5>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -58,12 +58,12 @@ function TeamAnalyticsCard() {
             <Calendar1Icon width="14" height="16" />
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
-          <SelectContent className="bg-white rounded-md shadow-dropdown">
+          <SelectContent className="bg-accent rounded-md shadow-dropdown">
             {monthsWithThisMonth.map((month) => (
               <SelectItem
                 key={month}
                 value={month}
-                className="text-text-primary gap-0 bg-white hover:bg-primary hover:text-white"
+                className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-accent"
               >
                 {month}
               </SelectItem>

@@ -217,7 +217,7 @@ export default function AddPermissionTypes () {
 
     {pageNumber === 0 && (
       <Form {...formBasic}>
-        <form onSubmit={formBasic.handleSubmit(onSubmitBasic)} className="bg-white rounded-2xl p-6">
+        <form onSubmit={formBasic.handleSubmit(onSubmitBasic)} className="bg-accent rounded-2xl p-6">
           <div className="flex justify-between">
             <div>
                 <h2 className="font-bold text-xl text-primary">Permission Types</h2>
@@ -410,7 +410,7 @@ export default function AddPermissionTypes () {
 
     {pageNumber === 1 && (
       <Form {...formSetup}>
-        <form onSubmit={formSetup.handleSubmit(onSubmitSetup)} className="bg-white rounded-2xl p-6">
+        <form onSubmit={formSetup.handleSubmit(onSubmitSetup)} className="bg-accent rounded-2xl p-6">
           <div className="flex justify-between">
             <div>
               <h2 className="font-bold text-xl text-primary">Permission Types</h2>
@@ -631,7 +631,7 @@ export default function AddPermissionTypes () {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
@@ -667,7 +667,7 @@ export default function AddPermissionTypes () {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
@@ -716,7 +716,7 @@ export default function AddPermissionTypes () {
 
     {pageNumber === 2 && (
       <Form {...formRestriction}>
-        <form onSubmit={formRestriction.handleSubmit(onSubmitRestriction)} className="bg-white rounded-2xl p-6">
+        <form onSubmit={formRestriction.handleSubmit(onSubmitRestriction)} className="bg-accent rounded-2xl p-6">
           <div className="flex justify-between">
             <div>
               <h2 className="font-bold text-xl text-primary">Permission Types</h2>
@@ -937,7 +937,7 @@ export default function AddPermissionTypes () {
 
     {pageNumber === 3 && (
       <Form {...formPolicy}>
-        <form onSubmit={formPolicy.handleSubmit(onSubmitPolicy)} className="bg-white rounded-2xl p-6">
+        <form onSubmit={formPolicy.handleSubmit(onSubmitPolicy)} className="bg-accent rounded-2xl p-6">
           <div className="flex justify-between p-6">
             <div>
               <h2 className="font-bold text-xl text-primary">Permission Types</h2>
@@ -1001,7 +1001,7 @@ export default function AddPermissionTypes () {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-10  w-11/12 mx-auto bg-white p-4 rounded-md ">
+          <div className="grid lg:grid-cols-2 gap-10  w-11/12 mx-auto bg-accent p-4 rounded-md ">
           
           <FormField
             control={formPolicy.control}

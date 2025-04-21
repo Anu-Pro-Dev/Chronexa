@@ -84,7 +84,7 @@ export default function FilterWeeklyScheduling({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white border-grey">
+                    <SelectTrigger className="bg-accent border-grey">
                       <Label className="font-normal text-secondary">
                         Organization :
                       </Label>
@@ -111,7 +111,7 @@ export default function FilterWeeklyScheduling({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white border-grey">
+                    <SelectTrigger className="bg-accent border-grey">
                       <Label className="font-normal text-secondary">
                         User :
                       </Label>
@@ -138,7 +138,7 @@ export default function FilterWeeklyScheduling({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white border-grey">
+                    <SelectTrigger className="bg-accent border-grey">
                       <Label className="font-normal text-secondary">
                         Group :
                       </Label>

@@ -21,7 +21,7 @@ export function TimePicker({ date, setDate }: TimePickerProps) {
   const periodRef = React.useRef<HTMLButtonElement>(null);
 
   return (
-    <div className="flex items-end gap-2 p-3 rounded-md border-none bg-white text-text-primary shadow-dropdown">
+    <div className="flex items-end gap-2 p-3 rounded-md border-none bg-accent text-text-primary shadow-dropdown">
       <div className="grid gap-2 text-center">
         <Label htmlFor="hours" className="text-xs">
           Hours

@@ -104,8 +104,8 @@ export default function Page() {
                 <div
                   className={`p-4 shadow-button rounded-lg text-base font-semibold cursor-pointer w-full transition flex justify-between items-center ${
                     isOpen
-                      ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-white"
-                      : "bg-white text-text-content"
+                      ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent"
+                      : "bg-accent text-text-content"
                   }`}
                   onClick={() => {
                     if (hasChildren) {
@@ -121,7 +121,7 @@ export default function Page() {
                     <span
                       className={`px-2 py-1 text-sm font-bold z-0 rounded ${
                         isOpen
-                          ? "bg-white bg-opacity-15"
+                          ? "bg-accent bg-opacity-15"
                           : "bg-backdrop text-primary"
                       }`}
                     >
@@ -174,7 +174,7 @@ export default function Page() {
 
       {/* Company Root Card */}
       <div
-        className={`w-[50%] p-4 mx-auto rounded-lg font-bold text-base shadow-button text-center cursor-pointer transition bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-white mt-5`}
+        className={`w-[50%] p-4 mx-auto rounded-lg font-bold text-base shadow-button text-center cursor-pointer transition bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent mt-5`}
         onClick={() => {
           setShowOrgTree(!showOrgTree);
           setOpenItem(null);
@@ -191,8 +191,8 @@ export default function Page() {
                 <div
                   className={`relative flex justify-between items-center p-4 rounded-lg font-semibold text-base shadow-button cursor-pointer transition w-[85%] ${
                     openItem === item.sl_no
-                      ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-white"
-                      : "bg-white text-text-content"
+                      ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent"
+                      : "bg-accent text-text-content"
                   }`}
                   onClick={() =>
                     setOpenItem(openItem === item.sl_no ? null : item.sl_no)
@@ -204,7 +204,7 @@ export default function Page() {
                   <div
                     className={`px-1.5 py-1 font-bold text-sm rounded-[5px] ${
                       openItem === item.sl_no
-                        ? "bg-white text-white shadow-sm bg-opacity-15"
+                        ? "bg-accent text-accent shadow-sm bg-opacity-15"
                         : "bg-backdrop text-primary"
                     }`}
                   >
@@ -238,8 +238,8 @@ export default function Page() {
                           <div
                             className={`p-4 shadow-button rounded-lg text-base font-semibold cursor-pointer w-full transition flex justify-between items-center ${
                               isOpen
-                                ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-white"
-                                : "bg-white text-text-content"
+                                ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent"
+                                : "bg-accent text-text-content"
                             }`}
                             onClick={() => {
                               if (hasChildren) {
@@ -255,7 +255,7 @@ export default function Page() {
                               <span
                                 className={`px-2 py-1 text-sm font-bold rounded ${
                                   isOpen
-                                    ? "bg-white bg-opacity-15"
+                                    ? "bg-accent bg-opacity-15"
                                     : "bg-backdrop text-primary"
                                 }`}
                               >

@@ -20,7 +20,7 @@ function ScheduleCard() {
   ];
 
   return (
-    <div className="shadow-card rounded-[10px] bg-white p-5">
+    <div className="shadow-card rounded-[10px] bg-accent p-5">
       <div>
         <div className="flex flex-col">
           <div>

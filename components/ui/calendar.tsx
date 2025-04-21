@@ -46,7 +46,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 bg-white rounded-md", className)}
+      className={cn("p-3 bg-accent rounded-md", className)}
       style={{
         width: 248.8 * (columnsDisplayed ?? 1) + "px",
       }}
@@ -81,7 +81,7 @@ function Calendar({
           "size-6 p-0 font-normal text-sm transition-none hover:bg-transparent hover:text-inherit aria-selected:opacity-100"
         ),
         selected:
-          "bg-primary text-white hover:!bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+          "bg-primary text-accent hover:!bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         today: "bg-backdrop text-text-primary",
         outside:
           "text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",

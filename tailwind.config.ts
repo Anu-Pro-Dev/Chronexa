@@ -26,6 +26,7 @@ export default {
           transparent: "var(--background-transparent)",
         },
         foreground: "var(--foreground)",
+        accent: "var(--accent)",
         primary: {
           DEFAULT: "var(--primary)",
         },

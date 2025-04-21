@@ -33,7 +33,7 @@ export default function PowerShifter({ items }: { items: any }) {
           <SelectTrigger className="min-w-20 w-fit gap-2 ps-0 border-none shadow-none text-2xl font-bold text-text-primary" iconSize={32}>
             <SelectValue placeholder="Theme" />
           </SelectTrigger>
-          <SelectContent className="bg-white rounded-xl">
+          <SelectContent className="bg-accent rounded-xl">
             {items?.map((item: any, index: number) => (
               <SelectItem
                 className={item?.hide === true ? "hidden" : ""}

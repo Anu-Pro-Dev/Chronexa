@@ -27,7 +27,7 @@ function LeaveCard() {
     const [page, setPage] = useState("Leaves");
 
     return (
-        <div className='shadow-card rounded-[10px] bg-white p-2'>
+        <div className='shadow-card rounded-[10px] bg-accent p-2'>
             <LeaveCardHeader page={page} setPage={setPage} />
             {page === "Leaves" && <LeaveCardData data={leavesData} />}
             {page === "Permissions" && <LeaveCardData data={permissionsData} />}

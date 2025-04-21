@@ -58,7 +58,7 @@ export default function AddWorkflow() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
-        <div className="bg-white p-6 rounded-2xl">
+        <div className="bg-accent p-6 rounded-2xl">
           <div className="pb-5">
             <h1 className="font-bold text-xl text-primary">Generate the workflows</h1>
             <h1 className="font-semibold text-sm text-text-secondary">
@@ -134,7 +134,7 @@ export default function AddWorkflow() {
         </div>
 
         {rows.length > 0 && (
-          <div className="bg-white p-6 rounded-2xl">
+          <div className="bg-accent p-6 rounded-2xl">
             <div className="grid gap-4">
               <div className="grid grid-cols-[auto,1fr,1fr,1fr,1fr,1fr] gap-4 text-[15px] font-semibold text-text-content text-center">
                 <div></div>

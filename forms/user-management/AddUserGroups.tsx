@@ -221,7 +221,7 @@ export default function AddUserGroups({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-white px-3 flex justify-between text-text-primary max-w-[350px]"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px]"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -260,7 +260,7 @@ export default function AddUserGroups({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-white px-3 flex justify-between text-text-primary max-w-[350px]"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px]"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")

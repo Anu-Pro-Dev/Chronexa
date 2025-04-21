@@ -61,7 +61,7 @@ export default function PowerMultiStepCard({
           <div
             key={page.state_route}
             className={cn(
-              "bg-white p-6 rounded-2xl transition-all duration-300",
+              "bg-accent p-6 rounded-2xl transition-all duration-300",
               !isCurrentPage && "cursor-pointer py-4 rounded-xl"
             )}
             onClick={() => {

@@ -125,7 +125,7 @@ export default function PowerTableRoster({
   ];
 
   return (
-    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
+    <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6">
       <div style={{ width: "100%" }}>
         <AgGridReact
           groupDisplayType="multipleColumns"
@@ -169,10 +169,10 @@ export default function PowerTableRoster({
             value={rows_per_page}
             onValueChange={set_rows_per_page}
           >
-            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-white rounded-lg">
+            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-accent rounded-lg">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-white rounded-md">
+            <SelectContent className="bg-accent rounded-md">
               {["5", "10", "20", "30", "50"].map((item, index) => (
                 <SelectItem value={item} key={index}>
                   {item}

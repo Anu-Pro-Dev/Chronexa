@@ -213,7 +213,7 @@ export default function PowerTable({
   ];
 
   return (
-    <div className="flex flex-col gap-4 bg-white p-3 rounded-2xl pb-6">
+    <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6">
       <div style={{ width: "100%" }}>
         <AgGridReact
           key={dir}
@@ -259,7 +259,7 @@ export default function PowerTable({
       <div className="flex justify-between px-3">
         <div className="flex items-center gap-2">
           <Select value={rows_per_page} onValueChange={set_rows_per_page}>
-            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-white rounded-lg" iconSize={24}>
+            <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-accent rounded-lg" iconSize={24}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

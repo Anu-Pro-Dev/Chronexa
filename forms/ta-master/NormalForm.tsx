@@ -144,7 +144,7 @@ export default function NormalForm({
       console.log(values);
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
         </pre>
       );
     } catch (error) {
@@ -775,7 +775,7 @@ export default function NormalForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")

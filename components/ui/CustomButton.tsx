@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 const baseClasses = `w-auto h-10 flex items-center justify-center gap-2 border px-3 capitalize`;
 
 const variantsLookup = {
-  primary: `bg-primary text-white border-primary`,
+  primary: `bg-primary text-accent border-primary`,
   cancel: `bg-[#8080801A] text-[#808080CC] border-border-grey`,
-  success: `bg-success text-white border-success`,
-  danger: `bg-danger text-white border-danger`,
+  success: `bg-success text-accent border-success`,
+  danger: `bg-danger text-accent border-danger`,
   outline: `bg-transparent text-[rgba(128,128,128,0.8)] border-[rgba(128,128,128,0.8)]`,
   primaryoutline: `bg-[#F1F8FD] text-primary border-[#C1DEF5] shadow-button`,
 };

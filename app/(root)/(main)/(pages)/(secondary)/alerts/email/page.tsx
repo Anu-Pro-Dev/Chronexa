@@ -64,7 +64,7 @@ export default function Page() {
           <Popover>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
@@ -88,7 +88,7 @@ export default function Page() {
           <Popover>
           <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
