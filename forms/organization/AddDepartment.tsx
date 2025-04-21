@@ -76,7 +76,7 @@ export default function AddDepartment() {
       {/* <div className="grid grid-cols-3 gap-4"> */}
         <div className="py-2">
           <Select onValueChange={setSelectedOption} value={selectedOption}>
-            <SelectTrigger className="bg-white border-grey">
+            <SelectTrigger className="bg-accent border-grey">
               <Label className="font-normal text-secondary">
                 Organization : <Required />
               </Label>
@@ -105,7 +105,7 @@ export default function AddDepartment() {
         </div>
       ) : ( */}
         <>
-          <div className="bg-white rounded-2xl flex flex-col gap-8 px-6 py-8">
+          <div className="bg-accent rounded-2xl flex flex-col gap-8 px-6 py-8">
             {/* <h1 className="font-bold text-xl text-primary">User</h1> */}
             <TransferList
               title="Users"
@@ -131,7 +131,7 @@ export default function AddDepartment() {
             </div>
           </div>
 
-          {/* <div className="bg-white p-6 rounded-2xl pb-8">
+          {/* <div className="bg-accent p-6 rounded-2xl pb-8">
             <h1 className="font-bold text-xl text-primary pb-4">Organization</h1>
             <TransferList
               title="Organizations"
@@ -141,7 +141,7 @@ export default function AddDepartment() {
             />
           </div> */}
 
-          {/* <div className="bg-white p-6 rounded-2xl pb-4">
+          {/* <div className="bg-accent p-6 rounded-2xl pb-4">
             <Label className="font-bold text-xl text-primary">Remarks</Label>
             <Textarea 
               className="border border-border-accent shadow-searchbar my-4 mx-auto"

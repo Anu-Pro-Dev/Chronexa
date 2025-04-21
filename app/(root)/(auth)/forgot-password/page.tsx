@@ -15,7 +15,7 @@ export default function Page() {
         layout="fill"
       />
       <div className="flex flex-col justify-center h-dvh">
-        <div className="w-10/12 sm:w-[25em] mx-auto bg-white rounded-3xl shadow-popup p-6 ">
+        <div className="w-10/12 sm:w-[25em] mx-auto bg-accent rounded-3xl shadow-popup p-6 ">
           <ForgotPassword />
         </div>
       </div>

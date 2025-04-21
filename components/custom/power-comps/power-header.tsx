@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import AutoPathMapper from "../auto-path-mapper";
-import PowerShifter from "./power-shifter";
+import PowerShifterTab from "./power-shifter-tab";
 import PowerAdd from "./power-add";
 import PowerDelete from "./power-delete";
 import PowerSearch from "./power-search";
@@ -90,7 +90,7 @@ export default function PowerHeader({
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center">
-        <PowerShifter items={items} />
+        <PowerShifterTab items={items} />
         {
           <div className="flex gap-2 items-center">
             {!disableFeatures && !disableSearch && (
@@ -194,7 +194,7 @@ export default function PowerHeader({
         }
       </div>
 
-      <AutoPathMapper />
+      {/* <AutoPathMapper /> */}
     </div>
   );
 }

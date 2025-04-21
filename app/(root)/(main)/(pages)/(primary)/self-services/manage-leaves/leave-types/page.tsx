@@ -57,7 +57,7 @@ export default function Page() {
       items={modules?.selfServices?.items} 
       isAddNewPagePath="/self-services/manage-leaves/leave-types/add"
       />
-      <div className="bg-white rounded-2xl">
+      <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">Leave Types</h1>
           <h1 className="font-semibold text-sm text-text-secondary">

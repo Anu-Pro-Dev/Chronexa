@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 function InsightsCard() {
     return(
-        <div className='shadow-card rounded-[10px] bg-white p-6'>
+        <div className='shadow-card rounded-[10px] bg-accent p-6'>
             <div className='flex flex-row justify-between'>
                 <h5 className='text-lg text-text-primary font-bold'>Important</h5>
                 {/* <Link href="/settings" className='text-primary text-sm font-medium flex items-center justify-center gap-1'>

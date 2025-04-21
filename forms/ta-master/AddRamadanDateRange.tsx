@@ -112,7 +112,7 @@ export default function AddRamadanDateRange({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-white px-3 flex justify-between text-text-primary"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -183,7 +183,7 @@ export default function AddRamadanDateRange({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-white px-3 flex justify-between text-text-primary"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")

@@ -55,7 +55,7 @@ function TimerCard() {
   const overtimeMinutes = Math.floor((overtimeSeconds % 3600) / 60);
 
   return (
-    <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#0078D4] to-[#003E6E] text-white p-4 flex flex-col items-center">
+    <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#0078D4] to-[#003E6E] text-accent p-4 flex flex-col items-center">
       <Image
         src="/clock-bg.svg"
         alt="Clock Your Hours"

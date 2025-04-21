@@ -75,7 +75,7 @@ export default function ReprocessData() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl relative">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl relative">
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Reprocess data</h1>
           {/* <h1 className="font-semibold text-sm text-text-secondary">
@@ -130,7 +130,7 @@ export default function ReprocessData() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-white px-3 flex justify-between text-text-primary"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -214,7 +214,7 @@ export default function ReprocessData() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-white px-3 flex justify-between text-text-primary"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")

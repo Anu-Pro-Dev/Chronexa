@@ -97,7 +97,7 @@ export default function AddPermissionApplication() {
       console.log(values);
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
         </pre>
       );
     } catch (error) {
@@ -108,7 +108,7 @@ export default function AddPermissionApplication() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
         <div className="flex justify-between">
           <div className="pb-6">
             <h1 className="font-bold text-xl text-primary">Permission Application</h1>
@@ -201,7 +201,7 @@ export default function AddPermissionApplication() {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
@@ -237,7 +237,7 @@ export default function AddPermissionApplication() {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-white px-3 flex justify-between text-text-primary"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")

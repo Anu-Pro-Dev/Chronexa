@@ -11,7 +11,7 @@ export function PunchButton() {
     <Button
       onClick={togglePunch}
       variant={"gradient"}
-      className="flex items-center px-3 gap-2 rounded-md font-bold text-sm text-white hover:opacity-90"
+      className="flex items-center px-3 gap-2 rounded-md font-bold text-sm text-accent hover:opacity-90"
     >
       {isPunchedIn ? (
         <>

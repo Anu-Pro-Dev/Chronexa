@@ -112,7 +112,7 @@ export function TransferList({
       <Card className="flex-1">
         <CardHeader className="pb-4">
           <CardTitle className="text-center pb-3">All {title}</CardTitle>
-          <div className="bg-white border border-border-accent px-4 py-3 flex items-center gap-2 shadow-searchbar rounded-full">
+          <div className="bg-accent border border-border-accent px-4 py-3 flex items-center gap-2 shadow-searchbar rounded-full">
             <SearchIcon className="text-secondary"/>
             <input
               className="text-xs bg-transparent border-none outline-none font-medium text-text-primary w-full h-full placeholder-text-secondary"
@@ -126,7 +126,7 @@ export function TransferList({
         <CardContent>
           <ScrollArea className="h-[240px] py-1">
             {filteredLeftItems.map((item) => (
-              <div key={item.id} className="flex items-center bg-white gap-2 py-3 pl-2">
+              <div key={item.id} className="flex items-center bg-accent gap-2 py-3 pl-2">
                 <Checkbox
                   checked={item.selected}
                   onCheckedChange={(checked) =>
@@ -154,7 +154,7 @@ export function TransferList({
       <Card className="flex-1">
         <CardHeader className="pb-4">
           <CardTitle className="text-center pb-3">Selected {title}</CardTitle>
-          <div className="bg-white border border-border-accent px-4 py-3 flex items-center gap-2 shadow-searchbar rounded-full">
+          <div className="bg-accent border border-border-accent px-4 py-3 flex items-center gap-2 shadow-searchbar rounded-full">
             <SearchIcon className="text-secondary"/>
             <input
               className="text-xs bg-transparent border-none outline-none font-medium text-text-primary w-full h-full placeholder-text-secondary"
@@ -166,9 +166,9 @@ export function TransferList({
           </div>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[240px] py-1 bg-white">
+          <ScrollArea className="h-[240px] py-1 bg-accent">
             {filteredRightItems.map((item) => (
-              <div key={item.id} className="flex items-start bg-white gap-2 py-3 pl-2">
+              <div key={item.id} className="flex items-start bg-accent gap-2 py-3 pl-2">
                 <span className="text-[15px] font-semibold text-text-primary leading-none">
                   {item.name}
                 </span>

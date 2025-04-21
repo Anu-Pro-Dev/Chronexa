@@ -99,7 +99,7 @@ function WorkTrendsCard() {
   );
 
   return (
-    <div className="shadow-card rounded-[10px] bg-white p-4">
+    <div className="shadow-card rounded-[10px] bg-accent p-4">
       <div className="flex flex-row justify-between p-3">
         <h5 className="text-lg text-text-primary font-bold">Work hour trends</h5>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -107,12 +107,12 @@ function WorkTrendsCard() {
             <Calendar1Icon width="14" height="16" />
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
-          <SelectContent className="bg-white rounded-md shadow-dropdown">
+          <SelectContent className="bg-accent rounded-md shadow-dropdown">
             {monthsWithThisMonth.map((month) => (
               <SelectItem
                 key={month}
                 value={month}
-                className="text-text-primary bg-white"
+                className="text-text-primary bg-accent"
               >
                 {month}
               </SelectItem>

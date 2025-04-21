@@ -12,7 +12,7 @@ import {
 
 function LeaveCard() {
   return (
-    <div className="shadow-card rounded-[10px] bg-white p-2 flex flex-col justify-between">
+    <div className="shadow-card rounded-[10px] bg-accent p-2 flex flex-col justify-between">
       <div className="flex flex-row justify-between p-4">
         <h5 className="text-lg text-text-primary font-bold">
           Employee Overview

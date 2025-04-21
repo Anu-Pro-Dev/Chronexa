@@ -71,7 +71,7 @@ export default function Page() {
           <Popover>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
@@ -95,7 +95,7 @@ export default function Page() {
           <Popover>
           <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
-                className="w-full bg-white px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
@@ -112,7 +112,7 @@ export default function Page() {
           </Popover>
         </div>
       </div>
-      <div className="bg-white rounded-2xl">
+      <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">Approve Manual Movements</h1>
           <h1 className="font-semibold text-sm text-text-secondary">

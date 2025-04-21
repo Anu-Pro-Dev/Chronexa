@@ -23,7 +23,7 @@ const ColorPicker = () => {
             style={{ backgroundColor: selectedColor }}
           ></div>
         </PopoverTrigger>
-        <PopoverContent className="bg-white p-0 rounded-lg shadow-dropdown w-60">
+        <PopoverContent className="bg-accent p-0 rounded-lg shadow-dropdown w-60">
           <div className="flex flex-col w-full">
             {colors.map((color) => (
               <button

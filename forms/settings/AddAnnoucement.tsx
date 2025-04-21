@@ -80,7 +80,7 @@ export default function AddAnnoucement() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-6 bg-white p-6 rounded-2xl">
+        <div className="flex flex-col gap-6 bg-accent p-6 rounded-2xl">
           <div className="">
             <h1 className="font-bold text-xl text-primary">Add Annoucement</h1>
             {/* <h1 className="font-semibold text-sm text-text-secondary">

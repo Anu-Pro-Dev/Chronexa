@@ -17,7 +17,7 @@ export default function Page() {
         items={modules?.scheduling.items}
         disableFeatures
       />
-      {/* <div className="bg-white p-4">
+      {/* <div className="bg-accent p-4">
         <h1 className="text-primary text-lg font-bold">Schedule add section</h1>
         <p className="text-secondary pb-6">
           Select the schedule for further process

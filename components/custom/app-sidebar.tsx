@@ -1,19 +1,6 @@
 "use client";
 
 import * as React from "react";
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react";
-
 import { NavMain } from "@/components/custom/nav-main";
 import { NavUser } from "@/components/custom/nav-user";
 import {
@@ -46,6 +33,8 @@ import Image from "next/image";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { translations, dir, modules } = useLanguage();
+  const { open, toggleSidebar, setOpen } = useSidebar();
+
   const data = {
     user: {
       name: "shadcn",
@@ -132,7 +121,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
   };
-  const { open, toggleSidebar, setOpen } = useSidebar();
+  
   React.useEffect(() => {
     const savedState = localStorage.getItem("sidebar-chorno") === "true";
     if (open !== savedState) {
@@ -143,12 +132,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   React.useEffect(() => {
     localStorage.setItem("sidebar-chorno", open.toString());
   }, [open]);
+
   return (
     <Sidebar
       collapsible="icon"
       {...props}
       variant="inset"
-      // side={dir === "rtl" ? "right" : "left"}
     >
       <SidebarHeader className="">
         <div

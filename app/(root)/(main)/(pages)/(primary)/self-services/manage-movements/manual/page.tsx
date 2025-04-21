@@ -94,7 +94,7 @@ export default function Page() {
         }
         isLarge={true}
       />
-      <div className="bg-white rounded-2xl">
+      <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">Manual Movements</h1>
           <h1 className="font-semibold text-sm text-text-secondary">

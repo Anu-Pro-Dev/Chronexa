@@ -51,7 +51,7 @@ export default function Page() {
       items={modules?.selfServices?.items} 
       isAddNewPagePath="/self-services/manage-permissions/permission-types/add"
       />
-      <div className="bg-white rounded-2xl">
+      <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">Permission Types</h1>
           <h1 className="font-semibold text-sm text-text-secondary">

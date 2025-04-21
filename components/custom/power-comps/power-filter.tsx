@@ -48,7 +48,7 @@ export default function PowerFilter({
             size={"sm"}
           >
             <FiltersIcon />
-            <span className="text-white">{translations?.buttons.filters}</span>
+            <span className="text-accent">{translations?.buttons.filters}</span>
           </Button>
         )}
 
@@ -56,7 +56,7 @@ export default function PowerFilter({
           <ResponsiveModalTrigger asChild>
             <Button className="flex items-center space-y-0.5" size={"sm"}>
               <FiltersIcon />
-              <span className="text-white">{translations?.buttons.filters}</span>
+              <span className="text-accent">{translations?.buttons.filters}</span>
             </Button>
           </ResponsiveModalTrigger>
         )}

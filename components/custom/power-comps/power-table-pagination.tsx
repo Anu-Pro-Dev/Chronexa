@@ -98,7 +98,7 @@ export function PowerTablePagination({
               }
             }}
             className={
-              pageNumber === currentPage ? "text-white" : "text-secondary"
+              pageNumber === currentPage ? "text-accent" : "text-secondary"
             }
           >
             {typeof pageNumber === "number" ? (

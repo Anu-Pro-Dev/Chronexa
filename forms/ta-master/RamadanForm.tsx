@@ -140,7 +140,7 @@ export default function RamadanForm({
       console.log(values);
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
         </pre>
       );
     } catch (error) {

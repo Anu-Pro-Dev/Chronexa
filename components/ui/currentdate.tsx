@@ -26,7 +26,7 @@ const CurrentDate: React.FC = () => {
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
 
   return (
-    <div className="flex justify-center items-center bg-white rounded-md px-2">
+    <div className="flex justify-center items-center bg-accent rounded-md px-2">
       <div className="text-center">
         {/* Displaying calendar icon, current date, and chevron in a row */}
         <div className="flex items-center justify-center gap-1">
@@ -49,7 +49,7 @@ const CurrentDate: React.FC = () => {
 
         {/* Conditionally render the Calendar component */}
         {showCalendar && (
-          <div className="absolute mt-2 bg-white shadow-lg rounded-lg z-50">
+          <div className="absolute mt-2 bg-accent shadow-lg rounded-lg z-50">
             <Calendar
             mode="single" // Ensure single date selection mode
             selected={currentDate.from} // Pass the selected date

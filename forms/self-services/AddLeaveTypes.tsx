@@ -82,7 +82,7 @@ export default function AddLeaveTypes({
       console.log(values);
       toast(
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
         </pre>
       );
     } catch (error) {
@@ -95,7 +95,7 @@ export default function AddLeaveTypes({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white p-6 rounded-2xl">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Leave Types</h1>
           {/* <h1 className="font-semibold text-sm text-text-secondary">
