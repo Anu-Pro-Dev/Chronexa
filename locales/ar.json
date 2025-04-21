@@ -44,8 +44,8 @@
     },
     "modules": {
       "dashboard": {
-        "selfStatistics": "إحصائيات ذاتية",
-        "teamStatistics": "إحصائيات الفريق",
+        "myAttendance": "إحصائيات ذاتية",
+        "teamAttendance": "إحصائيات الفريق",
         "permissionandLeaves": "إذن & أوراق",
         "workingDays": "أيام العمل",
         "leavesTaken" : "الأوراق المتخذة",

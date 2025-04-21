@@ -7,10 +7,9 @@ import LeaveAnalyticsCard from "./LeaveAnalyticsCard";
 import ViolationsCard from "./ViolationsCard";
 import WorkTrendsCard from "./WorkTrendsCard";
 import ScheduleCard from "./ScheduleCard";
-import ServicesStatisticsCard from "./ServicesStatisticsCard";
 import InsightsCard from "./InsightsCard";
 
-function SelfStatisticsPage() {
+function MyAttendancePage() {
   return (
     <>
       <div className="widget-group-1 flex justify-between gap-4">
@@ -32,16 +31,8 @@ function SelfStatisticsPage() {
           <InsightsCard />
         </div>
       </div>
-      {/* <div className="widget-group-3 flex justify-between mx-6 gap-4 mb-4">
-                <div className="card-widget max-w-[35%] w-full h-auto flex flex-col gap-4">
-                    <ServicesStatisticsC    dard/>
-                </div>
-                <div className='card-widget w-full h-auto flex flex-col gap-4'>
-                    <InsightsCard/>
-                </div>
-            </div> */}
     </>
   );
 }
 
-export default SelfStatisticsPage;
+export default MyAttendancePage;

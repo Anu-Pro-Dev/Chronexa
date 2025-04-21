@@ -45,8 +45,8 @@
     },
     "modules": {
       "dashboard": {
-        "selfStatistics": "Self Statistics",
-        "teamStatistics": "Team Statistics",
+        "myAttendance": "My Attendance",
+        "teamAttendance": "Team Attendance",
         "permissionandLeaves": "Permission & Leaves",
         "workingDays": "Working Days",
         "leavesTaken" : "Leaves Taken",

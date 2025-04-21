@@ -13,7 +13,7 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
     } else if (page === "Permissions") {
       return "/self-services/manage-permissions/permission-application/add"; // Navigate to this page if the path is /permissions
     }
-    return "/dashboard/self-statistics/"; // Default fallback
+    return "/dashboard/my-attendance/"; // Default fallback
   }
 
   return (

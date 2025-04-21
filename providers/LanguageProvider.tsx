@@ -47,14 +47,14 @@ export default function LanguageProvider({
     path: "/dashboard",
     items: [
       {
-        label: currentLanguageData.translations?.modules?.dashboard?.selfStatistics || "Self Statistics",
-        path: "/dashboard/self-statistics/",
-        value: "self_statistics",
+        label: currentLanguageData.translations?.modules?.dashboard?.myAttendance || "My Attendance",
+        path: "/dashboard/my-attendance/",
+        value: "my_attendance",
       },
       {
-        label: currentLanguageData.translations?.modules?.dashboard?.teamStatistics || "Team Statistics",
-        path: "/dashboard/team-statistics/",
-        value: "team_statistics",
+        label: currentLanguageData.translations?.modules?.dashboard?.teamAttendance || "Team Attendance",
+        path: "/dashboard/team-attendance/",
+        value: "team_attendance",
       },
     ],
   };
@@ -83,16 +83,6 @@ export default function LanguageProvider({
         path: "/company-master/grades/", 
         value: "grades" 
       },
-      { 
-        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Type",
-        path: "/company-master/organization-type/", 
-        value: "organization-type" 
-      },
-      { 
-        label: currentLanguageData.translations?.modules?.organization?.organization || "Organization",
-        path: "/company-master/organization/", 
-        value: "organization" 
-      },
     ],
   };
 
@@ -100,10 +90,20 @@ export default function LanguageProvider({
     route_name: "Organization",
     path: "/organization/",
     items: [
+      { 
+        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
+        path: "/organization/organization-types/", 
+        value: "organization-types" 
+      },
+      { 
+        label: currentLanguageData.translations?.modules?.organization?.organization || "Organization",
+        path: "/organization/organization/", 
+        value: "organization" 
+      },
       {
         label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
-        path: "/organization/structure/",
-        value: "structure",
+        path: "/organization/organization-structure/",
+        value: "organization-structure",
       },
       {
         label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",

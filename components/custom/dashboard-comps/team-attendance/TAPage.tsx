@@ -6,7 +6,7 @@ import TeamAnalyticsCard from './TeamAnalyticsCard';
 import LeaveAnalyticsCard from './LeaveAnalyticsCard';
 import ViolationsCard from './ViolationsCard';
 
-function TeamStatisticsPage() {
+function TeamAttendancePage() {
     const [tab, setTab] = React.useState<string>("");
 
     return (
@@ -31,4 +31,4 @@ function TeamStatisticsPage() {
     );
 }
 
-export default TeamStatisticsPage;
+export default TeamAttendancePage;

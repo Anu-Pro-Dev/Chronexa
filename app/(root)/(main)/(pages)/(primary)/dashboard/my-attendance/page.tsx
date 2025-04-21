@@ -1,6 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
-import SelfStatisticsPage from "@/components/custom/dashboard-comps/self-statistics/SSPage";
+import MyAttendancePage from "@/components/custom/dashboard-comps/my-attendance/MAPage";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import { PunchButton } from "@/components/custom/PunchButton";
 import { 
@@ -74,7 +74,7 @@ export default function Dashboard() {
           <PunchButton />
         </div>
       </div>
-      <SelfStatisticsPage />
+      <MyAttendancePage />
     </div>
   );
 }

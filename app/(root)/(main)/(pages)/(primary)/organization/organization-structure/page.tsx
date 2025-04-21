@@ -119,7 +119,7 @@ export default function Page() {
                   <span>{item.title}</span>
                   {hasChildren && (
                     <span
-                      className={`px-2 py-1 text-sm font-bold z-0 rounded ${
+                      className={`px-2 py-1 text-sm font-bold z-0 rounded text-primary ${
                         isOpen
                           ? "bg-accent bg-opacity-15"
                           : "bg-backdrop text-primary"
@@ -174,7 +174,7 @@ export default function Page() {
 
       {/* Company Root Card */}
       <div
-        className={`w-[50%] p-4 mx-auto rounded-lg font-bold text-base shadow-button text-center cursor-pointer transition bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent mt-5`}
+        className={`w-auto min-w-[40%] p-4 mx-auto rounded-lg font-bold text-base shadow-button text-center cursor-pointer transition bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent mt-5`}
         onClick={() => {
           setShowOrgTree(!showOrgTree);
           setOpenItem(null);
@@ -204,7 +204,7 @@ export default function Page() {
                   <div
                     className={`px-1.5 py-1 font-bold text-sm rounded-[5px] ${
                       openItem === item.sl_no
-                        ? "bg-accent text-accent shadow-sm bg-opacity-15"
+                        ? "bg-accent text-primary shadow-sm bg-opacity-15"
                         : "bg-backdrop text-primary"
                     }`}
                   >
@@ -253,7 +253,7 @@ export default function Page() {
                             <span>{subItem.title}</span>
                             {hasChildren && (
                               <span
-                                className={`px-2 py-1 text-sm font-bold rounded ${
+                                className={`px-2 py-1 text-sm font-bold rounded text-primary ${
                                   isOpen
                                     ? "bg-accent bg-opacity-15"
                                     : "bg-backdrop text-primary"

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddOrganization from "@/forms/company-master/AddOrganization";
+import AddOrganization from "@/forms/organization/AddOrganization";
 import { getAllOrganization } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
@@ -99,7 +99,7 @@ export default function Page() {
       <PowerHeader
         props={props}
         selectedRows={selectedRows}
-        items={modules?.companyMaster.items}
+        items={modules?.organization.items}
         entityName="organization"
         modal_title="Organization"
         modal_component={

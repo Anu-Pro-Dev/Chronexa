@@ -4,7 +4,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
-import TeamStatisticsPage from "@/components/custom/dashboard-comps/team-statistics/TSPage";
+import TeamAttendancePage from "@/components/custom/dashboard-comps/team-attendance/TAPage";
 export default function Page() {
   const { modules } = useLanguage();
   const [Data, SetData] = useState<any>([]);
@@ -28,7 +28,7 @@ export default function Page() {
         items={modules?.dashboard.items}
       />
       <div>
-        <TeamStatisticsPage />
+        <TeamAttendancePage />
       </div>
     </div>
   );
