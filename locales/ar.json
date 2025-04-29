@@ -16,15 +16,16 @@
         "dashboard": "لوحة القيادة",
         "companyMaster": "سجل الشركة",
         "organization": "المؤسسة",
-        "userManagement": "سجل الموظفين",
+        "employeeMaster": "سجل الموظفين",
         "taMaster": "سجل الحضور والغياب",
         "scheduling": "الجدولة",
-        "selfServices": "الخدمات الذاتية"
+        "selfServices": "الخدمات الذاتية",
+        "manageApprovals": "إدارة الموافقات"
       },
       "secondary": {
         "devices": "الأجهزة",
         "reports": "التقارير",
-        "security": "الأمان",
+        "configuration": "الأمان",
         "settings": "الإعدادات",
         "alerts": "تنبيه"
       }

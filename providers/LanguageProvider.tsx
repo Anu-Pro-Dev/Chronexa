@@ -40,7 +40,6 @@ export default function LanguageProvider({
   const [isMounted, setIsMounted] = useState(false);
 
   const currentLanguageData = allLanguages[language] || allLanguages["en"];
-  const groupCode = typeof window !== "undefined" ? localStorage.getItem("groupCode") || "defaultCode" : "defaultCode";
 
   const dashboard = {
     route_name: "Dashboard",
@@ -116,85 +115,41 @@ export default function LanguageProvider({
         value: "add-department",
         hide: true,
       },
-      // {
-      //   label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
-      //   path: "/organization/types/",
-      //   value: "types",
-      // },
     ],
   };
 
-  const userManagement = {
-    route_name: "User Management",
-    path: "/user-management/",
+  const employeeMaster = {
+    route_name: "Employee Master",
+    path: "/employee-master/",
 
     items: [
       {
-        label: "Users",
-        path: "/user-management/users/",
-        value: "users",
+        label: "Employee",
+        path: "/employee-master/employee/",
+        value: "employee",
       },
       {
         label: "Users",
-        path: "/user-management/users/add/",
-        value: "add-user",
+        path: "/employee-master/employee/add/",
+        value: "add-employee",
         hide: true,
       },
       {
-        label: "Groups",
-        path: "/user-management/groups/",
-        value: "groups",
+        label: "Employee Group",
+        path: "/employee-master/employee-group/",
+        value: "employee_group",
       },
-      // {
-      //   label: "Groups",
-      //   path: "/user-management/groups/add/",
-      //   value: "groups",
-      //   hide: true,
-      // },
       {
-        label: "Groups",
-        path: `/user-management/groups/group-members/`,
-        value: "groups",
+        label: "Employee Group",
+        path: `/employee-master/employee-group/group-members/`,
+        value: "employee_group",
         hide: true,
       },
       {
-        label: "Types",
-        path: "/user-management/types/",
-        value: "types",
+        label: "Employee Type",
+        path: "/employee-master/employee-type/",
+        value: "employee_type",
       },
-    ],
-  };
-
-  const taMaster = {
-    route_name: "TA Master",
-    path: "/TA-master/",
-    items: [
-      {
-        label: "Holidays",
-        path: "/TA-master/holidays/",
-        value: "holidays",
-      },
-      {
-        label: "Ramadan Dates",
-        path: "/TA-master/ramadan-dates/",
-        value: "ramadan_dates",
-      },
-      {
-        label: "Schedules",
-        path: "/TA-master/schedules/",
-        value: "schedules",
-      },
-      {
-        label: "Schedules",
-        path: "/TA-master/schedules/add/",
-        value: "add-schedules",
-        hide: true,
-      },
-      // {
-      //   label: "Reasons",
-      //   path: "/TA-master/reasons/",
-      //   value: "reasons",
-      // },
     ],
   };
 
@@ -202,6 +157,17 @@ export default function LanguageProvider({
     route_name: "Scheduling",
     path: "/scheduling/",
     items: [
+      {
+        label: "Schedules",
+        path: "/scheduling/schedules/",
+        value: "schedules",
+      },
+      {
+        label: "Schedules",
+        path: "/scheduling/schedules/add/",
+        value: "add-schedules",
+        hide: true,
+      },
       {
         label: "Weekly Schedule",
         path: "/scheduling/weekly-schedule/",
@@ -214,15 +180,19 @@ export default function LanguageProvider({
         hide: true,
       },
       {
-        label: "Monthly Roster",
-        path: "/scheduling/monthly-roster/",
-        value: "monthly_roster",
+        label: "Monthly Schedule",
+        path: "/scheduling/monthly-schedule/",
+        value: "monthly_schedule",
       },
       {
-        label: "Employee Schedule",
-        path: "/scheduling/employee-schedule/",
-        value: "employee_schedule",
-        hide: true,
+        label: "Holidays",
+        path: "/scheduling/holidays/",
+        value: "holidays",
+      },
+      {
+        label: "Set Ramadan Dates",
+        path: "/scheduling/set-ramadan-dates/",
+        value: "set_ramadan_dates",
       },
     ],
   };
@@ -232,200 +202,177 @@ export default function LanguageProvider({
     path: "/self-services/",
     items: [
       {
-        label: "Workflow",
-        path: "/self-services/workflow/",
-        value: "workflow",
+        label: "Permissions",
+        path: "/self-services/permissions/",
+        value: "permissions",
       },
       {
-        label: "Workflow",
-        path: "/self-services/workflow/add/",
-        value: "add_workflow",
-        hide: true,
-      },
-      {
-        label: "Manage Permissions",
-        path: "/self-services/manage-permissions/permission-types/",
-        value: "manage-permissions",
-      },
-      {
-        label: "Manage Permissions",
-        path: "/self-services/manage-permissions/permission-types/add/",
-        value: "manage-permissions",
+        label: "Permissions",
+        path: "/self-services/permissions/manage/add/",
+        value: "permissions",
         hide:true
       },
       {
-        label: "Manage Permissions",
-        path: "/self-services/manage-permissions/permission-application/",
-        value: "permission application",
+        label: "Permissions",
+        path: "/self-services/permissions/requests/",
+        value: "permissions",
         hide:true,
       },
       {
-        label: "Manage Permissions",
-        path: "/self-services/manage-permissions/permission-application/add/",
-        value: "manage-permissions",
+        label: "Permissions",
+        path: "/self-services/permissions/requests/add/",
+        value: "permissions",
         hide:true
       },
       {
-        label: "Manage Permissions",
-        path: "/self-services/manage-permissions/permission-approval/",
-        value: "permission approval",
-        hide:true,
+        label: "Leaves",
+        path: "/self-services/leaves/manage/",
+        value: "leaves",
       },
       {
-        label: "Manage Leaves",
-        path: "/self-services/manage-leaves/leave-types/",
-        value: "manage-leaves",
-      },
-      {
-        label: "Manage Leaves",
-        path: "/self-services/manage-leaves/leave-types/add/",
-        value: "manage-leaves",
+        label: "Leaves",
+        path: "/self-services/leaves/manage/add/",
+        value: "leaves",
         hide:true
       },
       {
-        label: "Manage Leaves",
-        path: "/self-services/manage-leaves/leave-application/",
-        value: "leave application",
+        label: "Leaves",
+        path: "/self-services/leaves/requests/",
+        value: "leaves",
         hide:true,
       },
       {
-        label: "Manage Leaves",
-        path: "/self-services/manage-leaves/leave-application/add/",
-        value: "leave application",
+        label: "Leaves",
+        path: "/self-services/leaves/requests/add/",
+        value: "leaves",
+        hide:true
+      },
+      {
+        label: "Punches",
+        path: "/self-services/punches/my-punches/",
+        value: "punches",
+      },
+      {
+        label: "Punches",
+        path: "/self-services/punches/my-punches/add/",
+        value: "punches",
+        hide:true
+      },
+      {
+        label: "Punches",
+        path: "/self-services/punches/my-requests/",
+        value: "punches",
         hide:true,
       },
       {
-        label: "Manage Leaves",
-        path: "/self-services/manage-leaves/leave-approval/",
-        value: "leave approval",
-        hide:true,
+        label: "Punches",
+        path: "/self-services/punches/my-requests/add/",
+        value: "punches",
+        hide:true
       },
       {
-        label: "Manage Leaves",
-        path: "/self-services/manage-leaves/leave-report/",
-        value: "leave report",
-        hide:true,
+        label: "Approval Workflow",
+        path: "/self-services/approval-workflow/",
+        value: "approval_workflow",
       },
       {
-        label: "Manage Movements",
-        path: "/self-services/manage-movements/applied/",
-        value: "manage-movements",
-      },
-      {
-        label: "Manage Movements",
-        path: "/self-services/manage-movements/manual/",
-        value: "manual",
-        hide: true,
-      },
-      {
-        label: "Manage Movements",
-        path: "/self-services/manage-movements/approve-manual/",
-        value: "approved_manual",
-        hide: true,
-      },
-      {
-        label: "Manage Movements",
-        path: "/self-services/manage-movements/missing/",
-        value: "manage-movements",
-        hide: true,
-      },
-      {
-        label: "Manage Movements",
-        path: "/self-services/manage-movements/approve-missing/",
-        value: "manage-movements",
-        hide: true,
-      },
-      {
-        label: "Approvals",
-        path: "/self-services/approvals/",
-        value: "approvals",
-      },
-      {
-        label: "Approvals",
-        path: "/self-services/approvals/verification/",
-        value: "approvals",
-        hide: true,
-      },
-      {
-        label: "Approvals",
-        path: "/self-services/approvals/pending/",
-        value: "approvals",
+        label: "Approval Workflow",
+        path: "/self-services/approval-workflow/add/",
+        value: "add_approval_workflow",
         hide: true,
       },
     ],
-    manage_movements: {
+    permissions: { 
       items: [
         {
-          label: "Applied",
-          url: "/self-services/manage-movements/applied/",
-          value: "applied",
+          label: "Manage",
+          url: "/self-services/permissions/manage/",
+          value: "permission manage",
         },
         {
-          label: "Manual",
-          url: "/self-services/manage-movements/manual/",
-          value: "manual",
-        },
-        {
-          label: "Approve Manual",
-          url: "/self-services/manage-movements/approve-manual/",
-          value: "approve-manual",
-        },
-        {
-          label: "Missing",
-          url: "/self-services/manage-movements/missing/",
-          value: "missing",
-        },
-        {
-          label: "Approve Missing",
-          url: "/self-services/manage-movements/approve-missing/",
-          value: "approve-missing",
+          label: "Requests",
+          url: "/self-services/permissions/requests/",
+          value: "permission requests",
         },
       ],
     },
-    manage_permissions: { 
+    leaves: { 
       items: [
         {
-          label: "Types",
-          url: "/self-services/manage-permissions/permission-types/",
-          value: "permission types",
+          label: "Manage",
+          url: "/self-services/leaves/manage/",
+          value: "leave manage",
         },
         {
-          label: "Application",
-          url: "/self-services/manage-permissions/permission-application/",
-          value: "permission application",
+          label: "Requests",
+          url: "/self-services/leaves/requests/",
+          value: "leave requests",
+        },
+      ],
+    },
+    punches: {
+      items: [
+        {
+          label: "My Punches",
+          url: "/self-services/punches/my-punches/",
+          value: "punches manage",
         },
         {
-          label: "Approval",
-          url: "/self-services/manage-permissions/permission-approval/",
+          label: "My Requests",
+          url: "/self-services/punches/my-requests/",
+          value: "punches requests",
+        },
+      ],
+    },
+  };
+
+  const manageApprovals = {
+    route_name: "Manage Approvals",
+    path: "/manage-approvals/",
+    items: [
+      {
+        label: "Team Requests",
+        path: "/manage-approvals/team-requests/",
+      },
+      {
+        label: "Approvals",
+        path: "/manage-approvals/approvals/",
+      },
+    ],
+    teamrequests: { 
+      items: [
+        {
+          label: "Permissions",
+          url: "/manage-approvals/team-requests/permissions/",
           value: "permission approval",
         },
-      ],
-    },
-    manage_leaves: { 
-      items: [
         {
-          label: "Types",
-          url: "/self-services/manage-leaves/leave-types/",
-          value: "leave types",
-        },
-        {
-          label: "Application",
-          url: "/self-services/manage-leaves/leave-application/",
-          value: "leave application",
-        },
-        {
-          label: "Approval",
-          url: "/self-services/manage-leaves/leave-approval/",
+          label: "Leaves",
+          url: "/manage-approvals/team-requests/leaves/",
           value: "leave approval",
         },
         {
-          label: "Report",
-          url: "/self-services/manage-leaves/leave-report/",
-          value: "leave report",
+          label: "Punches",
+          url: "/manage-approvals/team-requests/punches/",
+          value: "punch approval",
         },
       ],
     },
-  };  
+    approvals: { 
+      items: [
+        {
+          label: "Verification",
+          url: "/manage-approvals/approvals/verification/",
+          value: "verification approval",
+        },
+        {
+          label: "Pending",
+          url: "/manage-approvals/approvals/pending/",
+          value: "pending approval",
+        },
+      ],
+    },
+  };
 
   const devices = {
     route_name: "Devices",
@@ -450,37 +397,42 @@ export default function LanguageProvider({
     path: "/reports/",
     items: [
       {
-        label: "Standard Reports",
-        path: "/reports/standard-reports/",
-        value: "standard_reports",
+        label: "Reports",
+        path: "/reports/reports/",
+        value: "reports",
       },
-      {
-        label: "Reprocess Data",
-        path: "/reports/reprocess-data/",
-        value: "reprocess_data",
-      },
+      // {
+      //   label: "Reprocess Data",
+      //   path: "/reports/reprocess-data/",
+      //   value: "reprocess_data",
+      // },
     ],
   };
 
-  const security = {
-    route_name: "Security",
-    path: "/security/",
+  const configuration = {
+    route_name: "Configuration",
+    path: "/configuration/",
     items: [
       {
         label: "Roles",
-        path: "/security/roles/",
+        path: "/configuration/roles/",
         value: "roles",
       },
       {
         label: "Roles",
-        path: `/security/roles/assign-roles/`,
+        path: `/configuration/roles/assign-roles/`,
         value: "roles",
         hide: true,
       },
       {
         label: "Privileges",
-        path: "/security/privileges/",
+        path: "/configuration/privileges/",
         value: "privileges",
+      },
+      {
+        label: "Reprocess",
+        path: "/configuration/reprocess/",
+        value: "reprocess",
       },
     ],
   };
@@ -495,57 +447,72 @@ export default function LanguageProvider({
           value: "application_settings",
         },
         {
-          label: "Application Settings",
-          path: "/settings/application-settings/all/",
-          value: "application_settings",
-          hide:true,
+          label: "DB Settings",
+          path: "/settings/db-settings/",
+          value: "db_settings",
         },
         {
-          label: "Application Settings",
-          path: "/settings/application-settings/notification/",
-          value: "application_settings",
-          hide:true,
+          label: "Email Settings",
+          path: "/settings/email-settings/",
+          value: "email_settings",
         },
         {
-          label: "Application Settings",
-          path: "/settings/application-settings/server/",
-          value: "application_settings",
-          hide:true,
+          label: "Master Upload",
+          path: "/settings/master-upload/",
+          value: "master_upload",
         },
-        {
-          label: "Application Settings",
-          path: "/settings/application-settings/others/",
-          value: "application_settings",
-          hide:true,
-        },
-        {
-          label: "Application Settings",
-          path: "/settings/application-settings/module/",
-          value: "application_settings",
-          hide:true,
-        },
-        {
-          label: "Application Settings",
-          path: "/settings/application-settings/verification/",
-          value: "application_settings",
-          hide:true,
-        },
-        {
-          label: "Add Announcement",
-          path: "/settings/announcements/add/",
-          value: "add_announcement",
-          hide: true,
-        },
-        {
-          label: "Announcements",
-          path: "/settings/announcements/",
-          value: "announcement",
-        },
-        {
-          label: "Notifications ",
-          path: "/settings/notifications/",
-          value: "notifications",
-        },
+        // {
+        //   label: "Application Settings",
+        //   path: "/settings/application-settings/all/",
+        //   value: "application_settings",
+        //   hide:true,
+        // },
+        // {
+        //   label: "Application Settings",
+        //   path: "/settings/application-settings/notification/",
+        //   value: "application_settings",
+        //   hide:true,
+        // },
+        // {
+        //   label: "Application Settings",
+        //   path: "/settings/application-settings/server/",
+        //   value: "application_settings",
+        //   hide:true,
+        // },
+        // {
+        //   label: "Application Settings",
+        //   path: "/settings/application-settings/others/",
+        //   value: "application_settings",
+        //   hide:true,
+        // },
+        // {
+        //   label: "Application Settings",
+        //   path: "/settings/application-settings/module/",
+        //   value: "application_settings",
+        //   hide:true,
+        // },
+        // {
+        //   label: "Application Settings",
+        //   path: "/settings/application-settings/verification/",
+        //   value: "application_settings",
+        //   hide:true,
+        // },
+        // {
+        //   label: "Announcements",
+        //   path: "/settings/announcements/",
+        //   value: "announcement",
+        // },
+        // {
+        //   label: "Add Announcement",
+        //   path: "/settings/announcements/add/",
+        //   value: "add_announcement",
+        //   hide: true,
+        // },
+        // {
+        //   label: "Notifications ",
+        //   path: "/settings/notifications/",
+        //   value: "notifications",
+        // },
       ],
     manage_movements: {
       items: [
@@ -605,13 +572,13 @@ export default function LanguageProvider({
     dashboard,
     companyMaster,
     organization,
-    userManagement,
-    taMaster,
+    employeeMaster,
     scheduling,
     selfServices,
+    manageApprovals,
     devices,
     reports,
-    security,
+    configuration,
     settings,
     alerts,
   };

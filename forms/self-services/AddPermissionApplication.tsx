@@ -111,10 +111,10 @@ export default function AddPermissionApplication() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
         <div className="flex justify-between">
           <div className="pb-6">
-            <h1 className="font-bold text-xl text-primary">Permission Application</h1>
-            <h1 className="font-semibold text-sm text-text-secondary">
+            <h1 className="font-bold text-xl text-primary">My Permission Request</h1>
+            {/* <h1 className="font-semibold text-sm text-text-secondary">
               Fill the permission application form
-            </h1>
+            </h1> */}
           </div>
           <div>
             {selectedPermission === "personal permission" && (
@@ -364,7 +364,7 @@ export default function AddPermissionApplication() {
                 type="button"
                 size={"lg"}
                 className="w-full"
-                onClick={() => router.push("/self-services/manage-permissions/permission-application")}
+                onClick={() => router.push("/self-services/permissions/requests")}
               >
                 Cancel
               </Button>

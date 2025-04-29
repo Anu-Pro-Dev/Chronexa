@@ -16,27 +16,21 @@ import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { addDesignationRequest } from "@/lib/apiHandler";
+import { addDesignationRequest, editDesignationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-    designationName: z.string().min(1, { message: "Required" }).max(100),
-    designationNameEng: z.string().default(""),
-    designationNameArb: z.string().default(""),
-    vacancy: z
-    .string()
-    .optional()
-    .transform(val => Number(val) || 0),
-    remarks: z.string().optional().default(""),
+    designationEng: z.string().default(""),
+    designationArb: z.string().default(""),
 });
 
 const getSchema = (lang: "en" | "ar") =>
     formSchema.refine((data) => {
-        if (lang === "en") return !!data.designationNameEng;
-        if (lang === "ar") return !!data.designationNameArb;
+        if (lang === "en") return !!data.designationEng;
+        if (lang === "ar") return !!data.designationArb;
         return true;
     }, {
         message: "Required",
-        path: [lang === "en" ? "designationNameEng" : "designationNameArb"],
+        path: [lang === "en" ? "designationEng" : "designationArb"],
 });
 
 export default function AddDesignations({
@@ -51,71 +45,63 @@ export default function AddDesignations({
 
   const {language } = useLanguage();
     
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      designationName: "",
-      designationNameEng: "",
-      designationNameArb: "",
-      vacancy: 0,
-      remarks: "", 
+      designationEng: "",
+      designationArb: "",
     },
   });
 
   useEffect(() => {
-    form.reset(form.getValues()); // Maintain values but trigger resolver update
+    form.reset(form.getValues());
   }, [language]);
 
-  // Reset form when modal is opened for Add or when selectedRowData is null
   useEffect(() => {
     if (!selectedRowData) {
-      form.reset(); // Reset the form values when in "Add" mode
+      form.reset();
     } else {
       form.reset({
-        designationName: selectedRowData.designationName,
-        designationNameEng: selectedRowData.designationNameEng,
-        designationNameArb: selectedRowData.designationNameArb,
-      }); // Pre-fill the form when in "Edit" mode
+        designationEng: selectedRowData.designationEng,
+        designationArb: selectedRowData.designationArb,
+      });
     }
   }, [selectedRowData, form]);
 
   const handleSave = () => {
-    const formData = form.getValues(); // Get the form data directly from the hook
+    const formData = form.getValues();
     if (selectedRowData) {
-      // Update existing row
       onSave(selectedRowData.id, formData);
     } else {
-      // Add new row
       onSave(null, formData);
     }
-    on_open_change(false); // Close modal after saving
+    on_open_change(false);
   };
 
   const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log("Submitting:", values);
-
       if (selectedRowData) {
-        // Update logic (edit mode)
+        const response = await editDesignationRequest(
+          selectedRowData.id,
+          values.designationEng,
+          values.designationArb
+        );
+        console.log("Designation updated successfully:", response);
         onSave(selectedRowData.id, values);
-        console.log("Updating designation:", values);
       } else {
-        // Add logic (create mode) - Call API
         const response = await addDesignationRequest(
-          values.designationName,
-          values.designationNameEng,
-          values.designationNameArb,
-          values.vacancy,
-          values.remarks
+          values.designationEng,
+          values.designationArb
         );
         console.log("Designation added successfully:", response);
-        
-        onSave(null, response); // Use response data if needed
+        onSave(null, response);
       }
 
-      on_open_change(false); // Close the modal after submission
+
+      on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
     }
@@ -125,43 +111,28 @@ export default function AddDesignations({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-            <FormField
+          <FormField
               control={form.control}
-              name="designationName"
-              render={({ field }) => (
-                  <FormItem>
-                  <FormLabel>
-                    Designation <Required />
-                  </FormLabel>
-                  <FormControl>
-                      <Input placeholder="Enter the designationName" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="designationNameEng"
+              name="designationEng"
               render={({ field }) => (
               <FormItem>
                   <FormLabel>
-                    Designation name (English) {language === "en" && <Required />}
+                      Designation (English) {language === "en" && <Required />}
                   </FormLabel>
                   <FormControl>
-                  <Input placeholder="Enter location name" type="text" {...field} />
+                  <Input placeholder="Enter designation" type="text" {...field} />
                   </FormControl>
                   <FormMessage />
               </FormItem>
               )}
-            />
-            <FormField
+          />
+          <FormField
               control={form.control}
-              name="designationNameArb"
+              name="designationArb"
               render={({ field }) => (
               <FormItem>
                   <FormLabel>
-                    Designation name (العربية) {language === "ar" && <Required />}
+                      Designation (العربية) {language === "ar" && <Required />}
                   </FormLabel>
                   <FormControl>
                   <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
@@ -169,38 +140,8 @@ export default function AddDesignations({
                   <FormMessage />
               </FormItem>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="vacancy"
-              render={({ field }) => (
-                  <FormItem>
-                  <FormLabel>
-                      Vacancy <Required />
-                  </FormLabel>
-                  <FormControl>
-                      <Input placeholder="Enter the vacancy" type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="remarks"
-              render={({ field }) => (
-                  <FormItem>
-                  <FormLabel>
-                      Remark <Required />
-                  </FormLabel>
-                  <FormControl>
-                      <Input placeholder="Enter the remark" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  </FormItem>
-              )}
-            />
-            <div className="w-full flex gap-2 items-center py-3">
+          />
+          <div className="w-full flex gap-2 items-center py-3">
               <Button
                 variant={"outline"}
                 type="button"
@@ -213,7 +154,7 @@ export default function AddDesignations({
               <Button type="submit" size={"lg"} className="w-full">
                 {selectedRowData ? "Update" : "Save"}
               </Button>
-            </div>
+          </div>
         </div>
       </form>
     </Form>

@@ -97,7 +97,7 @@ export default function AddLeaveTypes({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
         <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Leave Types</h1>
+          <h1 className="font-bold text-xl text-primary">Manage Leaves</h1>
           {/* <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for leave types
           </h1> */}
@@ -266,7 +266,7 @@ export default function AddLeaveTypes({
                 type="button"
                 size={"lg"}
                 className="w-full"
-                onClick={() => router.push("/self-services/manage-leaves/leave-types")}
+                onClick={() => router.push("/self-services/leaves/manage/")}
               >
                 Cancel
               </Button>

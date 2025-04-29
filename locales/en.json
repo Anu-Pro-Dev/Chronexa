@@ -17,15 +17,16 @@
         "dashboard": "Dashboard",
         "companyMaster": "Company Master",
         "organization": "Organization",
-        "userManagement": "User Management",
+        "employeeMaster": "Employee Master",
         "taMaster": "TA Master",
         "scheduling": "Scheduling",
-        "selfServices": "Self Services"
+        "selfServices": "Self Services",
+        "manageApprovals": "Manage Approvals"
       },
       "secondary": {
         "devices": "Devices",
         "reports": "Reports",
-        "security": "Security",
+        "configuration": "Configuration",
         "settings": "Settings",
         "alerts": "Alerts"
       }

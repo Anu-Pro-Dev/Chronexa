@@ -1,10 +1,7 @@
 "use client";
-import { useState } from "react"
-import { toast } from "sonner"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import * as z from "zod"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -14,27 +11,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import Required from "@/components/ui/required"
-import { useRouter } from "next/navigation"
-import { CalendarIcon } from "@/icons/icons"
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-
-
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import Required from "@/components/ui/required";
+import { useRouter } from "next/navigation";
+import { generateRandomPassword } from "@/utils/password";
 
 export default function credentialsForm({
   Page, SetPage,credentialsFormSchema,credentialsForm
@@ -49,13 +30,8 @@ export default function credentialsForm({
   function onSubmit(values: z.infer<typeof credentialsFormSchema>) {
     try {
       console.log(values)
-      SetPage("business-form")
-      console.log(1)
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
+      SetPage("official-form");
+      toast.success("Data Saved!");
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
@@ -65,19 +41,10 @@ export default function credentialsForm({
   const router = useRouter();
   const [step, setStep] = useState(1);
 
-  function generateRandomPassword(length = 12) {
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~";
-    let password = "";
-    for (let i = 0, n = charset.length; i < length; ++i) {
-      password += charset.charAt(Math.floor(Math.random() * n));
-    }
-    return password;
-  }  
-
   return (
     <Form {...credentialsForm}>
       <form onSubmit={credentialsForm.handleSubmit(onSubmit)}>
-        <div className="grid gap-y-2 px-6">
+        <div className="grid gap-y-5 px-8 pt-5">
           <FormField
             control={credentialsForm.control}
             name="username"

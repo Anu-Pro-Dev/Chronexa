@@ -5,7 +5,6 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import AddCitizenship from "@/forms/company-master/AddCitizenship";
 import { getAllCitizenship } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { citizenship_columns } from "@/data/cm.data";
 
 export default function Page() {
   const { modules, language } = useLanguage();

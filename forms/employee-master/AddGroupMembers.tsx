@@ -177,7 +177,7 @@ export default function AddGroupMembers ({
             </form>
         </Form>
         <div className="py-3">
-          <PowerTable props={props} Data={Data} api={"/self-services/manage-movements/manual/add"} ispageValue5={true} />
+          <PowerTable props={props} Data={Data} api={"/self-services/punches/manual/add"} ispageValue5={true} />
         </div>
       </>  
     )

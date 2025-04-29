@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { USER_TOKEN } from "@/lib/Instance";
+import { USER_TOKEN } from "@/utils/constants";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 import {
@@ -103,12 +103,12 @@ export default function StandardReportGenerator() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Standard reports</h1>
+        {/* <div className="pb-3"> */}
+          {/* <h1 className="font-bold text-xl text-primary">Reports</h1> */}
           {/* <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for standard reports
           </h1> */}
-        </div>
+        {/* </div> */}
         <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col">
             <div className="flex justify-between items-start gap-10">

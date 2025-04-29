@@ -138,7 +138,13 @@ export default function PowerHeader({
                 isLarge={isLargeAction}
               />
             )}
-            {!disableFeatures && isExport && <PowerExport />}
+            {/* {!disableFeatures && isExport && <PowerExport />} */}
+            {!disableFeatures && isExport && (
+              <PowerExport
+                data={(selectedRows && selectedRows.length > 0) ? selectedRows : (props?.Data || [])}
+                fileName={entityName || "export"}
+              />
+            )}
             {enableClear && <PowerClear props={props} />}
             {/* {enableApprove && 
               <PowerApprove
@@ -194,7 +200,7 @@ export default function PowerHeader({
         }
       </div>
 
-      {/* <AutoPathMapper /> */}
+      <AutoPathMapper />
     </div>
   );
 }

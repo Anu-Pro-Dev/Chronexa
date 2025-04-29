@@ -60,9 +60,9 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">Module</h1>
-          <h1 className="font-semibold text-sm text-text-secondary">
+          {/* <h1 className="font-semibold text-sm text-text-secondary">
             Enable required module settings for employee
-          </h1>
+          </h1> */}
         </div>
         <div className="px-6">
           <PowerTabs items={modules?.settings?.manage_movements?.items} />

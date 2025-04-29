@@ -19,18 +19,18 @@ import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
-    locationNameEnglish: z.string().default(""),
-    locationNameArab: z.string().default(""),
+    locationNameEng: z.string().default(""),
+    locationNameArb: z.string().default(""),
 });
 
 const getSchema = (lang: "en" | "ar") =>
     formSchema.refine((data) => {
-        if (lang === "en") return !!data.locationNameEnglish;
-        if (lang === "ar") return !!data.locationNameArab;
+        if (lang === "en") return !!data.locationNameEng;
+        if (lang === "ar") return !!data.locationNameArb;
         return true;
     }, {
         message: "Required",
-        path: [lang === "en" ? "locationNameEnglish" : "locationNameArab"],
+        path: [lang === "en" ? "locationNameEng" : "locationNameArb"],
 });
 
 export default function AddLocations({
@@ -49,8 +49,8 @@ export default function AddLocations({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      locationNameEnglish: "",
-      locationNameArab: "",
+      locationNameEng: "",
+      locationNameArb: "",
     },
   });
 
@@ -63,8 +63,8 @@ export default function AddLocations({
       form.reset();
     } else {
       form.reset({
-        locationNameEnglish: selectedRowData.locationNameEnglish,
-        locationNameArab: selectedRowData.locationNameArab,
+        locationNameEng: selectedRowData.locationNameEng,
+        locationNameArb: selectedRowData.locationNameArb,
       });
     }
   }, [selectedRowData, form]);
@@ -88,15 +88,15 @@ export default function AddLocations({
       if (selectedRowData) {
         const response = await editLocationRequest(
           selectedRowData.id,
-          values.locationNameEnglish,
-          values.locationNameArab
+          values.locationNameEng,
+          values.locationNameArb
         );
         console.log("Location updated successfully:", response);
         onSave(selectedRowData.id, values);
       } else {
         const response = await addLocationRequest(
-          values.locationNameEnglish,
-          values.locationNameArab
+          values.locationNameEng,
+          values.locationNameArb
         );
         console.log("Location added successfully:", response);
         onSave(null, response);
@@ -115,7 +115,7 @@ export default function AddLocations({
         <div className="flex flex-col gap-4">
           <FormField
               control={form.control}
-              name="locationNameEnglish"
+              name="locationNameEng"
               render={({ field }) => (
               <FormItem>
                   <FormLabel>
@@ -130,7 +130,7 @@ export default function AddLocations({
           />
           <FormField
               control={form.control}
-              name="locationNameArab"
+              name="locationNameArb"
               render={({ field }) => (
               <FormItem>
                   <FormLabel>

@@ -309,7 +309,7 @@ export const OrganizationIcon = (color: string = "#64748B") => (
   </svg>
 );
 
-export const UserManagementIcon = (color: string = "#64748B") => (
+export const EmployeeMasterIcon = (color: string = "#64748B") => (
   <svg
     width="17"
     height="18"
@@ -427,7 +427,7 @@ export const ReportsIcon = (color: string = "#64748B") => (
   </svg>
 );
 
-export const SecurityIcon = (color: string = "#64748B") => (
+export const ConfigurationIcon = (color: string = "#64748B") => (
   <svg
     width="13"
     height="16"

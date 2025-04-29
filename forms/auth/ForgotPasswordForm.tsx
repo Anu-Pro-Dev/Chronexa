@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import { USER_TOKEN } from "@/lib/Instance";
+import { USER_TOKEN } from "@/utils/constants";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 import { toast } from "sonner";

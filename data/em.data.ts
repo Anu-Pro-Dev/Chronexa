@@ -1,6 +1,6 @@
 import { UserManagementEmployeesDataType, UserManagementGroupsDataType, UserManagementGroupsMembersDataType, UserManagementTypesDataType } from "./types/types";
 
-export const userManagement_employees_columns = [
+export const employeeMaster_employees_columns = [
     "select",
     "number",
     "name",
@@ -16,7 +16,7 @@ export const userManagement_employees_columns = [
     "role",
 ];
 
-export const userManagement_groups_columns = [
+export const employeeMaster_groups_columns = [
     "select",
     "code",
     "description",
@@ -30,7 +30,7 @@ export const userManagement_groups_columns = [
     "actions",
 ];
 
-export const userManagement_groups_member_columns = [
+export const employeeMaster_groups_member_columns = [
     "select",
     "number",
     "name",
@@ -38,7 +38,7 @@ export const userManagement_groups_member_columns = [
     "organization",
 ];
 
-export const userManagement_types_columns = [
+export const employeeMaster_types_columns = [
     "select",
     "code",
     "descriptionEng",
@@ -47,7 +47,7 @@ export const userManagement_types_columns = [
     "actions",
 ];
 
-export const  userManagement_employees_data: UserManagementEmployeesDataType[] = [
+export const  employeeMaster_employees_data: UserManagementEmployeesDataType[] = [
     {
         "number": "1",
         "name": "John Doe",
@@ -245,7 +245,7 @@ export const  userManagement_employees_data: UserManagementEmployeesDataType[] =
     },
 ];
 
-export const userManagement_groups_data: UserManagementGroupsDataType[] = [
+export const employeeMaster_groups_data: UserManagementGroupsDataType[] = [
     {
         "code": "WD",
         "description": "Working Days",
@@ -325,7 +325,7 @@ export const userManagement_groups_data: UserManagementGroupsDataType[] = [
     },
 ];
 
-export const userManagement_groups_member_data : UserManagementGroupsMembersDataType[] = [
+export const employeeMaster_groups_member_data : UserManagementGroupsMembersDataType[] = [
     {
         "number": "1",
         "name": "John Doe",
@@ -377,7 +377,7 @@ export const userManagement_groups_member_data : UserManagementGroupsMembersData
 ];
 
 
-export const userManagement_types_data: UserManagementTypesDataType[] = [
+export const employeeMaster_types_data: UserManagementTypesDataType[] = [
     {
         "code": "EMP",
         "descriptionEng": "Employee",

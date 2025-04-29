@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import { USER_TOKEN } from "@/lib/Instance";
+import { USER_TOKEN } from "@/utils/constants";
 import { useRouter } from "next/navigation";
 import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
@@ -82,7 +82,7 @@ export default function AddAnnoucement() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-6 bg-accent p-6 rounded-2xl">
           <div className="">
-            <h1 className="font-bold text-xl text-primary">Add Annoucement</h1>
+            <h1 className="font-bold text-xl text-primary">Email Settings</h1>
             {/* <h1 className="font-semibold text-sm text-text-secondary">
               Select the choices for annoucement
             </h1> */}

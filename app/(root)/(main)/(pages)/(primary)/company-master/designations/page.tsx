@@ -43,8 +43,8 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "اسم الموقع" : "Designation",
+        field: language === "ar" ? "designationArb" : "designationEng",
+        headerName: language === "ar" ? "تعيين" : "Designation",
       },
     ]);
   }, [language]);

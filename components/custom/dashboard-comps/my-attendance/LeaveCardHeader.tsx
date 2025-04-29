@@ -9,9 +9,9 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
   // Determine the href based on the current path
   const getApplyLink = () => {
     if (page === "Leaves") {
-      return "/self-services/manage-leaves/leave-application/add"; // Navigate to this page if the path is /leaves
+      return "/self-services/leaves/requests/add"; // Navigate to this page if the path is /leaves
     } else if (page === "Permissions") {
-      return "/self-services/manage-permissions/permission-application/add"; // Navigate to this page if the path is /permissions
+      return "/self-services/permissions/requests/add"; // Navigate to this page if the path is /permissions
     }
     return "/dashboard/my-attendance/"; // Default fallback
   }

@@ -43,7 +43,7 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionArb",
+        field: language === "ar" ? "descriptionArb" : "descriptionEng",
         headerName: language === "ar" ? "درجة" : "Grade",
       },
     ]);

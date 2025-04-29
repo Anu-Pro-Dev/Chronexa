@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { getAuthToken, setAuthToken, clearAuthToken } from "@/utils/auth";
 import { USER_TOKEN, DEFAULT_API_URL, ERROR_GENERIC, ERROR_NETWORK } from "@/utils/constants";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
@@ -16,8 +17,7 @@ const apiInstance = axios.create({
 // Function to handle API requests
 export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE", data?: any) => {
   try {
-    // Get token from localStorage or sessionStorage
-    const token = typeof window !== "undefined" ? localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN) : null;
+    const token = getAuthToken();
 
     const config = {
       method,
@@ -41,20 +41,15 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
 };
 
 // Function for logging in
-export const loginRequest = async (username: number, password: string, rememberMe: boolean) => {
+export const loginRequest = async (Employeename: number, password: string, rememberMe: boolean) => {
     const response = await apiRequest("/auth/login", "POST", {
-      employeeId: username,
+      employeeId: Employeename,
       password: password,
     });
   
     if (response.token) {
-      if (typeof window !== "undefined") {
-        if (rememberMe) {
-          localStorage.setItem(USER_TOKEN, response.token);
-        } else {
-          sessionStorage.setItem(USER_TOKEN, response.token);
-        }
-      }
+      setAuthToken(response.token, rememberMe);
+      localStorage.setItem("user", JSON.stringify(response.user));
     }
   
     return response;
@@ -63,26 +58,22 @@ export const loginRequest = async (username: number, password: string, rememberM
 
 // Function for logging out
 export const logoutRequest = async () => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN)
-        : null;
+  const token = getAuthToken();
   
-    if (!token) {
-      console.warn("No authentication token found, skipping logout API call.");
-      return;
-    }
-  
-    try {
-      await apiRequest("/auth/logout", "POST", );
-    } catch (error) {
-      toast.error("Logout failed:");
-    } finally {
-      // Always remove token from storage
-      localStorage.removeItem(USER_TOKEN);
-      sessionStorage.removeItem(USER_TOKEN);
-    }
-};  
+  if (!token) {
+    console.warn("No authentication token found, skipping logout API call.");
+    return;
+  }
+
+  try {
+    await apiRequest("/auth/logout", "POST");
+  } catch (error) {
+    toast.error("Logout failed:");
+  } finally {
+    clearAuthToken();
+    localStorage.removeItem("user");
+  }
+};
 
 // Function for initiating forgot password
 export const forgotPasswordRequest = async (employeeId: number) => {
@@ -93,13 +84,13 @@ export const forgotPasswordRequest = async (employeeId: number) => {
 
 // Function for resetting password
 export const resetPasswordRequest = async (newPassword: string) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN) : null;
+  const token = getAuthToken();
+
+  if (!token) {
+    throw new Error("No authentication token found.");
+  }
   
-    if (!token) {
-      throw new Error("No authentication token found.");
-    }
-  
-    return apiRequest("/auth/reset-password", "POST", { newPassword });
+  return apiRequest("/auth/reset-password", "POST", { newPassword });
 };
   
 // Function to delete tanle entity dynamically
@@ -118,22 +109,22 @@ export const getAllLocations = async () => {
 };
 
 // Function to add a new location
-export const addLocationRequest = async (locationNameEnglish: string, locationNameArab: string) => {
+export const addLocationRequest = async (locationNameEng: string, locationNameArb: string) => {
   return apiRequest("/location/add", "POST", {
-    locationNameEnglish,
-    locationNameArab,
+    locationNameEng,
+    locationNameArb,
   });
 };
 
 // Function to edit a location by ID
 export const editLocationRequest = async (
   id: string,
-  locationNameEnglish: string,
-  locationNameArab: string,
+  locationNameEng: string,
+  locationNameArb: string,
 ) => {
   return apiRequest(`/location/edit/${id}`, "PUT", {
-    locationNameEnglish,
-    locationNameArab,
+    locationNameEng,
+    locationNameArb,
   });
 };
 
@@ -151,19 +142,42 @@ export const addCitizenshipRequest = async (countryCode: string, citizenshipEng:
   });
 };
 
+// Function to edit a location by ID
+export const editCitizenshipRequest = async (
+  id: string,
+  countryCode: string,
+  citizenshipEng: string,
+  citizenshipArb: string,
+) => {
+  return apiRequest(`/citizenship/edit/${id}`, "PUT", {
+    countryCode,
+    citizenshipEng,
+    citizenshipArb,
+  });
+};
+
 // Function to fetch all designations
 export const getAllDesignations = async () => {
   return apiRequest("/designation/all", "GET");
 };
 
 // Function to add a new designation
-export const addDesignationRequest = async (designationName: string, descriptionEng: string, descriptionArb: string, vacancy: number, remarks: string) => {
+export const addDesignationRequest = async (designationEng: string, designationArb: string) => {
   return apiRequest("/designation/add", "POST", {
-    designationName,
-    descriptionEng,
-    descriptionArb,
-    vacancy,
-    remarks,
+    designationEng,
+    designationArb,
+  });
+};
+
+// Function to edit a designation by ID
+export const editDesignationRequest = async (
+  id: string,
+  designationEng: string,
+  designationArb: string,
+) => {
+  return apiRequest(`/designation/edit/${id}`, "PUT", {
+    designationEng,
+    designationArb,
   });
 };
 
@@ -173,16 +187,24 @@ export const getAllGrades = async () => {
 };
 
 // Function to add a new grade
-export const addGradeRequest = async (gradeName: string, descriptionEng: string, descriptionArb: string, numberOfCl: number, numberOfSl: number, numberOfAl: number, overtimeEligibleFlag: string, seniorFlag: string) => {
+export const addGradeRequest = async (descriptionEng: string, descriptionArb: string, overtimeEligibleFlag: string) => {
   return apiRequest("/grade/add", "POST", {
-    gradeName,
     descriptionEng,
     descriptionArb,
-    numberOfCl,
-    numberOfSl,
-    numberOfAl,
     overtimeEligibleFlag,
-    seniorFlag,
+  });
+};
+
+// Function to edit a grade by ID
+export const editGradeRequest = async (
+  id: string,
+  descriptionEng: string,
+  descriptionArb: string,
+  overtimeEligibleFlag: string,
+) => {
+  return apiRequest(`/grade/edit/${id}`, "PUT", {
+    descriptionEng,
+    descriptionArb,
   });
 };
 
@@ -191,7 +213,7 @@ export const getAllOrganization = async () => {
   return apiRequest("/organization/all", "GET");
 };
 
-// Function to add a new grade
+// Function to add a new organization
 export const addOrganizationRequest = async (organizationName: string, descriptionEng: string, descriptionArb: string, organizationType: string) => {
   return apiRequest("/organization/add", "POST", {
     organizationName,
@@ -202,13 +224,13 @@ export const addOrganizationRequest = async (organizationName: string, descripti
 };
 
 
-// Function to fetch all user groups
-export const getAllUserGroups = async () => {
+// Function to fetch all employee groups
+export const getAllEmployeeGroup = async () => {
   return apiRequest("/employeeGroup/all", "GET");
 };
 
-// Function to add a new user group
-export const addUserGroupRequest = async (groupName: string, descriptionEng: string, descriptionArb: string) => {
+// Function to add a new employee group
+export const addEmployeeGroupRequest = async (groupName: string, descriptionEng: string, descriptionArb: string) => {
   return apiRequest("/employeeGroup/add", "POST", {
     groupName,
     descriptionEng,
@@ -216,13 +238,13 @@ export const addUserGroupRequest = async (groupName: string, descriptionEng: str
   });
 };
 
-// Function to fetch all user types
-export const getAllUserTypes = async () => {
+// Function to fetch all employee type
+export const getAllEmployeeType = async () => {
   return apiRequest("/employeeType/all", "GET");
 };
 
-// Function to add a new user type
-export const addUserTypeRequest = async (typeName: string, descriptionEng: string, descriptionArb: string) => {
+// Function to add a new employee type
+export const addEmployeeTypeRequest = async (typeName: string, descriptionEng: string, descriptionArb: string) => {
   return apiRequest("/employeeType/add", "POST", {
     typeName,
     descriptionEng,
