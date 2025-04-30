@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -138,7 +138,7 @@ export default function OfficialForm({
               <FormItem className="">
                 <FormLabel className="flex gap-1">Citizenship <Required/> </FormLabel>
                 <NationalityDropdown value={field.value} onChange={field.onChange} />
-                <FormMessage className="mt-1"/>
+                <FormMessage className="mt-1">Required</FormMessage>
               </FormItem>
             )}
           />

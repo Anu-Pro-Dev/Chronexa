@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react"
-import { toast } from "sonner"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -71,7 +71,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="emp_no"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Emp No <Required /></FormLabel>
                 <FormControl>
                 <Input placeholder="Enter the employee No" type="text" {...field} />
@@ -84,7 +84,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="emp_id"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Emp ID <Required /></FormLabel>
                 <FormControl>
                 <Input placeholder="Enter the employee ID" type="text" {...field} />
@@ -97,7 +97,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="firstname"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Firstname <Required/></FormLabel>
                 <FormControl>
                   <Input placeholder="Enter your firstname" type="text" {...field} />
@@ -110,7 +110,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="lastname"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Lastname <Required/> </FormLabel>
                 <FormControl>
                   <Input placeholder="Enter your lastname" type="text" {...field} />
@@ -123,7 +123,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="mobile"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Mobile <Required/></FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the mobile number" type="text" {...field} />
@@ -136,7 +136,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="email"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Email <Required/></FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the email address" type="text" {...field} />
@@ -149,7 +149,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="join_date"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Join date <Required/></FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -182,7 +182,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="inactive_date"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Inactive date <Required/></FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -215,7 +215,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="organization"
             render={({ field }) => (
-            <FormItem >
+            <FormItem>
                 <FormLabel className="flex gap-1">Organization </FormLabel>
                 <Select
                 onValueChange={field.onChange}
@@ -239,7 +239,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="sex"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Sex</FormLabel>
                 <Select
                 onValueChange={field.onChange}
@@ -263,7 +263,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="card_number"
             render={({ field }) => (
-                <FormItem >
+                <FormItem>
                   <FormLabel className="flex gap-1"> Card </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter the card number" type="text" {...field} />
@@ -276,7 +276,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="pin"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Pin</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the pin" type="text" {...field} />
@@ -289,7 +289,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="national_id_number"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">National ID</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the national id" type="text" {...field} />
@@ -302,7 +302,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="national_id_expiry"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1 text-right">National ID expiry date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -336,7 +336,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="passport_number"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Passport number</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the passport number" type="text" {...field} />
@@ -349,7 +349,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="passport_expiry"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1 text-right">Passport expiry date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -383,7 +383,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="passport_issued"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Passport issued</FormLabel>
                 <FormControl>
                   <Input placeholder="Passport issued country" type="text" {...field} />
@@ -396,7 +396,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="employee_system_activation"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1 text-right">Employee system activation</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -432,7 +432,7 @@ export default function PersonalForm({
             control={personalForm.control}
             name="remarks"
             render={({ field }) => (
-              <FormItem >
+              <FormItem>
                 <FormLabel className="flex gap-1">Remarks</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter the remarks" type="text" {...field} />

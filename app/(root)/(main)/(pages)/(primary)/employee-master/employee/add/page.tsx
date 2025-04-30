@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-// import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form";
 import PowerMultiStepCard from "@/components/custom/power-comps/power-multi-step-card";
 import PersonalForm from "@/forms/employee-master/PersonalForm";
 import CredentialsForm from "@/forms/employee-master/CredentialsForm";

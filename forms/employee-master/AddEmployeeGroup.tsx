@@ -139,7 +139,7 @@ export default function AddEmployeeGroup({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="py-5 flex flex-col">
-            <div className="flex gap-4 items-center pb-6 px-5">
+            <div className="flex gap-10 items-center pb-6 px-5">
               <FormField
                 control={form.control}
                 name="schedule_flag"

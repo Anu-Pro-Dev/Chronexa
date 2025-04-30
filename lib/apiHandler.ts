@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { getAuthToken, setAuthToken, clearAuthToken } from "@/utils/auth";
 import { USER_TOKEN, DEFAULT_API_URL, ERROR_GENERIC, ERROR_NETWORK } from "@/utils/constants";
 

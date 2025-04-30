@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddGrades from "@/forms/company-master/AddGrades";
-import { getAllGrades } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { getAllGrades } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();

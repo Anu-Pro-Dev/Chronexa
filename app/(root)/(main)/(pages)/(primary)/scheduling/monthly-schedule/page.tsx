@@ -150,7 +150,7 @@ export default function Page() {
         <div className="w-full py-3">
           <FilterForm />
         </div>
-        <div className="w-full flex py-3">
+        <div className="w-full flex py-3 justify-between items-center">
           <Input
             className="border-0 p-0 h-auto rounded-none text-text-secondary"
             type="file"

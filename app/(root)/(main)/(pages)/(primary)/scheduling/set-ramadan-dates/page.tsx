@@ -11,8 +11,8 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
 
   const [Columns] = useState([
-    { field: "descriptionEng", headerName: "Description (English)" },
-    { field: "descriptionArb", headerName: "Description (العربية)" },
+    { field: "descriptionEng", headerName: "Ramadan (English)" },
+    { field: "descriptionArb", headerName: "Ramadan (العربية)" },
     { field: "from_date", headerName: "From date" },
     { field: "to_date", headerName: "To date" },
   ]);

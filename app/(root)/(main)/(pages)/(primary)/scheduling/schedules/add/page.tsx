@@ -76,11 +76,11 @@ export default function Page() {
       console.error("Form submission error", error);
     }
   }
-  const [Page, SetPage] = useState<string>("personal-form");
+  const [Page, SetPage] = useState<string>("normal-schedule");
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        items={modules?.taMaster.items}
+        items={modules?.scheduling.items}
         disableFeatures
       />
       <>
@@ -90,8 +90,7 @@ export default function Page() {
           Pages={[
             {
               title: "Normal",
-              description: "Enter the personal information for the process",
-              state_route: "personal-form",
+              state_route: "normal-schedule",
               disable: false,
               component: (
                 <NormalForm/>
@@ -99,8 +98,7 @@ export default function Page() {
             },
             {
               title: "Ramadan",
-              description: "Enter the business information for the process",
-              state_route: "business-form",
+              state_route: "ramadan-schedule",
               disable: false,
               component: (
                 <RamadanForm />
@@ -108,8 +106,7 @@ export default function Page() {
             },
             {
               title: "Policy",
-              description: "Enter the flags information for the process",
-              state_route: "flags-form",
+              state_route: "policy-schedule",
               disable: false,
               component: (
                 <PolicyForm />

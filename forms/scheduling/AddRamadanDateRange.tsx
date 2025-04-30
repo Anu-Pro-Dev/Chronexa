@@ -79,21 +79,37 @@ export default function AddRamadanDateRange({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
-          <div className="p-5 pb-0 flex flex-col">
-            <div className="flex justify-between items-start gap-10">
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-                <FormField
+          <div className="py-5 flex flex-col">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
+              <FormField
                   control={form.control}
                   name="descriptionEng"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Description (English) <Required />
+                        Ramadan Date (English) <Required />
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter description in english" type="text" {...field} />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="descriptionArb"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Ramadan Date (العربية) <Required />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter description in arabic" type="text" {...field} />
                       </FormControl>
 
                       <FormMessage />
@@ -112,7 +128,46 @@ export default function AddRamadanDateRange({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
+                              className="w-full max-w-[350px] bg-accent px-3 flex justify-between text-text-primary"
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yy")
+                              ) : (
+                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                              )}
+                              <CalendarIcon />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            // disabled={(date) =>
+                            //   date > new Date() || date < new Date("1900-01-01")
+                            // }
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="to_date"
+                  render={({ field }) => (
+                    <FormItem className="">
+                      <FormLabel>
+                        To Date <Required />
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button size={"lg"} variant={"outline"}
+                              className="w-full max-w-[350px] bg-accent px-3 flex justify-between text-text-primary"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -154,80 +209,23 @@ export default function AddRamadanDateRange({
                   )}
                 />
               </div>
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-                <FormField
-                  control={form.control}
-                  name="descriptionArb"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Description (العربية) <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter description in arabic" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="to_date"
-                  render={({ field }) => (
-                    <FormItem className="">
-                      <FormLabel>
-                        To Date <Required />
-                      </FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
-                            >
-                              {field.value ? (
-                                format(field.value, "dd/MM/yy")
-                              ) : (
-                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                              )}
-                              <CalendarIcon />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            // disabled={(date) =>
-                            //   date > new Date() || date < new Date("1900-01-01")
-                            // }
-                          />
-                        </PopoverContent>
-                      </Popover>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 items-center pb-5">
-            <div className="flex gap-4 px-5">
-              <Button
+        </div>
+        <div className="flex justify-end gap-2 items-center pb-5">
+          <div className="flex gap-4 px-5">
+            <Button
               variant={"outline"}
               type="button"
               size={"lg"}
-              className=""
+              className="w-full"
               onClick={() => on_open_change(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" size={"lg"} className="">
+            <Button type="submit" size={"lg"} className="w-full">
               Save
             </Button>
-            </div>
           </div>
         </div>
       </form>

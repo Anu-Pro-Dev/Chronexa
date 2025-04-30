@@ -7,7 +7,7 @@ export default function PowerTabs({ items }: { items: any }) {
   const pathname = usePathname();
   return (
     <div>
-      <div className="flex gap-10 items-center border-b pb-2">
+      <div className="flex gap-20 items-center border-b pb-2">
         {items?.map((item: any, index: number) => {
           const isActiveTab = pathname.startsWith(item?.url);
 

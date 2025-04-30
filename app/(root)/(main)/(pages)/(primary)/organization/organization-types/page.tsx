@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddOrganizationType from "@/forms/organization/AddOrganizationType";
-import { getAllLocations } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { getAllLocations } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();
@@ -50,18 +50,18 @@ export default function Page() {
     ]);
   }, [language]);
 
-  useEffect(() => {
-    const fetchOrganizationTypes = async () => {
-      try {
-        const response = await getAllLocations();
-        console.log(response);
-        SetData(response);
-      } catch (error) {
-        console.error("Error fetching organization types:", error);
-      }
-    };
-    fetchOrganizationTypes();
-  }, []);
+  // useEffect(() => {
+  //   const fetchOrganizationTypes = async () => {
+  //     try {
+  //       const response = await getAllLocations();
+  //       console.log(response);
+  //       SetData(response);
+  //     } catch (error) {
+  //       console.error("Error fetching organization types:", error);
+  //     }
+  //   };
+  //   fetchOrganizationTypes();
+  // }, []);
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);

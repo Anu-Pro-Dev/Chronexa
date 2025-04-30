@@ -12,7 +12,7 @@ import PowerTakeAction from "./power-take-action";
 import PowerClear from "./power-clear";
 import ApprovalModal from "./power-approval-modal";
 import { deleteEntityRequest } from "@/lib/apiHandler";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 export default function PowerHeader({
   items,
