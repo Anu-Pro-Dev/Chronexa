@@ -79,7 +79,7 @@ export default function WorkflowTable() {
           type="button"
           size={"lg"}
           className=""
-          onClick={() => router.push("/self-services/workflow")}
+          onClick={() => router.push("/self-services/approval-workflow")}
         >
           Cancel
         </Button>

@@ -32,8 +32,6 @@ export default function Page() {
     // { field: "number" },
     { field: "name" },
     { field: "organization", clickable: true, onCellClick: handleCellClick },
-    { field: "from_date", headerName: "From date" },
-    { field: "to_date", headerName: "To date" },
     { field: "active" },
   ]);
 

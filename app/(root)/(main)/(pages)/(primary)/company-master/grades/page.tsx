@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddGrades from "@/forms/company-master/AddGrades";
-import { getAllGrades } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { getAllGrades } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();
@@ -43,8 +43,8 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionArb",
-        headerName: language === "ar" ? "درجة" : "Grade",
+        field: language === "ar" ? "gradeNameArb" : "gradeNameEng",
+        headerName: language === "ar" ? "الموقع" : "Grade",
       },
     ]);
   }, [language]);
@@ -54,9 +54,9 @@ export default function Page() {
       try {
         const response = await getAllGrades();
         if (response?.success && Array.isArray(response?.data)) {
-          const mapped = response.data.map((grad: any) => ({
-            ...grad,
-            id: grad.gradeId,
+          const mapped = response.data.map((loc: any) => ({
+            ...loc,
+            id: loc.gradeId,
           }));
     
           SetData(mapped);
@@ -67,8 +67,9 @@ export default function Page() {
         console.error("Error fetching grades:", error);
       }
     };
+    
     fetchGrades();
-  }, []); 
+  }, []);
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);

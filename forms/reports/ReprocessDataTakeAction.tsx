@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,10 +34,10 @@ export default function ReprocessDataTakeAction({
             <>
                 <div className="w-full flex gap-2 justify-end items-center py-3">
                     <Button variant="outline" type="button" size="lg" className="w-full" onClick={() => modal_props.on_open_change(false)}>
-                        Cancel
+                        No
                     </Button>
                     <Button type="submit" size="lg" className="w-full">
-                        Save
+                        Yes
                     </Button>
                 </div>
             </>

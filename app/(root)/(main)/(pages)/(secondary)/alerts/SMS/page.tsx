@@ -19,7 +19,7 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "mobile_number", headerName: "Mobile Number" },
-    { field: "employee_id", headerName: "User ID" },
+    { field: "employee_id", headerName: "Employee ID" },
     { field: "subject" },
     { field: "sms_content", headerName: "Content" },
     { field: "status" },
@@ -32,7 +32,8 @@ export default function Page() {
   const [SortField, SetSortField] = useState<string>("");
   const [SortDirection, SetSortDirection] = useState<string>("asc");
   const [open, on_open_change] = useState<boolean>(false);
-  
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+
   const props = {
     Data,
     SetData,
@@ -52,10 +53,12 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.alerts?.items}
         disableAdd
         disableDelete
         isExport
+        enableExcel
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
@@ -107,7 +110,8 @@ export default function Page() {
         props={props}
         Data={Data}
         api={"/alerts/sms"} 
-        showCheckbox={false}
+        showCheckbox={true} 
+        onRowSelection={setSelectedRows}
         customColDef={{
           flex: 0,
         }}

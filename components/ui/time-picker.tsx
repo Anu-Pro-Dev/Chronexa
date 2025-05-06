@@ -10,9 +10,10 @@ import { TimePeriodSelect } from "./period-select";
 interface TimePickerProps {
   date: Date | undefined | any;
   setDate: (date: Date | undefined) => void;
+  showPeriod?: boolean;
 }
 
-export function TimePicker({ date, setDate }: TimePickerProps) {
+export function TimePicker({ date, setDate, showPeriod = true }: TimePickerProps) {
   const [period, setPeriod] = React.useState<Period>("AM");
 
   const minuteRef = React.useRef<HTMLInputElement>(null);
@@ -47,22 +48,24 @@ export function TimePicker({ date, setDate }: TimePickerProps) {
           setDate={setDate}
           ref={minuteRef}
           onLeftFocus={() => hourRef.current?.focus()}
-          onRightFocus={() => secondRef.current?.focus()}
+          onRightFocus={showPeriod ? () => periodRef.current?.focus() : undefined}
         />
       </div>
-      <div className="grid gap-2 text-center">
-        <Label htmlFor="period" className="text-xs">
-          Period
-        </Label>
-        <TimePeriodSelect
-          period={period}
-          setPeriod={setPeriod}
-          date={date}
-          setDate={setDate}
-          ref={periodRef}
-          onLeftFocus={() => secondRef.current?.focus()}
-        />
-      </div>
+      {showPeriod && (
+        <div className="grid gap-2 text-center">
+          <Label htmlFor="period" className="text-xs">
+            Period
+          </Label>
+          <TimePeriodSelect
+            period={period}
+            setPeriod={setPeriod}
+            date={date}
+            setDate={setDate}
+            ref={periodRef}
+            onLeftFocus={() => secondRef.current?.focus()}
+          />
+        </div>
+      )}
     </div>
   );
 }

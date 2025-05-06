@@ -1,0 +1,13 @@
+diff --git a/node_modules/fstream/package.json b/node_modules/fstream/package.json
+index 3c1dd33..5e9b3f9 100644
+--- a/node_modules/fstream/package.json
++++ b/node_modules/fstream/package.json
+@@ -17,7 +17,7 @@
+     "graceful-fs": "^4.1.2",
+     "inherits": "~2.0.0",
+     "mkdirp": ">=0.5 0",
+-    "rimraf": "~2.6.2"
++    "rimraf": "^3.0.2"
+   },
+   "devDependencies": {
+     "standard": "^4.0.0",

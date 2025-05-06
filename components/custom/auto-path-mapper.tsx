@@ -57,7 +57,7 @@ export default function AutoPathMapper() {
   };
   
   return (
-    <div className="select-none">
+    <div className="select-none pt-3">
       <Breadcrumb>
         <BreadcrumbList>
           {pathSegments.map((segment, index) => {

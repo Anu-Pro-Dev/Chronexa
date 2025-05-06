@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -77,7 +77,7 @@ const formSchema = z.object({
         "Invalid file. Ensure it's an document (PDF/DOC) and less than 5MB.",
     }
   ),
-  comments: z
+  justification: z
     .string()
     .min(1, {
       message: "Required",
@@ -98,7 +98,7 @@ export default function AddLeaveApplication({
       employee: "",
       leave_types: "",
       attachment: "",
-      comments: "",
+      justification: "",
     },
   });
 
@@ -122,10 +122,10 @@ export default function AddLeaveApplication({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
         <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Leave Application</h1>
-          <h1 className="font-semibold text-sm text-text-secondary">
+          <h1 className="font-bold text-xl text-primary">My Leave Request</h1>
+          {/* <h1 className="font-semibold text-sm text-text-secondary">
             Fill the leave application form
-          </h1>
+          </h1> */}
         </div>
         <div className="flex flex-col gap-6">
           <div className="grid sm:grid-cols-2 gap-y-3 gap-x-16 md:px-5 py-5 [&>*]:max-w-[350px] [&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px]">
@@ -286,12 +286,12 @@ export default function AddLeaveApplication({
             />
             <FormField
               control={form.control}
-              name="comments"
+              name="justification"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Comments </FormLabel>
+                  <FormLabel>Justification </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Add the comments here" {...field} rows={4} />
+                    <Textarea placeholder="Add the justification here" {...field} rows={4} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -305,7 +305,7 @@ export default function AddLeaveApplication({
                 type="button"
                 size={"lg"}
                 className="w-full"
-                onClick={() => router.push("/self-services/manage-leaves/leave-application")}
+                onClick={() => router.push("/self-services/leaves/requests")}
               >
                 Cancel
               </Button>

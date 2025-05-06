@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -55,7 +55,7 @@ const formSchema = z.object({
   need_approval: z.boolean(),
   offical: z.boolean(),
   attachment: z.boolean(),
-  comments: z.boolean(),
+  justification: z.boolean(),
 });
 
 export default function AddLeaveTypes({
@@ -73,7 +73,7 @@ export default function AddLeaveTypes({
       need_approval: false,
       offical: false,
       attachment: false,
-      comments: false,
+      justification: false,
     },
   });
 
@@ -97,7 +97,7 @@ export default function AddLeaveTypes({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
         <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Leave Types</h1>
+          <h1 className="font-bold text-xl text-primary">Manage Leaves</h1>
           {/* <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for leave types
           </h1> */}
@@ -240,17 +240,17 @@ export default function AddLeaveTypes({
                 />
                 <FormField
                   control={form.control}
-                  name="comments"
+                  name="justification"
                   render={({ field }) => (
                     <FormItem className=" ">
                       <FormControl>
                         <div className="flex items-center gap-2">
                           <Checkbox
-                            id="comments"
+                            id="justification"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
-                          <FormLabel htmlFor="comments" className="text-sm font-semibold">Mandatory Comments</FormLabel>
+                          <FormLabel htmlFor="justification" className="text-sm font-semibold">Mandatory Justification</FormLabel>
                         </div>
                       </FormControl>
                     </FormItem>
@@ -266,7 +266,7 @@ export default function AddLeaveTypes({
                 type="button"
                 size={"lg"}
                 className="w-full"
-                onClick={() => router.push("/self-services/manage-leaves/leave-types")}
+                onClick={() => router.push("/self-services/leaves/manage/")}
               >
                 Cancel
               </Button>

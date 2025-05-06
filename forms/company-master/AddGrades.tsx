@@ -17,36 +17,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { addGradeRequest } from "@/lib/apiHandler";
+import { addGradeRequest, editGradeRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-    gradeName: z.string().min(1, { message: "Required" }).max(100),
-    descriptionEng: z.string().default(""),
-    descriptionArb: z.string().default(""),
-    numberOfCl: z
-    .string()
-    .optional()
-    .transform(val => Number(val) || 0), // convert string to number
-  numberOfSl: z
-    .string()
-    .optional()
-    .transform(val => Number(val) || 0),
-  numberOfAl: z
-    .string()
-    .optional()
-    .transform(val => Number(val) || 0),
+  gradeNameEng: z.string().default(""),
+  gradeNameArb: z.string().default(""),
   overtimeEligibleFlag: z.boolean().optional().default(true), // true = "Y"
-  seniorFlag: z.boolean().optional().default(false),
 });
 
 const getSchema = (lang: "en" | "ar") =>
   formSchema.refine((data) => {
-      if (lang === "en") return !!data.descriptionEng;
-      if (lang === "ar") return !!data.descriptionArb;
+      if (lang === "en") return !!data.gradeNameEng;
+      if (lang === "ar") return !!data.gradeNameArb;
       return true;
   }, {
       message: "Required",
-      path: [lang === "en" ? "descriptionEng" : "descriptionArb"],
+      path: [lang === "en" ? "gradeNameEng" : "gradeNameArb"],
 });
 
 export default function AddGrades({
@@ -64,79 +50,88 @@ export default function AddGrades({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      gradeName: "",
-      descriptionEng: "",
-      descriptionArb: "",
-      numberOfCl: 0,
-      numberOfSl: 0,
-      numberOfAl: 0,
-      overtimeEligibleFlag: true,
-      seniorFlag: false,   
+      gradeNameEng: "",
+      gradeNameArb: "",
+      overtimeEligibleFlag: false,
     },
   });
 
   useEffect(() => {
-    form.reset(form.getValues()); // Maintain values but trigger resolver update
+    form.reset(form.getValues());
   }, [language]);
 
-  // Reset form when modal is opened for Add or when selectedRowData is null
   useEffect(() => {
     if (!selectedRowData) {
-      form.reset(); // Reset the form values when in "Add" mode
+      form.reset();
     } else {
       form.reset({
-        gradeName: selectedRowData.gradeName,
-        descriptionEng: selectedRowData.descriptionEng,
-        descriptionArb: selectedRowData.descriptionArb,
-        numberOfCl: selectedRowData.numberOfCl,
-        numberOfSl: selectedRowData.numberOfSl,
-        numberOfAl: selectedRowData.numberOfAl,
-        overtimeEligibleFlag: selectedRowData.overtimeEligibleFlag === "Y",
-        seniorFlag: selectedRowData.seniorFlag === "Y",
-      }); // Pre-fill the form when in "Edit" mode
+        gradeNameEng: selectedRowData.gradeNameEng,
+        gradeNameArb: selectedRowData.gradeNameArb,        
+        overtimeEligibleFlag: selectedRowData.overtimeEligibleFlag === "N",
+      });
     }
   }, [selectedRowData, form]);
 
   const handleSave = () => {
     const formData = form.getValues(); // Get the form data directly from the hook
     if (selectedRowData) {
-      // Update existing row
       onSave(selectedRowData.id, formData);
     } else {
-      // Add new row
       onSave(null, formData);
     }
-    on_open_change(false); // Close modal after saving
+    on_open_change(false);
   };
 
   const router = useRouter();
 
+  // async function onSubmit(values: z.infer<typeof formSchema>) {
+  //   try {
+  //     const payload = {
+  //       ...values,
+  //       overtimeEligibleFlag: values.overtimeEligibleFlag ? "Y" : "N",
+  //     };
+  
+  //     if (selectedRowData) {
+  //       onSave(selectedRowData.id, payload);
+  //     } else {
+  //       const response = await addGradeRequest(
+  //         payload.gradeNameEng,
+  //         payload.gradeNameArb,
+  //         payload.overtimeEligibleFlag,
+  //       );
+  //       onSave(null, response);
+  //     }
+  
+  //     on_open_change(false);
+      
+  //   } catch (error) {
+  //     console.error("Form submission error", error);
+  //   }
+  // }
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const payload = {
-        ...values,
-        overtimeEligibleFlag: values.overtimeEligibleFlag ? "Y" : "N",
-        seniorFlag: values.seniorFlag ? "Y" : "N",
-      };
-  
       if (selectedRowData) {
-        onSave(selectedRowData.id, payload);
+        const response = await editGradeRequest(
+          selectedRowData.id,
+          values.gradeNameEng,
+          values.gradeNameArb,
+          values.overtimeEligibleFlag ? "Y" : "N"
+        );
+        console.log("Grade updated successfully:", response);
+        onSave(selectedRowData.id, values);
       } else {
         const response = await addGradeRequest(
-          payload.gradeName,
-          payload.descriptionEng,
-          payload.descriptionArb,
-          payload.numberOfCl,
-          payload.numberOfSl,
-          payload.numberOfAl,
-          payload.overtimeEligibleFlag,
-          payload.seniorFlag
+          values.gradeNameEng,
+          values.gradeNameArb,
+          values.overtimeEligibleFlag ? "Y" : "N"
         );
+        console.log("Grade added successfully:", response);
         onSave(null, response);
       }
-  
+
+
       on_open_change(false);
-      
     } catch (error) {
       console.error("Form submission error", error);
     }
@@ -148,14 +143,14 @@ export default function AddGrades({
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="gradeName"
+            name="gradeNameEng"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Grade Name <Required />
+                  Grade (English) {language === "en" && <Required />}
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your grade" type="text" {...field} />
+                  <Input placeholder="Enter gradeName here..." type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -163,77 +158,17 @@ export default function AddGrades({
           />
           <FormField
             control={form.control}
-            name="descriptionEng"
+            name="gradeNameArb"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Description (English) {language === "en" && <Required />}
+                  Grade (العربية) {language === "ar" && <Required />}
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter description here..." type="text" {...field} />
+                  <Input placeholder="Enter gradeName here..." type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="descriptionArb"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Description (العربية) {language === "ar" && <Required />}
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter description here..." type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="numberOfCl"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>
-                    Number of causal leaves <Required />
-                </FormLabel>
-                <FormControl>
-                    <Input placeholder="Enter the cl count" type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="numberOfSl"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>
-                    Number of sick leaves <Required />
-                </FormLabel>
-                <FormControl>
-                    <Input placeholder="Enter the sl count" type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="numberOfAl"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>
-                  	Number of applied leaves <Required />
-                </FormLabel>
-                <FormControl>
-                    <Input placeholder="Enter the al count" type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
             )}
           />
           <div className="flex justify-between">
@@ -257,26 +192,6 @@ export default function AddGrades({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="seniorFlag"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormControl>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="senior_employee"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                      <FormLabel htmlFor="senior_employee" className="font-semibold text-sm text-text-primary">
-                        Senior Employee
-                      </FormLabel>
-                    </div>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </div>
           <div className="w-full flex gap-2 items-center py-3">
             <Button
@@ -289,7 +204,7 @@ export default function AddGrades({
               Cancel
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Save
+              {selectedRowData ? "Update" : "Save"}
             </Button>
           </div>
         </div>

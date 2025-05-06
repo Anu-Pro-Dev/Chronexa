@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import NationalityDropdown from "@/components/custom/NationalityDropdown";
+import CitizenshipDropdown from "@/components/custom/CitizenshipDropdown";
 import { addCitizenshipRequest } from "@/lib/apiHandler"; 
 
 // Country type definition
@@ -86,15 +86,15 @@ export default function AddCitizenship({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const { code } = values;
-      const selectedNationality = selectedCountry;
-      if (!selectedNationality) {
+      const selectedCitizenship = selectedCountry;
+      if (!selectedCitizenship) {
         console.error("No citizenship selected");
         return;
       }
 
-      const countryCode = selectedNationality.code;
-      const citizenshipEng = selectedNationality.name;
-      const citizenshipArb = selectedNationality.nameAr;
+      const countryCode = selectedCitizenship.code;
+      const citizenshipEng = selectedCitizenship.name;
+      const citizenshipArb = selectedCitizenship.nameAr;
 
       if (!selectedRowData) {
         await addCitizenshipRequest(countryCode, citizenshipEng, citizenshipArb);
@@ -121,7 +121,7 @@ export default function AddCitizenship({
                   Citizenship <Required />
                 </FormLabel>
                 <FormControl>
-                  <NationalityDropdown value={selectedCountry} onChange={handleCountryChange} />
+                  <CitizenshipDropdown value={selectedCountry} onChange={handleCountryChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

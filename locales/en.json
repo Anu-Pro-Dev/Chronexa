@@ -17,15 +17,16 @@
         "dashboard": "Dashboard",
         "companyMaster": "Company Master",
         "organization": "Organization",
-        "userManagement": "User Management",
+        "employeeMaster": "Employee Master",
         "taMaster": "TA Master",
         "scheduling": "Scheduling",
-        "selfServices": "Self Services"
+        "selfServices": "Self Services",
+        "manageApprovals": "Manage Approvals"
       },
       "secondary": {
         "devices": "Devices",
         "reports": "Reports",
-        "security": "Security",
+        "configuration": "Configuration",
         "settings": "Settings",
         "alerts": "Alerts"
       }
@@ -41,12 +42,14 @@
       "punchOut": "Punch Out",
       "approve": "Approve",
       "reject": "Reject",
-      "exportExcel": "Export to excel"
+      "exportExcel": "Export to excel",
+      "exportWord": "Export to word",
+      "exportPdf": "Export to PDF"
     },
     "modules": {
       "dashboard": {
-        "selfStatistics": "Self Statistics",
-        "teamStatistics": "Team Statistics",
+        "myAttendance": "My Attendance",
+        "teamAttendance": "Team Attendance",
         "permissionandLeaves": "Permission & Leaves",
         "workingDays": "Working Days",
         "leavesTaken" : "Leaves Taken",

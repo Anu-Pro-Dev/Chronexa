@@ -3,9 +3,8 @@ import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddCitizenship from "@/forms/company-master/AddCitizenship";
-import { getAllCitizenship } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { citizenship_columns } from "@/data/cm.data";
+import { getAllCitizenship } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();

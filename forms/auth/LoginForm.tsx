@@ -23,7 +23,7 @@ import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { loginRequest } from "@/lib/apiHandler";
-import { USER_TOKEN } from "@/lib/Instance";
+import { USER_TOKEN } from "@/utils/constants";
 
 const formSchema = z.object({
   username: z

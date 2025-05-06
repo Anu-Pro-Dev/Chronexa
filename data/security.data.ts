@@ -84,7 +84,7 @@ export const privileges_data: PrivilegesDataType[] = [
     updated: "21-03-2017",
   },
   {
-    name: "VIEW_TEAM_STATISTICS",
+    name: "VIEW_TEAM_ATTENDANCE",
     group: "HR Privileges",
     updated: "31-12-2018",
   },

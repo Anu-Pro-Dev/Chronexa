@@ -12,7 +12,7 @@ import PowerTakeAction from "./power-take-action";
 import PowerClear from "./power-clear";
 import ApprovalModal from "./power-approval-modal";
 import { deleteEntityRequest } from "@/lib/apiHandler";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 export default function PowerHeader({
   items,
@@ -43,6 +43,9 @@ export default function PowerHeader({
   enableApprove = false,
   enableReject = false,
   entityName,
+  enableExcel = false,
+  enablePdf = false,
+  enableWord = false,
 }: {
   items: any;
   props?: any;
@@ -72,6 +75,9 @@ export default function PowerHeader({
   enableApprove?: boolean;
   enableReject?: boolean;
   entityName?: string;
+  enableExcel?: boolean;
+  enablePdf?: boolean;
+  enableWord?: boolean;
 }) {
   console.log("Props in PowerHeader", selectedRows);
 
@@ -138,7 +144,16 @@ export default function PowerHeader({
                 isLarge={isLargeAction}
               />
             )}
-            {!disableFeatures && isExport && <PowerExport />}
+            {/* {!disableFeatures && isExport && <PowerExport />} */}
+            {!disableFeatures && isExport && (
+              <PowerExport
+                data={(selectedRows && selectedRows.length > 0) ? selectedRows : (props?.Data || [])}
+                fileName={entityName || "report"}
+                enableExcel={enableExcel}
+                enablePdf={enablePdf}
+                enableWord={enableWord}
+              />
+            )}
             {enableClear && <PowerClear props={props} />}
             {/* {enableApprove && 
               <PowerApprove
@@ -194,7 +209,7 @@ export default function PowerHeader({
         }
       </div>
 
-      {/* <AutoPathMapper /> */}
+      <AutoPathMapper />
     </div>
   );
 }

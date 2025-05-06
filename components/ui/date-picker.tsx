@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 const FormSchema = z.object({
   dob: z.date({

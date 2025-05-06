@@ -1,10 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,22 +14,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
-import { USER_TOKEN } from "@/lib/Instance";
-import { useRouter } from "next/navigation";
-import Required from "@/components/ui/required";
-import { RefreshIcon } from "@/icons/icons";
-import { IoMdRefresh } from "react-icons/io";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePickerForm } from "@/components/ui/date-picker";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "@/icons/icons";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -39,59 +26,109 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CalendarIcon } from "@/icons/icons";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import Required from "@/components/ui/required";
+import { useRouter } from "next/navigation";
+import { addEmployeeGroupRequest } from "@/lib/apiHandler"; // Import API request function
+import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
-  code: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  descriptionEng: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  descriptionArb: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  to_date: z.date({
-    required_error: "To Date is required.",
-  }),
-  from_date: z.date({
-    required_error: "From Date is required.",
-  }),
-  schedule_flag: z.boolean().optional(),
-  reporting_group: z.boolean().optional(),
-  employee: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  refresh_member: z.boolean().optional(),
+    groupName: z.string().min(1, { message: "Required" }).max(100),
+    descriptionEng: z.string().default(""),
+    descriptionArb: z.string().default(""),
+    from_date: z.date({
+      required_error: "From Date is required.",
+    }),
+    to_date: z.date({
+      required_error: "To Date is required.",
+    }),
+    schedule_flag: z.boolean().optional(),
+    reporting_group: z.boolean().optional(),
+    user: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
+    refresh_member: z.boolean().optional(),
 });
 
-export default function AddEmployeeGroup() {
+const getSchema = (lang: "en" | "ar") =>
+    formSchema.refine((data) => {
+        if (lang === "en") return !!data.descriptionEng;
+        if (lang === "ar") return !!data.descriptionArb;
+        return true;
+    }, {
+        message: "Required",
+        path: [lang === "en" ? "descriptionEng" : "descriptionArb"],
+});
+
+export default function AddEmployeeGroup({
+  on_open_change,
+  selectedRowData,
+  onSave,
+}: {
+  on_open_change: any;
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
+}) {
+
+  const {language } = useLanguage();
+    
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      code: "",
+      groupName: "",
       descriptionEng: "",
       descriptionArb: "",
     },
   });
 
+  useEffect(() => {
+    form.reset(form.getValues());
+  }, [language]);
+
+  useEffect(() => {
+    if (!selectedRowData) {
+      form.reset();
+    } else {
+      form.reset({
+        groupName: selectedRowData.groupName,
+        descriptionEng: selectedRowData.descriptionEng,
+        descriptionArb: selectedRowData.descriptionArb,
+      });
+    }
+  }, [selectedRowData, form]);
+
+  const handleSave = () => {
+    const formData = form.getValues();
+    if (selectedRowData) {
+      onSave(selectedRowData.id, formData);
+    } else {
+      onSave(null, formData);
+    }
+    on_open_change(false);
+  };
+
   const router = useRouter();
   const reportingGroupChecked = form.watch("reporting_group");
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
+      console.log("Submitting:", values);
+
+      if (selectedRowData) {
+        onSave(selectedRowData.id, values);
+      } else {
+        const response = await addEmployeeGroupRequest(values.groupName, values.descriptionEng, values.descriptionArb);
+        console.log("Employee group added successfully:", response);
+        
+        onSave(null, response);
+      }
+
+      on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
     }
@@ -99,16 +136,10 @@ export default function AddEmployeeGroup() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Employee groups</h1>
-          {/* <h1 className="font-semibold text-sm text-text-secondary">
-            Select the choices for group of employee
-          </h1> */}
-        </div>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
-          <div className="p-5 flex flex-col">
-            <div className="flex gap-4 items-center pb-6">
+          <div className="py-5 flex flex-col">
+            <div className="flex gap-10 items-center pb-6 px-5">
               <FormField
                 control={form.control}
                 name="schedule_flag"
@@ -146,22 +177,36 @@ export default function AddEmployeeGroup() {
                 )}
               />
             </div>
-            <div className="flex justify-between items-start gap-10">
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
                 <FormField
                   control={form.control}
                   name="descriptionEng"
                   render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                       <FormLabel>
-                        Description (English) <Required />
+                          Group name (English) {language === "en" && <Required />}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter description in english" type="text" {...field} />
+                      <Input placeholder="Enter group name" type="text" {...field} />
                       </FormControl>
-
                       <FormMessage />
-                    </FormItem>
+                  </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="descriptionArb"
+                  render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>
+                        Group name (العربية) {language === "ar" && <Required />}
+                      </FormLabel>
+                      <FormControl>
+                      <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                  </FormItem>
                   )}
                 />
                 <FormField
@@ -176,7 +221,7 @@ export default function AddEmployeeGroup() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px]"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -198,40 +243,6 @@ export default function AddEmployeeGroup() {
                           />
                         </PopoverContent>
                       </Popover>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Code <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the code" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-                <FormField
-                  control={form.control}
-                  name="descriptionArb"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Description (العربية) <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter description in arabic" type="text" {...field} />
-                      </FormControl>
 
                       <FormMessage />
                     </FormItem>
@@ -249,7 +260,7 @@ export default function AddEmployeeGroup() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px]"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -276,21 +287,37 @@ export default function AddEmployeeGroup() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="groupName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Grouping <Required />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the group" type="text" {...field} />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 {reportingGroupChecked && (
                   <>
                     <FormField
                       control={form.control}
-                      name="employee"
+                      name="user"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Employee <Required /></FormLabel>
+                          <FormLabel>User <Required /></FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Choose employee" />
+                                <SelectValue placeholder="Choose user" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -327,14 +354,14 @@ export default function AddEmployeeGroup() {
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-2 items-center py-5">
+        <div className="flex justify-end gap-2 items-center pb-5">
           <div className="flex gap-4 px-5">
             <Button
               variant={"outline"}
               type="button"
               size={"lg"}
               className="w-full"
-              onClick={() => router.push("/employee-master/employee-groups/")}
+              onClick={() => on_open_change(false)}
             >
               Cancel
             </Button>
@@ -347,3 +374,5 @@ export default function AddEmployeeGroup() {
     </Form>
   );
 }
+
+
