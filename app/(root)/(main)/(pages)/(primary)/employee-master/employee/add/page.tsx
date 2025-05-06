@@ -88,12 +88,11 @@ export default function Page() {
       })
       .max(100),
     join_date: z.date({
-      required_error: "From Date is required.",
+      required_error: "Join Date is required.",
     }),
     inactive_date: z.date({
-      required_error: "From Date is required.",
+      required_error: "Inactive Date is required.",
     }),
-    organization: z.string().optional(),
     card_number: z.string().optional(),
     pin: z.string().optional(),
     sex: z.string().optional(),
@@ -117,7 +116,6 @@ export default function Page() {
       email: "",
       join_date: undefined,
       inactive_date: undefined,
-      organization: "",
       card_number: "",
       pin: "",
       sex: "",
@@ -172,7 +170,9 @@ export default function Page() {
       name: z.string(),
       nameAr: z.string(),
       flag: z.string(),
-    }).nullable(), 
+    }).nullable().refine(val => val !== null, {
+      message: "Citizenship is required",
+    }),
     designation: z
       .string()
       .min(1, {
@@ -191,7 +191,12 @@ export default function Page() {
         message: "Required",
       })
       .max(100),
-  
+    organization: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
     manager: z.string().optional(),
     manager_flag: z.boolean(),
   });
@@ -201,10 +206,11 @@ export default function Page() {
     defaultValues: {
       user_type: "",
       location: "",
-      citizenship: null,
+      citizenship: undefined,
       designation: "",
       grade: "",
       organization_type: "",
+      organization: "",
       manager: "",
       manager_flag: false,
     },

@@ -332,7 +332,7 @@ export default function FilterForm() {
               </FormItem>
             )}
           />
-          <FormField
+          {/* <FormField
             control={form.control}
             name="version_no"
             render={({ field }) => (
@@ -355,9 +355,9 @@ export default function FilterForm() {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
         </div>
-        <FormField
+        {/* <FormField
           control={form.control}
           name="apply_version_filter"
           render={({ field }) => (
@@ -379,7 +379,7 @@ export default function FilterForm() {
               </FormControl>
             </FormItem>
           )}
-        />
+        /> */}
         {/* <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-1">
             <Button

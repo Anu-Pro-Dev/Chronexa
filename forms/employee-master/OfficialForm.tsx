@@ -30,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import NationalityDropdown from "@/components/custom/NationalityDropdown";
+import CitizenshipDropdown from "@/components/custom/CitizenshipDropdown";
 
 export default function OfficialForm({
   Page,
@@ -137,8 +137,8 @@ export default function OfficialForm({
             render={({ field }) => (
               <FormItem className="">
                 <FormLabel className="flex gap-1">Citizenship <Required/> </FormLabel>
-                <NationalityDropdown value={field.value} onChange={field.onChange} />
-                <FormMessage className="mt-1">Required</FormMessage>
+                <CitizenshipDropdown value={field.value} onChange={field.onChange} />
+                <FormMessage className="mt-1"/>
               </FormItem>
             )}
           />
@@ -168,29 +168,6 @@ export default function OfficialForm({
           />
           <FormField
             control={officialForm.control}
-            name="grade"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex gap-1">Grade <Required/> </FormLabel>
-                <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                >
-                <FormControl>
-                    <SelectTrigger>
-                    <SelectValue placeholder="Choose grade" />
-                    </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">grade 1</SelectItem>
-                </SelectContent>
-                </Select>
-                <FormMessage className="mt-1"/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={officialForm.control}
             name="organization_type"
             render={({ field }) => (
               <FormItem>
@@ -208,6 +185,54 @@ export default function OfficialForm({
                     <SelectItem value="1">Miscellaneous</SelectItem>
                     <SelectItem value="2">Calendar Days</SelectItem>
                     <SelectItem value="3">Working Days</SelectItem>
+                </SelectContent>
+                </Select>
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={officialForm.control}
+            name="organization"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel className="flex gap-1">Organization <Required/></FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose organization" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">organization 1</SelectItem>
+                </SelectContent>
+                </Select>
+                <FormMessage className="mt-1"/>
+            </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={officialForm.control}
+            name="grade"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Grade <Required/> </FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose grade" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">grade 1</SelectItem>
                 </SelectContent>
                 </Select>
                 <FormMessage className="mt-1"/>

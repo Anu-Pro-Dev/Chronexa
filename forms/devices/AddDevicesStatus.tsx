@@ -34,7 +34,13 @@ const formSchema = z.object({
       message: "Required",
     })
     .max(100),
-  name: z
+  name_eng: z
+    .string()
+    .min(1, {
+      message: "Required",
+    })
+    .max(100),
+  name_arb: z
     .string()
     .min(1, {
       message: "Required",
@@ -76,7 +82,8 @@ export default function AddDevicesStatus({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      name: "",
+      name_eng: "",
+      name_arb: "",
       ip_address: "",
       port: "",
       building: "",
@@ -104,12 +111,12 @@ export default function AddDevicesStatus({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <div className="pb-3">
+        {/* <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Readers</h1>
-          {/* <h1 className="font-semibold text-sm text-text-secondary">
+          <h1 className="font-semibold text-sm text-text-secondary">
             Select the choices for readers devices status
-          </h1> */}
-        </div>
+          </h1>
+        </div> */}
         <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col">
             <div className="flex justify-between items-start gap-10">
@@ -124,6 +131,22 @@ export default function AddDevicesStatus({
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter the code" type="text" {...field} />
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_eng"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Name(English) <Required />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the name" type="text" {...field} />
                       </FormControl>
 
                       <FormMessage />
@@ -148,23 +171,15 @@ export default function AddDevicesStatus({
                 />
                 <FormField
                   control={form.control}
-                  name="building"
+                  name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Choose Buildings <Required/> </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose building" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">building 1</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>
+                        Location <Required />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the location" type="text" {...field} />
+                      </FormControl>
 
                       <FormMessage />
                     </FormItem>
@@ -192,11 +207,35 @@ export default function AddDevicesStatus({
               <div className="flex flex-col flex-1 max-w-[350px] gap-5">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="building"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Buildings <Required/> </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose building" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">building 1</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name_arb"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Name <Required />
+                        Name(العربي) <Required />
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter the name" type="text" {...field} />
@@ -216,22 +255,6 @@ export default function AddDevicesStatus({
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter the port" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Location <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the location" type="text" {...field} />
                       </FormControl>
 
                       <FormMessage />

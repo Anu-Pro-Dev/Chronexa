@@ -35,7 +35,7 @@ export default function AddDepartment() {
     { value: "option3", label: "Organization 3" },
   ];
 
-  const initialUsers = Array.from({ length: 7 }, (_, i) => ({
+  const initialEmployees = Array.from({ length: 7 }, (_, i) => ({
     id: `emp-${i + 1}`,
     name: `DSG12 - User ${i + 1}`,
     selected: false,
@@ -47,9 +47,9 @@ export default function AddDepartment() {
     selected: false,
   }));
 
-  const [users, setUsers] = useState(initialUsers);
-  const handleSelectionChange = (selectedItems: typeof initialUsers) => {
-    setUsers((prev) =>
+  const [employees, setEmployees] = useState(initialEmployees);
+  const handleSelectionChange = (selectedItems: typeof initialEmployees) => {
+    setEmployees((prev) =>
       prev.map((emp) => ({
         ...emp,
         selected: selectedItems.some((item) => item.id === emp.id),
@@ -108,8 +108,8 @@ export default function AddDepartment() {
           <div className="bg-accent rounded-2xl flex flex-col gap-8 px-6 py-8">
             {/* <h1 className="font-bold text-xl text-primary">User</h1> */}
             <TransferList
-              title="Users"
-              items={users}
+              title="Employees"
+              items={employees}
               onSelectionChange={handleSelectionChange}
               // height="200px"
             />

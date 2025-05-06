@@ -32,7 +32,7 @@ export default function Page() {
     { field: "from_date", headerName: "From Date" },
     { field: "to_date", headerName: "To Date" },
     { field: "attachment" },
-    { field: "comments" },
+    { field: "comments", headerName: "Justification" },
   ]);
   const [open, on_open_change] = useState<boolean>(false)
   const [filter_open, filter_on_open_change] = useState<boolean>(false)

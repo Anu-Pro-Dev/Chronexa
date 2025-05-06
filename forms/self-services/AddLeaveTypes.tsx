@@ -55,7 +55,7 @@ const formSchema = z.object({
   need_approval: z.boolean(),
   offical: z.boolean(),
   attachment: z.boolean(),
-  comments: z.boolean(),
+  justification: z.boolean(),
 });
 
 export default function AddLeaveTypes({
@@ -73,7 +73,7 @@ export default function AddLeaveTypes({
       need_approval: false,
       offical: false,
       attachment: false,
-      comments: false,
+      justification: false,
     },
   });
 
@@ -240,17 +240,17 @@ export default function AddLeaveTypes({
                 />
                 <FormField
                   control={form.control}
-                  name="comments"
+                  name="justification"
                   render={({ field }) => (
                     <FormItem className=" ">
                       <FormControl>
                         <div className="flex items-center gap-2">
                           <Checkbox
-                            id="comments"
+                            id="justification"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
-                          <FormLabel htmlFor="comments" className="text-sm font-semibold">Mandatory Comments</FormLabel>
+                          <FormLabel htmlFor="justification" className="text-sm font-semibold">Mandatory Justification</FormLabel>
                         </div>
                       </FormControl>
                     </FormItem>

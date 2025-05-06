@@ -10,7 +10,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         position="top-right"
         toastOptions={{
           style: {
-            background: '#343434',
+            background: '#23272E',
             color: '#fff',
             fontSize: '14px',
             padding: '8px 10px',
@@ -18,13 +18,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           },
           success: {
             style: {
-              background: '#22c55e',
+              background: '#34c759',
               color: '#fff',
             },
           },
           error: {
             style: {
-              background: '#ef4444',
+              background: '#ff3b30',
               color: '#fff',
             },
           },

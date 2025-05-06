@@ -19,7 +19,7 @@ export default function Page() {
 
   const [Columns, setColumns] = useState([
     { field: "mobile_number", headerName: "Mobile Number" },
-    { field: "employee_id", headerName: "User ID" },
+    { field: "employee_id", headerName: "Employee ID" },
     { field: "subject" },
     { field: "sms_content", headerName: "Content" },
     { field: "status" },
@@ -58,6 +58,7 @@ export default function Page() {
         disableAdd
         disableDelete
         isExport
+        enableExcel
       />
       <div className="grid grid-cols-3 gap-4">
         <div>

@@ -61,9 +61,6 @@ export default function AddWorkflow() {
         <div className="bg-accent p-6 rounded-2xl">
           <div className="pb-5">
             <h1 className="font-bold text-xl text-primary">Generate the workflows</h1>
-            <h1 className="font-semibold text-sm text-text-secondary">
-              Select the levels for further process
-            </h1>
           </div>
           <div className="grid lg:grid-cols-3 gap-10">
             <FormField
@@ -134,7 +131,7 @@ export default function AddWorkflow() {
         </div>
 
         {rows.length > 0 && (
-          <div className="bg-accent p-6 rounded-2xl">
+          <div className="bg-accent p-8 rounded-2xl">
             <div className="grid gap-4">
               <div className="grid grid-cols-[auto,1fr,1fr,1fr,1fr,1fr] gap-4 text-[15px] font-semibold text-text-content text-center">
                 <div></div>
@@ -189,8 +186,8 @@ export default function AddWorkflow() {
               ))}
             </div>
             {/* <div className="flex justify-end gap-2 items-center pt-7 py-5"> */}
-            <div className="flex justify-end gap-4 pt-6">
-              <Button variant="outline" type="button" size="lg" onClick={() => router.push("/self-services/workflow")}>
+            <div className="flex justify-end gap-4 pt-8">
+              <Button variant="outline" type="button" size="lg" onClick={() => router.push("/self-services/approval-workflow")}>
                 Cancel
               </Button>
               <Button type="submit" size="lg">

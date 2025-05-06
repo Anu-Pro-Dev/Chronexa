@@ -9,11 +9,11 @@ interface Country {
   flag: string;
 }
 
-interface NationalityDropdownProps {
+interface CitizenshipDropdownProps {
   value: Country | null;
   onChange: (value: Country | null) => void;
 }
-const NationalityDropdown = ({ value, onChange }: NationalityDropdownProps) => {
+const CitizenshipDropdown = ({ value, onChange }: CitizenshipDropdownProps) => {
   const [countries, setCountries] = useState<Country[]>([]);
 
   useEffect(() => {
@@ -102,4 +102,4 @@ const NationalityDropdown = ({ value, onChange }: NationalityDropdownProps) => {
   );
 };
 
-export default NationalityDropdown;
+export default CitizenshipDropdown;

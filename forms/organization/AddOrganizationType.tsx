@@ -22,24 +22,36 @@ import {
 } from "@/components/ui/select";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import { addLocationRequest } from "@/lib/apiHandler"; // Import API request function
 import { useLanguage } from "@/providers/LanguageProvider";
+import {
+  addOrganizationTypeRequest,
+  editOrganizationTypeRequest,
+} from "@/lib/apiHandler";
 
+// Zod schema: allow 0 as valid hierarchy
 const formSchema = z.object({
-    hierarchy: z.string().min(1, { message: "Required" }).max(100),
-    organizationTypeEng: z.string().default(""),
-    organizationTypeArb: z.string().default(""),
+  hierarchyLimit: z
+    .coerce.number({ required_error: "Hierarchy limit is required" })
+    .min(1, { message: "Must be at least 1" })
+    .max(99, { message: "Must be less than 100" }),
+
+  hierarchy: z
+    .number({ required_error: "Hierarchy is required" })
+    .min(0, { message: "Must be 0 or higher" }),
+  organizationTypeNameEng: z.string().default(""),
+  organizationTypeNameArb: z.string().default(""),
 });
 
+// Language-aware refinement
 const getSchema = (lang: "en" | "ar") =>
-    formSchema.refine((data) => {
-        if (lang === "en") return !!data.organizationTypeEng;
-        if (lang === "ar") return !!data.organizationTypeArb;
-        return true;
-    }, {
-        message: "Required",
-        path: [lang === "en" ? "organizationTypeEng" : "organizationTypeArb"],
-});
+  formSchema.refine((data) => {
+    if (lang === "en") return !!data.organizationTypeNameEng;
+    if (lang === "ar") return !!data.organizationTypeNameArb;
+    return true;
+  }, {
+    message: "Required",
+    path: [lang === "en" ? "organizationTypeNameEng" : "organizationTypeNameArb"],
+  });
 
 export default function AddOrganizationType({
   on_open_change,
@@ -52,56 +64,58 @@ export default function AddOrganizationType({
   onSave: (id: string | null, newData: any) => void;
   existingRows: any[];
 }) {
-
-  const {language } = useLanguage();
-  const allHierarchyOptions = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"];
-  const [usedHierarchyOptions, setUsedHierarchyOptions] = useState<string[]>([]);
-
+  const { language } = useLanguage();
+  const [usedHierarchyOptions, setUsedHierarchyOptions] = useState<number[]>([]);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      hierarchy: "",
-      organizationTypeEng: "",
-      organizationTypeArb: "",
+      hierarchyLimit: 0,
+      hierarchy: undefined,
+      organizationTypeNameEng: "",
+      organizationTypeNameArb: "",
     },
   });
 
+  const hierarchyLimitValue = form.watch("hierarchyLimit") || 0;
+  const allHierarchyOptions = Array.from(
+    { length: hierarchyLimitValue },
+    (_, i) => i
+  );
+
+  // Track used hierarchy values as numbers
   useEffect(() => {
     const used = existingRows
-      .filter(row => row.hierarchy !== undefined && row.hierarchy !== null)
-      .map(row => String(row.hierarchy)); // Ensure it's string
+      .filter((row) => row.hierarchy !== undefined && row.hierarchy !== null)
+      .map((row) => Number(row.hierarchy));
     setUsedHierarchyOptions(used);
   }, [existingRows]);
 
+  // Reset form when language changes (to trigger validation)
   useEffect(() => {
     form.reset(form.getValues());
   }, [language]);
 
+  // Populate form on edit mode
   useEffect(() => {
     if (!selectedRowData) {
       form.reset();
     } else {
       form.reset({
-        hierarchy: selectedRowData.hierarchy,
-        organizationTypeEng: selectedRowData.organizationTypeEng,
-        organizationTypeArb: selectedRowData.organizationTypeArb,
+        hierarchy:
+          typeof selectedRowData.hierarchy === "number"
+            ? selectedRowData.hierarchy
+            : undefined,
+        organizationTypeNameEng: selectedRowData.organizationTypeNameEng,
+        organizationTypeNameArb: selectedRowData.organizationTypeNameArb,
       });
     }
   }, [selectedRowData, form]);
 
+  // Exclude used options unless editing
   const availableHierarchyOptions = selectedRowData
-  ? allHierarchyOptions
-  : allHierarchyOptions.filter((opt) => !usedHierarchyOptions.includes(opt));
-
-  const handleSave = () => {
-    const formData = form.getValues();
-    if (selectedRowData) {
-      onSave(selectedRowData.id, formData);
-    } else {
-      onSave(null, formData);
-    }
-    on_open_change(false);
-  };
+    ? allHierarchyOptions
+    : allHierarchyOptions.filter((opt) => !usedHierarchyOptions.includes(opt));
 
   const router = useRouter();
 
@@ -110,11 +124,21 @@ export default function AddOrganizationType({
       console.log("Submitting:", values);
 
       if (selectedRowData) {
+        const response = await editOrganizationTypeRequest(
+          selectedRowData.id,
+          values.hierarchy,
+          values.organizationTypeNameEng,
+          values.organizationTypeNameArb
+        );
+        console.log("Organization type updated successfully:", response);
         onSave(selectedRowData.id, values);
       } else {
-        const response = await addLocationRequest(values.hierarchy, values.organizationTypeEng);
+        const response = await addOrganizationTypeRequest(
+          values.hierarchy,
+          values.organizationTypeNameEng,
+          values.organizationTypeNameArb
+        );
         console.log("Organization type added successfully:", response);
-        
         onSave(null, response);
       }
 
@@ -130,76 +154,108 @@ export default function AddOrganizationType({
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
+            name="hierarchyLimit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Hierarchy Limit <Required />
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter hierarchy limit"
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+         <FormField
+            control={form.control}
             name="hierarchy"
             render={({ field }) => (
-            <FormItem>
-                <FormLabel className="flex gap-1">Hierarchy <Required/> </FormLabel>
-                <div>
-                  <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose hierarchy" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {availableHierarchyOptions.map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {value}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="mt-1"/>
-                </div>
-            </FormItem>
+              <FormItem>
+                <FormLabel className="flex gap-1">
+                  Hierarchy <Required />
+                </FormLabel>
+                <Select
+                  onValueChange={(val) => field.onChange(Number(val))} // convert back to number
+                  value={
+                    field.value !== undefined
+                      ? field.value.toString().padStart(2, "0") // ensure padded string match
+                      : ""
+                  }
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose hierarchy" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {availableHierarchyOptions.map((value) => (
+                      <SelectItem key={value} value={value.toString().padStart(2, "0")}>
+                        {value.toString().padStart(2, "0")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage className="mt-1" />
+              </FormItem>
             )}
           />
           <FormField
             control={form.control}
-            name="organizationTypeEng"
+            name="organizationTypeNameEng"
             render={({ field }) => (
-            <FormItem>
+              <FormItem>
                 <FormLabel>
                   Organization type (English) {language === "en" && <Required />}
                 </FormLabel>
                 <FormControl>
-                <Input placeholder="Enter organization type" type="text" {...field} />
+                  <Input
+                    placeholder="Enter organization type"
+                    type="text"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
-            </FormItem>
+              </FormItem>
             )}
           />
           <FormField
             control={form.control}
-            name="organizationTypeArb"
+            name="organizationTypeNameArb"
             render={({ field }) => (
-            <FormItem>
+              <FormItem>
                 <FormLabel>
                   Organization type (العربية) {language === "ar" && <Required />}
                 </FormLabel>
                 <FormControl>
-                <Input placeholder="أدخل نوع المنظمة" type="text" {...field} />
+                  <Input
+                    placeholder="أدخل نوع المنظمة"
+                    type="text"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
-            </FormItem>
+              </FormItem>
             )}
           />
           <div className="w-full flex gap-2 items-center py-3">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className="w-full"
-                onClick={() => on_open_change(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                {selectedRowData ? "Update" : "Save"}
-              </Button>
+            <Button
+              variant="outline"
+              type="button"
+              size="lg"
+              className="w-full"
+              onClick={() => on_open_change(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="lg" className="w-full">
+              {selectedRowData ? "Update" : "Save"}
+            </Button>
           </div>
         </div>
       </form>

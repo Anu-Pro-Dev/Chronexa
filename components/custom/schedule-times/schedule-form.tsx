@@ -48,7 +48,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Choose organisation" />
+              <SelectValue placeholder="Choose organization" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="org1">Organization 1</SelectItem>
@@ -68,7 +68,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Choose organisation" />
+              <SelectValue placeholder="Choose organization" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="time1">Schedule Time 1</SelectItem>

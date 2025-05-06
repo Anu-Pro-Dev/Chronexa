@@ -43,6 +43,9 @@ export default function PowerHeader({
   enableApprove = false,
   enableReject = false,
   entityName,
+  enableExcel = false,
+  enablePdf = false,
+  enableWord = false,
 }: {
   items: any;
   props?: any;
@@ -72,6 +75,9 @@ export default function PowerHeader({
   enableApprove?: boolean;
   enableReject?: boolean;
   entityName?: string;
+  enableExcel?: boolean;
+  enablePdf?: boolean;
+  enableWord?: boolean;
 }) {
   console.log("Props in PowerHeader", selectedRows);
 
@@ -142,7 +148,10 @@ export default function PowerHeader({
             {!disableFeatures && isExport && (
               <PowerExport
                 data={(selectedRows && selectedRows.length > 0) ? selectedRows : (props?.Data || [])}
-                fileName={entityName || "export"}
+                fileName={entityName || "report"}
+                enableExcel={enableExcel}
+                enablePdf={enablePdf}
+                enableWord={enableWord}
               />
             )}
             {enableClear && <PowerClear props={props} />}

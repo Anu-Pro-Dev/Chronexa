@@ -124,7 +124,6 @@ export default function AssignPriveleges({
             <ResponsiveModalContent size="extraLarge">
               <ResponsiveModalHeader className="text-left">
                 <ResponsiveModalTitle className="text-primary">Privileges</ResponsiveModalTitle>
-                <ResponsiveModalDescription>Select the privileges for an employee</ResponsiveModalDescription>
               </ResponsiveModalHeader>
                 <>
                   <div className="flex flex-col gap-4 p-3 rounded-lg shadow-inner">

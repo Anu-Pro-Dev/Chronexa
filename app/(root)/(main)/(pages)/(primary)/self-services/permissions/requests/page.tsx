@@ -29,11 +29,11 @@ export default function Page() {
     { field: "number" },
     { field: "employee" },
     { field: "date" },
-    { field: "from_date" },
-    { field: "to_date" },
-    { field: "from_time" },
-    { field: "to_time" },
-    { field: "remarks" },
+    { field: "from_date", headerName: "From date" },
+    { field: "to_date", headerName: "To date" },
+    { field: "from_time", headerName: "From time" },
+    { field: "to_time", headerName: "To Time" },
+    { field: "remarks", headerName: "Justification" },
   ]);
   const [open, on_open_change] = useState<boolean>(false)
   const [filter_open, filter_on_open_change] = useState<boolean>(false)

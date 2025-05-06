@@ -61,6 +61,7 @@ export default function Page() {
         disableAdd
         disableDelete
         isExport
+        enableExcel
       />
       <div className="grid grid-cols-3 gap-4">
         <div>

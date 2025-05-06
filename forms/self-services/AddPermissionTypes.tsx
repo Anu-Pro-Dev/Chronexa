@@ -67,11 +67,11 @@ const formSchemaBasic = z.object({
 
 const formSchemaSetup = z.object({
   workflows: z.string().min(1, { message: "Required" }).max(100),
-  organisation: z.string().optional(),
+  organization: z.string().optional(),
   group: z.string().optional(),
   employee: z.string().optional(),
-  gender: z.string().optional(),
-  nationality: z.string().optional(),
+  sex: z.string().optional(),
+  citizenship: z.string().optional(),
   valid_from_date:  z.date().optional(),
   valid_till_date: z.date().optional(),
 })
@@ -154,11 +154,11 @@ export default function AddPermissionTypes () {
     resolver: zodResolver(formSchemaSetup),
     defaultValues: {
       workflows: "",
-      organisation: "",
+      organization: "",
       group: "",
       employee: "",
-      gender:"",
-      nationality:"",
+      sex:"",
+      citizenship:"",
     }
   })
 
@@ -496,16 +496,16 @@ export default function AddPermissionTypes () {
 
             <FormField
               control={formSetup.control}
-              name="organisation"
+              name="organization"
               render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                Organisation
+                Organization
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose organisation" />
+                      <SelectValue placeholder="Choose organization" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -568,21 +568,21 @@ export default function AddPermissionTypes () {
 
             <FormField
               control={formSetup.control}
-              name="gender"
+              name="sex"
               render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Gender 
+                  Sex 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose gender" />
+                      <SelectValue placeholder="Choose sex" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
+                    <SelectItem value="1">Male </SelectItem>
+                    <SelectItem value="2">Female </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -592,16 +592,16 @@ export default function AddPermissionTypes () {
 
             <FormField
               control={formSetup.control}
-              name="nationality"
+              name="citizenship"
               render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                Nationality 
+                Citizenship 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose nationality" />
+                      <SelectValue placeholder="Choose citizenship" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

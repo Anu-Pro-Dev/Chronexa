@@ -20,19 +20,19 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { addGradeRequest, editGradeRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  descriptionEng: z.string().default(""),
-  descriptionArb: z.string().default(""),
+  gradeNameEng: z.string().default(""),
+  gradeNameArb: z.string().default(""),
   overtimeEligibleFlag: z.boolean().optional().default(true), // true = "Y"
 });
 
 const getSchema = (lang: "en" | "ar") =>
   formSchema.refine((data) => {
-      if (lang === "en") return !!data.descriptionEng;
-      if (lang === "ar") return !!data.descriptionArb;
+      if (lang === "en") return !!data.gradeNameEng;
+      if (lang === "ar") return !!data.gradeNameArb;
       return true;
   }, {
       message: "Required",
-      path: [lang === "en" ? "descriptionEng" : "descriptionArb"],
+      path: [lang === "en" ? "gradeNameEng" : "gradeNameArb"],
 });
 
 export default function AddGrades({
@@ -50,8 +50,8 @@ export default function AddGrades({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      descriptionEng: "",
-      descriptionArb: "",
+      gradeNameEng: "",
+      gradeNameArb: "",
       overtimeEligibleFlag: false,
     },
   });
@@ -65,8 +65,8 @@ export default function AddGrades({
       form.reset();
     } else {
       form.reset({
-        descriptionEng: selectedRowData.descriptionEng,
-        descriptionArb: selectedRowData.descriptionArb,        
+        gradeNameEng: selectedRowData.gradeNameEng,
+        gradeNameArb: selectedRowData.gradeNameArb,        
         overtimeEligibleFlag: selectedRowData.overtimeEligibleFlag === "N",
       });
     }
@@ -95,8 +95,8 @@ export default function AddGrades({
   //       onSave(selectedRowData.id, payload);
   //     } else {
   //       const response = await addGradeRequest(
-  //         payload.descriptionEng,
-  //         payload.descriptionArb,
+  //         payload.gradeNameEng,
+  //         payload.gradeNameArb,
   //         payload.overtimeEligibleFlag,
   //       );
   //       onSave(null, response);
@@ -114,16 +114,16 @@ export default function AddGrades({
       if (selectedRowData) {
         const response = await editGradeRequest(
           selectedRowData.id,
-          values.descriptionEng,
-          values.descriptionArb,
+          values.gradeNameEng,
+          values.gradeNameArb,
           values.overtimeEligibleFlag ? "Y" : "N"
         );
         console.log("Grade updated successfully:", response);
         onSave(selectedRowData.id, values);
       } else {
         const response = await addGradeRequest(
-          values.descriptionEng,
-          values.descriptionArb,
+          values.gradeNameEng,
+          values.gradeNameArb,
           values.overtimeEligibleFlag ? "Y" : "N"
         );
         console.log("Grade added successfully:", response);
@@ -143,14 +143,14 @@ export default function AddGrades({
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="descriptionEng"
+            name="gradeNameEng"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
                   Grade (English) {language === "en" && <Required />}
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter description here..." type="text" {...field} />
+                  <Input placeholder="Enter gradeName here..." type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -158,14 +158,14 @@ export default function AddGrades({
           />
           <FormField
             control={form.control}
-            name="descriptionArb"
+            name="gradeNameArb"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
                   Grade (العربية) {language === "ar" && <Required />}
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter description here..." type="text" {...field} />
+                  <Input placeholder="Enter gradeName here..." type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

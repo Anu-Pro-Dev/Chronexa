@@ -15,8 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
     locationNameEng: z.string().default(""),

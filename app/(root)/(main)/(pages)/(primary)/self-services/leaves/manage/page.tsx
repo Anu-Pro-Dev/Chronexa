@@ -23,7 +23,7 @@ export default function Page() {
     { field: "need_approval", headerName: "Need approval" },
     { field: "offical", headerName: "Official ( For NON DOF employees )" },
     { field: "attachment", headerName: "Allow attachment" },
-    { field: "comments" },
+    { field: "comments", headerName: "Justification" },
     { field: "workflows" },
   ]);
   

@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import { useLanguage } from "@/providers/LanguageProvider";
-import FilterForm from "@/forms/monthly-roster/FilterForm";
+import FilterForm from "@/forms/scheduling/MonthlyScheduleFilterForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import PowerTableRoster from "@/components/custom/power-comps/power-table-roster";
@@ -114,7 +114,7 @@ export default function Page() {
       { field: "subcategory", headerName: "Subcategory", width: 200 },
       { field: "number", headerName: "Number", width: 150 },
       { field: "name", headerName: "Name", width: 150 },
-      { field: "version", headerName: "Version", width: 100 },
+      // { field: "version", headerName: "Version", width: 100 },
       { field: "status", headerName: "Status", width: 100 },
       ...dayColumns,
       { field: "hours", headerName: "Work Hours", width: 120, pinned: "right" },
@@ -132,7 +132,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        enableClear
+        // enableClear
         props={props}
         items={modules?.scheduling?.items}
         // enableFilters

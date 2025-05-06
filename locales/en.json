@@ -42,7 +42,9 @@
       "punchOut": "Punch Out",
       "approve": "Approve",
       "reject": "Reject",
-      "exportExcel": "Export to excel"
+      "exportExcel": "Export to excel",
+      "exportWord": "Export to word",
+      "exportPdf": "Export to PDF"
     },
     "modules": {
       "dashboard": {

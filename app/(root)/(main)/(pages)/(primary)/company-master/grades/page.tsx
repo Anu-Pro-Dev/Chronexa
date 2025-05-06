@@ -43,8 +43,8 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: language === "ar" ? "درجة" : "Grade",
+        field: language === "ar" ? "gradeNameArb" : "gradeNameEng",
+        headerName: language === "ar" ? "الموقع" : "Grade",
       },
     ]);
   }, [language]);
@@ -54,9 +54,9 @@ export default function Page() {
       try {
         const response = await getAllGrades();
         if (response?.success && Array.isArray(response?.data)) {
-          const mapped = response.data.map((grad: any) => ({
-            ...grad,
-            id: grad.gradeId,
+          const mapped = response.data.map((loc: any) => ({
+            ...loc,
+            id: loc.gradeId,
           }));
     
           SetData(mapped);
@@ -67,8 +67,9 @@ export default function Page() {
         console.error("Error fetching grades:", error);
       }
     };
+    
     fetchGrades();
-  }, []); 
+  }, []);
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);

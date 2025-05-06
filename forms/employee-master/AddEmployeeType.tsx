@@ -108,21 +108,6 @@ export default function AddEmployeeType({
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="typeName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                    Type Name <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter the name" type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="descriptionEng"
             render={({ field }) => (
               <FormItem>

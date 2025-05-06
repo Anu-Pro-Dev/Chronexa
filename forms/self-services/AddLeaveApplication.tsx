@@ -77,7 +77,7 @@ const formSchema = z.object({
         "Invalid file. Ensure it's an document (PDF/DOC) and less than 5MB.",
     }
   ),
-  comments: z
+  justification: z
     .string()
     .min(1, {
       message: "Required",
@@ -98,7 +98,7 @@ export default function AddLeaveApplication({
       employee: "",
       leave_types: "",
       attachment: "",
-      comments: "",
+      justification: "",
     },
   });
 
@@ -286,12 +286,12 @@ export default function AddLeaveApplication({
             />
             <FormField
               control={form.control}
-              name="comments"
+              name="justification"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Comments </FormLabel>
+                  <FormLabel>Justification </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Add the comments here" {...field} rows={4} />
+                    <Textarea placeholder="Add the justification here" {...field} rows={4} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

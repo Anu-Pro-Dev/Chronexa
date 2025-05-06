@@ -113,14 +113,14 @@ export default function FilterWeeklyScheduling({
                   <FormControl>
                     <SelectTrigger className="bg-accent border-grey">
                       <Label className="font-normal text-secondary">
-                        User :
+                        Employee :
                       </Label>
                       <SelectValue placeholder="Choose user" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="1">User 1 </SelectItem>
-                    <SelectItem value="2">User 2</SelectItem>
+                    <SelectItem value="1">Employee 1 </SelectItem>
+                    <SelectItem value="2">Employee 2</SelectItem>
                   </SelectContent>
                 </Select>
 

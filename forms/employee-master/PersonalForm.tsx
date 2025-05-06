@@ -213,26 +213,38 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="organization"
+            name="employee_system_activation"
             render={({ field }) => (
-            <FormItem>
-                <FormLabel className="flex gap-1">Organization </FormLabel>
-                <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-                >
-                <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose organization" />
-                    </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">organization 1</SelectItem>
-                </SelectContent>
-                </Select>
+              <FormItem>
+                <FormLabel className="flex gap-1 text-right">Employee system activation</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button size={"lg"} variant={"outline"}
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
+                      >
+                        {field.value ? (
+                          format(field.value, "dd/MM/yy")
+                        ) : (
+                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                        )}
+                        <CalendarIcon />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      // disabled={(date) =>
+                      //   date > new Date() || date < new Date("1900-01-01")
+                      // }
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage className="mt-1"/>
-            </FormItem>
+              </FormItem>
             )}
           />
           <FormField
@@ -394,42 +406,6 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="employee_system_activation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex gap-1 text-right">Employee system activation</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
-                      >
-                        {field.value ? (
-                          format(field.value, "dd/MM/yy")
-                        ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                        )}
-                        <CalendarIcon />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      // disabled={(date) =>
-                      //   date > new Date() || date < new Date("1900-01-01")
-                      // }
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage className="mt-1"/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={personalForm.control}
             name="remarks"
             render={({ field }) => (
               <FormItem>
@@ -442,7 +418,7 @@ export default function PersonalForm({
             )}
           />
         </div>
-        <div className="flex justify-end gap-2 items-center py-5">
+        <div className="flex justify-end gap-2 items-center py-5 pt-10">
           <div className="flex gap-4 px-5">
             <Button
               variant={"outline"}

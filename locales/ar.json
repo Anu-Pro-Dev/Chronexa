@@ -41,7 +41,9 @@
       "punchOut": "لكمة خارج",
       "approve": "يعتمد",
       "reject": "يرفض",
-      "exportExcel": "تصدير إلى التفوق"
+      "exportExcel": "تصدير إلى التفوق",
+      "exportWord": "Export to word",
+      "exportPdf": "Export to PDF"
     },
     "modules": {
       "dashboard": {

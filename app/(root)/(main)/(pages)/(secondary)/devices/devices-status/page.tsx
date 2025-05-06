@@ -43,7 +43,7 @@ export default function Page() {
         props={props}
         items={modules?.devices?.items}
         isAddNewPagePath="/devices/devices-status/add"
-        disableAdd
+        // disableAdd
       />
       <PowerTable props={props} Data={Data} api={"/devices/devices-status"} showEdit={true} onEditClick={handleEditClick}/>
     </div>

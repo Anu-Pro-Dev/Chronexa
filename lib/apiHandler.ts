@@ -187,10 +187,10 @@ export const getAllGrades = async () => {
 };
 
 // Function to add a new grade
-export const addGradeRequest = async (descriptionEng: string, descriptionArb: string, overtimeEligibleFlag: string) => {
+export const addGradeRequest = async (gradeNameEng: string, gradeNameArb: string, overtimeEligibleFlag: string) => {
   return apiRequest("/grade/add", "POST", {
-    descriptionEng,
-    descriptionArb,
+    gradeNameEng,
+    gradeNameArb,
     overtimeEligibleFlag,
   });
 };
@@ -198,13 +198,41 @@ export const addGradeRequest = async (descriptionEng: string, descriptionArb: st
 // Function to edit a grade by ID
 export const editGradeRequest = async (
   id: string,
-  descriptionEng: string,
-  descriptionArb: string,
+  gradeNameEng: string,
+  gradeNameArb: string,
   overtimeEligibleFlag: string,
 ) => {
   return apiRequest(`/grade/edit/${id}`, "PUT", {
-    descriptionEng,
-    descriptionArb,
+    gradeNameEng,
+    gradeNameArb,
+  });
+};
+
+// Function to fetch all organization type
+export const getAllOrganizationType = async () => {
+  return apiRequest("/organizationType/all", "GET");
+};
+
+// Function to add a new organization type
+export const addOrganizationTypeRequest = async (hierarchy: number, organizationTypeNameEng: string, organizationTypeNameArb: string) => {
+  return apiRequest("/organizationType/add", "POST", {
+    hierarchy,
+    organizationTypeNameEng,
+    organizationTypeNameArb,
+  });
+};
+
+// Function to edit a location by ID
+export const editOrganizationTypeRequest = async (
+  id: string,
+  hierarchy: number,
+  organizationTypeNameEng: string,
+  organizationTypeNameArb: string,
+) => {
+  return apiRequest(`/organizationType/edit/${id}`, "PUT", {
+    hierarchy,
+    organizationTypeNameEng,
+    organizationTypeNameArb,
   });
 };
 

@@ -118,9 +118,9 @@ export default function AddManageMovements ({
               <div className="flex justify-between">
                 <div className="pb-6">
                     <h1 className="font-bold text-xl text-primary pb-2">Employees</h1>
-                    <h1 className="font-semibold text-sm text-text-secondary pb-2">
+                    {/* <h1 className="font-semibold text-sm text-text-secondary pb-2">
                     Select the employees for further process
-                    </h1>
+                    </h1> */}
                 </div>
               </div>
 

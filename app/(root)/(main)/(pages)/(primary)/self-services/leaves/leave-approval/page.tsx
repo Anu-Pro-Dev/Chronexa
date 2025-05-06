@@ -47,7 +47,7 @@ export default function Page() {
     { field: "leave_type", headerName: "Leave type" },
     { field: "from_date", headerName: "From date" },
     { field: "to_date", headerName: "To date" },
-    { field: "comments", headerName: "Comments" },
+    { field: "comments", headerName: "Justification" },
     { field: "status", headerName: "Status" },
   ]);
   const props = {

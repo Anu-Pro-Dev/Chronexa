@@ -4,7 +4,7 @@ import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddOrganizationType from "@/forms/organization/AddOrganizationType";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { getAllLocations } from "@/lib/apiHandler";
+import { getAllOrganizationType } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();
@@ -44,24 +44,33 @@ export default function Page() {
     setColumns([
       {field: "hierarchy", headerName: "Hierarchy"},
       {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
+        field: language === "ar" ? "organizationTypeNameArb" : "organizationTypeNameEng",
         headerName: language === "ar" ? "منظمة" : "Organization Type",
       },
     ]);
   }, [language]);
 
-  // useEffect(() => {
-  //   const fetchOrganizationTypes = async () => {
-  //     try {
-  //       const response = await getAllLocations();
-  //       console.log(response);
-  //       SetData(response);
-  //     } catch (error) {
-  //       console.error("Error fetching organization types:", error);
-  //     }
-  //   };
-  //   fetchOrganizationTypes();
-  // }, []);
+   useEffect(() => {
+    const fetchOrganizationTypes = async () => {
+      try {
+        const response = await getAllOrganizationType();
+        if (response?.success && Array.isArray(response?.data)) {
+          const mapped = response.data.map((orgType: any) => ({
+            ...orgType,
+            id: orgType.organizationTypeId,
+          }));
+    
+          SetData(mapped);
+        } else {
+          console.error("Unexpected response structure:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching organization:", error);
+      }
+    };
+    
+    fetchOrganizationTypes();
+  }, []);
 
   const handleEditClick = (data: any) => {
     setSelectedRowData(data);
@@ -101,7 +110,7 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={Data} api={"/organization/types"} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

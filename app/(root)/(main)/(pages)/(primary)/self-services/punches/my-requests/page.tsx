@@ -26,8 +26,8 @@ export default function Page() {
     { field: "time" },
     { field: "reason" },
     { field: "remarks" },
-    { field: "action_by" },
-    { field: "action_date" },
+    { field: "action_by", headerName: "Action By" },
+    { field: "action_date", headerName: "Action Date" },
   ]);
   const [open, on_open_change] = useState<boolean>(false)
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
@@ -111,7 +111,7 @@ export default function Page() {
       </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">Applied Movements</h1>
+          <h1 className="font-bold text-xl text-primary">My Punches Request</h1>
           {/* <h1 className="font-semibold text-sm text-text-secondary">
             Applied Movements can be viewed in this tab
           </h1> */}

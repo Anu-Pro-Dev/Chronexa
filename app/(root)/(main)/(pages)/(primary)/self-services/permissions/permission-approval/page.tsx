@@ -33,7 +33,7 @@ export default function Page() {
     { field: "to_date", headerName: "To date" },
     { field: "from_time", headerName: "From time" },
     { field: "to_time", headerName: "To time" },
-    { field: "remarks", headerName: "Status" },
+    { field: "remarks", headerName: "Justification" },
   ]);
   const [open, on_open_change] = useState<boolean>(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
