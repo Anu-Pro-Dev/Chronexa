@@ -23,46 +23,52 @@ export function StatusSelector({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          className={`w-20 ${
+          size={'sm'}
+          className={`w-8 h-7 rounded ${
             status === "Day"
-              ? "bg-green-500 hover:bg-green-600"
-              : status === "Friday"
+              ? "bg-success hover:bg-success-100"
+              : status === "Nig"
+            ? "bg-destructive hover:bg-destructive-100"
+              : status === "Fri"
               ? "bg-purple-500 hover:bg-purple-600"
-              : ""
+              : "bg-primary hover:bg-primary-100"
           }`}
         >
           {status}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-48 p-2">
+      <PopoverContent className="w-40 p-2 bg-accent">
         <div className="grid grid-cols-2 gap-2">
           <Button
+            size={'sm'}
             variant="default"
-            onClick={() => onStatusChange("Normal")}
-            className="w-full"
+            onClick={() => onStatusChange("Nor")}
+            className="w-full rounded-md"
           >
-            Nor
+            Normal
           </Button>
           <Button
+            size={'sm'}
             variant="destructive"
-            onClick={() => onStatusChange("Night")}
-            className="w-full"
+            onClick={() => onStatusChange("Nig")}
+            className="w-full rounded-md"
           >
-            Nig
+            Night
           </Button>
           <Button
+            size={'sm'}
             variant="success"
             onClick={() => onStatusChange("Day")}
-            className="w-full bg-green-500 hover:bg-green-600"
+            className="w-full rounded-md"
           >
             Day
           </Button>
           <Button
-            
-            onClick={() => onStatusChange("Friday")}
-            className="w-full bg-purple-500 hover:bg-purple-600"
+            size={'sm'}
+            onClick={() => onStatusChange("Fri")}
+            className="w-full rounded-md bg-purple-500 hover:bg-purple-600"
           >
-            Fri
+            Friday
           </Button>
         </div>
       </PopoverContent>

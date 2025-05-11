@@ -21,21 +21,43 @@ body {
   border: none !important;
 }
 
+.table-wrapper {
+  font-family: 'Nunito Sans', sans-serif;
+  border-radius: 0px;
+}
+
+.table-header {
+  color: #9BA9D2;
+  font-size: 15px;
+  font-weight: 600;
+  border-bottom: 1px solid #E5EDF7;
+  padding: 10px 0;
+}
+
+.table-header th {
+  max-width: 140px;
+}
+
+.table-content td {
+  max-width: 140px;
+}
+
 @layer base {
   :root {
     --background: #f9f9f9;
     --foreground: #000000;
     --accent: #ffffff;
     --primary: #0078d4;
-    --primary-50: #c1def5;
-    --primary-100: #ecf2f7;
+    --primary-100: #076bb7;
     --secondary: #9ba9d2;
     --text-primary: #23272e;
     --text-secondary: #64748b;
     --text-content: #2b3674;
     --muted: #2b3674;
     --success: #34c759;
+    --success-100: #239f42;
     --destructive: #ff3b30;
+    --destructive-100: #eb0f04;
     --border: #9ba9d2;
     --input: #ffffff;
     --ring: #0078d4;
@@ -66,7 +88,8 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
+  /* width: 5px; */
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
