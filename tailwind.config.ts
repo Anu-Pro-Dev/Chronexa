@@ -18,8 +18,6 @@ export default {
         content: "var(--content)",
         backdrop: "var(--backdrop)",
         tablebackdrop: "var(--table-backdrop)",
-        destructive: "var(--destructive)",
-        success: "var(--success)",
         btnoutline: "var(--btn-outline)",
         background: {
           DEFAULT: "var(--background)",
@@ -29,15 +27,18 @@ export default {
         accent: "var(--accent)",
         primary: {
           DEFAULT: "var(--primary)",
-        },
-        "primary-50": {
-          DEFAULT: "var(--primary-50)",
-        },
-        "primary-100": {
-          DEFAULT: "var(--primary-100)",
+          100: "var(--primary-100)",
         },
         secondary: {
           DEFAULT: "var(--secondary)",
+        },
+        success: {
+            DEFAULT: "var(--success)",
+            100: "var(--success-100)",
+        },
+        destructive: {
+            DEFAULT: "var(--destructive)",
+            100: "var(--destructive-100)",
         },
         text: {
           primary: "var(--text-primary)",

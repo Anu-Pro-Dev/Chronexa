@@ -19,8 +19,9 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-    locationNameEng: z.string().default(""),
-    locationNameArb: z.string().default(""),
+  locationCode: z.string().default(""),
+  locationNameEng: z.string().default(""),
+  locationNameArb: z.string().default(""),
 });
 
 const getSchema = (lang: "en" | "ar") =>
@@ -49,6 +50,7 @@ export default function AddLocations({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      locationCode:"",
       locationNameEng: "",
       locationNameArb: "",
     },
@@ -114,34 +116,62 @@ export default function AddLocations({
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
           <FormField
-              control={form.control}
-              name="locationNameEng"
-              render={({ field }) => (
+            control={form.control}
+            name="locationCode"
+            render={({ field }) => (
               <FormItem>
-                  <FormLabel>
-                      Location name (English) {language === "en" && <Required />}
-                  </FormLabel>
-                  <FormControl>
-                  <Input placeholder="Enter location name" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
+                <FormLabel>
+                  Location code<Required />
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none">
+                      CODE_
+                    </span>
+                    <Input
+                      type="text"
+                      placeholder="Enter location code"
+                      value={field.value?.replace(/^CODE_/, '') || ''}
+                      onChange={(e) =>
+                        field.onChange(`CODE_${e.target.value.replace(/^CODE_/, '')}`)
+                      }
+                      className="uppercase pl-14 placeholder:lowercase"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
               </FormItem>
-              )}
+            )}
           />
           <FormField
-              control={form.control}
-              name="locationNameArb"
-              render={({ field }) => (
-              <FormItem>
-                  <FormLabel>
-                      Location name (العربية) {language === "ar" && <Required />}
-                  </FormLabel>
-                  <FormControl>
-                  <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
-              </FormItem>
-              )}
+            control={form.control}
+            name="locationNameEng"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>
+                    Location name (English) {language === "en" && <Required />}
+                </FormLabel>
+                <FormControl>
+                <Input placeholder="Enter location name" type="text" {...field} />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="locationNameArb"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>
+                    Location name (العربية) {language === "ar" && <Required />}
+                </FormLabel>
+                <FormControl>
+                <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
           />
           <div className="w-full flex gap-2 items-center py-3">
               <Button

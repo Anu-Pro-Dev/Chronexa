@@ -42,9 +42,10 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+      { field: "locationId", headerName: language === "ar" ? "رمز الموقع" : "Location Code" },
       {
         field: language === "ar" ? "locationNameArb" : "locationNameEng",
-        headerName: language === "ar" ? "الموقع" : "Location",
+        headerName: language === "ar" ? "اسم الموقع" : "Location Name",
       },
     ]);
   }, [language]);

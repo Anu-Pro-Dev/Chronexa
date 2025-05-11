@@ -132,18 +132,10 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        // enableClear
         props={props}
         items={modules?.scheduling?.items}
-        // enableFilters
         disableAdd
         disableDelete
-        
-        // filter_modal_component={
-        //   <FilterForm on_open_change={filter_on_open_change} />
-        // }
-        // isLarge
-        // filter_modal_title="none"
       />
 
       <div className="flex flex-col justify-between bg-accent rounded-[15px] items-center px-5 py-3">

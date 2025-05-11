@@ -19,12 +19,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
-
+import { UnlockIcon } from "@/icons/icons";
 import { Category, scheduleData } from "./data";
 import { StatusSelector } from "./status-selector";
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 
-// Generate array of numbers 1-15 for column headers
-const columnNumbers = Array.from({ length: 15 }, (_, i) => i + 1);
+const columnNumbers = Array.from({ length: 31 }, (_, i) => i + 1);
 
 export default function ScheduleGrid() {
   const [data, setData] = React.useState<any>(scheduleData);
@@ -51,110 +51,109 @@ export default function ScheduleGrid() {
 
   return (
     <div className="w-full">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-12">
-                <Checkbox />
-              </TableHead>
-              <TableHead>Number</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Version</TableHead>
-              <TableHead>Status</TableHead>
-              {columnNumbers.map((num) => (
-                <TableHead key={num} className="text-center">
-                  {num}
+      <div className="bg-accent p-3 rounded-t-2xl pb-6">
+        <div className="w-full">
+          <Table className="min-w-[1200px] w-full text-sm">
+            <TableHeader>
+              <TableRow className="table-header w-full">
+                <TableHead className="h-12 w-12 px-4">
+                  <Checkbox className="border-2 border-[#E5E7EB] rounded-[3px]" />
                 </TableHead>
-              ))}
-              <TableHead className="text-right">Work hours</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((category: any, categoryIndex: any) => (
-              <React.Fragment key={category.name}>
-                <TableRow className="bg-muted/20">
-                  <TableCell
-                    colSpan={20}
-                    className="font-semibold text-primary"
-                  >
-                    {category.name}
-                  </TableCell>
-                </TableRow>
-                {category.subcategories.map((subcategory: any, subcategoryIndex: any) => (
-                  <React.Fragment key={subcategory.name}>
-                    <TableRow className="bg-muted/10">
-                      <TableCell colSpan={20} className="pl-8">
-                        {subcategory.name}
-                      </TableCell>
-                    </TableRow>
-                    {subcategory.rows.map((row: any, rowIndex: any) => (
-                      <TableRow key={row.id}>
-                        <TableCell>
-                          <Checkbox />
-                        </TableCell>
-                        <TableCell>{row.number}</TableCell>
-                        <TableCell>{row.name}</TableCell>
-                        <TableCell>{row.version}</TableCell>
-                        <TableCell>
-                          <Lock className="h-4 w-4" />
-                        </TableCell>
-                        {row.slots.map((slot: any, slotIndex: any) => (
-                          <TableCell key={slotIndex} className="text-center">
-                            <StatusSelector
-                              status={slot.status}
-                              onStatusChange={(newStatus) =>
-                                handleStatusChange(
-                                  categoryIndex,
-                                  subcategoryIndex,
-                                  rowIndex,
-                                  slotIndex,
-                                  newStatus
-                                )
-                              }
-                            />
-                          </TableCell>
-                        ))}
-                        <TableCell className="text-right">
-                          {row.hours}
+                <TableHead className="h-12 px-6 text-center">Number</TableHead>
+                <TableHead className="h-12 px-6 text-center">Name</TableHead>
+                <TableHead className="h-12 px-6 text-center">Version</TableHead>
+                <TableHead className="h-12 w-10 px-6">Status</TableHead>
+                {columnNumbers.map((num) => (
+                  <TableHead key={num} className="h-12 w-7 text-center">
+                    {num}
+                  </TableHead>
+                ))}
+                <TableHead className="h-12 px-6 text-center">Work hours</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="table-content">
+              {data.map((category: any, categoryIndex: any) => (
+                <React.Fragment key={category.name}>
+                  <TableRow className="bg-[#a3aed0e8]">
+                    <TableCell
+                      colSpan={20}
+                      className="font-black text-[15px] text-text-content"
+                    >
+                      {category.name}
+                    </TableCell>
+                  </TableRow>
+                  {category.subcategories.map((subcategory: any, subcategoryIndex: any) => (
+                    <React.Fragment key={subcategory.name}>
+                      <TableRow className="bg-[#a3aed040]">
+                        <TableCell colSpan={20} className="pl-6 font-bold text-[15px] text-text-content">
+                          {subcategory.name}
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </React.Fragment>
-            ))}
-          </TableBody>
-        </Table>
+                      {subcategory.rows.map((row: any, rowIndex: any) => (
+                        <TableRow key={row.id} className="text-text-content text-sm font-bold hover:bg-backdrop">
+                          <TableCell className="w-12 px-4">
+                            <Checkbox className="border-2 border-[#E5E7EB] rounded-[3px]" />
+                          </TableCell>
+                          <TableCell className="px-4 text-center">{row.number}</TableCell>
+                          <TableCell className="px-4 text-center">{row.name}</TableCell>
+                          <TableCell className="px-4 text-center">{row.version}</TableCell>
+                          <TableCell className="w-10 px-4">
+                            <div className="flex items-center justify-center h-full">
+                              <UnlockIcon color="#0078d4" className="h-4"/>
+                            </div>
+                          </TableCell>
+                          {row.slots.map((slot: any, slotIndex: 2) => (
+                            <TableCell key={slotIndex} className="text-center">
+                              <StatusSelector
+                                status={slot.status}
+                                onStatusChange={(newStatus) =>
+                                  handleStatusChange(
+                                    categoryIndex,
+                                    subcategoryIndex,
+                                    rowIndex,
+                                    slotIndex,
+                                    newStatus
+                                  )
+                                }
+                              />
+                            </TableCell>
+                          ))}
+                          <TableCell className="text-right">
+                            {row.hours}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </React.Fragment>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      <div className="flex items-center justify-between px-2 py-4">
+      <div className="bg-accent rounded-b-2xl flex items-center justify-between px-2 py-4">
         <div className="flex items-center space-x-2">
           <Select defaultValue="10">
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="flex h-10 items-center justify-between whitespace-nowrap border border-border-grey px-3 py-2 ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 max-w-[350px] w-20 text-sm font-normal text-secondary border-none shadow-lg bg-accent rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">10 per page</SelectItem>
-              <SelectItem value="20">20 per page</SelectItem>
-              <SelectItem value="50">50 per page</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-sm text-muted-foreground">Records per page</p>
+          <p className="text-secondary text-sm font-normal">Records per page</p>
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon">
-            ←
+          <Button variant="ghost" size="pagination" className="gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground font-normal false p-2 border-none outline-none rounded-[5px] h-6 w-6 flex justify-center items-center text-sm cursor-pointer bg-backdrop ml-2">
+            <ChevronLeft className="h-4 w-4 text-secondary" />
           </Button>
-          <Button variant="outline">1</Button>
-          <Button variant="outline">2</Button>
-          <Button variant="secondary">4</Button>
-          <Button variant="outline">5</Button>
-          <div className="px-2">...</div>
-          <Button variant="outline">15</Button>
-          <Button variant="outline" size="icon">
-            →
+          <Button variant="ghost" size="pagination" className="text-sm font-normal text-secondary">1</Button>
+          <Button variant="ghost" size="pagination" className="gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground font-normal false p-2 border-none outline-none rounded-[5px] h-6 w-6 flex justify-center items-center text-sm cursor-pointer bg-backdrop">
+            <ChevronRight className="h-4 w-4 text-secondary" />
           </Button>
         </div>
       </div>
