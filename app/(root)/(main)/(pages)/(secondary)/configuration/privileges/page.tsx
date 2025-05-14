@@ -5,7 +5,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import React, { useState } from "react";
 
 import { useLanguage } from "@/providers/LanguageProvider";
-import AddPrivelege from "@/forms/configuration/AddPrivelege";
+import AddPrivelege from "@/forms/configuration/AddPrivileges";
 export default function Page() {
   const { modules } = useLanguage();
 

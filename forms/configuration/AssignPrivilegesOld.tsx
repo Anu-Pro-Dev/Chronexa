@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-
 import { cn } from "@/lib/utils";
 import {
   ResponsiveModal,
@@ -75,7 +74,7 @@ const checkboxKeys = [
   "edit_employee",
 ] as const;
 
-export default function AssignPriveleges({
+export default function AssignPrivilegesOld({
   modal_props,
 }: {
   modal_props: { open: boolean; on_open_change: (open: boolean) => void };
