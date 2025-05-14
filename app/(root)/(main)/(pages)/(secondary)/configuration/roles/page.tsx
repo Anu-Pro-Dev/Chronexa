@@ -3,13 +3,20 @@ import React, { useEffect, useState } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddRole from "@/forms/configuration/AddRole";
-import AssignPriveleges from "@/forms/configuration/AssignPriveleges";
+import AssignPrivileges from "@/forms/configuration/AssignPrivileges";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 
 export default function Page() {
-  const { modules } = useLanguage();
+  const { modules, language } = useLanguage();
   const router = useRouter();
+  type Columns = {
+    field: string;
+    headerName?: string;
+    clickable?: boolean;
+    onCellClick?: (data: any) => void;
+  };
+  const [Columns, setColumns] = useState<Columns[]>([]);
   const [Data, SetData] = useState<any>([]);
   const [CurrentPage, SetCurrentPage] = useState<number>(1);
   const [SortField, SetSortField] = useState<string>("");
@@ -17,12 +24,39 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [open, on_open_change] = useState<boolean>(false);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  
+  const props = {
+    Data,
+    SetData,
+    Columns,
+    SortField,
+    CurrentPage,
+    SetCurrentPage,
+    SetSortField,
+    SortDirection,
+    SetSortDirection,
+    open,
+    on_open_change,
+  };
 
   useEffect(() => {
     if (!open) {
       setSelectedRowData(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    setColumns([
+      {
+        field: language === "ar" ? "name_ar" : "name_en",
+        headerName: language === "ar" ? "اسم الدور" : "Role Name",
+      },
+      { field: "privileges", clickable: true, onCellClick: handleCellClick },
+      { field: "assign_role", headerName: "Assign Role", clickable: true, onCellClick: handleCellClickPath },
+      { field: "users" },
+    ]);
+  }, [language]);
 
   const handleCellClick = (data: any) => {
     console.log("Cell Clicked:", data);
@@ -60,29 +94,6 @@ export default function Page() {
     setSelectedRowData(null);
   };
 
-
-  const [Columns, setColumns] = useState([
-    { field: "name_en", headerName: "Name (English)" },
-    { field: "name_ar", headerName: "Name (العربية)" },
-    { field: "privileges", clickable: true, onCellClick: handleCellClick },
-    { field: "assign_role", headerName: "Assign Role", clickable: true, onCellClick: handleCellClickPath },
-    { field: "users" },
-  ]);
-
-  const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    open,
-    on_open_change,
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -96,15 +107,16 @@ export default function Page() {
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
-        }
+      }
       />
       <PowerTable props={props} Data={Data} api={"/security/roles"} showEdit={true} onEditClick={handleEditClick}/>
       {isModalOpen && selectedRowData && (
-        <AssignPriveleges
+        <AssignPrivileges
           modal_props={{
             open: isModalOpen,
             on_open_change: setIsModalOpen,
           }}
+          roleName={selectedRowData?.name_en ?? ""}
         />
       )}
 
