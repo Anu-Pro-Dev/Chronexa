@@ -88,8 +88,8 @@ body {
 }
 
 ::-webkit-scrollbar {
-  /* width: 5px; */
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {

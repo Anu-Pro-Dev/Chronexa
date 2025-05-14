@@ -49,6 +49,7 @@
       "dashboard": {
         "myAttendance": "إحصائيات ذاتية",
         "teamAttendance": "إحصائيات الفريق",
+        "geoFench": "السياج الجغرافي",
         "permissionandLeaves": "إذن & أوراق",
         "workingDays": "أيام العمل",
         "leavesTaken" : "الأوراق المتخذة",

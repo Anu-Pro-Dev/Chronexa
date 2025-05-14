@@ -9,11 +9,11 @@ interface Country {
   flag: string;
 }
 
-interface CitizenshipDropdownProps {
+interface CountryDropdownProps {
   value: Country | null;
   onChange: (value: Country | null) => void;
 }
-const CitizenshipDropdown = ({ value, onChange }: CitizenshipDropdownProps) => {
+const CountryDropdown = ({ value, onChange }: CountryDropdownProps) => {
   const [countries, setCountries] = useState<Country[]>([]);
 
   useEffect(() => {
@@ -90,7 +90,7 @@ const CitizenshipDropdown = ({ value, onChange }: CitizenshipDropdownProps) => {
       formatOptionLabel={(country) => ( // Render custom JSX in the dropdown
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src={country.flag} alt={country.code} width="20" height="15" />
-          <span>{country.name} - {country.nameAr}</span>
+          <span>{country.code} - {country.name} / {country.nameAr}</span>
         </div>
       )}
       onChange={(selected) => onChange(selected as Country)} // Pass the whole country object
@@ -102,4 +102,4 @@ const CitizenshipDropdown = ({ value, onChange }: CitizenshipDropdownProps) => {
   );
 };
 
-export default CitizenshipDropdown;
+export default CountryDropdown;

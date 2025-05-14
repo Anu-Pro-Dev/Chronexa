@@ -50,6 +50,7 @@
       "dashboard": {
         "myAttendance": "My Attendance",
         "teamAttendance": "Team Attendance",
+        "geoFench": "Geo Fench",
         "permissionandLeaves": "Permission & Leaves",
         "workingDays": "Working Days",
         "leavesTaken" : "Leaves Taken",

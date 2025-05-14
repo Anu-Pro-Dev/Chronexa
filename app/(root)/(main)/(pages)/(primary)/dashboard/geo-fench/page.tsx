@@ -2,7 +2,7 @@
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import React from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
-import TeamAttendancePage from "@/components/custom/dashboard-comps/team-attendance/TAPage";
+import Geolocation from "@/components/custom/dashboard-comps/geo-fench/Geolocation";
 
 export default function Page() {
   const { modules } = useLanguage();
@@ -16,7 +16,7 @@ export default function Page() {
         items={modules?.dashboard.items}
       />
       <div>
-        <TeamAttendancePage />
+        <Geolocation />
       </div>
     </div>
   );

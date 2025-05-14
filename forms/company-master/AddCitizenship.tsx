@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import CitizenshipDropdown from "@/components/custom/CitizenshipDropdown";
+import CountryDropdown from "@/components/custom/country-dropdown";
 import { addCitizenshipRequest } from "@/lib/apiHandler"; 
 
 // Country type definition
@@ -121,7 +121,7 @@ export default function AddCitizenship({
                   Citizenship <Required />
                 </FormLabel>
                 <FormControl>
-                  <CitizenshipDropdown value={selectedCountry} onChange={handleCountryChange} />
+                  <CountryDropdown value={selectedCountry} onChange={handleCountryChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

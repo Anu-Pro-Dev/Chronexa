@@ -1,11 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import { useLanguage } from "@/providers/LanguageProvider";
 import FilterForm from "@/forms/scheduling/MonthlyScheduleFilterForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import ScheduleGrid from "./schedule-grid";
+import PowerTableRoster from "@/components/custom/power-comps/power-table-roster";
 import {
   CopyIcon,
   ExportIcon,
@@ -16,16 +16,119 @@ import {
   PasteIcon,
   SaveIcon,
 } from "@/icons/icons";
+import { scheduleData } from "../data";
 
 export default function Page() {
   const { modules } = useLanguage();
   const [SearchValue, SetSearchValue] = useState<string>("");
-  
+
+  const [filter_open, filter_on_open_change] = useState<boolean>(false);
+
+  const [Data, SetData] = useState<any>(() => {
+    return scheduleData.flatMap((category: any) => {
+      const flattenedRows = category.subcategories.flatMap((subcategory: any) => {
+        return subcategory.rows.map((row: any) => {
+          // Convert schedule slots into day-wise structure
+          const schedule = row.slots.reduce((acc: any, slot: any, idx: number) => {
+            acc[idx + 1] = slot.status; // Map slots to 1-31 for the days of the month
+            return acc;
+          }, {});
+          return {
+            ...row,
+            category: category.name,
+            subcategory: subcategory.name,
+            ...schedule,
+          };
+        });
+      });
+
+      return flattenedRows;
+    });
+  });
+
+  const [Columns] = useState(() => {
+    const dayColumns = Array.from({ length: 31 }, (_, i) => ({
+      field: `${i + 1}`,
+      headerName: `${i + 1}`,
+      width: 50,
+      cellStyle: (params: any) => {
+        switch (params.value) {
+          case "Nor":
+            return {
+              backgroundColor: "#0E6ECF",
+              color: "#fff",
+              fontSize: "12px",
+              fontWeight: "800",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            };
+          case "Nig":
+            return {
+              backgroundColor: "#DF2F4A",
+              color: "#fff",
+              fontSize: "12px",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            };
+          case "Day":
+            return {
+              backgroundColor: "#00C875",
+              color: "#fff",
+              fontSize: "12px",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            };
+          case "Fri":
+            return {
+              backgroundColor: "#9D50DD",
+              color: "#fff",
+              fontSize: "12px",
+              fontWeight: "800",
+              width: "30px",
+              height: "25px",
+              borderRadius: "3px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            };
+          default:
+            return {};
+        }
+      },
+    }));
+
+    return [
+      { field: "category", headerName: "Category", width: 200 },
+      { field: "subcategory", headerName: "Subcategory", width: 200 },
+      { field: "number", headerName: "Number", width: 150 },
+      { field: "name", headerName: "Name", width: 150 },
+      // { field: "version", headerName: "Version", width: 100 },
+      { field: "status", headerName: "Status", width: 100 },
+      ...dayColumns,
+      { field: "hours", headerName: "Work Hours", width: 120, pinned: "right" },
+    ];
+  });
+
   const props = {
+    Data,
+    SetData,
+    Columns,
     SearchValue,
     SetSearchValue,
   };
-  
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -63,7 +166,9 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <ScheduleGrid />
+
+      <PowerTableRoster props={props} />
+
       <div className="justify-end gap-4 flex">
         <Button size={"sm"} type="button">
           <SaveIcon />
