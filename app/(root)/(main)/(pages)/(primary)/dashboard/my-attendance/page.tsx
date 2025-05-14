@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import MyAttendancePage from "@/components/custom/dashboard-comps/my-attendance/MAPage";
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import { PunchButton } from "@/components/custom/PunchButton";
+import { PunchButton } from "@/components/custom/punch-button";
 import { 
   AbsentIcon,
   ApprovedIcon,

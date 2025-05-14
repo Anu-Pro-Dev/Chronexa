@@ -30,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import CitizenshipDropdown from "@/components/custom/CitizenshipDropdown";
+import CountryDropdown from "@/components/custom/country-dropdown";
 
 export default function OfficialForm({
   Page,
@@ -137,7 +137,7 @@ export default function OfficialForm({
             render={({ field }) => (
               <FormItem className="">
                 <FormLabel className="flex gap-1">Citizenship <Required/> </FormLabel>
-                <CitizenshipDropdown value={field.value} onChange={field.onChange} />
+                <CountryDropdown value={field.value} onChange={field.onChange} />
                 <FormMessage className="mt-1"/>
               </FormItem>
             )}

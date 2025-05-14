@@ -55,6 +55,11 @@ export default function LanguageProvider({
         path: "/dashboard/team-attendance/",
         value: "team_attendance",
       },
+      {
+        label: currentLanguageData.translations?.modules?.dashboard?.geoFench || "Geo Fench",
+        path: "/dashboard/geo-fench/",
+        value: "geo_fench",
+      },
     ],
   };
 

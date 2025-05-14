@@ -20,8 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
 import { UnlockIcon } from "@/icons/icons";
-import { Category, scheduleData } from "../data";
-import { StatusSelector } from "../status-selector";
+import { Category, scheduleData } from "./data";
+import { StatusSelector } from "./status-selector";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 
 const columnNumbers = Array.from({ length: 31 }, (_, i) => i + 1);

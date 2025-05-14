@@ -21,7 +21,6 @@ export default function LanguageSwitcher() {
   return (
   <div>
       <Select
-        // dir={dir}
         value={language}
         onValueChange={(value) => {
           setLanguage(value);

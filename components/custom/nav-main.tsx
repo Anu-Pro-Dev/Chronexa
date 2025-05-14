@@ -31,14 +31,14 @@ type NavItem = {
 };
 
 export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
-  const { open } = useSidebar();
+  const { open, isMobile } = useSidebar();
 
   const router = useRouter();
   const pathname = usePathname();
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
-      <SidebarMenu className={`${open && ""}`}>
+      <SidebarGroupLabel isMobile={isMobile}>{title}</SidebarGroupLabel>
+      <SidebarMenu className={`${open && ""} ${!isMobile && ""}`}>
         {items?.map((item: any) => (
           <Collapsible
             key={item.title}
@@ -56,7 +56,7 @@ export function NavMain({ items, title }: { title: string; items: NavItem[] }) {
                   pathname.startsWith(item?.path)
                     ? "bg-backdrop rounded-full hover:bg-backdrop text-primary hover:text-primary"
                     : ""
-                } ${!open && "rounded-lg"} `}
+                } ${!open && "rounded-lg"} ${isMobile && "rounded-lg pl-2 h-8"}`}
               >
                 {item.icon && <item.icon className="" />}
                 <span className="text-sm font-medium">{item.title}</span>

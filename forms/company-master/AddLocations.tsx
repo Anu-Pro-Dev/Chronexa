@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
+import CountryDropdown from "@/components/custom/country-dropdown";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 
@@ -22,6 +23,7 @@ const formSchema = z.object({
   locationCode: z.string().default(""),
   locationNameEng: z.string().default(""),
   locationNameArb: z.string().default(""),
+  countryCode: z.any().optional(),
 });
 
 const getSchema = (lang: "en" | "ar") =>
@@ -53,6 +55,7 @@ export default function AddLocations({
       locationCode:"",
       locationNameEng: "",
       locationNameArb: "",
+      countryCode: "",
     },
   });
 
@@ -171,6 +174,17 @@ export default function AddLocations({
                 </FormControl>
                 <FormMessage />
             </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="countryCode"
+            render={({ field }) => (
+              <FormItem className="">
+                <FormLabel className="flex gap-1">Country Code</FormLabel>
+                <CountryDropdown value={field.value} onChange={field.onChange} />
+                <FormMessage className="mt-1"/>
+              </FormItem>
             )}
           />
           <div className="w-full flex gap-2 items-center py-3">

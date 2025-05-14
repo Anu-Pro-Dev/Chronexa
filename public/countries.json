@@ -450,7 +450,7 @@
     "flag": "https://flagcdn.com/w40/is.png"
   },
   {
-    "code": "IN",
+    "code": "IND",
     "name": "India",
     "nameAr": "الهند",
     "flag": "https://flagcdn.com/w40/in.png"
@@ -660,9 +660,9 @@
     "flag": "https://flagcdn.com/w40/no.png"
   },
   {
-    "code": "OM",
-    "name": "Oman",
-    "nameAr": "عمان",
+    "code": "OMAN",
+    "name": "Sultanate of Oman",
+    "nameAr": "سلطنة عمان",
     "flag": "https://flagcdn.com/w40/om.png"
   },
   {
@@ -696,7 +696,7 @@
     "flag": "https://flagcdn.com/w40/pt.png"
   },
   {
-    "code": "QA",
+    "code": "QTR",
     "name": "Qatar",
     "nameAr": "قطر",
     "flag": "https://flagcdn.com/w40/qa.png"
@@ -714,7 +714,7 @@
     "flag": "https://flagcdn.com/w40/ru.png"
   },
   {
-    "code": "SA",
+    "code": "KSA",
     "name": "Saudi Arabia",
     "nameAr": "السعودية",
     "flag": "https://flagcdn.com/w40/sa.png"
@@ -768,7 +768,7 @@
     "flag": "https://flagcdn.com/w40/ua.png"
   },
   {
-    "code": "AE",
+    "code": "UAE",
     "name": "United Arab Emirates",
     "nameAr": "الإمارات",
     "flag": "https://flagcdn.com/w40/ae.png"
