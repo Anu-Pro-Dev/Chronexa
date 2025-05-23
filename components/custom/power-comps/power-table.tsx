@@ -14,6 +14,7 @@ import { DynamicApi } from "@/lib/dynamicapi";
 import { themeQuartz } from "ag-grid-community";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { EditIcon } from "@/icons/icons";
+import { CheckCircle, XCircle } from "lucide-react";
 
 const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data: any) => void }) => {
   const handleClick = () => {
@@ -185,11 +186,37 @@ export default function PowerTable({
       : []),
     ...props.Columns.map((col: any) => ({
       ...col,
-      cellRenderer: col.clickable
-        ? (params: any) => (
-            <ClickableCellRenderer {...params} onCellClick={col.onCellClick} />
-          )
+      cellRenderer:
+      typeof col.field === "string"
+        ? (params: any) => {
+            const value = params.value;
+
+            if (typeof value === "boolean") {
+              return value ? (
+                <CheckCircle className="text-green-500 h-4 w-4" />
+              ) : (
+                <XCircle className="text-red-500 h-4 w-4" />
+              );
+            }
+
+            // If the column is clickable
+            if (col.clickable) {
+              return (
+                <ClickableCellRenderer
+                  {...params}
+                  onCellClick={col.onCellClick}
+                />
+              );
+            }
+
+            return value;
+          }
         : undefined,
+      // cellRenderer: col.clickable
+      //   ? (params: any) => (
+      //       <ClickableCellRenderer {...params} onCellClick={col.onCellClick} />
+      //     )
+      //   : undefined,
     })),
     ...(showEdit
       ? [

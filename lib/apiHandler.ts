@@ -41,9 +41,9 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
 };
 
 // Function for logging in
-export const loginRequest = async (Employeename: number, password: string, rememberMe: boolean) => {
+export const loginRequest = async (login: string, password: string, rememberMe: boolean) => {
     const response = await apiRequest("/auth/login", "POST", {
-      employeeId: Employeename,
+      login: login,
       password: password,
     });
   

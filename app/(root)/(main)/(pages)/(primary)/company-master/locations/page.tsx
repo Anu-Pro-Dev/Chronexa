@@ -108,8 +108,9 @@ export default function Page() {
             onSave={handleSave}
           />
         }
+        isLarge
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
+      <PowerTable props={props} Data={Data} api={"/company-master/locations"} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

@@ -88,7 +88,7 @@ export default function LoginForm() {
       router.push("/dashboard");
   
     // Uncomment the following lines to use the loginRequest function
-      // const response = await loginRequest(Number(values.username), values.password, values.remember_me ?? false);
+      // const response = await loginRequest(values.username, values.password, values.remember_me ?? false);
   
       // // Redirect only if login is successful and a token is received
       // if (response?.token) {

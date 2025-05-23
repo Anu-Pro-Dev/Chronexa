@@ -354,21 +354,32 @@ export type PrivilegesDataType = {
 
 // Settings Page DataTypes
 
-export type AllSettingsDataType = {
-  name: string;
-  value: string;
-  deletable: string;
-  description: string;
-  updated_by: string;
-  updated: string;
+export type DBSettingsDataType = {
+  databaseType: string;
+  databaseName: string;
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  isConnected: boolean;
+  createdBy: string;
+  createdAt: string;
 };
 
-export type NotificationDataType = {
-  descriptionEng: string;
-  descriptionArb: string;
-  subject: string;
-  updated_by: string;
-  updated: string;
+export type EmailSettingsDataType = {
+  emailID: string;
+  name: string;
+  host: string;
+  port: number;
+  authentication: boolean;
+  encryption: string;
+  username: string;
+  password: string;
+  fromEmail: string;
+  isDefault: boolean;
+  isActive: boolean;
+  createdBy: string;
+  createdAt: string;
 };
 
 // Alerts Page DataTypes

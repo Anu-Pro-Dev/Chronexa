@@ -447,11 +447,6 @@ export default function LanguageProvider({
     path: "/settings/",
       items: [
         {
-          label: "Application Settings",
-          path: "/settings/application-settings/",
-          value: "application_settings",
-        },
-        {
           label: "DB Settings",
           path: "/settings/db-settings/",
           value: "db_settings",
@@ -466,93 +461,41 @@ export default function LanguageProvider({
           path: "/settings/master-upload/",
           value: "master_upload",
         },
-        // {
-        //   label: "Application Settings",
-        //   path: "/settings/application-settings/all/",
-        //   value: "application_settings",
-        //   hide:true,
-        // },
-        // {
-        //   label: "Application Settings",
-        //   path: "/settings/application-settings/notification/",
-        //   value: "application_settings",
-        //   hide:true,
-        // },
-        // {
-        //   label: "Application Settings",
-        //   path: "/settings/application-settings/server/",
-        //   value: "application_settings",
-        //   hide:true,
-        // },
-        // {
-        //   label: "Application Settings",
-        //   path: "/settings/application-settings/others/",
-        //   value: "application_settings",
-        //   hide:true,
-        // },
-        // {
-        //   label: "Application Settings",
-        //   path: "/settings/application-settings/module/",
-        //   value: "application_settings",
-        //   hide:true,
-        // },
-        // {
-        //   label: "Application Settings",
-        //   path: "/settings/application-settings/verification/",
-        //   value: "application_settings",
-        //   hide:true,
-        // },
-        // {
-        //   label: "Announcements",
-        //   path: "/settings/announcements/",
-        //   value: "announcement",
-        // },
-        // {
-        //   label: "Add Announcement",
-        //   path: "/settings/announcements/add/",
-        //   value: "add_announcement",
-        //   hide: true,
-        // },
-        // {
-        //   label: "Notifications ",
-        //   path: "/settings/notifications/",
-        //   value: "notifications",
-        // },
       ],
-    manage_movements: {
-      items: [
-        {
-          label: "All",
-          url: "/settings/application-settings/all/",
-          value: "all",
-        },
-        {
-          label: "Notification",
-          url: "/settings/application-settings/notification/",
-          value: "notification",
-        },
-        {
-          label: "Server",
-          url: "/settings/application-settings/server/",
-          value: "server",
-        },
-        {
-          label: "Module",
-          url: "/settings/application-settings/module/",
-          value: "module",
-        },
-        {
-          label: "Others",
-          url: "/settings/application-settings/others/",
-          value: "others",
-        },
-        {
-          label: "Verification",
-          url: "/settings/application-settings/verification/",
-          value: "verification",
-        },
-      ],
-    },
+    // manage_movements: {
+    //   items: [
+    //     {
+    //       label: "All",
+    //       url: "/settings/application-settings/all/",
+    //       value: "all",
+    //     },
+    //     {
+    //       label: "Notification",
+    //       url: "/settings/application-settings/notification/",
+    //       value: "notification",
+    //     },
+    //     {
+    //       label: "Server",
+    //       url: "/settings/application-settings/server/",
+    //       value: "server",
+    //     },
+    //     {
+    //       label: "Module",
+    //       url: "/settings/application-settings/module/",
+    //       value: "module",
+    //     },
+    //     {
+    //       label: "Others",
+    //       url: "/settings/application-settings/others/",
+    //       value: "others",
+    //     },
+    //     {
+    //       label: "Verification",
+    //       url: "/settings/application-settings/verification/",
+    //       value: "verification",
+    //     },
+    //   ],
+    // },
 
   };
 
