@@ -24,6 +24,7 @@ import { IoMdRefresh } from "react-icons/io";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { loginRequest } from "@/lib/apiHandler";
 import { USER_TOKEN } from "@/utils/constants";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 const formSchema = z.object({
   username: z
@@ -48,6 +49,7 @@ const formSchema = z.object({
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const {language } = useLanguage();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,24 +81,24 @@ export default function LoginForm() {
         return;
       }
 
-      const token = "something bro";
-      if (values.remember_me === true) {
-        localStorage.setItem(USER_TOKEN, token);
-      } else {
-        sessionStorage.setItem(USER_TOKEN, token);
-      }
-      router.push("/dashboard");
+      // const token = "something bro";
+      // if (values.remember_me === true) {
+      //   localStorage.setItem(USER_TOKEN, token);
+      // } else {
+      //   sessionStorage.setItem(USER_TOKEN, token);
+      // }
+      // router.push("/dashboard");
   
     // Uncomment the following lines to use the loginRequest function
-      // const response = await loginRequest(values.username, values.password, values.remember_me ?? false);
+      const response = await loginRequest(values.username, values.password, values.remember_me ?? false);
   
-      // // Redirect only if login is successful and a token is received
-      // if (response?.token) {
-      //   router.push("/dashboard");
-      // } else {
-      //   console.error("Login failed: No token received.");
-      //   form.setError("username", { type: "manual", message: "Invalid credentials" });
-      // }
+      // Redirect only if login is successful and a token is received
+      if (response?.token) {
+        router.push("/dashboard");
+      } else {
+        console.error("Login failed: No token received.");
+        form.setError("username", { type: "manual", message: "Invalid credentials" });
+      }
     } catch (error) {
       console.error("Login error:", error);
       form.setError("username", { type: "manual", message: "An error occurred. Please try again." });
@@ -109,7 +111,7 @@ export default function LoginForm() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <h1 className="text-center text-xl font-bold">Login</h1>
-            <p className="text-center text-sm font-semibold text-text-secondary">Welcome Back! Please Login to access.</p>
+            <p className="text-center text-sm font-semibold text-text-secondary">Welcome Back! Please Login to access</p>
           </div>
           <FormField
             control={form.control}
@@ -146,10 +148,12 @@ export default function LoginForm() {
                       type={showPassword ? "text" : "password"}
                       {...field}
                     />
-                  </FormControl>
+                  </FormControl>        
                   <button
                     type="button"
-                    className="absolute right-3 top-3 text-text-secondary"
+                    tabIndex={-1}
+                    className={`absolute top-1/2 text-text-secondary -translate-y-1/2                           
+                      ${language === 'ar' ? 'left-3' : 'right-3'}`}
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <IoEyeOff className="w-5 h-5" /> : <IoEye className="w-5 h-5" />}

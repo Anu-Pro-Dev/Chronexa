@@ -92,6 +92,11 @@ export const resetPasswordRequest = async (newPassword: string) => {
   
   return apiRequest("/auth/reset-password", "POST", { newPassword });
 };
+
+// Function to fetch all countries
+export const getAllCountries = async () => {
+  return apiRequest("/countries/all", "GET");
+};
   
 // Function to delete tanle entity dynamically
 export const deleteEntityRequest = (entity: string | undefined, id: string) => {
@@ -109,23 +114,34 @@ export const getAllLocations = async () => {
 };
 
 // Function to add a new location
-export const addLocationRequest = async (locationNameEng: string, locationNameArb: string) => {
-  return apiRequest("/location/add", "POST", {
-    locationNameEng,
-    locationNameArb,
-  });
+export const addLocationRequest = async (data: {
+  location_code?: string;
+  location_eng?: string;
+  location_arb?: string;
+  city?: string;
+  region_name?: string;
+  country_code?: string;
+  geolocation?: string;
+  radius?: number;
+  location_id?: number;
+}) => {
+  return apiRequest("/location/add", "POST", data);
 };
 
+
 // Function to edit a location by ID
-export const editLocationRequest = async (
-  id: string,
-  locationNameEng: string,
-  locationNameArb: string,
-) => {
-  return apiRequest(`/location/edit/${id}`, "PUT", {
-    locationNameEng,
-    locationNameArb,
-  });
+export const editLocationRequest = async (data: {
+  location_id: number;
+  location_code?: string;
+  location_eng?: string;
+  location_arb?: string;
+  city?: string;
+  region_name?: string;
+  country_code?: string;
+  geolocation?: string;
+  radius?: number;
+}) => {
+  return apiRequest(`/location/edit/${data.location_id}`, "PUT", data);
 };
 
 // Function to fetch all citizenship

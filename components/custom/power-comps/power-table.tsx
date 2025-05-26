@@ -49,7 +49,7 @@ export default function PowerTable({
   ispageValue5?: any;
   onRowSelection?: (selectedRows: any[]) => void;
 }) {
-  const { dir } = useLanguage();
+  const { language, dir } = useLanguage();
   const gridRef = useRef<any>();
 
   const [TotalPages, SetTotalPages] = useState<number>(1);
@@ -179,7 +179,7 @@ export default function PowerTable({
             width: 50,
             sortable: false,
             filter: false,
-            pinned: "left",
+            pinned: language === "ar" ? "right" : "left",
             cellStyle: { border: "none" },
           },
         ]
@@ -212,11 +212,6 @@ export default function PowerTable({
             return value;
           }
         : undefined,
-      // cellRenderer: col.clickable
-      //   ? (params: any) => (
-      //       <ClickableCellRenderer {...params} onCellClick={col.onCellClick} />
-      //     )
-      //   : undefined,
     })),
     ...(showEdit
       ? [
@@ -227,7 +222,7 @@ export default function PowerTable({
             width: 50,
             sortable: false,
             filter: false,
-            pinned: "right",
+            pinned: language === "ar" ? "left" : "right",
             cellStyle: {
               border: "none",
               display: "flex",
@@ -297,7 +292,7 @@ export default function PowerTable({
               ))}
             </SelectContent>
           </Select>
-          <p className="text-secondary text-sm font-normal">Records per page</p>
+          <p className="text-secondary text-sm font-normal">{language === "ar" ? "السجلات لكل صفحة" : "Records per page"}</p>
         </div>
 
         <PowerTablePagination

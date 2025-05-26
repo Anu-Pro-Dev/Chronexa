@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,41 +13,45 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
-import { useRouter } from "next/navigation";
 import CountryDropdown from "@/components/custom/country-dropdown";
+import { useRouter } from "next/navigation";
+import { useCountries } from "@/hooks/use-countries";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  locationCode: z.string().default(""),
-  locationNameEng: z.string().default(""),
-  locationNameArb: z.string().default(""),
-  radius: z.number(),
-  countryCode: z.any().optional(),
-  geoCoordinates: z.string().refine((val) => {
-    const match = val.trim().match(
-      /^-?\d{1,2}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$/
-    );
-    if (!match) return false;
-
-    const [lat, lon] = val.split(",").map(Number);
-    return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
-  }, {
-    message: "Enter valid latitude,longitude",
-  }),
-});
-
-const getSchema = (lang: "en" | "ar") =>
-    formSchema.refine((data) => {
-        if (lang === "en") return !!data.locationNameEng;
-        if (lang === "ar") return !!data.locationNameArb;
-        return true;
+  location_code: z.string().default(""),
+  location_name: z.string().default(""),
+  radius: z.coerce.number().min(1, "Radius must be a positive number").optional(),  
+  country_code: z.any().optional(),
+  geolocation: z
+    .string()
+    .default("")
+    .refine((val) => {
+      if (!val?.trim()) return true; // allow empty (optional)
+      const match = val.match(/^(-?\d{1,2}(\.\d+)?)\s*,\s*(-?\d{1,3}(\.\d+)?)$/);
+      if (!match) return false;
+      const [lat, lon] = val.split(",").map((n) => Number(n.trim()));
+      return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
     }, {
-        message: "Required",
-        path: [lang === "en" ? "locationNameEng" : "locationNameArb"],
+      message: "Enter valid latitude,longitude",
+    }),
 });
+
+function pointToLatLon(point: string | null): string {
+  if (!point?.startsWith("POINT(")) return "";
+  const match = point.match(/POINT\(\s*(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s*\)/);
+  if (!match) return "";
+  const [, lon, lat] = match;
+  return `${lat},${lon}`; // Convert POINT(lon lat) → lat,lon
+}
+
+function latLonToPoint(value: string): string {
+  const [lat, lon] = value.split(",").map((s) => s.trim());
+  if (!lat || !lon) return "";
+  return `POINT(${lon} ${lat})`; // Convert lat,lon → POINT(lon lat)
+}
 
 export default function AddLocations({
   on_open_change,
@@ -59,16 +64,16 @@ export default function AddLocations({
 }) {
 
   const {language } = useLanguage();
-    
+  const { countries, getCountryByCode } = useCountries();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      locationCode:"",
-      locationNameEng: "",
-      locationNameArb: "",
+      location_code:"",
+      location_name: "",
       radius: undefined,
-      countryCode: "",
-      geoCoordinates: "",
+      country_code: "",
+      geolocation: "",
     },
   });
 
@@ -77,20 +82,24 @@ export default function AddLocations({
   }, [language]);
 
   useEffect(() => {
-    if (!selectedRowData) {
-      form.reset();
-    } else {
-      form.reset({
-        locationNameEng: selectedRowData.locationNameEng,
-        locationNameArb: selectedRowData.locationNameArb,
-        radius: selectedRowData.radius,
-        countryCode: selectedRowData?.countryCode ?? "",
-        geoCoordinates: selectedRowData?.geoCoordinates
-    ? `${selectedRowData.geoCoordinates.latitude},${selectedRowData.geoCoordinates.longitude}`
-    : "",
-      });
-    }
-  }, [selectedRowData, form]);
+  if (selectedRowData) {
+    const geolocationStr = pointToLatLon(selectedRowData?.geolocation ?? "");
+
+    form.reset({
+      location_code: selectedRowData.location_code ?? "",
+      location_name:
+        language === "en"
+          ? selectedRowData.location_eng ?? ""
+          : selectedRowData.location_arb ?? "",
+      radius: selectedRowData.radius,
+      country_code: selectedRowData.country_code ?? "",
+      geolocation: geolocationStr,
+    });
+  } else {
+    form.reset(); // clears on add
+  }
+}, [selectedRowData, form, language]);
+
 
   const handleSave = () => {
     const formData = form.getValues();
@@ -106,41 +115,52 @@ export default function AddLocations({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log("Submitting:", values);
+      if (values.geolocation.trim() !== "") {
+        const [latStr, lonStr] = values.geolocation.split(",").map((s) => s.trim());
+        const latitude = parseFloat(latStr);
+        const longitude = parseFloat(lonStr);
 
-      const [latStr, lonStr] = values.geoCoordinates.split(',').map(s => s.trim());
-      const latitude = parseFloat(latStr);
-      const longitude = parseFloat(lonStr);
+        if (
+          isNaN(latitude) ||
+          isNaN(longitude) ||
+          latitude < -90 ||
+          latitude > 90 ||
+          longitude < -180 ||
+          longitude > 180
+        ) {
+          alert(
+            "Invalid coordinates. Latitude must be between -90 and 90. Longitude must be between -180 and 180."
+          );
+          return;
+        }
 
-      if (
-        isNaN(latitude) ||
-        isNaN(longitude) ||
-        latitude < -90 || latitude > 90 ||
-        longitude < -180 || longitude > 180
-      ) {
-        alert("Invalid coordinates. Latitude must be between -90 and 90. Longitude must be between -180 and 180.");
-        return;
+        values.geolocation = latLonToPoint(values.geolocation); // ✅ Convert to POINT format
+      } else {
+        values.geolocation = "";
       }
+
+      const payload = {
+        location_code: values.location_code,
+        country_code: values.country_code,
+        radius: values.radius,
+        geolocation: values.geolocation,
+        // Set the correct location field based on current language
+        location_eng: language === "en" ? values.location_name : "",
+        location_arb: language === "ar" ? values.location_name : "",
+      };
 
       if (selectedRowData) {
-        const response = await editLocationRequest(
-          selectedRowData.id,
-          values.locationNameEng,
-          values.locationNameArb
-        );
-        console.log("Location updated successfully:", response);
-        onSave(selectedRowData.id, values);
-      } else {
-        const response = await addLocationRequest(
-          values.locationNameEng,
-          values.locationNameArb,
-          // values.geoCoordinates
-        );
-        console.log("Location added successfully:", response);
-        onSave(null, response);
-      }
-
-
+      const response = await editLocationRequest({
+        location_id: selectedRowData.id,
+        ...payload,
+      });
+      console.log("Location updated successfully:", response);
+      onSave(selectedRowData.id, payload);
+    } else {
+      const response = await addLocationRequest(payload);
+      console.log("Location added successfully:", response);
+      onSave(null, response);
+    }
       on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
@@ -154,15 +174,18 @@ export default function AddLocations({
           <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
             <FormField
               control={form.control}
-              name="locationCode"
+              name="location_code"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
                     Location code<Required />
                   </FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none">
+                    <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                      <span
+                        className={`absolute top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none
+                          ${language === 'ar' ? 'right-3' : 'left-3'}`}
+                      >
                         CODE_
                       </span>
                       <Input
@@ -172,7 +195,9 @@ export default function AddLocations({
                         onChange={(e) =>
                           field.onChange(`CODE_${e.target.value.replace(/^CODE_/, '')}`)
                         }
-                        className="uppercase pl-14 placeholder:lowercase"
+                        className={`uppercase placeholder:lowercase ${
+                          language === 'ar' ? 'pr-14 text-right' : 'pl-14 text-left'
+                        }`}
                       />
                     </div>
                   </FormControl>
@@ -182,22 +207,14 @@ export default function AddLocations({
             />
             <FormField
               control={form.control}
-              name="countryCode"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel className="flex gap-1">Country Code</FormLabel>
-                  <CountryDropdown value={field.value} onChange={field.onChange} />
-                  <FormMessage className="mt-1"/>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="locationNameEng"
+              name="location_name"
               render={({ field }) => (
               <FormItem>
                   <FormLabel>
-                      Location name (English/العربية) {language === "en" && <Required />}
+                    {language === "ar"
+                      ? "Location name (العربية) "
+                      : "Location name (English) "}
+                    <Required />
                   </FormLabel>
                   <FormControl>
                   <Input placeholder="Enter location name" type="text" {...field} />
@@ -206,43 +223,13 @@ export default function AddLocations({
               </FormItem>
               )}
             />
-            {/* <FormField
-              control={form.control}
-              name="locationNameArb"
-              render={({ field }) => (
-              <FormItem>
-                  <FormLabel>
-                      Location name (العربية) {language === "ar" && <Required />}
-                  </FormLabel>
-                  <FormControl>
-                  <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
-              </FormItem>
-              )}
-            /> */}
             <FormField
               control={form.control}
-              name="radius"
-              render={({ field }) => (
-              <FormItem>
-                  <FormLabel>
-                      Radius <Required />
-                  </FormLabel>
-                  <FormControl>
-                  <Input placeholder="Enter the radius" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
-              </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="geoCoordinates"
+              name="geolocation"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Geo Coordinates (lat, long) <Required />
+                    Geo Coordinates (lat, long)
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -270,18 +257,51 @@ export default function AddLocations({
                           field.onChange(sanitized);
                         }
                       }}
-                      onPaste={(e) => {
-                        const pasted = e.clipboardData.getData("text");
-                        const validPattern = /^-?\d{1,2}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$/;
-                        if (!validPattern.test(pasted.trim())) {
-                          e.preventDefault();
-                        }
-                      }}
+                      // onPaste={(e) => {
+                      //   const pasted = e.clipboardData.getData("text");
+                      //   const validPattern = /^-?\d{1,2}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$/;
+                      //   if (!validPattern.test(pasted.trim())) {
+                      //     e.preventDefault();
+                      //   }
+                      // }}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
+            />
+            <FormField
+              control={form.control}
+              name="radius"
+              render={({ field }) => (
+              <FormItem>
+                  <FormLabel>
+                      Radius
+                  </FormLabel>
+                  <FormControl>
+                  <Input placeholder="Enter the radius" type="number" value={field.value ?? ""} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="country_code"
+              render={({ field }) => {
+                const selectedCountry = getCountryByCode(field.value);
+                return (
+                  <FormItem>
+                    <FormLabel className="flex gap-1">Country Code</FormLabel>
+                    <CountryDropdown
+                      countries={countries}
+                      value={selectedCountry}
+                      onChange={(country) => field.onChange(country?.country_code ?? "")}
+                    />
+                    <FormMessage className="mt-1" />
+                  </FormItem>
+                );
+              }}
             />
           </div>
           <div className="flex justify-end gap-2 items-center py-5">

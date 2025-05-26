@@ -79,15 +79,26 @@ export default function PowerHeader({
   enablePdf?: boolean;
   enableWord?: boolean;
 }) {
-  console.log("Props in PowerHeader", selectedRows);
 
   const handleDelete = async () => {
     try {
-      const selectedRowId = selectedRows?.[0]?.id; // Assuming single selection
-      if (selectedRowId) {
-        await deleteEntityRequest(entityName, selectedRowId);
-        toast.success(`${entityName} deleted successfully!`);
+      const selectedRowIds = selectedRows?.map(row => row.entity_id || row.location_id) || [];
+
+      if (selectedRowIds.length === 0) return;
+
+      for (const id of selectedRowIds) {
+        await deleteEntityRequest(entityName, id);
       }
+
+      toast.success(`${entityName} deleted successfully!`);
+
+      props.SetData?.((prevData: any[]) =>
+        prevData.filter((row: any) =>
+          !selectedRowIds.includes(row.entity_id || row.location_id)
+        )
+      );
+
+      props.setSelectedRows?.([]);
     } catch (error) {
       toast.error(`Failed to delete ${entityName}`);
     }

@@ -32,6 +32,7 @@ export default function Page() {
     on_open_change,
     SearchValue,
     SetSearchValue,
+    // setSelectedRows,
   };
 
   useEffect(() => {
@@ -42,11 +43,13 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "locationId", headerName: language === "ar" ? "رمز الموقع" : "Location Code" },
+      { field: "location_code", headerName: language === "ar" ? "رمز الموقع" : "Location Code" },
       {
-        field: language === "ar" ? "locationNameArb" : "locationNameEng",
+        field: language === "ar" ? "location_arb" : "location_eng",
         headerName: language === "ar" ? "اسم الموقع" : "Location Name",
       },
+      { field: "geolocation", headerName: language === "ar" ? "الإحداثيات الجغرافية" : "Geo Coordinates" },
+      { field: "radius", headerName: language === "ar" ? "نصف القطر" : "Radius" },
     ]);
   }, [language]);
 
@@ -55,11 +58,23 @@ export default function Page() {
       try {
         const response = await getAllLocations();
         if (response?.success && Array.isArray(response?.data)) {
-          const mapped = response.data.map((loc: any) => ({
-            ...loc,
-            id: loc.locationId,
-          }));
-    
+          const mapped = response.data.map((loc: any) => {
+            let coordinates = "";
+
+            // Convert POINT(lng lat) to "lat, lng"
+            const pointMatch = loc.geolocation?.match(/\(([^)]+)\)/);
+            if (pointMatch) {
+              const [lng, lat] = pointMatch[1].split(" ");
+              coordinates = `${lat}, ${lng}`;
+            }
+
+            return {
+              ...loc,
+              geolocation: coordinates,
+              id: loc.location_id,
+            };
+          });
+
           SetData(mapped);
         } else {
           console.error("Unexpected response structure:", response);
@@ -68,7 +83,7 @@ export default function Page() {
         console.error("Error fetching locations:", error);
       }
     };
-    
+
     fetchLocations();
   }, []);
 
@@ -78,13 +93,27 @@ export default function Page() {
   };
 
   const handleSave = (id: string | null, newData: any) => {
+    // Parse POINT(lng lat) to "lat, lng"
+    let coordinates = newData.geolocation;
+    const pointMatch = newData.geolocation?.match(/\(([^)]+)\)/);
+    if (pointMatch) {
+      const [lng, lat] = pointMatch[1].split(" ");
+      coordinates = `${lat}, ${lng}`;
+    }
+
+    const formattedData = { ...newData, geolocation: coordinates };
+
     if (id) {
       SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
+        prevData.map((row: any) => (row.id === id ? { ...row, ...formattedData } : row))
       );
     } else {
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
+      SetData((prevData: any) => [
+        ...prevData,
+        { id: Date.now().toString(), ...formattedData },
+      ]);
     }
+
     setSelectedRowData(null);
   };
 
@@ -110,7 +139,7 @@ export default function Page() {
         }
         isLarge
       />
-      <PowerTable props={props} Data={Data} api={"/company-master/locations"} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
+      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
     </div>
   );
 }

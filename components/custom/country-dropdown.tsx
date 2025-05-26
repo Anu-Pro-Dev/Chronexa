@@ -1,27 +1,15 @@
 import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
 import { DropDownIcon } from "@/icons/icons";
-
-interface Country {
-  code: string;
-  name: string;
-  nameAr: string;
-  flag: string;
-}
+import { Country } from "@/hooks/use-countries";
 
 interface CountryDropdownProps {
   value: Country | null;
   onChange: (value: Country | null) => void;
+  countries: Country[];
 }
-const CountryDropdown = ({ value, onChange }: CountryDropdownProps) => {
-  const [countries, setCountries] = useState<Country[]>([]);
 
-  useEffect(() => {
-    fetch("/countries.json")
-      .then((response) => response.json())
-      .then((data: Country[]) => setCountries(data))
-      .catch((error) => console.error("Error fetching countries:", error));
-  }, []);
+const CountryDropdown = ({ value, onChange, countries }: CountryDropdownProps) => {
 
   const customStyles = {
     control: (provided: any, state: any) => ({
@@ -85,19 +73,34 @@ const CountryDropdown = ({ value, onChange }: CountryDropdownProps) => {
     <Select
       options={countries}
       value={value}
-      getOptionLabel={(country) => country.name} // Return a string (name)
-      getOptionValue={(country) => country.code}
-      formatOptionLabel={(country) => ( // Render custom JSX in the dropdown
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <img src={country.flag} alt={country.code} width="20" height="15" />
-          <span>{country.code} - {country.name} / {country.nameAr}</span>
-        </div>
-      )}
+      formatOptionLabel={(country, { context }) => {
+        if (context === "menu") {
+          // dropdown option
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <img src={country.country_flag} alt={country.country_code} width="20" height="15" />
+              <span>{country.country_code} - {country.country_eng} / {country.country_arb}</span>
+            </div>
+          );
+        }
+
+        // selected value display
+        return <span>{country.country_code}</span>;
+      }}
+
+      // getOptionLabel={(country) => country.country_eng} // Return a string (name)
+      getOptionValue={(country) => country.country_code}
+      // formatOptionLabel={(country) => ( // Render custom JSX in the dropdown
+      //   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      //     <img src={country.country_flag} alt={country.country_code} width="20" height="15" />
+      //     <span>{country.country_code} - {country.country_eng} / {country.country_arb}</span>
+      //   </div>
+      // )}
       onChange={(selected) => onChange(selected as Country)} // Pass the whole country object
-      placeholder="Choose citizenship"
+      placeholder="Choose country"
       styles={customStyles}
       components={{ DropdownIndicator }}
-      menuPlacement="bottom"
+      // menuPlacement="bottom"
     />
   );
 };
