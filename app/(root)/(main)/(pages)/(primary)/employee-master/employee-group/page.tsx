@@ -36,7 +36,6 @@ export default function Page() {
   };
 
   const handleCellClickPath = (data: any) => {
-    console.log("Clicked Data:", data);
     if (data?.code) {
       router.push(`/employee-master/groups/group-members?group=${data.code}`);    } else {
       console.error("Error: No code found for this row", data);
@@ -65,7 +64,6 @@ export default function Page() {
     const fetchEmployeeGroup = async () => {
       try {
         const response = await getAllEmployeeGroup();
-        console.log(response);
         SetData(response.data);
       } catch (error) {
         console.error("Error fetching employee group:", error);

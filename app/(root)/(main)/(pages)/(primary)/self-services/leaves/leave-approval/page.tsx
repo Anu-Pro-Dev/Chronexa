@@ -57,12 +57,10 @@ export default function Page() {
   };
 
   const handleApprove = () => {
-    console.log("Approved");
     setApproveModalOpen(false); // Close modal after action
   };
 
   const handleReject = () => {
-    console.log("Rejected");
     setRejectModalOpen(false); // Close modal after action
   };
 

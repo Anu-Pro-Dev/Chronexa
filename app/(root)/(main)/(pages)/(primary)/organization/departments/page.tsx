@@ -14,7 +14,6 @@ export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCellClick = (data: any) => {
-    console.log("Cell Clicked:", data);
     setSelectedRowData(data); // Store clicked row data
     setIsModalOpen(true); // Open the modal
   };

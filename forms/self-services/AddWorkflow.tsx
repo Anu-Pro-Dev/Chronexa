@@ -37,7 +37,6 @@ export default function AddWorkflow() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
       const levelsCount = Number(values.levels);
       setRows(Array.from({ length: levelsCount }, (_, i) => i + 1));
       setSelectedLevels(parseInt(values.levels));

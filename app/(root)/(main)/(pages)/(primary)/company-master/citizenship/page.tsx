@@ -42,9 +42,9 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "countryCode", headerName: language === "ar" ? "رمز البلد" : "Country Code" },
+      { field: "citizenship_code", headerName: language === "ar" ? "قانون الجنسية" : "Citizenship Code" },
       {
-        field: language === "ar" ? "citizenshipArb" : "citizenshipEng",
+        field: language === "ar" ? "citizenship_arb" : "citizenship_eng",
         headerName: language === "ar" ? "المواطنة" : "Citizenship",
       },
     ]);
@@ -57,7 +57,7 @@ export default function Page() {
         if (response?.success && Array.isArray(response?.data)) {
           const mapped = response.data.map((citi: any) => ({
             ...citi,
-            id: citi.citizenshipId,
+            id: citi.citizenship_id,
           }));
     
           SetData(mapped);
@@ -71,24 +71,19 @@ export default function Page() {
     fetchCitizenship();
   }, []);
 
-  const handleEditClick = (data: any) => {
-    setSelectedRowData(data);
-    on_open_change(true);
-  };
-
   const handleSave = (id: string | null, newData: any) => {
     if (id) {
-      SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
+      SetData((prevData: any[]) =>
+        prevData.map(row => (row.id === id ? { ...row, ...newData } : row))
       );
     } else {
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
+      SetData((prevData: any[]) => [...prevData, newData]);
     }
     setSelectedRowData(null);
   };
 
+
   const handleRowSelection = (rows: any[]) => {
-    console.log("Selected rows:", selectedRows);
     setSelectedRows(rows);
   };
 

@@ -1,7 +1,7 @@
 
 "use client";
 import { useEffect, useState } from "react";
-
+import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -110,7 +110,6 @@ export default function AddDBSettings({
 			form.reset();
 		} else {
 			const dbId = dbLabelToId[selectedRowData.databaseType] || ""; // Convert label to ID
-    		console.log("Mapped DB ID:", dbId);
 			form.reset({
 				database: dbId,
 				database_name: selectedRowData.databaseName,
@@ -137,17 +136,15 @@ export default function AddDBSettings({
   
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
-			if (selectedRowData) {
-				console.log("DB Settings updated successfully");
-				onSave(selectedRowData.id, values);
-			} else {
-				console.log("DB Settings added successfully");
-				onSave(null, values);
-			}
+		if (selectedRowData) {
+			toast.success("DB Settings updated successfully");
+			onSave(selectedRowData.id, values);
+		} else {
+			toast.success("DB Settings added successfully");
+			onSave(null, values);
+		}
 
-
-			on_open_change(false);
+		on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
     }

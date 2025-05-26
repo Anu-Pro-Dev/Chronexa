@@ -72,9 +72,11 @@ export default function PowerTable({
     }
   };  
   
-  useEffect(() => {
-    console.log("Selected rows in parent: ", selectedRows);
-  }, [selectedRows]);
+  // useEffect(() => {
+  //   console.log("Selected rows in parent: ", selectedRows);
+  // }, [selectedRows]);
+
+  useEffect(() => {}, [selectedRows]);
 
   // Fetch Data Function
   const FetchData = async () => {
@@ -111,7 +113,6 @@ export default function PowerTable({
 
   // Handle Page Change
   const handlePageChange = (page: number) => {
-    console.log("Navigating to page:", page);
     props.SetCurrentPage(page);
   };
 

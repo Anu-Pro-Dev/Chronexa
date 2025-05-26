@@ -54,7 +54,6 @@ export default function Page() {
     const fetchEmployeeGroup = async () => {
       try {
         const response = await getAllEmployeeGroup();
-        console.log(response);
         SetData(response.data);
       } catch (error) {
         console.error("Error fetching employee group:", error);

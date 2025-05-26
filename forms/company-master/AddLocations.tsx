@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/form";
 import Required from "@/components/ui/required";
 import CountryDropdown from "@/components/custom/country-dropdown";
-import { useRouter } from "next/navigation";
 import { useCountries } from "@/hooks/use-countries";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
@@ -111,8 +111,6 @@ export default function AddLocations({
     on_open_change(false);
   };
 
-  const router = useRouter();
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       if (values.geolocation.trim() !== "") {
@@ -150,17 +148,17 @@ export default function AddLocations({
       };
 
       if (selectedRowData) {
-      const response = await editLocationRequest({
-        location_id: selectedRowData.id,
-        ...payload,
-      });
-      console.log("Location updated successfully:", response);
-      onSave(selectedRowData.id, payload);
-    } else {
-      const response = await addLocationRequest(payload);
-      console.log("Location added successfully:", response);
-      onSave(null, response);
-    }
+        const response = await editLocationRequest({
+          location_id: selectedRowData.id,
+          ...payload,
+        });
+        toast.success("Location updated successfully!");
+        onSave(selectedRowData.id, payload);
+      } else {
+        const response = await addLocationRequest(payload);
+        toast.success("Location added successfully!");
+        onSave(null, response);
+      }
       on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
@@ -296,6 +294,7 @@ export default function AddLocations({
                     <CountryDropdown
                       countries={countries}
                       value={selectedCountry}
+                      displayMode = "code"
                       onChange={(country) => field.onChange(country?.country_code ?? "")}
                     />
                     <FormMessage className="mt-1" />

@@ -18,13 +18,6 @@ export default function PowerShifterTab({ items }: { items: any }) {
         const isActive =
           normalizePath(pathname) === normalizePath(item?.path) ||
           normalizePath(pathname).startsWith(normalizePath(item?.path) + "/");
-        // const isActive = pathname.startsWith(item?.path);
-        console.log({
-          tabLabel: item.label,
-          itemPath: item.path,
-          currentPath: pathname,
-          isActive
-        });
 
         return (
           <button

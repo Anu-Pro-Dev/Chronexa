@@ -88,7 +88,6 @@ export default function Page() {
   };
 
   const handleRowSelection = (rows: any[]) => {
-    console.log("Selected rows:", selectedRows);
     setSelectedRows(rows); // Update selected rows
   };
 

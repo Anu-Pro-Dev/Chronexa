@@ -7,9 +7,10 @@ interface CountryDropdownProps {
   value: Country | null;
   onChange: (value: Country | null) => void;
   countries: Country[];
+  displayMode?: "code" | "full";
 }
 
-const CountryDropdown = ({ value, onChange, countries }: CountryDropdownProps) => {
+const CountryDropdown = ({ value, onChange, countries, displayMode = "full", }: CountryDropdownProps) => {
 
   const customStyles = {
     control: (provided: any, state: any) => ({
@@ -73,29 +74,32 @@ const CountryDropdown = ({ value, onChange, countries }: CountryDropdownProps) =
     <Select
       options={countries}
       value={value}
+      getOptionValue={(country) => country.country_code}
       formatOptionLabel={(country, { context }) => {
+        // Full display for dropdown options
         if (context === "menu") {
-          // dropdown option
           return (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <img src={country.country_flag} alt={country.country_code} width="20" height="15" />
-              <span>{country.country_code} - {country.country_eng} / {country.country_arb}</span>
+              <span>
+                {country.country_code} - {country.country_eng} / {country.country_arb}
+              </span>
             </div>
           );
         }
 
-        // selected value display
-        return <span>{country.country_code}</span>;
+        // Conditionally display for selected value
+        return displayMode === "full" ? (
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <img src={country.country_flag} alt={country.country_code} width="20" height="15" />
+            <span>
+              {country.country_code} - {country.country_eng} / {country.country_arb}
+            </span>
+          </div>
+        ) : (
+          <span>{country.country_code}</span>
+        );
       }}
-
-      // getOptionLabel={(country) => country.country_eng} // Return a string (name)
-      getOptionValue={(country) => country.country_code}
-      // formatOptionLabel={(country) => ( // Render custom JSX in the dropdown
-      //   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      //     <img src={country.country_flag} alt={country.country_code} width="20" height="15" />
-      //     <span>{country.country_code} - {country.country_eng} / {country.country_arb}</span>
-      //   </div>
-      // )}
       onChange={(selected) => onChange(selected as Country)} // Pass the whole country object
       placeholder="Choose country"
       styles={customStyles}

@@ -59,13 +59,11 @@ export default function Page() {
   }, [language]);
 
   const handleCellClick = (data: any) => {
-    console.log("Cell Clicked:", data);
     setSelectedRowData(data);
     setIsModalOpen(true);
   };
   
   const handleCellClickPath = (data: any) => {
-    console.log("Clicked Data:", data); // Debugging
     if (data?.name_en) {
       router.push(`/configuration/roles/assign-roles?role=${data.name_en}`);    } else {
       console.error("Error: No code found for this row", data);

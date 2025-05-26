@@ -115,7 +115,8 @@ export const getAllLocations = async () => {
 
 // Function to add a new location
 export const addLocationRequest = async (data: {
-  location_code?: string;
+  location_id?: number;
+  location_code: string;
   location_eng?: string;
   location_arb?: string;
   city?: string;
@@ -123,16 +124,14 @@ export const addLocationRequest = async (data: {
   country_code?: string;
   geolocation?: string;
   radius?: number;
-  location_id?: number;
 }) => {
   return apiRequest("/location/add", "POST", data);
 };
 
-
 // Function to edit a location by ID
 export const editLocationRequest = async (data: {
-  location_id: number;
-  location_code?: string;
+  location_id?: number;
+  location_code: string;
   location_eng?: string;
   location_arb?: string;
   city?: string;
@@ -150,26 +149,23 @@ export const getAllCitizenship = async () => {
 };
 
 // Function to add a new citizenship
-export const addCitizenshipRequest = async (countryCode: string, citizenshipEng: string, citizenshipArb: string) => {
-  return apiRequest("/citizenship/add", "POST", {
-    countryCode,
-    citizenshipEng,
-    citizenshipArb,
-  });
+export const addCitizenshipRequest = async (data: {
+  citizenship_id?: number;
+  citizenship_code: string,
+  citizenship_eng?: string,
+  citizenship_arb?: string,
+}) => {
+  return apiRequest("/citizenship/add", "POST", data);
 };
 
-// Function to edit a location by ID
-export const editCitizenshipRequest = async (
-  id: string,
-  countryCode: string,
-  citizenshipEng: string,
-  citizenshipArb: string,
-) => {
-  return apiRequest(`/citizenship/edit/${id}`, "PUT", {
-    countryCode,
-    citizenshipEng,
-    citizenshipArb,
-  });
+// Function to edit a citizenship by ID
+export const editCitizenshipRequest = async (data: {
+  citizenship_id?: number,
+  citizenship_code: string,
+  citizenship_eng?: string,
+  citizenship_arb?: string,
+}) => {
+  return apiRequest(`/citizenship/edit/${data.citizenship_id}`, "PUT", data);
 };
 
 // Function to fetch all designations

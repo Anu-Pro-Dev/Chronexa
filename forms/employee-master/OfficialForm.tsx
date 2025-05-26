@@ -131,7 +131,7 @@ export default function OfficialForm({
               </FormItem>
             )}
           />
-          <FormField
+          {/* <FormField
             control={officialForm.control}
             name="citizenship"
             render={({ field }) => (
@@ -141,7 +141,7 @@ export default function OfficialForm({
                 <FormMessage className="mt-1"/>
               </FormItem>
             )}
-          />
+          /> */}
           <FormField
             control={officialForm.control}
             name="designation"

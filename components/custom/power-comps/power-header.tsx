@@ -82,7 +82,7 @@ export default function PowerHeader({
 
   const handleDelete = async () => {
     try {
-      const selectedRowIds = selectedRows?.map(row => row.entity_id || row.location_id) || [];
+      const selectedRowIds = selectedRows?.map(row => row.id) || [];
 
       if (selectedRowIds.length === 0) return;
 
@@ -93,16 +93,39 @@ export default function PowerHeader({
       toast.success(`${entityName} deleted successfully!`);
 
       props.SetData?.((prevData: any[]) =>
-        prevData.filter((row: any) =>
-          !selectedRowIds.includes(row.entity_id || row.location_id)
-        )
+        prevData.filter((row: any) => !selectedRowIds.includes(row.id))
       );
 
-      props.setSelectedRows?.([]);
+      props.setSelectedRows?.([]); // Clear selection
     } catch (error) {
       toast.error(`Failed to delete ${entityName}`);
+      console.error("Delete error:", error);
     }
   };
+
+  // const handleDelete = async () => {
+  //   try {
+  //     const selectedRowIds = selectedRows?.map(row => row.entity_id || row.location_id) || [];
+
+  //     if (selectedRowIds.length === 0) return;
+
+  //     for (const id of selectedRowIds) {
+  //       await deleteEntityRequest(entityName, id);
+  //     }
+
+  //     toast.success(`${entityName} deleted successfully!`);
+
+  //     props.SetData?.((prevData: any[]) =>
+  //       prevData.filter((row: any) =>
+  //         !selectedRowIds.includes(row.entity_id || row.location_id)
+  //       )
+  //     );
+
+  //     props.setSelectedRows?.([]);
+  //   } catch (error) {
+  //     toast.error(`Failed to delete ${entityName}`);
+  //   }
+  // };
 
   return (
     <div className="flex flex-col">

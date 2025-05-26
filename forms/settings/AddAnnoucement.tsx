@@ -71,7 +71,7 @@ export default function AddAnnoucement() {
   const router = useRouter();
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
+      return;
     } catch (error) {
       console.error("Form submission error", error);
     }

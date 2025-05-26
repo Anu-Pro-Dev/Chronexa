@@ -132,7 +132,7 @@ export default function Geolocation() {
       },
       (error) => {
         if (!locationErrorShown.current) {
-          console.log(error);
+          console.error(error);
           toast.error("User denied Geolocation. Enable it from browser settings.");
           locationErrorShown.current = true;
         }

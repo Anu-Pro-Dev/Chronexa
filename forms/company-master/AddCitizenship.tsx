@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -13,20 +14,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import Required from "@/components/ui/required";
-import { useRouter } from "next/navigation";
 import CountryDropdown from "@/components/custom/country-dropdown";
-import { addCitizenshipRequest } from "@/lib/apiHandler"; 
-
-// Country type definition
-interface Country {
-  code: string;
-  name: string;
-  nameAr: string;
-  flag: string;
-}
+import { useCountries } from "@/hooks/use-countries";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { addCitizenshipRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  code: z.any().optional(),
+  citizenship_code: z.string().optional(),
 });
 
 export default function AddCitizenship({
@@ -41,70 +35,83 @@ export default function AddCitizenship({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      code: "",
+      citizenship_code: "",
     },
   });
-  
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
-  // Handle the country selection
-  const handleCountryChange = (country: Country | null) => {
+  const {language } = useLanguage();
+  const { countries, getCountryByCode } = useCountries();
+  const [selectedCountry, setSelectedCountry] = useState<any>(null);
+
+  const handleCountryChange = (country: any | null) => {
     if (country) {
       setSelectedCountry(country);
-      form.setValue("code", country.code);
+      form.setValue("citizenship_code", country.citizenship_code);
     } else {
       setSelectedCountry(null);
-      form.setValue("code", "");
+      form.setValue("citizenship_code", "");
     }
   };
-  
-  // Reset form when modal is opened for Add or when selectedRowData is null
+
   useEffect(() => {
     if (!selectedRowData) {
       form.reset();
+      setSelectedCountry(null);
     } else {
+      const matched = getCountryByCode(selectedRowData.code);
       form.reset({
-        code: selectedRowData.code,
+        citizenship_code: selectedRowData.code,
       });
+      setSelectedCountry(matched);
     }
-  }, [selectedRowData, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRowData]);
 
   const handleSave = () => {
-    const formData = form.getValues(); // Get the form data directly from the hook
+    const formData = form.getValues();
     if (selectedRowData) {
-      // Update existing row
       onSave(selectedRowData.id, formData);
     } else {
-      // Add new row
       onSave(null, formData);
     }
-    on_open_change(false); // Close modal after saving
+    on_open_change(false);
   };
-
-  const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const { code } = values;
-      const selectedCitizenship = selectedCountry;
-      if (!selectedCitizenship) {
-        console.error("No citizenship selected");
+      if (!selectedCountry) {
+        toast.error("Please select a country.");
         return;
       }
 
-      const countryCode = selectedCitizenship.code;
-      const citizenshipEng = selectedCitizenship.name;
-      const citizenshipArb = selectedCitizenship.nameAr;
+      const payload = {
+        citizenship_code: selectedCountry.country_code,
+        citizenship_eng: selectedCountry.country_eng,
+        citizenship_arb: selectedCountry.country_arb,
+      };
 
       if (!selectedRowData) {
-        await addCitizenshipRequest(countryCode, citizenshipEng, citizenshipArb);
+        // Add new citizenship
+        const response = await addCitizenshipRequest(payload);
+
+        const newEntry = {
+          id: response.citizenshipId,
+          citizenship_code: selectedCountry.country_code,
+          citizenship_eng: selectedCountry.country_eng,
+          citizenship_arb: selectedCountry.country_arb,
+        };
+
+        toast.success("Citizenship added successfully!");
+        onSave(null, newEntry);
       } else {
-        onSave(selectedRowData.id, values);
+        // Editing existing, update UI with new payload only
+        onSave(selectedRowData.id, payload);
       }
 
       on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
+      toast.error("Something went wrong.");
     }
   }
 
@@ -114,14 +121,19 @@ export default function AddCitizenship({
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="code"
+            name="citizenship_code"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>
                   Citizenship <Required />
                 </FormLabel>
                 <FormControl>
-                  <CountryDropdown value={selectedCountry} onChange={handleCountryChange} />
+                  <CountryDropdown
+                    value={selectedCountry}
+                    onChange={handleCountryChange}
+                    countries={countries}
+                    displayMode = "full"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

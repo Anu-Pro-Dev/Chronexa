@@ -43,7 +43,7 @@ export default function PowerTableRoster({
       props.SetData(response.data.payload);
       SetTotalPages(response.data.pagination.totalPages);
     } catch (error) {
-      console.log("Error fetching data:", error);
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -64,7 +64,6 @@ export default function PowerTableRoster({
   };
   // Handle Page Change
   const handlePageChange = (page: number) => {
-    console.log("Navigating to page:", page);
     props.SetCurrentPage(page);
   };
 

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import Required from "@/components/ui/required";
+import { toast } from "react-hot-toast";
 import {
   Select,
   SelectContent,
@@ -106,9 +107,7 @@ export default function AddDBSettings({
 		if (!selectedRowData) {
 			form.reset();
 		} else {
-			console.log(selectedRowData.encryption);
 			const encryptionId = encryptionLabelToId[selectedRowData.encryption] || ""; // Convert label to ID
-    	console.log("Mapped Encryption ID:", encryptionId);
 			form.reset({
 				id: selectedRowData.emailID,
 				name: selectedRowData.name,
@@ -135,17 +134,14 @@ export default function AddDBSettings({
   
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
-			if (selectedRowData) {
-				console.log("Email Settings updated successfully");
-				onSave(selectedRowData.id, values);
-			} else {
-				console.log("Email Settings added successfully");
-				onSave(null, values);
-			}
-
-
-			on_open_change(false);
+		if (selectedRowData) {
+			toast.success("Email Settings updated successfully");
+			onSave(selectedRowData.id, values);
+		} else {
+			toast.success("Email Settings added successfully");
+			onSave(null, values);
+		}
+		on_open_change(false);
     } catch (error) {
       console.error("Form submission error", error);
     }
