@@ -39,12 +39,30 @@ const formSchema = z.object({
     }),
 });
 
+// function pointToLatLon(point: string | null): string {
+//   if (!point?.startsWith("POINT")) return "";
+//   const match = point.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
+//   if (!match) return "";
+//   const [, lon, lat] = match;
+//   return `${lat},${lon}`;
+// }
+
 function pointToLatLon(point: string | null): string {
-  if (!point?.startsWith("POINT(")) return "";
-  const match = point.match(/POINT\(\s*(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s*\)/);
-  if (!match) return "";
-  const [, lon, lat] = match;
-  return `${lat},${lon}`; // Convert POINT(lon lat) → lat,lon
+  if (!point) return "";
+
+  // Check if it's POINT format
+  const match = point.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
+  if (match) {
+    const [, lon, lat] = match;
+    return `${lat},${lon}`;
+  }
+
+  // If it's already lat,lon or lon,lat — just return cleaned value
+  if (point.includes(",")) {
+    return point.replace(/\s+/g, ""); // remove any spaces
+  }
+
+  return "";
 }
 
 function latLonToPoint(value: string): string {
@@ -77,28 +95,97 @@ export default function AddLocations({
     },
   });
 
+  // useEffect(() => {
+  //   form.reset(form.getValues());
+  // }, [language]);
+
+  // useEffect(() => {
+  //   if (selectedRowData) {
+  //     form.setValue(
+  //       "location_name",
+  //       language === "en"
+  //         ? selectedRowData.location_eng ?? ""
+  //         : selectedRowData.location_arb ?? ""
+  //     );
+  //   }
+  // }, [language]);
+
+  // useEffect(() => {
+  //   if (selectedRowData) {
+  //     const geolocationStr = pointToLatLon(selectedRowData?.geolocation ?? "");
+  //     console.log("Converted Geo:", geolocationStr);
+  //     form.reset({
+  //       location_code: selectedRowData.location_code ?? "",
+  //       location_name:
+  //         language === "en"
+  //           ? selectedRowData.location_eng ?? ""
+  //           : selectedRowData.location_arb ?? "",
+  //       radius: selectedRowData.radius,
+  //       country_code: selectedRowData.country_code ?? "",
+  //       geolocation: geolocationStr,
+  //     });
+  //   } else {
+  //     form.reset(); // clears on add
+  //   }
+  // }, [selectedRowData, form, language]);
+
+  // useEffect(() => {
+  //   if (selectedRowData) {
+  //     const geolocationStr = pointToLatLon(selectedRowData?.geolocation ?? "");
+  //     console.log("Converted Geo:", geolocationStr);
+
+  //     form.reset({
+  //       location_code: selectedRowData.location_code ?? "",
+  //       location_name:
+  //         language === "en"
+  //           ? selectedRowData.location_eng ?? ""
+  //           : selectedRowData.location_arb ?? "",
+  //       radius: selectedRowData.radius,
+  //       country_code: selectedRowData.country_code ?? "",
+  //       geolocation: geolocationStr,
+  //     });
+  //   } else {
+  //     form.reset();
+  //   }
+  // }, [selectedRowData, language]);
+
+  // useEffect(() => {
+  //   if (selectedRowData) {
+  //     const cleanedGeo = pointToLatLon(selectedRowData.geolocation ?? "");
+
+  //     console.log("Raw geolocation POINT value:", selectedRowData.geolocation);
+  //     console.log("Converted Geo:", cleanedGeo);
+
+  //     form.reset({
+  //       ...selectedRowData,
+  //       geolocation: cleanedGeo,
+  //     });
+  //   }
+  // }, [selectedRowData]);
+
+  useEffect(() => {
+    if (selectedRowData) {
+      const geolocationStr = pointToLatLon(selectedRowData.geolocation ?? "");
+      console.log("Converted Geo:", geolocationStr);
+
+      form.reset({
+        location_code: selectedRowData.location_code ?? "",
+        location_name:
+          language === "en"
+            ? selectedRowData.location_eng ?? ""
+            : selectedRowData.location_arb ?? "",
+        radius: selectedRowData.radius,
+        country_code: selectedRowData.country_code ?? "",
+        geolocation: geolocationStr,
+      });
+    } else {
+      form.reset(); // clears on add
+    }
+  }, [selectedRowData, language]);
+
   useEffect(() => {
     form.reset(form.getValues());
   }, [language]);
-
-  useEffect(() => {
-  if (selectedRowData) {
-    const geolocationStr = pointToLatLon(selectedRowData?.geolocation ?? "");
-
-    form.reset({
-      location_code: selectedRowData.location_code ?? "",
-      location_name:
-        language === "en"
-          ? selectedRowData.location_eng ?? ""
-          : selectedRowData.location_arb ?? "",
-      radius: selectedRowData.radius,
-      country_code: selectedRowData.country_code ?? "",
-      geolocation: geolocationStr,
-    });
-  } else {
-    form.reset(); // clears on add
-  }
-}, [selectedRowData, form, language]);
 
 
   const handleSave = () => {
@@ -111,59 +198,66 @@ export default function AddLocations({
     on_open_change(false);
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      if (values.geolocation.trim() !== "") {
-        const [latStr, lonStr] = values.geolocation.split(",").map((s) => s.trim());
-        const latitude = parseFloat(latStr);
-        const longitude = parseFloat(lonStr);
+async function onSubmit(values: z.infer<typeof formSchema>) {
+  try {
+    if (values.geolocation.trim() !== "") {
+      const [latStr, lonStr] = values.geolocation.split(",").map((s) => s.trim());
+      const latitude = parseFloat(latStr);
+      const longitude = parseFloat(lonStr);
 
-        if (
-          isNaN(latitude) ||
-          isNaN(longitude) ||
-          latitude < -90 ||
-          latitude > 90 ||
-          longitude < -180 ||
-          longitude > 180
-        ) {
-          alert(
-            "Invalid coordinates. Latitude must be between -90 and 90. Longitude must be between -180 and 180."
-          );
-          return;
-        }
-
-        values.geolocation = latLonToPoint(values.geolocation); // ✅ Convert to POINT format
-      } else {
-        values.geolocation = "";
+      if (
+        isNaN(latitude) ||
+        isNaN(longitude) ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        alert(
+          "Invalid coordinates. Latitude must be between -90 and 90. Longitude must be between -180 and 180."
+        );
+        return;
       }
 
-      const payload = {
-        location_code: values.location_code,
-        country_code: values.country_code,
-        radius: values.radius,
-        geolocation: values.geolocation,
-        // Set the correct location field based on current language
-        location_eng: language === "en" ? values.location_name : "",
-        location_arb: language === "ar" ? values.location_name : "",
-      };
-
-      if (selectedRowData) {
-        const response = await editLocationRequest({
-          location_id: selectedRowData.id,
-          ...payload,
-        });
-        toast.success("Location updated successfully!");
-        onSave(selectedRowData.id, payload);
-      } else {
-        const response = await addLocationRequest(payload);
-        toast.success("Location added successfully!");
-        onSave(null, response);
-      }
-      on_open_change(false);
-    } catch (error) {
-      console.error("Form submission error", error);
+      values.geolocation = latLonToPoint(values.geolocation); // ✅ Convert to POINT format
+    } else {
+      values.geolocation = "";
     }
+
+    // Base payload
+    const payload: any = {
+      location_code: values.location_code,
+      country_code: values.country_code,
+      radius: values.radius,
+      geolocation: values.geolocation,
+    };
+
+    // Add only the language-specific name being edited
+    if (language === "en") {
+      payload.location_eng = values.location_name;
+    } else {
+      payload.location_arb = values.location_name;
+    }
+
+    if (selectedRowData) {
+      const response = await editLocationRequest({
+        location_id: selectedRowData.id,
+        ...payload,
+      });
+      toast.success("Location updated successfully!");
+      onSave(selectedRowData.id, payload);
+    } else {
+      const response = await addLocationRequest(payload);
+      toast.success("Location added successfully!");
+      onSave(null, response);
+    }
+
+    on_open_change(false);
+  } catch (error) {
+    console.error("Form submission error", error);
   }
+}
+
 
   return (
     <Form {...form}>

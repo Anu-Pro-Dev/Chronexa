@@ -33,6 +33,7 @@ import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { addEmployeeGroupRequest } from "@/lib/apiHandler"; // Import API request function
 import { useLanguage } from "@/providers/LanguageProvider";
+import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
     groupName: z.string().min(1, { message: "Required" }).max(100),
@@ -117,13 +118,11 @@ export default function AddEmployeeGroup({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log("Submitting:", values);
-
       if (selectedRowData) {
         onSave(selectedRowData.id, values);
       } else {
         const response = await addEmployeeGroupRequest(values.groupName, values.descriptionEng, values.descriptionArb);
-        console.log("Employee group added successfully:", response);
+        toast.success("Employee group added successfully!");
         
         onSave(null, response);
       }

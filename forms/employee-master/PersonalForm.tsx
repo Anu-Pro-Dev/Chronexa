@@ -46,15 +46,8 @@ export default function PersonalForm({
 
   function onSubmit(values: z.infer<typeof personalFormSchema>) {
     try {
-      console.log(values)
       SetPage("credentials-form")
       toast.success("Data Saved!")
-      // console.log(1)
-      // toast(
-      //   <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-      //     <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
-      //   </pre>
-      // );
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");

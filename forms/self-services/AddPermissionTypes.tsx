@@ -143,7 +143,6 @@ export default function AddPermissionTypes () {
 
   function onSubmitBasic(values: z.infer<typeof formSchemaBasic>) {
     try {
-      console.log(values)
       setPageNumber(1)
     } catch (error) {
       console.error("Form submission error", error)
@@ -164,7 +163,6 @@ export default function AddPermissionTypes () {
 
   function onSubmitSetup(values: z.infer<typeof formSchemaSetup>) {
     try {
-      console.log(values)
       setPageNumber(2)
     } catch (error) {
       console.error("Form submission error", error)
@@ -186,7 +184,6 @@ export default function AddPermissionTypes () {
 
   function onSubmitRestriction(values: z.infer<typeof formSchemaRestriction>) {
     try {
-      console.log(values)
       setPageNumber(3)
     } catch (error) {
       console.error("Form submission error", error)
@@ -204,7 +201,6 @@ export default function AddPermissionTypes () {
 
   function onSubmitPolicy(values: z.infer<typeof formSchemaPolicy>) {
     try {
-      console.log(values)
       setPageNumber(3)
     } catch (error) {
       console.error("Form submission error", error)

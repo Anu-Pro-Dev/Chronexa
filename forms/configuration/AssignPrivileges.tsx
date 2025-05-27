@@ -116,7 +116,6 @@ export default function AssignPrivileges({
 
   const onSubmit = (data: PrivilegeFormValues) => {
     toast.success("Privileges saved!");
-    console.log("Submitted", data);
   };
 
   function formatRoleName(role: string) {

@@ -47,7 +47,6 @@ export default function OfficialForm({
 
   function onSubmit(values: z.infer<typeof officialFormSchema>) {
     try {
-      console.log(values);
       SetPage("flags-form");
       toast.success("Data Saved!");
     } catch (error) {

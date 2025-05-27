@@ -18,6 +18,7 @@ import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { addGradeRequest, editGradeRequest } from "@/lib/apiHandler";
+import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
   gradeNameEng: z.string().default(""),
@@ -118,7 +119,7 @@ export default function AddGrades({
           values.gradeNameArb,
           values.overtimeEligibleFlag ? "Y" : "N"
         );
-        console.log("Grade updated successfully:", response);
+        toast.success("Grade updated successfully!");
         onSave(selectedRowData.id, values);
       } else {
         const response = await addGradeRequest(
@@ -126,7 +127,7 @@ export default function AddGrades({
           values.gradeNameArb,
           values.overtimeEligibleFlag ? "Y" : "N"
         );
-        console.log("Grade added successfully:", response);
+        toast.success("Grade added successfully!");
         onSave(null, response);
       }
 

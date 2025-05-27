@@ -47,7 +47,6 @@ export default function FilterEmailForm({
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       on_open_change(false);
-      console.log(values);
     } catch (error) {
       console.error("Form submission error", error);
     }

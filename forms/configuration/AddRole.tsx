@@ -23,6 +23,7 @@ import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
   name_en: z
@@ -83,16 +84,15 @@ export default function AddRole({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
       // Handle form submission: Add or Update logic based on whether it's edit mode or not
       if (selectedRowData) {
         // Update logic (edit mode)
         onSave(selectedRowData.id, values);
-        console.log("Updating region:", values);
+        toast.success("Updating region!");
       } else {
         // Add logic (create mode)
         onSave(null, values);
-        console.log("Creating region:", values);
+        toast.success("Creating region!");
       }
       on_open_change(false); // Close the modal after submission
     } catch (error) {

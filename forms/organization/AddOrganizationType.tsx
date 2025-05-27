@@ -27,6 +27,7 @@ import {
   addOrganizationTypeRequest,
   editOrganizationTypeRequest,
 } from "@/lib/apiHandler";
+import { toast } from "react-hot-toast";
 
 // Zod schema: allow 0 as valid hierarchy
 const formSchema = z.object({
@@ -121,8 +122,6 @@ export default function AddOrganizationType({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log("Submitting:", values);
-
       if (selectedRowData) {
         const response = await editOrganizationTypeRequest(
           selectedRowData.id,
@@ -130,7 +129,7 @@ export default function AddOrganizationType({
           values.organizationTypeNameEng,
           values.organizationTypeNameArb
         );
-        console.log("Organization type updated successfully:", response);
+        toast.success("Organization type updated successfully!");
         onSave(selectedRowData.id, values);
       } else {
         const response = await addOrganizationTypeRequest(
@@ -138,7 +137,7 @@ export default function AddOrganizationType({
           values.organizationTypeNameEng,
           values.organizationTypeNameArb
         );
-        console.log("Organization type added successfully:", response);
+        toast.success("Organization type added successfully!");
         onSave(null, response);
       }
 

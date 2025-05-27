@@ -17,6 +17,7 @@ import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { addEmployeeTypeRequest } from "@/lib/apiHandler"; // Import API request function
 import { useLanguage } from "@/providers/LanguageProvider";
+import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
     typeName: z.string().min(1, { message: "Required" }).max(100),
@@ -84,14 +85,12 @@ export default function AddEmployeeType({
     const router = useRouter();
     
   async function onSubmit(values: z.infer<typeof formSchema>) {
-      try {
-        console.log("Submitting:", values);
-  
+      try {  
         if (selectedRowData) {
           onSave(selectedRowData.id, values);
         } else {
           const response = await addEmployeeTypeRequest(values.typeName, values.descriptionEng, values.descriptionArb);
-          console.log("Employee type added successfully:", response);
+          toast.success("Employee type added successfully!");
           
           onSave(null, response);
         }

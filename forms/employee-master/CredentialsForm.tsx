@@ -29,7 +29,6 @@ export default function credentialsForm({
 
   function onSubmit(values: z.infer<typeof credentialsFormSchema>) {
     try {
-      console.log(values)
       SetPage("official-form");
       toast.success("Data Saved!");
     } catch (error) {

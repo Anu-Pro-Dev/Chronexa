@@ -17,6 +17,7 @@ import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { addDesignationRequest, editDesignationRequest } from "@/lib/apiHandler";
+import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
     designationEng: z.string().default(""),
@@ -89,14 +90,14 @@ export default function AddDesignations({
           values.designationEng,
           values.designationArb
         );
-        console.log("Designation updated successfully:", response);
+        toast.success("Designation updated successfully!");
         onSave(selectedRowData.id, values);
       } else {
         const response = await addDesignationRequest(
           values.designationEng,
           values.designationArb
         );
-        console.log("Designation added successfully:", response);
+        toast.success("Designation added successfully!");
         onSave(null, response);
       }
 
