@@ -70,7 +70,7 @@ const formSchemaSetup = z.object({
   organization: z.string().optional(),
   group: z.string().optional(),
   employee: z.string().optional(),
-  sex: z.string().optional(),
+  gender: z.string().optional(),
   citizenship: z.string().optional(),
   valid_from_date:  z.date().optional(),
   valid_till_date: z.date().optional(),
@@ -156,7 +156,7 @@ export default function AddPermissionTypes () {
       organization: "",
       group: "",
       employee: "",
-      sex:"",
+      gender:"",
       citizenship:"",
     }
   })
@@ -564,16 +564,16 @@ export default function AddPermissionTypes () {
 
             <FormField
               control={formSetup.control}
-              name="sex"
+              name="gender"
               render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Sex 
+                  Gender 
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose sex" />
+                      <SelectValue placeholder="Choose gender" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

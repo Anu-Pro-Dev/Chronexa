@@ -242,17 +242,17 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="sex"
+            name="gender"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Sex</FormLabel>
+                <FormLabel className="flex gap-1">Gender</FormLabel>
                 <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 >
                 <FormControl>
                     <SelectTrigger>
-                    <SelectValue placeholder="Choose Sex" />
+                    <SelectValue placeholder="Choose Gender" />
                     </SelectTrigger>
                 </FormControl>
                 <SelectContent>

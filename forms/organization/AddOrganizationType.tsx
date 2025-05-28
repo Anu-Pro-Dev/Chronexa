@@ -151,26 +151,6 @@ export default function AddOrganizationType({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
-          <FormField
-            control={form.control}
-            name="hierarchyLimit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Hierarchy Limit <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter hierarchy limit"
-                    type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
          <FormField
             control={form.control}
             name="hierarchy"
