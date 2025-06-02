@@ -1,6 +1,7 @@
 import React from "react";
 import LanguageProvider from "@/providers/LanguageProvider";
 import { Toaster } from "react-hot-toast";
+import ChatBotWidget from "@/components/custom/bot/ChatBotWidget";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           },
         }}
       />
+      <ChatBotWidget />
     </>
   );
 }

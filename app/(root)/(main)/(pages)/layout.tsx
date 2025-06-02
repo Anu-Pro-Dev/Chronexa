@@ -1,6 +1,5 @@
 "use client";
 import { AppSidebar } from "@/components/custom/app-sidebar";
-
 import LanguageSwitcher from "@/components/custom/language-switcher";
 import { NavUser } from "@/components/custom/nav-user";
 
