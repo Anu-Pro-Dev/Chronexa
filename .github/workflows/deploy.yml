@@ -21,21 +21,27 @@ jobs:
     - name: Deploy to RDP Host 1
       run: |
         cp web.config.rdp1 web.config
-        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_1 }} << 'EOF'
-          cd C:\path\to\your\nextjs\app
-          git pull origin main
-          npm install
-          npm run build
-          powershell -Command "Restart-WebAppPool -Name 'chronologix'"
-        EOF
+        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_1 }} powershell -Command "
+          cd 'E:\\APP\\Chronologix';
+          node -v;
+          npm -v;
+          git pull origin main;
+          npm install;
+          npm run build;
+          Import-Module WebAdministration;
+          Restart-WebAppPool 'chronologix'
+        "
 
     - name: Deploy to RDP Host 2
       run: |
         cp web.config.rdp2 web.config
-        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_2 }} << 'EOF'
-          cd C:\path\to\your\nextjs\app
-          git pull origin main
-          npm install
-          npm run build
-          powershell -Command "Restart-WebAppPool -Name 'chronologix'"
-        EOF
+        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_2 }} powershell -Command "
+          cd 'E:\\APP\\Chronologix';
+          node -v;
+          npm -v;
+          git pull origin main;
+          npm install;
+          npm run build;
+          Import-Module WebAdministration;
+          Restart-WebAppPool 'chronologix'
+        "
