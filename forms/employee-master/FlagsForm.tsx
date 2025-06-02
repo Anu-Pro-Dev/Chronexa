@@ -44,6 +44,7 @@ export default function FlagsForm({
                   ["inpayroll", "Inpayroll"],
                   ["email_notification", "Email notification"],
                   ["open_shift", "Open shift"],
+                  ["geo_fench", "Geo Fench"],
                   ["monthly_missed_hours", "Calculate monthly missed hours"],
                 ].map(([name, label]) => (
                   <FormField

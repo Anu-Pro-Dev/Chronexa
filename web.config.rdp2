@@ -1,0 +1,67 @@
+<configuration>
+  <appSettings>
+    <add key="SECRET_KEY" value="other_secret_key" />
+    <add key="NEXTAUTH_SECRET" value="my_ultra_secure_nextauth_secret" />
+    <add key="NEXTAUTH_URL" value="https://192.168.2.114:5000" />
+    <add key="NEXT_PUBLIC_API_URL" value="https://192.168.2.114:8000" />
+  </appSettings>
+
+  <system.webServer>
+    <!-- IISNode settings -->
+    <iisnode 
+      node_env="production"
+      nodeProcessCountPerApplication="1"
+      maxConcurrentRequestsPerProcess="1024"
+      maxNamedPipeConnectionRetry="100"
+      namedPipeConnectionRetryDelay="250"
+      maxNamedPipeConnectionPoolSize="512"
+      maxNamedPipePooledConnectionAge="30000"
+      asyncCompletionThreadCount="0"
+      initialRequestBufferSize="4096"
+      maxRequestBufferSize="65536"
+      uncFileChangesPollingInterval="5000"
+      gracefulShutdownTimeout="60000"
+      loggingEnabled="true"
+      logDirectory="iisnode"
+      debuggingEnabled="false"          <!-- Disable debugging in prod -->
+      debugHeaderEnabled="false"
+      debuggerPortRange="5058-6058"
+      debuggerPathSegment="debug"
+      maxLogFileSizeInKB="128"
+      maxTotalLogFileSizeInKB="1024"
+      maxLogFiles="20"
+      devErrorsEnabled="false"          <!-- Disable detailed dev errors in prod -->
+      flushResponse="false"
+      enableXFF="false"
+      promoteServerVars=""
+      configOverrides="iisnode.yml"
+      watchedFiles="web.config;*.js"
+      nodeProcessCommandLine="C:\Program Files\nodejs\node.exe"
+      interceptor="%programfiles%\iisnode\interceptor.js"
+    />
+
+    <!-- Route all requests to server.js -->
+    <handlers>
+      <add name="iisnode" path="server.js" verb="*" modules="iisnode" />
+    </handlers>
+
+    <rewrite>
+      <rules>
+        <rule name="NextJsRewrite" stopProcessing="true">
+          <match url=".*" />
+          <action type="Rewrite" url="server.js" />
+        </rule>
+      </rules>
+    </rewrite>
+
+    <!-- Default document to server.js -->
+    <defaultDocument enabled="true">
+      <files>
+        <add value="server.js" />
+      </files>
+    </defaultDocument>
+
+    <!-- Disable directory browsing -->
+    <directoryBrowse enabled="false" />
+  </system.webServer>
+</configuration>

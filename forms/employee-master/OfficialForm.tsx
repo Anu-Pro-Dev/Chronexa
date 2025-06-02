@@ -130,17 +130,30 @@ export default function OfficialForm({
               </FormItem>
             )}
           />
-          {/* <FormField
+          <FormField
             control={officialForm.control}
             name="citizenship"
             render={({ field }) => (
-              <FormItem className="">
+              <FormItem>
                 <FormLabel className="flex gap-1">Citizenship <Required/> </FormLabel>
-                <CountryDropdown value={field.value} onChange={field.onChange} />
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
+                <FormControl>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose citizenship" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    <SelectItem value="1">citizenship 1</SelectItem>
+                    <SelectItem value="2">citizenship 2</SelectItem>
+                </SelectContent>
+                </Select>
                 <FormMessage className="mt-1"/>
               </FormItem>
             )}
-          /> */}
+          />
           <FormField
             control={officialForm.control}
             name="designation"

@@ -165,14 +165,20 @@ export default function Page() {
         message: "Required",
       })
       .max(100),
-    citizenship: z.object({
-      code: z.string(),
-      name: z.string(),
-      nameAr: z.string(),
-      flag: z.string(),
-    }).nullable().refine(val => val !== null, {
-      message: "Citizenship is required",
-    }),
+    // citizenship: z.object({
+    //   code: z.string(),
+    //   name: z.string(),
+    //   nameAr: z.string(),
+    //   flag: z.string(),
+    // }).nullable().refine(val => val !== null, {
+    //   message: "Citizenship is required",
+    // }),
+    citizenship: z
+      .string()
+      .min(1, {
+        message: "Required",
+      })
+      .max(100),
     designation: z
       .string()
       .min(1, {
@@ -231,6 +237,7 @@ export default function Page() {
     include_in_email: z.boolean(),
     web_punch: z.boolean(),
     check_selfie: z.boolean(),
+    geo_fench: z.boolean(),
   });
 
   const flagForm = useForm<z.infer<typeof flagsFormSchema>>({
