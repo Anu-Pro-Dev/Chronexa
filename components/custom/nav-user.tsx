@@ -24,14 +24,35 @@ export function NavUser() {
   } | null>(null);
   const { isMobile } = useSidebar();
   const router = useRouter();
-  const { translations } = useLanguage();
+  const { translations, language } = useLanguage();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    let storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
+
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+
+        const mappedUser = {
+          firstName:
+            language === "en"
+              ? parsedUser.employeename?.firsteng?.trim()
+              : parsedUser.employeename?.firstarb?.trim(),
+          lastName:
+            language === "en"
+              ? parsedUser.employeename?.lasteng?.trim()
+              : parsedUser.employeename?.lastarb?.trim(),
+          email: parsedUser.email,
+          employeeId: parsedUser.employeenumber?.toString() || undefined,
+          role: parsedUser.roley || "Admin",
+        };
+
+        setUser(mappedUser);
+      } catch (error) {
+        console.error("Failed to parse user from storage:", error);
+      }
     }
-  }, []);
+  }, [language]);
 
   async function logout() {
     try {
@@ -48,17 +69,17 @@ export function NavUser() {
         <DropdownMenuTrigger asChild>
           <button className="flex gap-3 items-center outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
             <Avatar className="w-12 h-12 rounded-lg bg-backdrop flex justify-center items-center">
-              <AvatarImage alt={`${user?.firstName ?? "Sample"} ${user?.lastName ?? "User"}`} />
+              <AvatarImage alt={`${user?.firstName} ${user?.lastName}`} />
               <AvatarFallback className="text-primary font-semibold text-xl uppercase">
-                {user?.firstName?.[0] ?? "S"}
+                {user?.firstName?.[0]}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight capitalize">
               <span className="truncate text-base font-bold text-text-primary">
-                {user?.firstName ?? "Sample"}
+                {user?.firstName}
               </span>
               <span className="truncate text-sm font-semibold text-secondary">
-                {user?.role ?? "Employee"}
+                {user?.role}
               </span>
             </div>
             <span className="text-text-primary w-6"><DropDownIcon /></span>

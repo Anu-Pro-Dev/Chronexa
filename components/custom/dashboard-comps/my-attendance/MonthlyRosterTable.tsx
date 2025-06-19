@@ -15,7 +15,6 @@ interface MonthlyRosterTableProps {
 }
 
 const MonthlyRosterTable: React.FC<MonthlyRosterTableProps> = ({ month }) => {
-  // Sample data - in a real app, this would come from an API
   const data = [
     {
       date: "01",
@@ -31,7 +30,6 @@ const MonthlyRosterTable: React.FC<MonthlyRosterTableProps> = ({ month }) => {
       workHours: "8:00 AM - 4:00 PM",
       status: "Present"
     },
-    // Add more sample data as needed
   ];
 
   return (

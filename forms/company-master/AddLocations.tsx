@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
@@ -21,15 +21,15 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  location_code: z.string().default(""),
+  location_code: z.string().default("").transform((val) => val.toUpperCase()),
   location_name: z.string().default(""),
-  radius: z.coerce.number().min(1, "Radius must be a positive number").optional(),  
+  radius: z.coerce.number().max(5000, "Too large").optional(),
   country_code: z.any().optional(),
   geolocation: z
     .string()
     .default("")
     .refine((val) => {
-      if (!val?.trim()) return true; // allow empty (optional)
+      if (!val?.trim()) return true;
       const match = val.match(/^(-?\d{1,2}(\.\d+)?)\s*,\s*(-?\d{1,3}(\.\d+)?)$/);
       if (!match) return false;
       const [lat, lon] = val.split(",").map((n) => Number(n.trim()));
@@ -39,27 +39,19 @@ const formSchema = z.object({
     }),
 });
 
-// function pointToLatLon(point: string | null): string {
-//   if (!point?.startsWith("POINT")) return "";
-//   const match = point.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
-//   if (!match) return "";
-//   const [, lon, lat] = match;
-//   return `${lat},${lon}`;
-// }
-
 function pointToLatLon(point: string | null): string {
-  if (!point) return "";
+  if (!point || point.trim() === "") return "";
 
-  // Check if it's POINT format
   const match = point.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
   if (match) {
     const [, lon, lat] = match;
     return `${lat},${lon}`;
   }
 
-  // If it's already lat,lon or lon,lat — just return cleaned value
   if (point.includes(",")) {
-    return point.replace(/\s+/g, ""); // remove any spaces
+    // Remove spaces and any leading/trailing commas
+    const sanitized = point.replace(/\s+/g, "");
+    return sanitized.replace(/^,|,$/g, "");
   }
 
   return "";
@@ -68,7 +60,7 @@ function pointToLatLon(point: string | null): string {
 function latLonToPoint(value: string): string {
   const [lat, lon] = value.split(",").map((s) => s.trim());
   if (!lat || !lon) return "";
-  return `POINT(${lon} ${lat})`; // Convert lat,lon → POINT(lon lat)
+  return `POINT(${lon} ${lat})`;
 }
 
 export default function AddLocations({
@@ -80,14 +72,14 @@ export default function AddLocations({
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
 }) {
-
-  const {language } = useLanguage();
+  const { language } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { countries, getCountryByCode } = useCountries();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      location_code:"",
+      location_code: "",
       location_name: "",
       radius: undefined,
       country_code: "",
@@ -95,79 +87,9 @@ export default function AddLocations({
     },
   });
 
-  // useEffect(() => {
-  //   form.reset(form.getValues());
-  // }, [language]);
-
-  // useEffect(() => {
-  //   if (selectedRowData) {
-  //     form.setValue(
-  //       "location_name",
-  //       language === "en"
-  //         ? selectedRowData.location_eng ?? ""
-  //         : selectedRowData.location_arb ?? ""
-  //     );
-  //   }
-  // }, [language]);
-
-  // useEffect(() => {
-  //   if (selectedRowData) {
-  //     const geolocationStr = pointToLatLon(selectedRowData?.geolocation ?? "");
-  //     console.log("Converted Geo:", geolocationStr);
-  //     form.reset({
-  //       location_code: selectedRowData.location_code ?? "",
-  //       location_name:
-  //         language === "en"
-  //           ? selectedRowData.location_eng ?? ""
-  //           : selectedRowData.location_arb ?? "",
-  //       radius: selectedRowData.radius,
-  //       country_code: selectedRowData.country_code ?? "",
-  //       geolocation: geolocationStr,
-  //     });
-  //   } else {
-  //     form.reset(); // clears on add
-  //   }
-  // }, [selectedRowData, form, language]);
-
-  // useEffect(() => {
-  //   if (selectedRowData) {
-  //     const geolocationStr = pointToLatLon(selectedRowData?.geolocation ?? "");
-  //     console.log("Converted Geo:", geolocationStr);
-
-  //     form.reset({
-  //       location_code: selectedRowData.location_code ?? "",
-  //       location_name:
-  //         language === "en"
-  //           ? selectedRowData.location_eng ?? ""
-  //           : selectedRowData.location_arb ?? "",
-  //       radius: selectedRowData.radius,
-  //       country_code: selectedRowData.country_code ?? "",
-  //       geolocation: geolocationStr,
-  //     });
-  //   } else {
-  //     form.reset();
-  //   }
-  // }, [selectedRowData, language]);
-
-  // useEffect(() => {
-  //   if (selectedRowData) {
-  //     const cleanedGeo = pointToLatLon(selectedRowData.geolocation ?? "");
-
-  //     console.log("Raw geolocation POINT value:", selectedRowData.geolocation);
-  //     console.log("Converted Geo:", cleanedGeo);
-
-  //     form.reset({
-  //       ...selectedRowData,
-  //       geolocation: cleanedGeo,
-  //     });
-  //   }
-  // }, [selectedRowData]);
-
   useEffect(() => {
     if (selectedRowData) {
       const geolocationStr = pointToLatLon(selectedRowData.geolocation ?? "");
-      console.log("Converted Geo:", geolocationStr);
-
       form.reset({
         location_code: selectedRowData.location_code ?? "",
         location_name:
@@ -179,85 +101,76 @@ export default function AddLocations({
         geolocation: geolocationStr,
       });
     } else {
-      form.reset(); // clears on add
+      form.reset();
     }
   }, [selectedRowData, language]);
 
-  useEffect(() => {
-    form.reset(form.getValues());
-  }, [language]);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
 
+    setIsSubmitting(true);
 
-  const handleSave = () => {
-    const formData = form.getValues();
-    if (selectedRowData) {
-      onSave(selectedRowData.id, formData);
-    } else {
-      onSave(null, formData);
-    }
-    on_open_change(false);
-  };
-
-async function onSubmit(values: z.infer<typeof formSchema>) {
-  try {
-    if (values.geolocation.trim() !== "") {
-      const [latStr, lonStr] = values.geolocation.split(",").map((s) => s.trim());
-      const latitude = parseFloat(latStr);
-      const longitude = parseFloat(lonStr);
-
-      if (
-        isNaN(latitude) ||
-        isNaN(longitude) ||
-        latitude < -90 ||
-        latitude > 90 ||
-        longitude < -180 ||
-        longitude > 180
-      ) {
-        alert(
-          "Invalid coordinates. Latitude must be between -90 and 90. Longitude must be between -180 and 180."
-        );
-        return;
+    try {
+      if (values.geolocation.trim() !== "") {
+        const [latStr, lonStr] = values.geolocation.split(",").map((s) => s.trim());
+        const latitude = parseFloat(latStr);
+        const longitude = parseFloat(lonStr);
+        if (
+          isNaN(latitude) ||
+          isNaN(longitude) ||
+          latitude < -90 ||
+          latitude > 90 ||
+          longitude < -180 ||
+          longitude > 180
+        ) {
+          alert(
+            "Invalid coordinates. Latitude must be between -90 and 90. Longitude must be between -180 and 180."
+          );
+          setIsSubmitting(false);
+          return;
+        }
+        values.geolocation = latLonToPoint(values.geolocation);
+      } else {
+        values.geolocation = "";
       }
 
-      values.geolocation = latLonToPoint(values.geolocation); // ✅ Convert to POINT format
-    } else {
-      values.geolocation = "";
+      const payload: any = {
+        location_code: values.location_code,
+        country_code: values.country_code,
+        radius: values.radius,
+        geolocation: values.geolocation,
+      };
+
+      if (language === "en") {
+        payload.location_eng = values.location_name;
+      } else {
+        payload.location_arb = values.location_name;
+      }
+
+      if (selectedRowData) {
+        const response = await editLocationRequest({
+          location_id: selectedRowData.id,
+          ...payload,
+        });
+        toast.success("Location updated successfully!");
+        onSave(selectedRowData.id, payload);
+      } else {
+        const response = await addLocationRequest(payload);
+        toast.success("Location added successfully!");
+        onSave(null, response.data);
+      }
+
+      on_open_change(false);
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Base payload
-    const payload: any = {
-      location_code: values.location_code,
-      country_code: values.country_code,
-      radius: values.radius,
-      geolocation: values.geolocation,
-    };
-
-    // Add only the language-specific name being edited
-    if (language === "en") {
-      payload.location_eng = values.location_name;
-    } else {
-      payload.location_arb = values.location_name;
-    }
-
-    if (selectedRowData) {
-      const response = await editLocationRequest({
-        location_id: selectedRowData.id,
-        ...payload,
-      });
-      toast.success("Location updated successfully!");
-      onSave(selectedRowData.id, payload);
-    } else {
-      const response = await addLocationRequest(payload);
-      toast.success("Location added successfully!");
-      onSave(null, response);
-    }
-
-    on_open_change(false);
-  } catch (error) {
-    console.error("Form submission error", error);
   }
-}
-
 
   return (
     <Form {...form}>
@@ -269,15 +182,10 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
               name="location_code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Location code<Required />
-                  </FormLabel>
+                  <FormLabel>Location code<Required /></FormLabel>
                   <FormControl>
                     <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                      <span
-                        className={`absolute top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none
-                          ${language === 'ar' ? 'right-3' : 'left-3'}`}
-                      >
+                      <span className={`absolute top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none ${language === 'ar' ? 'right-3' : 'left-3'}`}>
                         CODE_
                       </span>
                       <Input
@@ -287,9 +195,7 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
                         onChange={(e) =>
                           field.onChange(`CODE_${e.target.value.replace(/^CODE_/, '')}`)
                         }
-                        className={`uppercase placeholder:lowercase ${
-                          language === 'ar' ? 'pr-14 text-right' : 'pl-14 text-left'
-                        }`}
+                        className={`uppercase placeholder:lowercase ${language === 'ar' ? 'pr-14 text-right' : 'pl-14 text-left'}`}
                       />
                     </div>
                   </FormControl>
@@ -301,7 +207,7 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
               control={form.control}
               name="location_name"
               render={({ field }) => (
-              <FormItem>
+                <FormItem>
                   <FormLabel>
                     {language === "ar"
                       ? "Location name (العربية) "
@@ -309,10 +215,15 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
                     <Required />
                   </FormLabel>
                   <FormControl>
-                  <Input placeholder="Enter location name" type="text" {...field} />
+                    <Input
+                      placeholder="Enter location name"
+                      type="text"
+                      {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
+                    />
                   </FormControl>
                   <FormMessage />
-              </FormItem>
+                </FormItem>
               )}
             />
             <FormField
@@ -320,9 +231,7 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
               name="geolocation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Geo Coordinates (lat, long)
-                  </FormLabel>
+                  <FormLabel>Geo Coordinates (lat, long)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="25.123456,55.654321"
@@ -331,17 +240,18 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
                       value={field.value}
                       onChange={(e) => {
                         const input = e.target.value;
-
-                        // Allow only numbers, commas, minus, and dot
                         const sanitized = input.replace(/[^0-9.,\-]/g, "");
-
-                        // Basic enforcement: 1 comma only
+                        
+                        // Prevent setting value if only comma or empty or no digits
+                        if (sanitized === "," || sanitized === "" || !sanitized.match(/[0-9]/)) {
+                          field.onChange("");
+                          return;
+                        }
+                        
                         const parts = sanitized.split(",");
                         if (parts.length > 2) return;
 
                         const [lat, lon] = parts;
-
-                        // Enforce: latitude max 2 digits before ".", longitude max 3
                         const isValidLat = !lat || /^-?\d{0,2}(\.\d{0,8})?$/.test(lat.trim());
                         const isValidLon = !lon || /^-?\d{0,3}(\.\d{0,8})?$/.test(lon.trim());
 
@@ -349,13 +259,6 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
                           field.onChange(sanitized);
                         }
                       }}
-                      // onPaste={(e) => {
-                      //   const pasted = e.clipboardData.getData("text");
-                      //   const validPattern = /^-?\d{1,2}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$/;
-                      //   if (!validPattern.test(pasted.trim())) {
-                      //     e.preventDefault();
-                      //   }
-                      // }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -366,15 +269,18 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
               control={form.control}
               name="radius"
               render={({ field }) => (
-              <FormItem>
-                  <FormLabel>
-                      Radius
-                  </FormLabel>
+                <FormItem>
+                  <FormLabel>Radius</FormLabel>
                   <FormControl>
-                  <Input placeholder="Enter the radius" type="number" value={field.value ?? ""} onChange={field.onChange} />
+                    <Input
+                      placeholder="Enter the radius"
+                      type="number"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
-              </FormItem>
+                </FormItem>
               )}
             />
             <FormField
@@ -388,7 +294,7 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
                     <CountryDropdown
                       countries={countries}
                       value={selectedCountry}
-                      displayMode = "code"
+                      displayMode="code"
                       onChange={(country) => field.onChange(country?.country_code ?? "")}
                     />
                     <FormMessage className="mt-1" />
@@ -400,16 +306,22 @@ async function onSubmit(values: z.infer<typeof formSchema>) {
           <div className="flex justify-end gap-2 items-center py-5">
             <div className="flex gap-4 px-5">
               <Button
-                variant={"outline"}
+                variant="outline"
                 type="button"
-                size={"lg"}
+                size="lg"
                 className="w-full"
                 onClick={() => on_open_change(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                {selectedRowData ? "Update" : "Save"}
+              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                {isSubmitting
+                  ? selectedRowData
+                    ? "Updating..."
+                    : "Saving..."
+                  : selectedRowData
+                    ? "Update"
+                    : "Save"}
               </Button>
             </div>
           </div>

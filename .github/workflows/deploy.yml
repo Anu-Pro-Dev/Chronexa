@@ -20,10 +20,70 @@ jobs:
 
     - name: Deploy to RDP Host 1
       run: |
+        echo "Preparing web.config for Host 1"
         cp web.config.rdp1 web.config
-        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_1 }} powershell -Command \"cd 'E:\\APP\\Chronologix'; node -v; npm -v; git pull origin main; npm install --legacy-peer-deps; npm run build; Import-Module WebAdministration; Restart-WebAppPool 'chronologix'\"
+
+        echo "Deploying to RDP Host 1..."
+        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_1 }} powershell -NoProfile -Command @"
+          try {
+            Write-Host '--- Starting deployment on Host 1 ---'
+
+            cd 'E:\APP\Chronologix'
+
+            Write-Host 'Resetting any local changes...'
+            git reset --hard
+
+            Write-Host 'Pulling latest code...'
+            git pull origin main
+
+            Write-Host 'Installing dependencies...'
+            npm ci --force
+
+            Write-Host 'Building project...'
+            npm run build
+
+            Write-Host 'Restarting IIS App Pool...'
+            Import-Module WebAdministration
+            Restart-WebAppPool 'chronologix'
+
+            Write-Host '--- Deployment successful on Host 1 ---'
+          } catch {
+            Write-Host 'Deployment FAILED on Host 1'
+            exit 1
+          }
+        "@
 
     - name: Deploy to RDP Host 2
       run: |
+        echo "Preparing web.config for Host 2"
         cp web.config.rdp2 web.config
-        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_2 }} powershell -Command \"cd 'E:\\APP\\Chronologix'; node -v; npm -v; git pull origin main; npm install --legacy-peer-deps; npm run build; Import-Module WebAdministration; Restart-WebAppPool 'chronologix'\"
+
+        echo "Deploying to RDP Host 2..."
+        ssh -o StrictHostKeyChecking=no ${{ secrets.RDP_USER }}@${{ secrets.RDP_HOST_2 }} powershell -NoProfile -Command @"
+          try {
+            Write-Host '--- Starting deployment on Host 2 ---'
+
+            cd 'E:\APP\Chronologix'
+
+            Write-Host 'Resetting any local changes...'
+            git reset --hard
+
+            Write-Host 'Pulling latest code...'
+            git pull origin main
+
+            Write-Host 'Installing dependencies...'
+            npm ci --force
+
+            Write-Host 'Building project...'
+            npm run build
+
+            Write-Host 'Restarting IIS App Pool...'
+            Import-Module WebAdministration
+            Restart-WebAppPool 'chronologix'
+
+            Write-Host '--- Deployment successful on Host 2 ---'
+          } catch {
+            Write-Host 'Deployment FAILED on Host 2'
+            exit 1
+          }
+        "@

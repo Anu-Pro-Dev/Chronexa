@@ -10,11 +10,10 @@ export default function PowerShifterTab({ items }: { items: any }) {
   const { translations } = useLanguage();
   const isSingleItem = items?.length === 1;
   return (
-    <div className="flex space-x-2">
+    <div className="flex gap-2">
       {items?.map((item: any, index: number) => {
         if (item?.hide) return null;
-
-
+        
         const isActive =
           normalizePath(pathname) === normalizePath(item?.path) ||
           normalizePath(pathname).startsWith(normalizePath(item?.path) + "/");

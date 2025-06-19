@@ -80,24 +80,25 @@ export default function LoginForm() {
         return;
       }
 
-      const token = "something bro";
-      if (values.remember_me === true) {
-        localStorage.setItem(USER_TOKEN, token);
-      } else {
-        sessionStorage.setItem(USER_TOKEN, token);
-      }
-      router.push("/dashboard");
+      // const token = "something bro";
+      // if (values.remember_me === true) {
+      //   localStorage.setItem(USER_TOKEN, token);
+      // } else {
+      //   sessionStorage.setItem(USER_TOKEN, token);
+      // }
+      // router.push("/dashboard");
   
     // Uncomment the following lines to use the loginRequest function
-      // const response = await loginRequest(values.username, values.password, values.remember_me ?? false);
-  
-      // // Redirect only if login is successful and a token is received
-      // if (response?.token) {
-      //   router.push("/dashboard");
-      // } else {
-      //   console.error("Login failed: No token received.");
-      //   form.setError("username", { type: "manual", message: "Invalid credentials" });
-      // }
+      const response = await loginRequest(values.username, values.password, values.remember_me ?? false);
+      
+      console.log("Login response:", response);
+      // Redirect only if login is successful and a token is received
+      if (response?.token) {
+        router.push("/dashboard");
+      } else {
+        console.error("Login failed: No token received.");
+        form.setError("username", { type: "manual", message: "Invalid credentials" });
+      }
     } catch (error) {
       console.error("Login error:", error);
       form.setError("username", { type: "manual", message: "An error occurred. Please try again." });

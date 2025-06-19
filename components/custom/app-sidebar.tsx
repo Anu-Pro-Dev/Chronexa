@@ -29,8 +29,6 @@ import {
 } from "@/icons/icons";
 import Image from "next/image";
 
-// This is sample data.
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { translations, dir, modules } = useLanguage();
   const { open, toggleSidebar, setOpen } = useSidebar();
@@ -88,13 +86,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
     secondary: [
-      {
-        title: translations.navbar.secondary.devices,
-        url: modules.devices.items[0].path,
-        path: modules.devices.path,
-        icon: DevicesIcon,
-        isActive: true,
-      },
+      // {
+      //   title: translations.navbar.secondary.devices,
+      //   url: modules.devices.items[0].path,
+      //   path: modules.devices.path,
+      //   icon: DevicesIcon,
+      //   isActive: true,
+      // },
       {
         title: translations.navbar.secondary.reports,
         url: modules.reports.items[0].path,

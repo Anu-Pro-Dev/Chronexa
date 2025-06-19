@@ -379,23 +379,17 @@ export default function LanguageProvider({
     },
   };
 
-  const devices = {
-    route_name: "Devices",
-    path: "/devices/",
-    items: [
-      {
-        label: "Devices Status",
-        path: "/devices/devices-status/",
-        value: "devices_status",
-      },
-      // {
-      //   label: "Devices Status",
-      //   path: "/devices/devices-status/add/",
-      //   value: "add_devices_status",
-      //   hide: true,
-      // },
-    ],
-  };
+  // const devices = {
+  //   route_name: "Devices",
+  //   path: "/devices/",
+  //   items: [
+  //     {
+  //       label: "Devices Status",
+  //       path: "/devices/devices-status/",
+  //       value: "devices_status",
+  //     },
+  //   ],
+  // };
 
   const reports = {
     route_name: "Reports",
@@ -406,11 +400,6 @@ export default function LanguageProvider({
         path: "/reports/reports/",
         value: "reports",
       },
-      // {
-      //   label: "Reprocess Data",
-      //   path: "/reports/reprocess-data/",
-      //   value: "reprocess_data",
-      // },
     ],
   };
 
@@ -456,47 +445,12 @@ export default function LanguageProvider({
           path: "/settings/email-settings/",
           value: "email_settings",
         },
-        {
-          label: "Master Upload",
-          path: "/settings/master-upload/",
-          value: "master_upload",
-        },
+        // {
+        //   label: "Master Upload",
+        //   path: "/settings/master-upload/",
+        //   value: "master_upload",
+        // },
       ],
-    // manage_movements: {
-    //   items: [
-    //     {
-    //       label: "All",
-    //       url: "/settings/application-settings/all/",
-    //       value: "all",
-    //     },
-    //     {
-    //       label: "Notification",
-    //       url: "/settings/application-settings/notification/",
-    //       value: "notification",
-    //     },
-    //     {
-    //       label: "Server",
-    //       url: "/settings/application-settings/server/",
-    //       value: "server",
-    //     },
-    //     {
-    //       label: "Module",
-    //       url: "/settings/application-settings/module/",
-    //       value: "module",
-    //     },
-    //     {
-    //       label: "Others",
-    //       url: "/settings/application-settings/others/",
-    //       value: "others",
-    //     },
-    //     {
-    //       label: "Verification",
-    //       url: "/settings/application-settings/verification/",
-    //       value: "verification",
-    //     },
-    //   ],
-    // },
-
   };
 
   const alerts = {
@@ -508,11 +462,11 @@ export default function LanguageProvider({
         path: "/alerts/email/",
         value: "email",
       },
-      {
-        label: "SMS",
-        path: "/alerts/sms/",
-        value: "sms",
-      },
+      // {
+      //   label: "SMS",
+      //   path: "/alerts/sms/",
+      //   value: "sms",
+      // },
     ],
   };
 
@@ -524,7 +478,7 @@ export default function LanguageProvider({
     scheduling,
     selfServices,
     manageApprovals,
-    devices,
+    // devices,
     reports,
     configuration,
     settings,

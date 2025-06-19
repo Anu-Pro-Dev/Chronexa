@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddGrades from "@/forms/company-master/AddGrades";
@@ -8,30 +8,31 @@ import { getAllGrades } from "@/lib/apiHandler";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-  const [Columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
-  const [SearchValue, SetSearchValue] = useState<string>("");
-  const [open, on_open_change] = useState<boolean>(false);
+
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [data, setData] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
+    Data: data,
+    SetData: setData,
+    Columns: columns,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
     open,
-    on_open_change,
-    SearchValue,
-    SetSearchValue,
+    on_open_change: setOpen,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
   };
 
   useEffect(() => {
@@ -42,54 +43,57 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+      { field: "code", headerName: language === "ar" ? "تعيين الموقع" : "Grade Code" },
       {
-        field: language === "ar" ? "gradeNameArb" : "gradeNameEng",
-        headerName: language === "ar" ? "الموقع" : "Grade",
+        field: language === "ar" ? "grade_arb" : "grade_eng",
+        headerName: language === "ar" ? "تعيين" : "Grade",
       },
     ]);
   }, [language]);
 
   useEffect(() => {
-    const fetchGrades = async () => {
+    const fetchGrade = async () => {
       try {
         const response = await getAllGrades();
-        if (response?.success && Array.isArray(response?.data)) {
-          const mapped = response.data.map((loc: any) => ({
-            ...loc,
-            id: loc.gradeId,
+        if (response?.success && Array.isArray(response.data)) {
+          const mapped = response.data.map((grd: any) => ({
+            ...grd,
+            id: grd.grade_id,
           }));
-    
-          SetData(mapped);
+          setData(mapped);
         } else {
-          console.error("Unexpected response structure:", response);
+          console.error("Unexpected response:", response);
         }
       } catch (error) {
-        console.error("Error fetching grades:", error);
+        console.error("Error fetching grade data:", error);
       }
     };
-    
-    fetchGrades();
+
+    fetchGrade();
+  }, []);  
+
+ const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
+    setOpen(true);
   }, []);
 
-  const handleEditClick = (data: any) => {
-    setSelectedRowData(data);
-    on_open_change(true);
-  };
-
   const handleSave = (id: string | null, newData: any) => {
-    if (id) {
-      SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
-      );
-    } else {
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
-    }
+    const dataWithId = {
+      ...newData,
+      id: newData.grade_id,
+    };
+
+    setData((prev) =>
+      id
+        ? prev.map((row) => (row.id === id ? { ...row, ...dataWithId } : row))
+        : [...prev, dataWithId]
+    );
     setSelectedRowData(null);
   };
 
-  const handleRowSelection = (rows: any[]) => {
-    setSelectedRows(rows); // Update selected rows
-  };
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -98,16 +102,16 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.companyMaster.items}
         entityName="grade"
-        modal_title="Grades"
+        modal_title="Grade"
         modal_component={
           <AddGrades
-            on_open_change={on_open_change}
+            on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
+      <PowerTable props={props} Data={data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} />
     </div>
   );
 }

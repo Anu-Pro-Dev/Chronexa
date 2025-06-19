@@ -1,6 +1,6 @@
 import { email_data, sms_data } from "@/data/alerts.data";
 import { locations_data, citizenship_data, designations_data, grades_data } from "@/data/cm.data"; // Import your datasets
-import { devices_status_data } from "@/data/devices.data";
+// import { devices_status_data } from "@/data/devices.data";
 import {
   employeeMaster_employees_data,
   employeeMaster_groups_data,
@@ -113,9 +113,9 @@ export const DynamicApi = (api: any, params: any) => {
       case "/self-services/manage-leaves/application":
         data = leave_application_data;
         break;
-      case "/devices/devices-status":
-        data = devices_status_data;
-        break;
+      // case "/devices/devices-status":
+      //   data = devices_status_data;
+      //   break;
       case "/security/roles":
         data = roles_data;
         break;

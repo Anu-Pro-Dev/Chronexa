@@ -80,32 +80,11 @@ export default function PowerHeader({
   enableWord?: boolean;
 }) {
 
-  const handleDelete = async () => {
-    try {
-      const selectedRowIds = selectedRows?.map(row => row.id) || [];
-
-      if (selectedRowIds.length === 0) return;
-
-      for (const id of selectedRowIds) {
-        await deleteEntityRequest(entityName, id);
-      }
-
-      toast.success(`${entityName} deleted successfully!`);
-
-      props.SetData?.((prevData: any[]) =>
-        prevData.filter((row: any) => !selectedRowIds.includes(row.id))
-      );
-
-      props.setSelectedRows?.([]); // Clear selection
-    } catch (error) {
-      toast.error(`Failed to delete ${entityName}`);
-      console.error("Delete error:", error);
-    }
-  };
-
   // const handleDelete = async () => {
   //   try {
-  //     const selectedRowIds = selectedRows?.map(row => row.entity_id || row.location_id) || [];
+  //     const entityIdField = `${entityName}_id`;
+
+  //     const selectedRowIds = selectedRows?.map(row => row[entityIdField]) || [];
 
   //     if (selectedRowIds.length === 0) return;
 
@@ -116,16 +95,46 @@ export default function PowerHeader({
   //     toast.success(`${entityName} deleted successfully!`);
 
   //     props.SetData?.((prevData: any[]) =>
-  //       prevData.filter((row: any) =>
-  //         !selectedRowIds.includes(row.entity_id || row.location_id)
-  //       )
+  //       prevData.filter((row: any) => !selectedRowIds.includes(row.id))
   //     );
 
-  //     props.setSelectedRows?.([]);
-  //   } catch (error) {
+  //     props.setSelectedRows?.([]); // Clear selection
+  //   } 
+  //   catch {
   //     toast.error(`Failed to delete ${entityName}`);
   //   }
   // };
+
+  const handleDelete = async () => {
+    try {
+      const entityIdField = `${entityName}_id`;
+      const selectedRowIds = selectedRows?.map(row => row[entityIdField]) || [];
+
+      if (selectedRowIds.length === 0) return;
+
+      // Delete all selected entities in parallel, handle failures individually
+      const results = await Promise.allSettled(
+        selectedRowIds.map(id => deleteEntityRequest(entityName, id))
+      );
+
+      const failedDeletes = results.filter(r => r.status === "rejected");
+
+      if (failedDeletes.length > 0) {
+        toast.error(`Failed to delete some ${entityName}(s).`);
+      } else {
+        toast.success(`${entityName} deleted successfully!`);
+      }
+
+      // Update data by filtering out all selected ids (consistent with ID field)
+      props.SetData?.((prevData: any[]) =>
+        prevData.filter((row: any) => !selectedRowIds.includes(row[entityIdField]))
+      );
+
+      props.setSelectedRows?.([]);
+    } catch (error) {
+      toast.error(`Failed to delete ${entityName}`);
+    }
+  };
 
   return (
     <div className="flex flex-col">

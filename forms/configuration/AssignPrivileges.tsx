@@ -39,11 +39,11 @@ const sectionStructure = {
     employee_master: ["Employee Type", "Employee Group", "Employee"],
     scheduling: ["Schedules", "Weekly Schedule","Monthly Schedule", "Holidays", "Set Ramadan Dates"],
     self_services: ["Permissions", "Leaves", "Punches", "Approval Workflow", "Team Requests", "Approvals" ],
-    devices: ["Devices"],
+    // devices: ["Devices"],
     reports: ["Reports"],
     configuration: ["Roles", "Privileges", "Reprocess"],
     settings: ["Application Settings", "DB Settings", "Master Upload", "Email Settings"],
-    alerts: ["Email", "SMS"]
+    alerts: ["Email"]
 } as const;
 
 type Section = keyof typeof sectionStructure;

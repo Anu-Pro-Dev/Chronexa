@@ -28,7 +28,7 @@ export default function AddCitizenship({
   selectedRowData,
   onSave,
 }: {
-  on_open_change: any;
+  on_open_change: (val: boolean) => void;
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
 }) {
@@ -39,7 +39,8 @@ export default function AddCitizenship({
     },
   });
 
-  const {language } = useLanguage();
+  const { language } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { countries, getCountryByCode } = useCountries();
   const [selectedCountry, setSelectedCountry] = useState<any>(null);
 
@@ -67,23 +68,17 @@ export default function AddCitizenship({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRowData]);
 
-  const handleSave = () => {
-    const formData = form.getValues();
-    if (selectedRowData) {
-      onSave(selectedRowData.id, formData);
-    } else {
-      onSave(null, formData);
-    }
-    on_open_change(false);
-  };
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      if (!selectedCountry) {
-        toast.error("Please select a country.");
-        return;
-      }
+    if (isSubmitting) return;
 
+    if (!selectedCountry) {
+      toast.error("Please select a country.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
       const payload = {
         citizenship_code: selectedCountry.country_code,
         citizenship_eng: selectedCountry.country_eng,
@@ -91,33 +86,28 @@ export default function AddCitizenship({
       };
 
       if (!selectedRowData) {
-        // Add new citizenship
         const response = await addCitizenshipRequest(payload);
-
-        const newEntry = {
-          id: response.citizenshipId,
-          citizenship_code: selectedCountry.country_code,
-          citizenship_eng: selectedCountry.country_eng,
-          citizenship_arb: selectedCountry.country_arb,
-        };
-
         toast.success("Citizenship added successfully!");
-        onSave(null, newEntry);
+        onSave(null, response.data);
       } else {
-        // Editing existing, update UI with new payload only
         onSave(selectedRowData.id, payload);
       }
 
       on_open_change(false);
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Something went wrong.");
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
@@ -132,7 +122,7 @@ export default function AddCitizenship({
                     value={selectedCountry}
                     onChange={handleCountryChange}
                     countries={countries}
-                    displayMode = "full"
+                    displayMode="full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -142,16 +132,21 @@ export default function AddCitizenship({
         </div>
         <div className="w-full flex gap-2 items-center pt-8 py-3">
           <Button
-            variant={"outline"}
+            variant="outline"
             type="button"
-            size={"lg"}
+            size="lg"
             className="w-full"
             onClick={() => on_open_change(false)}
           >
             Cancel
           </Button>
-          <Button type="submit" size={"lg"} className="w-full">
-            Save
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save"}
           </Button>
         </div>
       </form>

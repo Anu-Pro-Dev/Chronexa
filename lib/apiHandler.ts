@@ -1,7 +1,7 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 import { getAuthToken, setAuthToken, clearAuthToken } from "@/utils/auth";
-import { USER_TOKEN, DEFAULT_API_URL, ERROR_GENERIC, ERROR_NETWORK } from "@/utils/constants";
+import { DEFAULT_API_URL, ERROR_GENERIC, ERROR_NETWORK } from "@/utils/constants";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 
@@ -32,8 +32,8 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      // If the error is coming from the server, handle it
-      throw new Error(error.response.data.message || ERROR_GENERIC);
+      // throw new Error(error.response.data.message || ERROR_GENERIC);
+      throw error;
     } else {
       throw new Error(ERROR_NETWORK);
     }
@@ -45,16 +45,20 @@ export const loginRequest = async (login: string, password: string, rememberMe: 
     const response = await apiRequest("/auth/login", "POST", {
       login: login,
       password: password,
+      rememberMe,
     });
   
     if (response.token) {
       setAuthToken(response.token, rememberMe);
-      localStorage.setItem("user", JSON.stringify(response.user));
+      if (rememberMe) {
+        localStorage.setItem("user", JSON.stringify(response.user));
+      } else {
+        sessionStorage.setItem("user", JSON.stringify(response.user));
+      }
     }
   
     return response;
 };
-  
 
 // Function for logging out
 export const logoutRequest = async () => {
@@ -68,10 +72,11 @@ export const logoutRequest = async () => {
   try {
     await apiRequest("/auth/logout", "POST");
   } catch (error) {
-    toast.error("Logout failed:");
+    toast.error("Logout failed");
   } finally {
     clearAuthToken();
     localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
   }
 };
 
@@ -100,10 +105,10 @@ export const getAllCountries = async () => {
   
 // Function to delete tanle entity dynamically
 export const deleteEntityRequest = (entity: string | undefined, id: string) => {
+  console.log(`Deleting ${entity} with ID: ${id}`);
   return apiRequest(`/${entity}/delete/${id}`, "DELETE")
     .then(response => response)
     .catch(error => {
-      toast.error(`Error deleting ${entity}:`, error);
       throw error;
     });
 };
@@ -144,7 +149,7 @@ export const editLocationRequest = async (data: {
 };
 
 // Function to fetch all citizenship
-export const getAllCitizenship = async () => {
+export const getAllCitizenships = async () => {
   return apiRequest("/citizenship/all", "GET");
 };
 
@@ -174,23 +179,25 @@ export const getAllDesignations = async () => {
 };
 
 // Function to add a new designation
-export const addDesignationRequest = async (designationEng: string, designationArb: string) => {
-  return apiRequest("/designation/add", "POST", {
-    designationEng,
-    designationArb,
-  });
+export const addDesignationRequest = async (data: {
+  designation_id?: number;
+  designation_code: string;
+  designation_eng?: string;
+  designation_arb?: string;
+}) => {
+  return apiRequest("/designation/add", "POST", data);
 };
 
 // Function to edit a designation by ID
-export const editDesignationRequest = async (
-  id: string,
-  designationEng: string,
-  designationArb: string,
-) => {
-  return apiRequest(`/designation/edit/${id}`, "PUT", {
-    designationEng,
-    designationArb,
-  });
+export const editDesignationRequest = async (data: {
+  designation_id: number;
+  designation_code?: string;
+  designation_eng?: string;
+  designation_arb?: string;
+}) => {
+  const { designation_id, ...payload } = data;
+
+  return apiRequest(`/designation/edit/${designation_id}`, "PUT", payload);
 };
 
 // Function to fetch all grades
@@ -199,25 +206,27 @@ export const getAllGrades = async () => {
 };
 
 // Function to add a new grade
-export const addGradeRequest = async (gradeNameEng: string, gradeNameArb: string, overtimeEligibleFlag: string) => {
-  return apiRequest("/grade/add", "POST", {
-    gradeNameEng,
-    gradeNameArb,
-    overtimeEligibleFlag,
-  });
+export const addGradeRequest = async (data: {
+  grade_id?: number;
+  grade_code: string;
+  grade_eng?: string;
+  grade_arb?: string;
+  overtime_eligible_flag?: boolean;
+}) => {
+  return apiRequest("/grade/add", "POST", data);
 };
 
 // Function to edit a grade by ID
-export const editGradeRequest = async (
-  id: string,
-  gradeNameEng: string,
-  gradeNameArb: string,
-  overtimeEligibleFlag: string,
-) => {
-  return apiRequest(`/grade/edit/${id}`, "PUT", {
-    gradeNameEng,
-    gradeNameArb,
-  });
+export const editGradeRequest = async (data: {
+  grade_id: number;
+  grade_code?: string;
+  grade_eng?: string;
+  grade_arb?: string;
+  overtime_eligible_flag?: boolean;
+}) => {
+  const { grade_id, ...payload } = data;
+
+  return apiRequest(`/grade/edit/${grade_id}`, "PUT", payload);
 };
 
 // Function to fetch all organization type
@@ -248,46 +257,46 @@ export const editOrganizationTypeRequest = async (
   });
 };
 
-// Function to fetch all organization
-export const getAllOrganization = async () => {
-  return apiRequest("/organization/all", "GET");
-};
+// // Function to fetch all organization
+// export const getAllOrganization = async () => {
+//   return apiRequest("/organization/all", "GET");
+// };
 
-// Function to add a new organization
-export const addOrganizationRequest = async (organizationName: string, descriptionEng: string, descriptionArb: string, organizationType: string) => {
-  return apiRequest("/organization/add", "POST", {
-    organizationName,
-    descriptionEng,
-    descriptionArb,
-    organizationType,
-  });
-};
+// // Function to add a new organization
+// export const addOrganizationRequest = async (organizationName: string, descriptionEng: string, descriptionArb: string, organizationType: string) => {
+//   return apiRequest("/organization/add", "POST", {
+//     organizationName,
+//     descriptionEng,
+//     descriptionArb,
+//     organizationType,
+//   });
+// };
 
 
-// Function to fetch all employee groups
-export const getAllEmployeeGroup = async () => {
-  return apiRequest("/employeeGroup/all", "GET");
-};
+// // Function to fetch all employee groups
+// export const getAllEmployeeGroup = async () => {
+//   return apiRequest("/employeeGroup/all", "GET");
+// };
 
-// Function to add a new employee group
-export const addEmployeeGroupRequest = async (groupName: string, descriptionEng: string, descriptionArb: string) => {
-  return apiRequest("/employeeGroup/add", "POST", {
-    groupName,
-    descriptionEng,
-    descriptionArb,
-  });
-};
+// // Function to add a new employee group
+// export const addEmployeeGroupRequest = async (groupName: string, descriptionEng: string, descriptionArb: string) => {
+//   return apiRequest("/employeeGroup/add", "POST", {
+//     groupName,
+//     descriptionEng,
+//     descriptionArb,
+//   });
+// };
 
-// Function to fetch all employee type
-export const getAllEmployeeType = async () => {
-  return apiRequest("/employeeType/all", "GET");
-};
+// // Function to fetch all employee type
+// export const getAllEmployeeType = async () => {
+//   return apiRequest("/employeeType/all", "GET");
+// };
 
-// Function to add a new employee type
-export const addEmployeeTypeRequest = async (typeName: string, descriptionEng: string, descriptionArb: string) => {
-  return apiRequest("/employeeType/add", "POST", {
-    typeName,
-    descriptionEng,
-    descriptionArb,
-  });
-};
+// // Function to add a new employee type
+// export const addEmployeeTypeRequest = async (typeName: string, descriptionEng: string, descriptionArb: string) => {
+//   return apiRequest("/employeeType/add", "POST", {
+//     typeName,
+//     descriptionEng,
+//     descriptionArb,
+//   });
+// };

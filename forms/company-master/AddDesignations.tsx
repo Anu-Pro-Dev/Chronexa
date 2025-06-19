@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import * as z from "zod";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,26 +14,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import Required from "@/components/ui/required";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { addDesignationRequest, editDesignationRequest } from "@/lib/apiHandler";
-import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
-    designationEng: z.string().default(""),
-    designationArb: z.string().default(""),
-});
-
-const getSchema = (lang: "en" | "ar") =>
-    formSchema.refine((data) => {
-        if (lang === "en") return !!data.designationEng;
-        if (lang === "ar") return !!data.designationArb;
-        return true;
-    }, {
-        message: "Required",
-        path: [lang === "en" ? "designationEng" : "designationArb"],
+  code: z.string().default("").transform((val) => val.toUpperCase()),
+  designation_name: z.string().default(""),
 });
 
 export default function AddDesignations({
@@ -45,104 +34,131 @@ export default function AddDesignations({
 }) {
 
   const {language } = useLanguage();
-    
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      designationEng: "",
-      designationArb: "",
+      code:"",
+      designation_name: "",
     },
   });
 
   useEffect(() => {
-    form.reset(form.getValues());
-  }, [language]);
-
-  useEffect(() => {
-    if (!selectedRowData) {
-      form.reset();
-    } else {
-      form.reset({
-        designationEng: selectedRowData.designationEng,
-        designationArb: selectedRowData.designationArb,
-      });
-    }
-  }, [selectedRowData, form]);
-
-  const handleSave = () => {
-    const formData = form.getValues();
     if (selectedRowData) {
-      onSave(selectedRowData.id, formData);
+      form.reset({
+        code: selectedRowData.code ?? "",
+        designation_name:
+          language === "en"
+            ? selectedRowData.designation_eng ?? ""
+            : selectedRowData.designation_arb ?? "",
+      });
     } else {
-      onSave(null, formData);
+      form.reset(); // clears on add
     }
-    on_open_change(false);
-  };
-
-  const router = useRouter();
+  }, [selectedRowData, language]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    
     try {
-      if (selectedRowData) {
-        const response = await editDesignationRequest(
-          selectedRowData.id,
-          values.designationEng,
-          values.designationArb
-        );
-        toast.success("Designation updated successfully!");
-        onSave(selectedRowData.id, values);
+      const payload: any = {
+        code: values.code,
+      };
+
+      // Add only the language-specific name being edited
+      if (language === "en") {
+        payload.designation_eng = values.designation_name;
       } else {
-        const response = await addDesignationRequest(
-          values.designationEng,
-          values.designationArb
-        );
-        toast.success("Designation added successfully!");
-        onSave(null, response);
+        payload.designation_arb = values.designation_name;
       }
 
+      if (selectedRowData) {
+        const response = await editDesignationRequest({
+          designation_id: selectedRowData.id,
+          ...payload,
+        });
+        toast.success("Designation updated successfully!");
+        onSave(selectedRowData.id, payload);
+      } else {
+        const response = await addDesignationRequest(payload);
+        toast.success("Designation added successfully!");
+        onSave(null, response.data);
+      }
 
       on_open_change(false);
-    } catch (error) {
-      console.error("Form submission error", error);
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-4">
-          <FormField
+          <div className="grid gap-16 gap-y-4 pl-5">
+            <FormField
               control={form.control}
-              name="designationEng"
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Designation code<Required />
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                      <span
+                        className={`absolute top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none
+                          ${language === 'ar' ? 'right-3' : 'left-3'}`}
+                      >
+                        CODE_
+                      </span>
+                      <Input
+                        type="text"
+                        placeholder="Enter designation code"
+                        value={field.value?.replace(/^CODE_/, '') || ''}
+                        onChange={(e) =>
+                          field.onChange(`CODE_${e.target.value.replace(/^CODE_/, '')}`)
+                        }
+                        className={`uppercase placeholder:lowercase ${
+                          language === 'ar' ? 'pr-14 text-right' : 'pl-14 text-left'
+                        }`}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="designation_name"
               render={({ field }) => (
               <FormItem>
                   <FormLabel>
-                      Designation (English) {language === "en" && <Required />}
+                    {language === "ar"
+                      ? "Designation name (العربية) "
+                      : "Designation name (English) "}
+                    <Required />
                   </FormLabel>
                   <FormControl>
-                  <Input placeholder="Enter designation" type="text" {...field} />
+                  <Input placeholder="Enter designation name" type="text" {...field} />
                   </FormControl>
                   <FormMessage />
               </FormItem>
               )}
-          />
-          <FormField
-              control={form.control}
-              name="designationArb"
-              render={({ field }) => (
-              <FormItem>
-                  <FormLabel>
-                      Designation (العربية) {language === "ar" && <Required />}
-                  </FormLabel>
-                  <FormControl>
-                  <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage />
-              </FormItem>
-              )}
-          />
-          <div className="w-full flex gap-2 items-center py-3">
+            />
+          </div>
+          <div className="flex justify-end gap-2 items-center py-5">
+            <div className="flex gap-4 px-5">
               <Button
                 variant={"outline"}
                 type="button"
@@ -152,9 +168,17 @@ export default function AddDesignations({
               >
                 Cancel
               </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                {selectedRowData ? "Update" : "Save"}
+              <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
+                {isSubmitting
+                  ? selectedRowData
+                    ? "Updating..."
+                    : "Saving..."
+                  : selectedRowData
+                    ? "Update"
+                    : "Save"
+                }
               </Button>
+            </div>
           </div>
         </div>
       </form>
