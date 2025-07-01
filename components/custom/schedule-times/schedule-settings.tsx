@@ -73,7 +73,7 @@ export function ScheduleSettings({
       <div>
         <h2 className="font-bold text-xl text-primary">Schedule settings</h2>
         <p className="font-semibold text-sm text-text-secondary">
-          Select the information for employee schedule
+          Choose the information for employee schedule
         </p>
       </div>
 

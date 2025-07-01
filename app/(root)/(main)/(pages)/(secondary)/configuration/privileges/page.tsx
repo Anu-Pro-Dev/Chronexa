@@ -46,7 +46,7 @@ export default function Page() {
         props={props}
         items={modules?.configuration?.items}
         modal_title="Privileges"
-       //modal_description="Select the privileges"
+       //modal_description="Choose the privileges"
         modal_component={<AddPrivelege on_open_change={on_open_change} />}
       />
       <PowerTable props={props} Data={Data} api={"/security/privileges"} showEdit={true} onEditClick={handleEditClick}/>

@@ -1,44 +1,24 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddCitizenship from "@/forms/company-master/AddCitizenship";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { getAllCitizenships } from "@/lib/apiHandler";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();
 
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
-  const [data, setData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState("");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-
-  // Props to pass to child components
-  const props = {
-    Data: data,
-    SetData: setData,
-    Columns: columns,
-    SortField: sortField,
-    CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
-    SetSortField: setSortField,
-    SortDirection: sortDirection,
-    SetSortDirection: setSortDirection,
-    open,
-    on_open_change: setOpen,
-    SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
-  };
-
-  useEffect(() => {
-    if (!open) setSelectedRowData(null);
-  }, [open]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setColumns([
@@ -53,45 +33,48 @@ export default function Page() {
     ]);
   }, [language]);
 
+  const { data: citizenshipData, isLoading } = useFetchAllEntity("citizenship");
+
+  const data = useMemo(() => {
+    if (Array.isArray(citizenshipData?.data)) {
+      return citizenshipData.data.map((citi: any) => ({
+        ...citi,
+        id: citi.citizenship_id,
+      }));
+    }
+    return [];
+  }, [citizenshipData]);
+
   useEffect(() => {
-    const fetchCitizenship = async () => {
-      try {
-        const response = await getAllCitizenships();
-        if (response?.success && Array.isArray(response.data)) {
-          const mapped = response.data.map((citi: any) => ({
-            ...citi,
-            id: citi.citizenship_id,
-          }));
-          setData(mapped);
-        } else {
-          console.error("Unexpected response:", response);
-        }
-      } catch (error) {
-        console.error("Error fetching citizenship data:", error);
-      }
-    };
+    if (!open) setSelectedRowData(null);
+  }, [open]);
 
-    fetchCitizenship();
-  }, []);
-
-  const handleSave = (id: string | null, newData: any) => {
-    const dataWithId = {
-      ...newData,
-      id: newData.citizenship_id,
-    };
-
-    setData((prev) =>
-      id
-        ? prev.map((row) => (row.id === id ? { ...row, ...dataWithId } : row))
-        : [...prev, dataWithId]
-    );
-    setSelectedRowData(null);
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
   };
 
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["citizenship"] });
+  };
+  
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
-  
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -108,7 +91,11 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={data} onRowSelection={handleRowSelection} />
+      <PowerTable
+        props={props}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

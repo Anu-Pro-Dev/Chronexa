@@ -1,67 +1,108 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();
   const router = useRouter();
-  const [Columns, setColumns] = useState<{ field: string; headerName: string;}[]>([]);
-  const [SelectedKeys, SetSelectedKeys] = useState<any>([]);
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
-  const [SearchValue, SetSearchValue] = useState<string>("");
-  const [open, on_open_change] = useState<boolean>(false);
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
-  
-  const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    open,
-    on_open_change,
-    SearchValue,
-    SetSearchValue,
-  };
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!open) {
-      setSelectedRowData(null);
-    }
-  }, [open]);
+  // Fetch data using the generic hook
+  const { data: employeeData, isLoading } = useFetchAllEntity("employee");
+
+  // Fetch designations
+  // const { data: designationData } = useFetchAllEntity("designation");
+
+  // Build a map of designation_id to designation name for quick lookup
+  // const designationMap = useMemo(() => {
+  //   if (Array.isArray(designationData?.data)) {
+  //     return designationData.data.reduce((acc: Record<number, string>, des: any) => {
+  //       acc[des.designation_id] = language === "ar" ? des.designation_arb : des.designation_eng;
+  //       return acc;
+  //     }, {});
+  //   }
+  //   return {};
+  // }, [designationData, language]);
 
   useEffect(() => {
     setColumns([
-      {field: "employeeId", headerName: "Emp No"},
-      {field: "firstname", headerName: "Name"},
-      {field: "hireDate", headerName: "Join Date"},
-      {field: "position", headerName: "Designation"},
+      { field: "emp_no", headerName: "Emp No" },
+      {
+        field: language === "ar" ? "firstname_arb" : "firstname_eng",
+        headerName: language === "ar" ? "اسم الموظف" : "Employee Name",
+      },
+      { field: "manager_flag", headerName: "Manager" },
     ]);
   }, [language]);
 
-  const handleEditClick = (data: any) => {
+  // Map data for the table
+  const data = useMemo(() => {
+    if (Array.isArray(employeeData?.data)) {
+      return employeeData.data.map((emp: any) => ({
+        ...emp,
+        id: emp.employee_id,
+      }));
+    }
+    return [];
+  }, [employeeData]);
+
+  const props = {
+    Data: data,
+    Columns: columns,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
+  };
+
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["employee"] });
+  };
+  
+  const handleEditClick = useCallback((data: any) => {
     setSelectedRowData(data);
     router.push("/employee-master/employee/add");
-  };
+  }, [router]);
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.employeeMaster.items}
+        entityName="employee"
         isAddNewPagePath="/employee-master/employee/add"
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable
+        props={props}
+        showEdit={true}
+        onEditClick={handleEditClick}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

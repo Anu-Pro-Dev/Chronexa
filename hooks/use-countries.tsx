@@ -3,6 +3,7 @@ import { toast } from "react-hot-toast";
 import { getAllCountries } from "@/lib/apiHandler";
 
 export interface Country {
+  country_id: number;
   country_code: string;
   country_eng: string;
   country_arb: string;
@@ -17,6 +18,7 @@ export const useCountries = () => {
       try {
         const response = await getAllCountries();
         const mappedCountries = response.data.map((item: any) => ({
+          country_id: item.country_id,
           country_code: item.country_code,
           country_eng: item.country_eng,
           country_arb: item.country_arb,

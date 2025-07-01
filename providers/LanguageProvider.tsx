@@ -109,17 +109,17 @@ export default function LanguageProvider({
         path: "/organization/organization-structure/",
         value: "organization-structure",
       },
-      {
-        label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
-        path: "/organization/departments/",
-        value: "departments",
-      },
-      {
-        label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
-        path: "/organization/departments/add/",
-        value: "add-department",
-        hide: true,
-      },
+      // {
+      //   label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
+      //   path: "/organization/departments/",
+      //   value: "departments",
+      // },
+      // {
+      //   label: currentLanguageData.translations?.modules?.organization?.departments || "Departments",
+      //   path: "/organization/departments/add/",
+      //   value: "add-department",
+      //   hide: true,
+      // },
     ],
   };
 
@@ -129,15 +129,9 @@ export default function LanguageProvider({
 
     items: [
       {
-        label: "Employee",
-        path: "/employee-master/employee/",
-        value: "employee",
-      },
-      {
-        label: "Users",
-        path: "/employee-master/employee/add/",
-        value: "add-employee",
-        hide: true,
+        label: "Employee Type",
+        path: "/employee-master/employee-type/",
+        value: "employee_type",
       },
       {
         label: "Employee Group",
@@ -151,9 +145,15 @@ export default function LanguageProvider({
         hide: true,
       },
       {
-        label: "Employee Type",
-        path: "/employee-master/employee-type/",
-        value: "employee_type",
+        label: "Employee",
+        path: "/employee-master/employee/",
+        value: "employee",
+      },
+      {
+        label: "Users",
+        path: "/employee-master/employee/add/",
+        value: "add-employee",
+        hide: true,
       },
     ],
   };

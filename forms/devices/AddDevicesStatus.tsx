@@ -113,7 +113,7 @@ export default function AddDevicesStatus({
         {/* <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Readers</h1>
           <h1 className="font-semibold text-sm text-text-secondary">
-            Select the choices for readers devices status
+            Choose the choices for readers devices status
           </h1>
         </div> */}
         <div className="flex flex-col gap-6">

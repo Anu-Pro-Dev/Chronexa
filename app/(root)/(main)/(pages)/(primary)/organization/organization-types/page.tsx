@@ -1,96 +1,90 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddOrganizationType from "@/forms/organization/AddOrganizationType";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { getAllOrganizationType } from "@/lib/apiHandler";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+
+type Column = {
+  field: string;
+  headerName: string;
+  cellRenderer?: (row: any) => React.ReactNode;
+};
 
 export default function Page() {
   const { modules, language } = useLanguage();
-  const [Columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
-  const [SearchValue, SetSearchValue] = useState<string>("");
-  const [open, on_open_change] = useState<boolean>(false);
+  const [columns, setColumns] = useState<Column[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  
-  const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    open,
-    on_open_change,
-    SearchValue,
-    SetSearchValue,
-  };
-
-  useEffect(() => {
-    if (!open) {
-      setSelectedRowData(null);
-    }
-  }, [open]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setColumns([
-      {field: "hierarchy", headerName: "Hierarchy"},
+      { field: "OrgTypeLevel", headerName: "Hierarchy" },
       {
-        field: language === "ar" ? "organizationTypeNameArb" : "organizationTypeNameEng",
-        headerName: language === "ar" ? "منظمة" : "Organization Type",
+        field: language === "ar" ? "organization_type_arb" : "organization_type_eng",
+        headerName: language === "ar" ? "نوع المنظمة" : "Organization Type",
+        cellRenderer: (row: any) =>
+        (row[language === "ar" ? "organization_type_arb" : "organization_type_eng"] || "").toUpperCase(),
       },
     ]);
   }, [language]);
 
-   useEffect(() => {
-    const fetchOrganizationTypes = async () => {
-      try {
-        const response = await getAllOrganizationType();
-        if (response?.success && Array.isArray(response?.data)) {
-          const mapped = response.data.map((orgType: any) => ({
-            ...orgType,
-            id: orgType.organizationTypeId,
-          }));
-    
-          SetData(mapped);
-        } else {
-          console.error("Unexpected response structure:", response);
-        }
-      } catch (error) {
-        console.error("Error fetching organization:", error);
-      }
-    };
-    
-    fetchOrganizationTypes();
+  // Fetch data using the generic hook
+  const { data: orgTypeData, isLoading } = useFetchAllEntity("organizationType");
+
+  // Map data for the table
+  const data = useMemo(() => {
+    if (Array.isArray(orgTypeData?.data)) {
+      return orgTypeData.data.map((orgType: any) => ({
+        ...orgType,
+        id: orgType.organization_type_id,
+      }));
+    }
+    return [];
+  }, [orgTypeData]);
+
+  useEffect(() => {
+    if (!open) setSelectedRowData(null);
+  }, [open]);
+
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
+  };
+
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["organizationType"] });
+  };
+
+  const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
+    setOpen(true);
   }, []);
 
-  const handleEditClick = (data: any) => {
-    setSelectedRowData(data);
-    on_open_change(true);
-  };
-
-  const handleSave = (id: string | null, newData: any) => {
-    if (id) {
-      SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
-      );
-    } else {
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
-    }
-    setSelectedRowData(null);
-  };
-
-  const handleRowSelection = (rows: any[]) => {
-    setSelectedRows(rows); // Update selected rows
-  };
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -102,14 +96,19 @@ export default function Page() {
         modal_title="Organization Types"
         modal_component={
           <AddOrganizationType
-            on_open_change={on_open_change}
+            on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
-            existingRows={Data}
           />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection}/>
+      <PowerTable
+        props={props}
+        showEdit={true}
+        onEditClick={handleEditClick}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

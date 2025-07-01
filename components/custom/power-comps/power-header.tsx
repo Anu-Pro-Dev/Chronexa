@@ -6,13 +6,13 @@ import PowerAdd from "./power-add";
 import PowerDelete from "./power-delete";
 import PowerSearch from "./power-search";
 import PowerExport from "./power-export";
-import { useLanguage } from "@/providers/LanguageProvider";
 import PowerFilter from "./power-filter";
 import PowerTakeAction from "./power-take-action";
 import PowerClear from "./power-clear";
 import ApprovalModal from "./power-approval-modal";
-import { deleteEntityRequest } from "@/lib/apiHandler";
 import toast from "react-hot-toast";
+import { useDeleteEntityMutation } from "@/lib/useDeleteEntityMutation";
+import { camelToSnake } from "@/utils/caseConverters";
 
 export default function PowerHeader({
   items,
@@ -80,60 +80,20 @@ export default function PowerHeader({
   enableWord?: boolean;
 }) {
 
-  // const handleDelete = async () => {
-  //   try {
-  //     const entityIdField = `${entityName}_id`;
-
-  //     const selectedRowIds = selectedRows?.map(row => row[entityIdField]) || [];
-
-  //     if (selectedRowIds.length === 0) return;
-
-  //     for (const id of selectedRowIds) {
-  //       await deleteEntityRequest(entityName, id);
-  //     }
-
-  //     toast.success(`${entityName} deleted successfully!`);
-
-  //     props.SetData?.((prevData: any[]) =>
-  //       prevData.filter((row: any) => !selectedRowIds.includes(row.id))
-  //     );
-
-  //     props.setSelectedRows?.([]); // Clear selection
-  //   } 
-  //   catch {
-  //     toast.error(`Failed to delete ${entityName}`);
-  //   }
-  // };
+  const deleteMutation = useDeleteEntityMutation({
+    onSelectionClear: () => props.setSelectedRows?.([]),
+  });
 
   const handleDelete = async () => {
-    try {
-      const entityIdField = `${entityName}_id`;
-      const selectedRowIds = selectedRows?.map(row => row[entityIdField]) || [];
-
-      if (selectedRowIds.length === 0) return;
-
-      // Delete all selected entities in parallel, handle failures individually
-      const results = await Promise.allSettled(
-        selectedRowIds.map(id => deleteEntityRequest(entityName, id))
-      );
-
-      const failedDeletes = results.filter(r => r.status === "rejected");
-
-      if (failedDeletes.length > 0) {
-        toast.error(`Failed to delete some ${entityName}(s).`);
-      } else {
-        toast.success(`${entityName} deleted successfully!`);
-      }
-
-      // Update data by filtering out all selected ids (consistent with ID field)
-      props.SetData?.((prevData: any[]) =>
-        prevData.filter((row: any) => !selectedRowIds.includes(row[entityIdField]))
-      );
-
-      props.setSelectedRows?.([]);
-    } catch (error) {
-      toast.error(`Failed to delete ${entityName}`);
+    if (!entityName) {
+      toast.error("Entity name is not defined");
+      return;
     }
+    const entityIdField = `${camelToSnake(entityName)}_id`;
+    const selectedRowIds = selectedRows?.map(row => row[entityIdField]) || [];
+    if (selectedRowIds.length === 0) return;
+
+    deleteMutation.mutate({ entityName, ids: selectedRowIds });
   };
 
   return (

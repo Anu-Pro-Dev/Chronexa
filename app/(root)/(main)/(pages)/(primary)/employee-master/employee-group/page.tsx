@@ -1,46 +1,64 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddEmployeeGroup from "@/forms/employee-master/AddEmployeeGroup";
-import { getAllEmployeeGroup } from "@/lib/apiHandler";
-import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { FaUsers } from "react-icons/fa";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-  const router = useRouter();
-  const [Columns, setColumns] = useState<{ field: string; headerName: string; clickable?: boolean; onCellClick?: (data: any) => void }[]>([]);
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
-  const [SearchValue, SetSearchValue] = useState<string>("");
-  const [open, on_open_change] = useState<boolean>(false);
+  const [columns, setColumns] = useState<{ field: string; headerName: string; clickable?: boolean; onCellClick?: (data: any) => void }[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
-  
-  const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    open,
-    on_open_change,
-    SearchValue,
-    SetSearchValue,
-  };
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
-  const handleCellClickPath = (data: any) => {
-    if (data?.code) {
-      router.push(`/employee-master/groups/group-members?group=${data.code}`);    } else {
-      console.error("Error: No code found for this row", data);
+  // const FaUsersRenderer: React.FC = () => <FaUsers size={22} />;
+
+  useEffect(() => {
+    setColumns([
+      { field: "group_code", headerName: language === "ar" ? "رمز المجموعة" : "Group Code" },
+      {
+        field: language === "ar" ? "group_name_arb" : "group_name_eng",
+        headerName: language === "ar" ? "اسم المجموعة" : "Group Name",
+      },
+      { 
+        field: "employee_group_members", 
+        headerName: language === "ar" ? "التجميع" : "Grouping",
+        clickable: true, 
+        onCellClick: handleCellClickPath,
+      },
+      {
+        field: "reporting_group_flag",
+        headerName: "Reporting"
+      },
+    ]);
+  }, [language]);
+
+  const { data: employeeGroupData, isLoading } = useFetchAllEntity("employeeGroup");
+
+  const data = useMemo(() => {
+    if (Array.isArray(employeeGroupData?.data)) {
+      return employeeGroupData.data.map((empGroup: any) => {
+        console.log("empGroup.employee_group_id:", empGroup.employee_group_id);
+        return {
+          ...empGroup,
+          id: empGroup.employee_group_id,
+          employee_group_members: "Members",
+        };
+      });
     }
-  }
+    return [];
+  }, [employeeGroupData]);
 
   useEffect(() => {
     if (!open) {
@@ -48,68 +66,69 @@ export default function Page() {
     }
   }, [open]);
 
-  useEffect(() => {
-    setColumns([
-      {
-        field: language === "ar" ? "descriptionArb" : "descriptionEng",
-        headerName: "Group Name",
-      },
-      { field: "groupName", headerName: "Grouping", clickable: true, onCellClick: handleCellClickPath },
-      { field: "createdDate", headerName: "From date" },
-      { field: "createdDate", headerName: "To date" },
-    ]);
-  }, [language]);
-
-  useEffect(() => {
-    const fetchEmployeeGroup = async () => {
-      try {
-        const response = await getAllEmployeeGroup();
-        SetData(response.data);
-      } catch (error) {
-        console.error("Error fetching employee group:", error);
-      }
-    };
-    fetchEmployeeGroup();
-  }, []);
-
-  // const handleEditClick = (data: any) => {
-  //   setSelectedRowData(data);
-  //   router.push("/employee-master/groups/add");
-  // };
-
-  const handleEditClick = (data: any) => {
-    setSelectedRowData(data);
-    on_open_change(true);
-  };
-
-  const handleSave = (id: string | null, newData: any) => {
-    if (id) {
-      SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
-      );
+   const handleCellClickPath = useCallback((data: any) => {
+    if (data?.group_code) {
+      router.push(`/employee-master/employee-group/group-members?group=${data.group_code}`);
     } else {
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
+      console.error("Error: No code found for this row", data);
     }
-    setSelectedRowData(null);
+  }, [router]);
+
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
   };
+ 
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["employeeGroup"] });
+  };
+ 
+  const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
+    setOpen(true);
+  }, []);
+ 
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.employeeMaster.items}
+        entityName="employeeGroup"
         modal_title="Employee Group"
         modal_component={
           <AddEmployeeGroup
-            on_open_change={on_open_change}
+            on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
         }
         isLarge
-        // isAddNewPagePath="/employee-master/groups/add"
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable
+        props={props}
+        showEdit={true}
+        onEditClick={handleEditClick}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

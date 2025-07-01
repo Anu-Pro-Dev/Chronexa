@@ -17,6 +17,7 @@ import {
 import Required from "@/components/ui/required";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addGradeRequest, editGradeRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
@@ -37,6 +38,8 @@ export default function AddGrades({
 
   const {language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,6 +64,40 @@ export default function AddGrades({
     }
   }, [selectedRowData, language]);
 
+  const addMutation = useMutation({
+    mutationFn: addGradeRequest,
+    onSuccess: (data) => {
+      toast.success("Grade added successfully!");
+      onSave(null, data.data);
+      on_open_change(false);
+      queryClient.invalidateQueries({ queryKey: ["grade"] });
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editGradeRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Grade updated successfully!");
+      onSave(variables.grade_id?.toString() ?? null, variables);
+      queryClient.invalidateQueries({ queryKey: ["grade"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
 
@@ -80,24 +117,12 @@ export default function AddGrades({
       }
 
       if (selectedRowData) {
-        const response = await editGradeRequest({
+        editMutation.mutate({
           grade_id: selectedRowData.id,
           ...payload,
         });
-        toast.success("Grade updated successfully!");
-        onSave(selectedRowData.id, payload);
       } else {
-        const response = await addGradeRequest(payload);
-        toast.success("Grade added successfully!");
-        onSave(null, response.data);
-      }
-
-      on_open_change(false);
-    } catch (error: any) {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
-      } else {
-        toast.error("Form submission error.");
+        addMutation.mutate(payload);
       }
     } finally {
       setIsSubmitting(false);
@@ -108,7 +133,7 @@ export default function AddGrades({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-4">
-          <div className="grid gap-16 gap-y-4 pl-5">
+          <div className="grid gap-16 gap-y-4">
             <FormField
               control={form.control}
               name="code"
@@ -183,28 +208,26 @@ export default function AddGrades({
               )}
             />
           </div>
-          <div className="flex justify-end gap-2 items-center py-5">
-            <div className="flex gap-4 px-5">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className="w-full"
-                onClick={() => on_open_change(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
-                {isSubmitting
-                  ? selectedRowData
-                    ? "Updating..."
-                    : "Saving..."
-                  : selectedRowData
-                    ? "Update"
-                    : "Save"
-                }
-              </Button>
-            </div>
+          <div className="w-full flex gap-2 items-center py-3">
+            <Button
+              variant={"outline"}
+              type="button"
+              size={"lg"}
+              className="w-full"
+              onClick={() => on_open_change(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
+              {isSubmitting
+                ? selectedRowData
+                  ? "Updating..."
+                  : "Saving..."
+                : selectedRowData
+                  ? "Update"
+                  : "Save"
+              }
+            </Button>
           </div>
         </div>
       </form>

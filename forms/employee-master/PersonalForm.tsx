@@ -33,6 +33,9 @@ import { useRouter } from "next/navigation"
 import { CalendarIcon } from "@/icons/icons"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import CountryDropdown from "@/components/custom/country-dropdown";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useCountries, Country } from "@/hooks/use-countries";
 
 export default function PersonalForm({
   Page, SetPage,personalFormSchema,personalForm
@@ -43,11 +46,13 @@ export default function PersonalForm({
   personalForm:any
 }) {
  
+  const {language } = useLanguage();
+  const { countries } = useCountries();
 
   function onSubmit(values: z.infer<typeof personalFormSchema>) {
     try {
-      SetPage("credentials-form")
-      toast.success("Data Saved!")
+      SetPage("credentials-form");
+      toast.success("Data Saved!");
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
@@ -60,6 +65,19 @@ export default function PersonalForm({
     <Form {...personalForm}>
       <form onSubmit={personalForm.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pt-8">
+          {/* <FormField
+            control={personalForm.control}
+            name="employee_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Emp ID <Required /></FormLabel>
+                <FormControl>
+                <Input placeholder="Enter the employee ID" type="text" {...field} />
+                </FormControl>
+                <FormMessage className="mt-1"/>
+              </FormItem>
+            )}
+          /> */}
           <FormField
             control={personalForm.control}
             name="emp_no"
@@ -75,13 +93,34 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="emp_id"
+            name="join_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Emp ID <Required /></FormLabel>
-                <FormControl>
-                <Input placeholder="Enter the employee ID" type="text" {...field} />
-                </FormControl>
+                <FormLabel className="flex gap-1">Join date </FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button size={"lg"} variant={"outline"}
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
+                      >
+                        {field.value ? (
+                          format(field.value, "dd/MM/yy")
+                        ) : (
+                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                        )}
+                        <CalendarIcon />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage className="mt-1"/>
               </FormItem>
             )}
@@ -91,7 +130,13 @@ export default function PersonalForm({
             name="firstname"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Firstname <Required/></FormLabel>
+                <FormLabel
+                  className="flex gap-1">
+                  {language === "ar"
+                    ? "Firstname (العربية) "
+                    : "Firstname (English) "}
+                  <Required />
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="Enter your firstname" type="text" {...field} />
                 </FormControl>
@@ -104,7 +149,13 @@ export default function PersonalForm({
             name="lastname"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Lastname <Required/> </FormLabel>
+                <FormLabel
+                  className="flex gap-1">
+                  {language === "ar"
+                    ? "Lastname (العربية) "
+                    : "Lastname (English) "}
+                  <Required />
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="Enter your lastname" type="text" {...field} />
                 </FormControl>
@@ -140,10 +191,10 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="join_date"
+            name="active_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Join date <Required/></FormLabel>
+                <FormLabel className="flex gap-1">Employee system activation </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -164,6 +215,11 @@ export default function PersonalForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) =>
+                        personalForm.watch("join_date")
+                          ? date < personalForm.watch("join_date")
+                          : false
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -176,7 +232,7 @@ export default function PersonalForm({
             name="inactive_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Inactive date <Required/></FormLabel>
+                <FormLabel className="flex gap-1 text-right">Inactive date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -197,69 +253,14 @@ export default function PersonalForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) =>
+                        personalForm.watch("active_date")
+                          ? date < personalForm.watch("active_date")
+                          : false
+                      }
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage className="mt-1"/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={personalForm.control}
-            name="employee_system_activation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex gap-1 text-right">Employee system activation</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
-                      >
-                        {field.value ? (
-                          format(field.value, "dd/MM/yy")
-                        ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                        )}
-                        <CalendarIcon />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      // disabled={(date) =>
-                      //   date > new Date() || date < new Date("1900-01-01")
-                      // }
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage className="mt-1"/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={personalForm.control}
-            name="gender"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex gap-1">Gender</FormLabel>
-                <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                >
-                <FormControl>
-                    <SelectTrigger>
-                    <SelectValue placeholder="Choose Gender" />
-                    </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">Female</SelectItem>
-                    <SelectItem value="2">Male</SelectItem>
-                </SelectContent>
-                </Select>
                 <FormMessage className="mt-1"/>
               </FormItem>
             )}
@@ -292,7 +293,7 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="national_id_number"
+            name="national_id"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1">National ID</FormLabel>
@@ -305,7 +306,7 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="national_id_expiry"
+            name="national_id_expiry_date"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1 text-right">National ID expiry date</FormLabel>
@@ -352,7 +353,7 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="passport_expiry"
+            name="passport_expiry_date"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1 text-right">Passport expiry date</FormLabel>
@@ -386,13 +387,46 @@ export default function PersonalForm({
           />
           <FormField
             control={personalForm.control}
-            name="passport_issued"
+            name="passport_issue_country_Id"
+            render={({ field }) => {
+              const selectedCountry = countries.find(
+                (c) => c.country_id === field.value
+              ) ?? null;
+
+              return (
+                <FormItem>
+                  <FormLabel className="flex gap-1">Passport issued</FormLabel>
+                  <CountryDropdown
+                    countries={countries}
+                    value={selectedCountry} // Type now guaranteed to be Country | null
+                    displayMode="code"
+                    onChange={(country) => field.onChange(country?.country_id ?? "")}
+                  />
+                  <FormMessage className="mt-1" />
+                </FormItem>
+              );
+            }}
+          />
+          <FormField
+            control={personalForm.control}
+            name="gender"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Passport issued</FormLabel>
+                <FormLabel className="flex gap-1">Gender</FormLabel>
+                <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                >
                 <FormControl>
-                  <Input placeholder="Passport issued country" type="text" {...field} />
+                    <SelectTrigger>
+                    <SelectValue placeholder="Choose Gender" />
+                    </SelectTrigger>
                 </FormControl>
+                <SelectContent>
+                    <SelectItem value="F">Female</SelectItem>
+                    <SelectItem value="M">Male</SelectItem>
+                </SelectContent>
+                </Select>
                 <FormMessage className="mt-1"/>
               </FormItem>
             )}
@@ -418,7 +452,7 @@ export default function PersonalForm({
               type="button"
               size={"lg"}
               className="w-full"
-              onClick={() => router.push("/employee-master/users")}
+              onClick={() => router.push("/employee-master/employee")}
             >
               Cancel
             </Button>

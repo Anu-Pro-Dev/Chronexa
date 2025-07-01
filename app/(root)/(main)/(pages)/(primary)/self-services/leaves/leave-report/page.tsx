@@ -59,7 +59,7 @@ export default function Page() {
         items={modules?.selfServices?.items} 
         isLarge
         modal_title="Leave Report"
-       //modal_description="Select the report details"
+       //modal_description="Choose the report details"
         modal_component={
           <AddLeaveReport on_open_change={on_open_change}/>
         }

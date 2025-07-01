@@ -83,7 +83,7 @@ export default function AddRamadanDateRange({
         <div className="flex flex-col gap-6">
           <div className="py-5 flex flex-col">
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
+              <div className="grid grid-cols-2 gap-16 gap-y-4">
               <FormField
                   control={form.control}
                   name="descriptionEng"

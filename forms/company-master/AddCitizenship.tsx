@@ -17,7 +17,8 @@ import Required from "@/components/ui/required";
 import CountryDropdown from "@/components/custom/country-dropdown";
 import { useCountries } from "@/hooks/use-countries";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { addCitizenshipRequest } from "@/lib/apiHandler";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addCitizenshipRequest, editCitizenshipRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
   citizenship_code: z.string().optional(),
@@ -32,17 +33,19 @@ export default function AddCitizenship({
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
 }) {
+
+  const { language } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { countries, getCountryByCode } = useCountries();
+  const [selectedCountry, setSelectedCountry] = useState<any>(null);
+  const queryClient = useQueryClient();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       citizenship_code: "",
     },
   });
-
-  const { language } = useLanguage();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { countries, getCountryByCode } = useCountries();
-  const [selectedCountry, setSelectedCountry] = useState<any>(null);
 
   const handleCountryChange = (country: any | null) => {
     if (country) {
@@ -66,7 +69,44 @@ export default function AddCitizenship({
       setSelectedCountry(matched);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRowData]);
+  }, [selectedRowData, language]);
+
+  const addMutation = useMutation({
+    mutationFn: addCitizenshipRequest,
+    onSuccess: (data) => {
+      toast.success("Citizenship added successfully!");
+      onSave(null, data.data);
+      on_open_change(false);
+      queryClient.invalidateQueries({ queryKey: ["citizenship"] });
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editCitizenshipRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Citizenship updated successfully!");
+      onSave(
+        variables.citizenship_id?.toString() ?? null,
+        variables
+      );
+      queryClient.invalidateQueries({ queryKey: ["citizenship"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
@@ -85,21 +125,7 @@ export default function AddCitizenship({
         citizenship_arb: selectedCountry.country_arb,
       };
 
-      if (!selectedRowData) {
-        const response = await addCitizenshipRequest(payload);
-        toast.success("Citizenship added successfully!");
-        onSave(null, response.data);
-      } else {
-        onSave(selectedRowData.id, payload);
-      }
-
-      on_open_change(false);
-    } catch (error: any) {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
-      } else {
-        toast.error("Form submission error.");
-      }
+      addMutation.mutate(payload);
     } finally {
       setIsSubmitting(false);
     }

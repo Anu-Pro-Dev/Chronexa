@@ -79,7 +79,7 @@ export default function ReprocessData() {
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Reprocess</h1>
           {/* <h1 className="font-semibold text-sm text-text-secondary">
-            Select the choices for reprocess the data
+            Choose the choices for reprocess the data
           </h1> */}
         </div>
         <div className="absolute top-6 right-10">

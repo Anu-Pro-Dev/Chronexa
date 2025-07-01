@@ -21,9 +21,12 @@ import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
 import { IoEye, IoEyeOff } from "react-icons/io5";
+import { useMutation } from "@tanstack/react-query";
 import { loginRequest } from "@/lib/apiHandler";
-import { USER_TOKEN } from "@/utils/constants";
 import { useLanguage } from "@/providers/LanguageProvider";
+import toast from "react-hot-toast";
+import Lottie from "lottie-react";
+import loadingAnimation from "@/animations/hourglass-blue.json";
 
 const formSchema = z.object({
   username: z
@@ -69,41 +72,37 @@ export default function LoginForm() {
   
   const router = useRouter();
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      // Validate CAPTCHA
-      if (values.captcha_1 + values.captcha_2 !== Number(values.captcha_result)) {
-        form.setError("captcha_result", {
-          type: "custom",
-          message: "Incorrect Captcha Result",
-        });
-        return;
-      }
-
-      // const token = "something bro";
-      // if (values.remember_me === true) {
-      //   localStorage.setItem(USER_TOKEN, token);
-      // } else {
-      //   sessionStorage.setItem(USER_TOKEN, token);
-      // }
-      // router.push("/dashboard");
-  
-    // Uncomment the following lines to use the loginRequest function
-      const response = await loginRequest(values.username, values.password, values.remember_me ?? false);
-      
-      console.log("Login response:", response);
-      // Redirect only if login is successful and a token is received
+  const loginMutation = useMutation({
+    mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
+      loginRequest(values.username, values.password, values.remember_me),
+    onSuccess: (response) => {
       if (response?.token) {
+        toast.success("Login successful!");
         router.push("/dashboard");
       } else {
-        console.error("Login failed: No token received.");
         form.setError("username", { type: "manual", message: "Invalid credentials" });
       }
-    } catch (error) {
-      console.error("Login error:", error);
+    },
+    onError: (error: any) => {
       form.setError("username", { type: "manual", message: "An error occurred. Please try again." });
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Validate CAPTCHA
+    if (values.captcha_1 + values.captcha_2 !== Number(values.captcha_result)) {
+      form.setError("captcha_result", {
+        type: "custom",
+        message: "Incorrect Captcha Result",
+      });
+      return;
     }
-  }  
+    loginMutation.mutate({
+      username: values.username,
+      password: values.password,
+      remember_me: values.remember_me ?? false,
+    });
+  }
 
   return (
     <Form {...form}>
@@ -226,7 +225,9 @@ export default function LoginForm() {
             </Link>
           </div>
 
-          <Button type="submit" size={"lg"} className="w-auto min-w-[200px] mx-auto mt-4">Login</Button>
+          <Button type="submit" size={"lg"} className="w-auto min-w-[200px] mx-auto mt-4" disabled={loginMutation.status === "pending"}>
+            {loginMutation.status === "pending" ? "Logging in..." : "Login"}
+          </Button>
         </div>
       </form>
     </Form>

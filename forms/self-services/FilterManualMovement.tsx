@@ -78,7 +78,7 @@ export default function FilterManualMovement ({
                 <div className="pb-6">
                     <h1 className="font-bold text-xl text-primary pb-2">Manual Movements Filter</h1>
                     <h1 className="font-semibold text-sm text-text-secondary pb-2">
-                    Select the options of the Manual movements filter
+                    Choose the options of the Manual movements filter
                     </h1>
                 </div>
                 </div>

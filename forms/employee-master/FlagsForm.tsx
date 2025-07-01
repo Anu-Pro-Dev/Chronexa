@@ -26,7 +26,7 @@ export default function FlagsForm({
 
   const handleSaveAndRedirect = async () => {
     await handleFinalSubmit(); // Ensure the form is submitted
-    router.push("/employee-master/users"); // Navigate to the user page after saving
+    router.push("/employee-master/employee"); // Navigate to the user page after saving
   };
 
   return (
@@ -38,14 +38,14 @@ export default function FlagsForm({
               {/* LEFT COLUMN FLAGS */}
               <div className="flex flex-col flex-1 gap-5">
                 {[
-                  ["active", "Active"],
-                  ["punch", "Punch"],
-                  ["overtime", "Overtime"],
-                  ["inpayroll", "Inpayroll"],
-                  ["email_notification", "Email notification"],
-                  ["open_shift", "Open shift"],
-                  ["geo_fench", "Geo Fench"],
-                  ["monthly_missed_hours", "Calculate monthly missed hours"],
+                  ["active_flag", "Active"],
+                  ["punch_flag", "Punch"],
+                  ["overtime_flag", "Overtime"],
+                  ["inpayroll_flag", "Inpayroll"],
+                  ["email_notification_flag", "Email notification"],
+                  ["open_shift_flag", "Open shift"],
+                  ["geofench_flag", "Geo Fench"],
+                  ["calculate_monthly_missed_hrs_flag", "Calculate monthly missed hours"],
                 ].map(([name, label]) => (
                   <FormField
                     key={name}
@@ -74,13 +74,13 @@ export default function FlagsForm({
               {/* RIGHT COLUMN FLAGS */}
               <div className="flex flex-col flex-1 gap-5">
                 {[
-                  ["exclude_from_integration", "Exclude from integration"],
-                  ["on_report", "On report"],
-                  ["share_roster", "Share roster"],
-                  ["include_in_email", "Include in email"],
-                  ["web_punch", "Web punch"],
-                  ["shift", "Shift"],
-                  ["check_selfie", "Check In/Out selfie"],
+                  ["exclude_from_integration_flag", "Exclude from integration"],
+                  ["on_report_flag", "On report"],
+                  ["share_roster_flag", "Share roster"],
+                  ["include_email_flag", "Include in email"],
+                  ["web_punch_flag", "Web punch"],
+                  ["shift_flag", "Shift"],
+                  ["check_inout_selfie_flag", "Check In/Out selfie"],
                 ].map(([name, label]) => (
                   <FormField
                     key={name}
@@ -115,7 +115,7 @@ export default function FlagsForm({
                 type="button"
                 size="lg"
                 className="w-full"
-                onClick={() => router.push("/employee-master/users")}
+                onClick={() => router.push("/employee-master/employee")}
               >
                 Cancel
               </Button>
