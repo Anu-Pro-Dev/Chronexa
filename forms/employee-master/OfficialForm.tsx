@@ -92,7 +92,7 @@ export default function OfficialForm({
                 <FormLabel className="flex gap-1">Employee Type <Required /></FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : undefined}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -124,7 +124,7 @@ export default function OfficialForm({
                 <FormLabel className="flex gap-1">Location <Required /></FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : undefined}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -156,7 +156,7 @@ export default function OfficialForm({
                 <FormLabel className="flex gap-1">Citizenship <Required /></FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : undefined}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -188,7 +188,7 @@ export default function OfficialForm({
                 <FormLabel className="flex gap-1">Designation <Required /></FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : undefined}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -220,7 +220,7 @@ export default function OfficialForm({
                 <FormLabel className="flex gap-1">Organization <Required /></FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : undefined}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -252,7 +252,7 @@ export default function OfficialForm({
                 <FormLabel className="flex gap-1">Grade <Required /></FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : undefined}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -285,7 +285,7 @@ export default function OfficialForm({
                   <FormLabel className="flex gap-1">Manager</FormLabel>
                   <Select
                     onValueChange={(val) => field.onChange(Number(val))}
-                    value={field.value !== undefined ? String(field.value) : undefined}
+                    value={field.value !== undefined ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger>

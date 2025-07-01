@@ -16,11 +16,11 @@ export const personalFormSchema = z.object({
   passport_issue_country_Id: z.number().optional(),
   national_id: z.string().optional(),
   remarks: z.string().optional(),
-  join_date: z.coerce.date().optional(),
-  active_date: z.coerce.date().optional(),
-  passport_expiry_date: z.coerce.date().optional(),
-  national_id_expiry_date: z.coerce.date().optional(),
-  inactive_date: z.coerce.date().optional(),
+  join_date: z.date().nullable().optional(),
+  active_date: z.date().nullable().optional(),
+  passport_expiry_date: z.date().nullable().optional(),
+  national_id_expiry_date: z.date().nullable().optional(),
+  inactive_date: z.date().nullable().optional(),
 });
 
 export const usePersonalForm = () => {

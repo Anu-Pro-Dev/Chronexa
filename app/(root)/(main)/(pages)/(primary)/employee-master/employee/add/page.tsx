@@ -18,7 +18,7 @@ import FlagsForm from "@/forms/employee-master/FlagsForm";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
-import { apiRequest } from "@/lib/apiHandler";
+import { addEmployeeRequest, editEmployeeRequest, addSecUserRequest } from "@/lib/apiHandler";
 
 type EmployeeData = 
   z.infer<typeof personalFormSchema> &
@@ -26,9 +26,6 @@ type EmployeeData =
   z.infer<typeof officialFormSchema> &
   z.infer<typeof flagsFormSchema>;
 
-/**
- * Transforms data before sending to API
- */
 const transformDatesForAPI = (data: any, language: any) => {
   const transformed = { ...data };
 
@@ -44,22 +41,6 @@ const transformDatesForAPI = (data: any, language: any) => {
   delete transformed.firstname;
   delete transformed.lastname;
 
-  // Handle date conversion only for valid Date objects
-  const dateFields = [
-    "join_date",
-    "active_date",
-    "passport_expiry_date",
-    "national_id_expiry_date",
-    "inactive_date",
-  ];
-
-  for (const field of dateFields) {
-    const value = transformed[field];
-    if (value instanceof Date && !isNaN(value.getTime())) {
-      transformed[field] = value.toISOString();
-    }
-  }
-
   return transformed;
 };
 
@@ -73,13 +54,27 @@ export default function EmployeeOnboardingPage() {
   const { form: officialForm, schema: officialSchema } = useOfficialForm();
   const { form: flagsForm, schema: flagsSchema } = useFlagsForm();
 
-  const mutation = useMutation<any, Error, EmployeeData>({
-    mutationFn: (data) => {
-      const transformedData = transformDatesForAPI(data, language);
-      return apiRequest("/employee/add", "POST", transformedData);
-    },
+  const createEmployeeWithCredentials = async (data: EmployeeData) => {
+    const transformed = transformDatesForAPI(data, language);
+    const employeeResponse = await addEmployeeRequest(transformed);
+    const employee_id = employeeResponse?.data?.employee_id;
+
+    if (!employee_id) throw new Error("Employee ID not returned");
+
+    const login = data.username;
+    const password = data.password;
+
+    if (!login || !password) throw new Error("Missing credentials");
+
+    await addSecUserRequest({ employee_id, login, password });
+
+    return employeeResponse;
+  };
+
+  const mutation = useMutation({
+    mutationFn: createEmployeeWithCredentials,
     onSuccess: () => {
-      toast.success("Employee added successfully!");
+      toast.success("Employee and user credentials created!");
       personalForm.reset();
       credentialsForm.reset();
       officialForm.reset();
@@ -91,6 +86,41 @@ export default function EmployeeOnboardingPage() {
       toast.error("Something went wrong. Please try again.");
     },
   });
+
+  // const mutation = useMutation<any, Error, EmployeeData>({
+  //   mutationFn: (data) => {
+  //     const transformedData = transformDatesForAPI(data, language);
+  //     return addEmployeeRequest(transformedData);
+  //   },
+  //   onSuccess: async (response) => {
+  //     try {
+  //       const employee_id = response?.data?.employee_id;
+  //       const login = credentialsForm.getValues("username");
+  //       const password = credentialsForm.getValues("password");
+
+  //       if (employee_id && login && password) {
+  //         await addSecUserRequest({ employee_id, login, password });
+  //         toast.success("Employee and user credentials created!");
+  //       } else {
+  //         toast.error("Missing employee ID or credentials.");
+  //       }
+
+  //       // Reset all forms
+  //       personalForm.reset();
+  //       credentialsForm.reset();
+  //       officialForm.reset();
+  //       flagsForm.reset();
+  //       setActiveStep("personal-form");
+  //     } catch (error) {
+  //       console.error("SecUser Creation Error:", error);
+  //       toast.error("Employee created, but failed to create user credentials.");
+  //     }
+  //   },
+  //   onError: (error) => {
+  //     console.error("Submission Error:", error);
+  //     toast.error("Something went wrong. Please try again.");
+  //   },
+  // });
 
   const validateCurrentForm = async () => {
     switch (activeStep) {
@@ -126,15 +156,7 @@ export default function EmployeeOnboardingPage() {
       ...flagsForm.getValues(),
     };
 
-    delete data.created_id;
-    delete data.last_updated_id;
-
-    const cleanData = Object.fromEntries(
-      Object.entries(data).filter(([_, value]) => value !== undefined)
-    );
-
-    // ✅ Use cleanData here instead of data
-    mutation.mutate(cleanData as EmployeeData);
+    mutation.mutate(data);
   };
 
   const Pages = [

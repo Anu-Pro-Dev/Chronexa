@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://192.168.2.111:8000";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://192.168.2.111:8000";
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const USER_TOKEN = "userToken";
 

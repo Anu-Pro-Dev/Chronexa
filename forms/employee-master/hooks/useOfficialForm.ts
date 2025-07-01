@@ -10,10 +10,8 @@ export const officialFormSchema = z.object({
   designation_id: z.coerce.number(),
   grade_id: z.coerce.number(),
   organization_id: z.coerce.number(),
-  manager_id: z.coerce.number(),
+  manager_id: z.coerce.number().optional(),
   manager_flag: z.boolean(),
-  created_id: z.number().optional(),
-  last_updated_id: z.number().optional(),
 });
 
 export const useOfficialForm = () => {

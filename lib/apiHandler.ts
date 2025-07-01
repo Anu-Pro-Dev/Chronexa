@@ -320,3 +320,27 @@ export const addEmployeeRequest = async (data: {
 }) => {
   return apiRequest("/employee/add", "POST", data);
 };
+
+// Function to edit a employee by ID
+export const editEmployeeRequest = async (data: {
+  employee_id: number;
+  emp_no?: string;
+  firstname_eng?: string;
+  lastname_eng?: string;
+  firstname_arb?: string;
+  lastname_arb?: string;
+  [key: string]: any;
+}) => {
+  const { employee_id, ...payload } = data;
+
+  return apiRequest(`/employee/edit/${employee_id}`, "PUT", payload);
+};
+
+// Function to add a new user creditnals
+export const addSecUserRequest = async (data: {
+  employee_id: number;
+  login: string;
+  password: string;
+}) => {
+  return apiRequest("/secuser/add", "POST", data);
+};

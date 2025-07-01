@@ -65,19 +65,6 @@ export default function PersonalForm({
     <Form {...personalForm}>
       <form onSubmit={personalForm.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pt-8">
-          {/* <FormField
-            control={personalForm.control}
-            name="employee_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex gap-1">Emp ID <Required /></FormLabel>
-                <FormControl>
-                <Input placeholder="Enter the employee ID" type="text" {...field} />
-                </FormControl>
-                <FormMessage className="mt-1"/>
-              </FormItem>
-            )}
-          /> */}
           <FormField
             control={personalForm.control}
             name="emp_no"
@@ -96,7 +83,7 @@ export default function PersonalForm({
             name="join_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Join date </FormLabel>
+                <FormLabel className="flex gap-1">Join date <Required /></FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
