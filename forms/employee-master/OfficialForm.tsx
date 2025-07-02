@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { addGradeRequest, apiRequest } from "@/lib/apiHandler";
+import { getManagerEmployees } from "@/lib/apiHandler";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function OfficialForm({
@@ -43,7 +43,7 @@ export default function OfficialForm({
   // Manager list
   const { data: managerEmployees } = useQuery({
     queryKey: ["managerEmployees"],
-    queryFn: async () => apiRequest("/employee/all?manager_flag=true", "GET"),
+    queryFn: getManagerEmployees,
   });
 
   function onSubmit(values: z.infer<typeof officialFormSchema>) {

@@ -336,6 +336,11 @@ export const editEmployeeRequest = async (data: {
   return apiRequest(`/employee/edit/${employee_id}`, "PUT", payload);
 };
 
+// Function to get a employees who is manager
+export async function getManagerEmployees() {
+  return apiRequest("/employee/all?manager_flag=true", "GET");
+}
+
 // Function to add a new user creditnals
 export const addSecUserRequest = async (data: {
   employee_id: number;
@@ -343,4 +348,14 @@ export const addSecUserRequest = async (data: {
   password: string;
 }) => {
   return apiRequest("/secuser/add", "POST", data);
+};
+
+// Function to fetch secuser by Id
+export const getSecUserByUserId = async (user_id: number) => {
+  return apiRequest(`/secuser/get/${user_id}`, "GET");
+};
+
+// Function to get a user by its employee_id
+export const getSecUserByEmployeeId = async (employee_id: number) => {
+  return apiRequest(`/secuser/get-by-emp-id/${employee_id}`, "GET");
 };

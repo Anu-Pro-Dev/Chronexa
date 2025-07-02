@@ -18,12 +18,13 @@ import { useRouter } from "next/navigation";
 import { generateRandomPassword } from "@/utils/password";
 
 export default function credentialsForm({
-  Page, SetPage,credentialsFormSchema,credentialsForm
+  Page, SetPage,credentialsFormSchema,credentialsForm, editMode = false,
 }: {
   Page?: any;
   SetPage?:any;
   credentialsFormSchema:any;
   credentialsForm:any
+  editMode?: boolean;
 }) {
  
 
@@ -54,7 +55,7 @@ export default function credentialsForm({
                   </div>
                   <div>
                     <FormControl>
-                      <Input placeholder="Enter the username" type="text" {...field} />
+                      <Input placeholder="Enter the username" type="text" {...field} disabled={editMode}/>
                     </FormControl>
                     <FormMessage className="mt-1"/>
                   </div>
@@ -75,15 +76,17 @@ export default function credentialsForm({
                     <FormControl>
                       <Input
                         placeholder="Click 'Create Password'"
-                        type="text"
+                        type={editMode ? "password" : "text"}
                         {...field}
                         readOnly
+                        disabled={editMode}
                       />
                     </FormControl>
                     <Button
                       type="button"
                       variant={"gradient"}
                       className="text-sm"
+                      disabled={editMode}
                       onClick={() => {
                         const newPassword = generateRandomPassword();
                         credentialsForm.setValue("password", newPassword);

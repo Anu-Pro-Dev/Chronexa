@@ -33,7 +33,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addEmployeeGroupRequest, editEmployeeGroupRequest, apiRequest } from "@/lib/apiHandler";
+import { addEmployeeGroupRequest, editEmployeeGroupRequest, getManagerEmployees } from "@/lib/apiHandler";
 
 const formSchema = z.object({
   group_code: z.string().default("").transform((val) => val.toUpperCase()),
@@ -77,10 +77,7 @@ export default function AddEmployeeGroups({
   // Fetch employees with manager flag
   const { data: managerEmployees, isLoading: isManagersLoading } = useQuery({
     queryKey: ["managerEmployees"],
-    queryFn: async () => {
-      // Adjust the endpoint as per your API
-      return apiRequest("/employee/all?manager_flag=true", "GET");
-    },
+    queryFn: getManagerEmployees,
   });
 
   useEffect(() => {

@@ -22,20 +22,6 @@ export default function Page() {
   // Fetch data using the generic hook
   const { data: employeeData, isLoading } = useFetchAllEntity("employee");
 
-  // Fetch designations
-  // const { data: designationData } = useFetchAllEntity("designation");
-
-  // Build a map of designation_id to designation name for quick lookup
-  // const designationMap = useMemo(() => {
-  //   if (Array.isArray(designationData?.data)) {
-  //     return designationData.data.reduce((acc: Record<number, string>, des: any) => {
-  //       acc[des.designation_id] = language === "ar" ? des.designation_arb : des.designation_eng;
-  //       return acc;
-  //     }, {});
-  //   }
-  //   return {};
-  // }, [designationData, language]);
-
   useEffect(() => {
     setColumns([
       { field: "emp_no", headerName: "Emp No" },
@@ -80,6 +66,8 @@ export default function Page() {
   
   const handleEditClick = useCallback((data: any) => {
     setSelectedRowData(data);
+    console.log("checking data:",data);
+    sessionStorage.setItem("editEmployeeData", JSON.stringify(data));
     router.push("/employee-master/employee/add");
   }, [router]);
 
@@ -95,6 +83,7 @@ export default function Page() {
         items={modules?.employeeMaster.items}
         entityName="employee"
         isAddNewPagePath="/employee-master/employee/add"
+        
       />
       <PowerTable
         props={props}
