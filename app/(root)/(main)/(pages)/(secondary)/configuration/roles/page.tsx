@@ -107,7 +107,7 @@ export default function Page() {
           />
       }
       />
-      <PowerTable props={props} Data={Data} api={"/security/roles"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} api={"/security/roles"} showEdit={true} onEditClick={handleEditClick}/>
       {isModalOpen && selectedRowData && (
         <AssignPrivileges
           modal_props={{

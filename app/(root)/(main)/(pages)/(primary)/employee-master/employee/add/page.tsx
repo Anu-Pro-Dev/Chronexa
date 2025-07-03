@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { z } from "zod";
+import toast from "react-hot-toast";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerMultiStepCard from "@/components/custom/power-comps/power-multi-step-card";
 
@@ -15,12 +19,16 @@ import CredentialsForm from "@/forms/employee-master/CredentialsForm";
 import OfficialForm from "@/forms/employee-master/OfficialForm";
 import FlagsForm from "@/forms/employee-master/FlagsForm";
 
-import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
-import { z } from "zod";
-import { addEmployeeRequest, editEmployeeRequest, addSecUserRequest, getSecUserByEmployeeId } from "@/lib/apiHandler";
+import {
+  addEmployeeRequest,
+  editEmployeeRequest,
+  addSecUserRequest,
+  getSecUserByEmployeeId,
+} from "@/lib/apiHandler";
 
-type EmployeeData = 
+import { useEmployeeEditStore } from "@/stores/employeeEditStore";
+
+type EmployeeData =
   z.infer<typeof personalFormSchema> &
   z.infer<typeof credentialsFormSchema> &
   z.infer<typeof officialFormSchema> &
@@ -45,6 +53,7 @@ const transformDatesForAPI = (data: any, language: any) => {
 };
 
 export default function EmployeeOnboardingPage() {
+  const router = useRouter();
   const { modules, language } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState("personal-form");
@@ -54,16 +63,97 @@ export default function EmployeeOnboardingPage() {
   const { form: officialForm, schema: officialSchema } = useOfficialForm();
   const { form: flagsForm, schema: flagsSchema } = useFlagsForm();
 
-  const [editMode, setEditMode] = useState(false);
-  const [editEmployeeData, setEditEmployeeData] = useState<any>(null);
+  const selectedRowData = useEmployeeEditStore((state) => state.selectedRowData);
+  const clearSelectedRowData = useEmployeeEditStore((state) => state.clearSelectedRowData);
 
+  const resetAllForms = () => {
+    personalForm.reset();
+    credentialsForm.reset();
+    officialForm.reset();
+    flagsForm.reset();
+    setActiveStep("personal-form");
+  };
+
+  // Prefill or reset forms based on selectedRowData (edit vs add)
   useEffect(() => {
-    const isEdit = sessionStorage.getItem("editEmployeeData");
+    if (selectedRowData) {
+      const convertToDate = (val: any) =>
+        val && typeof val === "string" ? new Date(val) : val;
 
-    if (!isEdit) {
-      sessionStorage.removeItem("editEmployeeData");
+      personalForm.reset({
+        emp_no: selectedRowData.emp_no ?? "",
+        firstname: selectedRowData.firstname_eng || selectedRowData.firstname_arb || "",
+        lastname: selectedRowData.lastname_eng || selectedRowData.lastname_arb || "",
+        mobile: selectedRowData.mobile ?? "",
+        email: selectedRowData.email ?? "",
+        card_number: selectedRowData.card_number ?? "",
+        pin: selectedRowData.pin ?? "",
+        gender: selectedRowData.gender ?? "",
+        passport_number: selectedRowData.passport_number ?? "",
+        passport_issue_country_Id: selectedRowData.passport_issue_country_Id ?? undefined,
+        national_id: selectedRowData.national_id ?? "",
+        remarks: selectedRowData.remarks ?? "",
+        join_date: convertToDate(selectedRowData.join_date),
+        active_date: convertToDate(selectedRowData.active_date),
+        passport_expiry_date: convertToDate(selectedRowData.passport_expiry_date),
+        national_id_expiry_date: convertToDate(selectedRowData.national_id_expiry_date),
+        inactive_date: convertToDate(selectedRowData.inactive_date),
+      });
+
+      officialForm.reset({
+        employee_type_id: selectedRowData.employee_type_id ?? undefined,
+        location_id: selectedRowData.location_id ?? undefined,
+        citizenship_id: selectedRowData.citizenship_id ?? undefined,
+        designation_id: selectedRowData.designation_id ?? undefined,
+        grade_id: selectedRowData.grade_id ?? undefined,
+        organization_id: selectedRowData.organization_id ?? undefined,
+        manager_id: selectedRowData.manager_id ?? undefined,
+        manager_flag: selectedRowData.manager_flag ?? false,
+      });
+
+      flagsForm.reset({
+        active_flag: selectedRowData.active_flag ?? false,
+        punch_flag: selectedRowData.punch_flag ?? false,
+        overtime_flag: selectedRowData.overtime_flag ?? false,
+        inpayroll_flag: selectedRowData.inpayroll_flag ?? false,
+        email_notification_flag: selectedRowData.email_notification_flag ?? false,
+        open_shift_flag: selectedRowData.open_shift_flag ?? false,
+        calculate_monthly_missed_hrs_flag: selectedRowData.calculate_monthly_missed_hrs_flag ?? false,
+        exclude_from_integration_flag: selectedRowData.exclude_from_integration_flag ?? false,
+        shift_flag: selectedRowData.shift_flag ?? false,
+        on_report_flag: selectedRowData.on_report_flag ?? false,
+        share_roster_flag: selectedRowData.share_roster_flag ?? false,
+        include_email_flag: selectedRowData.include_email_flag ?? false,
+        web_punch_flag: selectedRowData.web_punch_flag ?? false,
+        check_inout_selfie_flag: selectedRowData.check_inout_selfie_flag ?? false,
+        geofench_flag: selectedRowData.geofench_flag ?? false,
+      });
+
+      if (selectedRowData.employee_id) {
+        getSecUserByEmployeeId(selectedRowData.employee_id)
+          .then((res) => {
+            credentialsForm.reset({
+              username: res.data.login || "",
+              password: res.data.password || "p@ssw0rd", // don't reset password for security
+            });
+          })
+          .catch(() => {
+            credentialsForm.reset({
+              username: "",
+              password: "",
+            });
+          });
+      } else {
+        credentialsForm.reset({
+          username: "",
+          password: "",
+        });
+      }
+    } else {
+      resetAllForms();
+      clearSelectedRowData();
     }
-  }, []);
+  }, [selectedRowData]);
 
   const createEmployeeWithCredentials = async (data: EmployeeData) => {
     const transformed = transformDatesForAPI(data, language);
@@ -80,198 +170,82 @@ export default function EmployeeOnboardingPage() {
     await addSecUserRequest({ employee_id, login, password });
 
     return employeeResponse;
-  };
-
-  // const mutation = useMutation({
-  //   mutationFn: createEmployeeWithCredentials,
-  //   onSuccess: () => {
-  //     toast.success("Employee and user credentials created!");
-  //     personalForm.reset();
-  //     credentialsForm.reset();
-  //     officialForm.reset();
-  //     flagsForm.reset();
-  //     setActiveStep("personal-form");
-  //   },
-  //   onError: (error) => {
-  //     console.error("Submission Error:", error);
-  //     toast.error("Something went wrong. Please try again.");
-  //   },
-  // });
-
-  useEffect(() => {
-    try{
-    const storedData = sessionStorage.getItem("editEmployeeData");
-
-    if (storedData) {
-      const parsed = JSON.parse(storedData);
-      setEditEmployeeData(parsed);
-      setEditMode(true);
-
-      const convertToDate = (val: any) =>
-        val && typeof val === "string" ? new Date(val) : val;
-
-      // Prefill all forms with existing values
-      personalForm.reset({
-        ...parsed,
-        firstname: parsed.firstname_eng || parsed.firstname_arb || "",
-        lastname: parsed.lastname_eng || parsed.lastname_arb || "",
-        join_date: convertToDate(parsed.join_date),
-        active_date: convertToDate(parsed.active_date),
-        inactive_date: convertToDate(parsed.inactive_date),
-        national_id_expiry_date: convertToDate(parsed.national_id_expiry_date),
-        passport_expiry_date: convertToDate(parsed.passport_expiry_date),
-        passport_issue_country_Id: parsed.passport_issue_country_Id ?? undefined,
-      });
-      officialForm.reset(parsed);
-      flagsForm.reset(parsed);
-
-      if (parsed.employee_id) {
-        getSecUserByEmployeeId(parsed.employee_id)
-          .then((res) => {
-            const secUser = res.data;
-            console.log(secUser);
-            credentialsForm.reset({
-              username: secUser.login,  // adjust keys as per your API response
-              password: secUser.password, // usually password won't come plain, so keep empty or mask
-            });
-          })
-          .catch((err) => {
-            console.error("Failed to fetch secuser", err);
-            // fallback reset without secuser data
-            credentialsForm.reset({
-              username: "",
-              password: "",
-            });
-          });
-      } else {
-        // fallback reset without secuser data
-        credentialsForm.reset({
-          username: "",
-          password: "",
-        });
-      }
-    } else {
-      // ⚠️ Important: Reset if not editing
-      setEditMode(false);
-      setEditEmployeeData(null);
-
-      personalForm.reset();
-      credentialsForm.reset();
-      officialForm.reset();
-      flagsForm.reset();
-    }
-  } catch (err) {
-    console.warn("Invalid session data, clearing...");
-    sessionStorage.removeItem("editEmployeeData");
   }
-}, []);
 
-
-  // useEffect(() => {
-  //   const stored = sessionStorage.getItem("editEmployeeData");
-  //   if (stored) {
-  //     const employee = JSON.parse(stored);
-  //     setEditMode(true);
-  //     setEditEmployeeData(employee);
-
-  //     personalForm.reset({
-  //       emp_no: employee.emp_no,
-  //       firstname: language === "en" ? employee.firstname_eng : employee.firstname_arb,
-  //       lastname: language === "en" ? employee.lastname_eng : employee.lastname_arb,
-  //       mobile: employee.mobile,
-  //       email: employee.email,
-  //       join_date: employee.join_date?.split("T")[0] || "",
-  //       active_date: employee.active_date?.split("T")[0] || "",
-  //       inactive_date: employee.inactive_date?.split("T")[0] || "",
-  //       card_number: employee.card_number,
-  //       pin: employee.pin,
-  //       gender: employee.gender,
-  //       national_id: employee.national_id,
-  //       national_id_expiry_date: employee.national_id_expiry_date?.split("T")[0] || "",
-  //       passport_number: employee.passport_number,
-  //       passport_expiry_date: employee.passport_expiry_date?.split("T")[0] || "",
-  //       passport_issue_country_Id: employee.passport_issue_country_Id,
-  //       remarks: employee.remarks,
-  //     });
-
-  //     credentialsForm.reset({
-  //       username: employee.email,
-  //       password: "",
-  //     });
-
-  //     officialForm.reset({
-  //       designation_id: employee.designation_id,
-  //       grade_id: employee.grade_id,
-  //       organization_id: employee.organization_id,
-  //       location_id: employee.location_id,
-  //       citizenship_id: employee.citizenship_id,
-  //       employee_type_id: employee.employee_type_id,
-  //       manager_id: employee.manager_id,
-  //       manager_flag: employee.manager_flag,
-  //     });
-
-  //     flagsForm.reset({
-  //       active_flag: employee.active_flag,
-  //       punch_flag: employee.punch_flag,
-  //       on_report_flag: employee.on_report_flag,
-  //       include_email_flag: employee.include_email_flag,
-  //       open_shift_flag: employee.open_shift_flag,
-  //       overtime_flag: employee.overtime_flag,
-  //       web_punch_flag: employee.web_punch_flag,
-  //       shift_flag: employee.shift_flag,
-  //       check_inout_selfie_flag: employee.check_inout_selfie_flag,
-  //       calculate_monthly_missed_hrs_flag: employee.calculate_monthly_missed_hrs_flag,
-  //       exclude_from_integration_flag: employee.exclude_from_integration_flag,
-  //       inpayroll_flag: employee.inpayroll_flag,
-  //       share_roster_flag: employee.share_roster_flag,
-  //       geofench_flag: employee.geofench_flag,
-  //     });
-
-  //     setActiveStep("personal-form");
-  //   }
-  // }, []);
-
-  const validateCurrentForm = async () => {
-    switch (activeStep) {
-      case "personal-form":
-        return personalForm.trigger();
-      case "credentials-form":
-        return credentialsForm.trigger();
-      case "official-form":
-        return officialForm.trigger();
-      case "flags-form":
-        return flagsForm.trigger();
-      default:
-        return true;
-    }
-  };
-
-  const mutation = useMutation({
+  // React Query mutation for adding employee + credentials
+  const addMutation = useMutation({
     mutationFn: createEmployeeWithCredentials,
     onSuccess: () => {
+      setLoading(false);
       toast.success("Employee and user credentials created!");
-
-      // Reset forms
-      personalForm.reset();
-      credentialsForm.reset();
-      officialForm.reset();
-      flagsForm.reset();
-
-      // Clear edit mode if lingering
-      setEditMode(false);
-      setEditEmployeeData(null);
-      sessionStorage.removeItem("editEmployeeData");
-
-      setActiveStep("personal-form");
+      clearSelectedRowData();
+      resetAllForms();
+      router.push("/employee-master/employee");
     },
     onError: (error) => {
+      setLoading(false);
       console.error("Submission Error:", error);
       toast.error("Something went wrong. Please try again.");
     },
   });
 
+  // React Query mutation for editing employee (credentials update not handled here)
+  const editMutation = useMutation({
+    mutationFn: editEmployeeRequest,
+    onSuccess: () => {
+      setLoading(false);
+      toast.success("Employee updated successfully!");
+      clearSelectedRowData();
+      resetAllForms();
+      router.push("/employee-master/employee");
+    },
+    onError: (error) => {
+      setLoading(false);
+      clearSelectedRowData();
+      console.error("Submission Error:", error);
+      toast.error("Failed to update employee.");
+    },
+  });
+
+  const validateCurrentForm = async () => {
+    let isValid = false;
+    
+    switch (activeStep) {
+      case "personal-form":
+        isValid = await personalForm.trigger();
+        if (!isValid) {
+          toast.error("Please fix validation errors in Personal form.");
+        }
+        break;
+      case "credentials-form":
+        isValid = await credentialsForm.trigger();
+        if (!isValid) {
+          toast.error("Please fix validation errors in Credentials form.");
+        }
+        break;
+      case "official-form":
+        isValid = await officialForm.trigger();
+        if (!isValid) {
+          toast.error("Please fix validation errors in Official form.");
+        }
+        break;
+      case "flags-form":
+        isValid = await flagsForm.trigger();
+        if (!isValid) {
+          toast.error("Please fix validation errors in Flags form.");
+        }
+        break;
+      default:
+        isValid = true;
+    }
+    
+    return isValid;
+  };
+
   const handleFinalSubmit = async () => {
-    // Validate all form steps
+    setLoading(true);
+
+    // Step 1: Validate all forms
     const isValid =
       (await personalForm.trigger()) &&
       (await credentialsForm.trigger()) &&
@@ -279,73 +253,41 @@ export default function EmployeeOnboardingPage() {
       (await flagsForm.trigger());
 
     if (!isValid) {
-      toast.error("Please correct the errors before submitting.");
+      toast.error("Please fix the validation errors.");
+      setLoading(false);
       return;
     }
 
-    // Combine all form values
-    const combined: EmployeeData = {
-      ...personalForm.getValues(),
-      ...credentialsForm.getValues(),
-      ...officialForm.getValues(),
-      ...flagsForm.getValues(),
+    // Step 2: Get all form data
+    const personalData = personalForm.getValues();
+    const credentialsData = credentialsForm.getValues();
+    const officialData = officialForm.getValues();
+    const flagsData = flagsForm.getValues();
+
+    // Step 3: Merge all into one object
+    let combined = {
+      ...personalData,
+      ...credentialsData,
+      ...officialData,
+      ...flagsData,
     };
 
-    // Transform for API (name and dates)
-    const transformed = transformDatesForAPI(combined, language);
+    // Step 4: Transform names and dates
+    combined = transformDatesForAPI(combined, language);
 
-    try {
-      if (editMode && editEmployeeData?.employee_id) {
-        console.log("editEmployeeData:", editEmployeeData);
-        await editEmployeeRequest({
-          employee_id: editEmployeeData.employee_id,
-          ...transformed,
-        });
+    if (selectedRowData?.employee_id) {
+      // Step 5a: On edit — remove credentials
+      const { username, password, ...rest } = combined;
 
-        toast.success("Employee updated successfully!");
-        sessionStorage.removeItem("editEmployeeData");
-        setEditMode(false);
-        setEditEmployeeData(null);
-      } else {
-        // ➕ Add flow
-        mutation.mutate(combined);
-      }
-
-      // Reset all forms
-      personalForm.reset();
-      credentialsForm.reset();
-      officialForm.reset();
-      flagsForm.reset();
-      setActiveStep("personal-form");
-    } catch (error) {
-      console.error("Submission Error:", error);
-      toast.error("Something went wrong. Please try again.");
+      editMutation.mutate({
+        employee_id: selectedRowData.employee_id,
+        ...rest,
+      });
+    } else {
+      // Step 5b: On add — send credentials too
+      addMutation.mutate(combined);
     }
   };
-
-
-
-  // const handleFinalSubmit = async () => {
-  //   const isValid =
-  //     (await personalForm.trigger()) &&
-  //     (await credentialsForm.trigger()) &&
-  //     (await officialForm.trigger()) &&
-  //     (await flagsForm.trigger());
-
-  //   if (!isValid) {
-  //     toast.error("Please correct the errors before submitting.");
-  //     return;
-  //   }
-
-  //   const data: EmployeeData = {
-  //     ...personalForm.getValues(),
-  //     ...credentialsForm.getValues(),
-  //     ...officialForm.getValues(),
-  //     ...flagsForm.getValues(),
-  //   };
-
-  //   mutation.mutate(data);
-  // };
 
   const Pages = [
     {
@@ -371,7 +313,7 @@ export default function EmployeeOnboardingPage() {
           SetPage={setActiveStep}
           credentialsFormSchema={credentialsSchema}
           credentialsForm={credentialsForm}
-          editMode={editMode} 
+          selectedRowData={selectedRowData}
         />
       ),
     },
@@ -398,6 +340,7 @@ export default function EmployeeOnboardingPage() {
           flagsFormSchema={flagsSchema}
           handleFinalSubmit={handleFinalSubmit}
           loading={loading}
+          selectedRowData={selectedRowData}
         />
       ),
     },
@@ -405,11 +348,7 @@ export default function EmployeeOnboardingPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader
-        items={modules?.employeeMaster.items}
-        disableFeatures
-        modal_title="Employee"
-      />
+      <PowerHeader items={modules?.employeeMaster.items} disableFeatures modal_title="Employee" />
 
       <PowerMultiStepCard
         SetPage={setActiveStep}

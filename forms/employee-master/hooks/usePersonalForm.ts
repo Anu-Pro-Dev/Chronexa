@@ -3,12 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 export const personalFormSchema = z.object({
-  // employee_id: z.string().min(1, "Required").max(100),
   emp_no: z.string().min(1, "Required").max(100),
   firstname: z.string().optional(),
   lastname: z.string().optional(),
-  mobile: z.string().min(1, "Required").max(100),
-  email: z.string().min(1, "Required").max(100),
+  mobile: z.string().optional(),
+  email: z.string().optional(),
   card_number: z.string().optional(),
   pin: z.string().optional(),
   gender: z.string().optional(),
@@ -27,7 +26,6 @@ export const usePersonalForm = () => {
   const form = useForm<z.infer<typeof personalFormSchema>>({
     resolver: zodResolver(personalFormSchema),
     defaultValues: {
-      // employee_id: "",
       emp_no: "",
       firstname: "",
       lastname: "",

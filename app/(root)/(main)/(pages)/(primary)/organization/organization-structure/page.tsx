@@ -140,23 +140,6 @@ export default function Page() {
         }
       });
     }
-
-    // Sort children by orgTypeLevel and then by title
-    // const sortChildren = (node: TreeNode) => {
-    //   node.children.sort((a, b) => {
-    //     if (a.orgTypeLevel !== b.orgTypeLevel) {
-    //       return a.orgTypeLevel - b.orgTypeLevel;
-    //     }
-    //     return a.title.localeCompare(b.title);
-    //   });
-    //   node.children.forEach(sortChildren);
-    // };
-
-    // roots.forEach(sortChildren);
-
-    // const finalTree = roots.sort((a, b) => a.title.localeCompare(b.title));
-    // console.log("Final tree data:", finalTree);
-    
     return roots;
   }, [orgTypesRes, orgsRes, loadingTypes, loadingOrgs]);
 

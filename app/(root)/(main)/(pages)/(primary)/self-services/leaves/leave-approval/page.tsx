@@ -155,7 +155,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.leaves?.items} />
         </div>
-        <PowerTable props={props} Data={Data} api={"/self-services/leaves/leave-approval"} />
+        <PowerTable props={props} api={"/self-services/leaves/leave-approval"} />
       </div>
     </div>
   );

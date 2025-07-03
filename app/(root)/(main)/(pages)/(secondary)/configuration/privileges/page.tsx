@@ -49,7 +49,7 @@ export default function Page() {
        //modal_description="Choose the privileges"
         modal_component={<AddPrivelege on_open_change={on_open_change} />}
       />
-      <PowerTable props={props} Data={Data} api={"/security/privileges"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} api={"/security/privileges"} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

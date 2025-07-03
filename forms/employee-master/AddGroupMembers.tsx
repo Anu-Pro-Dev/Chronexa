@@ -40,12 +40,9 @@ export default function AddGroupMembers({
   const groupCode = searchParams.get("group");
 
   const { data: groupListData } = useFetchAllEntity("employeeGroup");
-  console.log("Group List Data:", groupListData);
   // const group = groupListData?.data?.find(g => g.group_code === groupCode);
   const group = groupListData?.data?.find((g: EmployeeGroup) => g.group_code === groupCode);
   const employee_group_id = group?.employee_group_id ?? null;
-  console.log("Group", group, groupCode);
-  console.log("Group ID:", employee_group_id);
   const { data: employeeData, isLoading } = useFetchAllEntity("employee");
 
   const addMutation = useMutation({

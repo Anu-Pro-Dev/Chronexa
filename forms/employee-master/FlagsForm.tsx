@@ -10,28 +10,29 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useEmployeeEditStore } from "@/stores/employeeEditStore";
 
 export default function FlagsForm({
   flagForm,
   flagsFormSchema,
   handleFinalSubmit,
   loading,
+  selectedRowData,
 }: {
   flagForm: any;
   flagsFormSchema: any;
   handleFinalSubmit: () => void;
   loading: boolean;
+  selectedRowData?: any;
 }) {
+  
   const router = useRouter();
-
-  const handleSaveAndRedirect = async () => {
-    await handleFinalSubmit(); // Ensure the form is submitted
-    router.push("/employee-master/employee"); // Navigate to the user page after saving
-  };
-
+  const isEditing = !!selectedRowData;
+  const clearSelectedRowData = useEmployeeEditStore((state) => state.clearSelectedRowData);
+  
   return (
-    <Form {...flagForm}>
-      <form onSubmit={flagForm.handleSubmit(handleFinalSubmit)} className="w-11/12 mx-auto">
+    <Form {...flagForm} className="w-11/12 mx-auto">
+      {/* <form> */}
         <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col">
             <div className="flex justify-between items-start gap-20">
@@ -57,7 +58,7 @@ export default function FlagsForm({
                           <div className="flex items-center gap-2">
                             <Checkbox
                               id={name}
-                              checked={field.value}
+                              checked={!!field.value}
                               onCheckedChange={field.onChange}
                             />
                             <FormLabel htmlFor={name} className="text-sm font-semibold">
@@ -92,7 +93,7 @@ export default function FlagsForm({
                           <div className="flex items-center gap-2">
                             <Checkbox
                               id={name}
-                              checked={field.value}
+                              checked={!!field.value}
                               onCheckedChange={field.onChange}
                             />
                             <FormLabel htmlFor={name} className="text-sm font-semibold">
@@ -115,22 +116,26 @@ export default function FlagsForm({
                 type="button"
                 size="lg"
                 className="w-full"
-                onClick={() => router.push("/employee-master/employee")}
+                onClick={() => {
+                  clearSelectedRowData();
+                  router.push("/employee-master/employee");
+                }}
               >
                 Cancel
               </Button>
               <Button
-                type="submit"
+                type="button"
                 size="lg"
                 className="w-full"
                 disabled={loading}
+                onClick={() => handleFinalSubmit()}
               >
-                {loading ? "Saving..." : "Save"}
+                {loading ? (isEditing ? "Updating..." : "Saving...") : (isEditing ? "Update" : "Save")}
               </Button>
             </div>
           </div>
         </div>
-      </form>
+      {/* </form> */}
     </Form>
   );
 }

@@ -6,20 +6,21 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useEmployeeEditStore } from "@/stores/employeeEditStore";
 
 export default function Page() {
   const { modules, language } = useLanguage();
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
-  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const queryClient = useQueryClient();
 
-  // Fetch data using the generic hook
+  // Fetch data using generic hook
   const { data: employeeData, isLoading } = useFetchAllEntity("employee");
 
   useEffect(() => {
@@ -33,7 +34,6 @@ export default function Page() {
     ]);
   }, [language]);
 
-  // Map data for the table
   const data = useMemo(() => {
     if (Array.isArray(employeeData?.data)) {
       return employeeData.data.map((emp: any) => ({
@@ -60,16 +60,19 @@ export default function Page() {
     SetSearchValue: setSearchValue,
   };
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["employee"] });
-  };
-  
-  const handleEditClick = useCallback((data: any) => {
-    setSelectedRowData(data);
-    console.log("checking data:",data);
-    sessionStorage.setItem("editEmployeeData", JSON.stringify(data));
-    router.push("/employee-master/employee/add");
-  }, [router]);
+  }, [queryClient]);
+
+  const setSelectedRowData = useEmployeeEditStore((state) => state.setSelectedRowData);
+
+  const handleEditClick = useCallback(
+    (row: any) => {
+      setSelectedRowData(row);
+      router.push("/employee-master/employee/add");
+    },
+    [router, setSelectedRowData]
+  );
 
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
@@ -83,7 +86,6 @@ export default function Page() {
         items={modules?.employeeMaster.items}
         entityName="employee"
         isAddNewPagePath="/employee-master/employee/add"
-        
       />
       <PowerTable
         props={props}

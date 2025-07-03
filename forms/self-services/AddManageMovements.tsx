@@ -404,7 +404,7 @@ export default function AddManageMovements ({
             </form>
         </Form>
         <div >
-          <PowerTable props={props} Data={Data} api={"/self-services/punches/manual/add"} ispageValue5={true} />
+          <PowerTable props={props} api={"/self-services/punches/manual/add"} ispageValue5={true} />
         </div>
       </>  
     )

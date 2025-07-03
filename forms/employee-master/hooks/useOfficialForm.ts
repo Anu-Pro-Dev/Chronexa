@@ -4,12 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 export const officialFormSchema = z.object({
-  employee_type_id: z.coerce.number(),
-  location_id: z.coerce.number(),
-  citizenship_id: z.coerce.number(),
-  designation_id: z.coerce.number(),
-  grade_id: z.coerce.number(),
-  organization_id: z.coerce.number(),
+  employee_type_id: z.coerce.number().optional(),
+  location_id: z.coerce.number().optional(),
+  citizenship_id: z.coerce.number().optional(),
+  designation_id: z.coerce.number().optional(),
+  grade_id: z.coerce.number().optional(),
+  organization_id: z.coerce.number().optional(),
   manager_id: z.coerce.number().optional(),
   manager_flag: z.boolean(),
 });

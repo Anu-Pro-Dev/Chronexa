@@ -63,7 +63,7 @@ export default function Page() {
         items={modules?.scheduling?.items}
         isAddNewPagePath="/scheduling/schedules/add"
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

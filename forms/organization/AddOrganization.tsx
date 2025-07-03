@@ -157,9 +157,6 @@ export default function AddOrganizationType({
   // FIX: Separate useEffect with proper dependency array and better data handling
   useEffect(() => {
     if (selectedRowData && organizationsData?.data && organizationTypesData?.data) {
-      console.log("Setting form values for edit:", selectedRowData); // Debug log
-      console.log("Available org types:", organizationTypesData.data); // Debug log
-      
       // Find parent org for parent_type
       const parentOrg = organizationsData.data.find(
         (org: any) => org.organization_id === selectedRowData.parent_id
@@ -170,12 +167,6 @@ export default function AddOrganizationType({
       const parentOrgId = selectedRowData.parent_id?.toString() || "";
       const orgTypeId = selectedRowData.organization_type_id?.toString() || "";
 
-      console.log("Raw IDs from data:", {
-        parentOrgTypeId: parentOrg?.organization_type_id,
-        selectedRowOrgTypeId: selectedRowData.organization_type_id,
-        parentOrg: parentOrg
-      });
-
       // FIX: Verify the IDs exist in the dropdown options
       const parentTypeExists = organizationTypesData.data.some(
         (type: any) => type.organization_type_id.toString() === parentTypeId
@@ -183,23 +174,6 @@ export default function AddOrganizationType({
       const orgTypeExists = organizationTypesData.data.some(
         (type: any) => type.organization_type_id.toString() === orgTypeId
       );
-
-      console.log("ID validation:", {
-        parentTypeId,
-        parentTypeExists,
-        orgTypeId,
-        orgTypeExists
-      });
-
-      console.log("Form values being set:", {
-        parent_type: parentTypeId,
-        parent_name: parentOrgId,
-        organization_type: orgTypeId,
-        organization_code: selectedRowData.code || "",
-        organization_name: language === "en" 
-          ? selectedRowData.organization_eng || ""
-          : selectedRowData.organization_arb || ""
-      });
 
       // FIX: Use setTimeout to ensure the Select components are ready
       setTimeout(() => {

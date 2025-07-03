@@ -57,7 +57,7 @@ export default function Page() {
       />
       <div className="">
         <FilterWeeklyScheduling/>
-        <PowerTable props={props} Data={Data} api={"/scheduling/weekly-schedule"} showEdit={true} onEditClick={handleEditClick}/>
+        <PowerTable props={props} api={"/scheduling/weekly-schedule"} showEdit={true} onEditClick={handleEditClick}/>
       </div>
     </div>
   );

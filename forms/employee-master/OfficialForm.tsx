@@ -276,7 +276,7 @@ export default function OfficialForm({
           />
 
           {/* Manager (conditionally shown if manager_flag is false) */}
-          {!managerFlagChecked && (
+          {/* {!managerFlagChecked && ( */}
             <FormField
               control={officialForm.control}
               name="manager_id"
@@ -307,7 +307,7 @@ export default function OfficialForm({
                 </FormItem>
               )}
             />
-          )}
+          {/* )} */}
         </div>
 
         <div className="flex justify-end gap-2 items-center py-5">

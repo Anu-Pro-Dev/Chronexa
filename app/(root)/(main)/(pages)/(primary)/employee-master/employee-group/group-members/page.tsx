@@ -38,50 +38,30 @@ export default function MembersTable() {
 
   // Filter group members by group if specified
   const filteredGroupMembers = useMemo(() => {
-    console.log("Raw groupMembersData:", groupMembersData);
-    console.log("Raw groupsData:", groupsData);
-    
     if (!groupMembersData?.data || !Array.isArray(groupMembersData.data)) {
       return [];
     }
     
     let filtered = groupMembersData.data;
-    console.log("Total group members:", filtered.length);
     
-    // Debug: Log the first member to see its structure
-    if (filtered.length > 0) {
-      console.log("Sample member data:", filtered[0]);
-      console.log("Available keys:", Object.keys(filtered[0]));
-    }
-    
-    if (group && groupsData?.data) {
-      console.log(`Filtering by group code: "${group}"`);
-      
+    if (group && groupsData?.data) {      
       // Find the group ID for the given group code
       const targetGroup = groupsData.data.find((g: any) => 
         g.group_code === group || g.code === group || g.groupCode === group
       );
-      
-      console.log("Target group found:", targetGroup);
-      
+            
       if (targetGroup) {
         const targetGroupId = targetGroup.id || targetGroup.group_id || targetGroup.employee_group_id;
-        console.log("Target group ID:", targetGroupId);
         
         filtered = filtered.filter((member: any) => {
           const memberGroupId = member.employee_group_id || member.group_id || member.groupId;
           const matches = memberGroupId?.toString() === targetGroupId?.toString();
           
-          console.log(`Member ${member.group_member_id || member.id}: groupId=${memberGroupId}, matches=${matches}`);
           return matches;
         });
       } else {
-        console.warn(`No group found with code: ${group}`);
         filtered = []; // No matches if group not found
-      }
-      
-      console.log(`Filtered by group code ${group}:`, filtered.length);
-      console.log("Filtered members:", filtered);
+      }      
     }
     
     return filtered;
@@ -90,102 +70,82 @@ export default function MembersTable() {
   // Get unique employee IDs
   const employeeIds = useMemo(() => {
     const ids = filteredGroupMembers.map((member: any) => member.employee_id).filter(Boolean);
-    console.log("Employee IDs to fetch:", ids);
     return ids;
   }, [filteredGroupMembers]);
   // Replace the existing employee fetching query with this optimized version
 
-// Fetch all employees once and filter by needed IDs
-const { data: allEmployeesData, isLoading: isLoadingEmployees } = useQuery({
-  queryKey: ["employees", "all"],
-  queryFn: async () => {
-    try {
-      console.log("Fetching all employees from /employee/all");
-      const data = await apiRequest(`/employee/all`, "GET");
-      console.log("Raw employee data response:", data);
-      
-      // Handle different response structures
-      let employees = [];
-      if (data?.data && Array.isArray(data.data)) {
-        employees = data.data;
-      } else if (data?.success && data?.result && Array.isArray(data.result)) {
-        employees = data.result;
-      } else if (Array.isArray(data)) {
-        employees = data;
-      } else {
-        console.error("Unexpected employee data structure:", data);
+  // Fetch all employees once and filter by needed IDs
+  const { data: allEmployeesData, isLoading: isLoadingEmployees } = useQuery({
+    queryKey: ["employees", "all"],
+    queryFn: async () => {
+      try {
+        const data = await apiRequest(`/employee/all`, "GET");
+        
+        // Handle different response structures
+        let employees = [];
+        if (data?.data && Array.isArray(data.data)) {
+          employees = data.data;
+        } else if (data?.success && data?.result && Array.isArray(data.result)) {
+          employees = data.result;
+        } else if (Array.isArray(data)) {
+          employees = data;
+        } else {
+          console.error("Unexpected employee data structure:", data);
+          return {};
+        }
+                
+        // Create a map of employee_id to employee data for quick lookup
+        const employeeMap: any = {};
+        employees.forEach((emp: any) => {
+          // Try different possible ID field names
+          const empId = emp.id || emp.employee_id || emp.emp_id;
+          if (empId) {
+            employeeMap[empId] = emp;
+          }
+        });
+        
+        return employeeMap;
+      } catch (error) {
+        console.error("Error fetching all employees:", error);
         return {};
       }
-      
-      console.log("Processed employees array:", employees);
-      
-      // Create a map of employee_id to employee data for quick lookup
-      const employeeMap: any = {};
-      employees.forEach((emp: any) => {
-        // Try different possible ID field names
-        const empId = emp.id || emp.employee_id || emp.emp_id;
-        if (empId) {
-          employeeMap[empId] = emp;
-        }
-      });
-      
-      console.log("Employee map created:", employeeMap);
-      console.log("Employee IDs in map:", Object.keys(employeeMap));
-      
-      return employeeMap;
-    } catch (error) {
-      console.error("Error fetching all employees:", error);
-      return {};
-    }
-  },
-  // Remove the enabled condition since we want to fetch all employees regardless
-  staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-});
-
-// Update the filteredData useMemo to better handle the employee lookup
-const filteredData = useMemo(() => {
-  console.log("Merging data...");
-  console.log("Group members:", filteredGroupMembers);
-  console.log("All employees data:", allEmployeesData);
-  console.log("Employee IDs needed:", employeeIds);
-  
-  if (!allEmployeesData || Object.keys(allEmployeesData).length === 0) {
-    console.log("No employee data available yet");
-    return [];
-  }
-  
-  const mergedData = filteredGroupMembers.map((member: any) => {
-    const employeeId = member.employee_id;
-    const emp = allEmployeesData[employeeId];
-    
-    console.log(`Processing member ${member.group_member_id || member.id}:`);
-    console.log(`- Employee ID: ${employeeId}`);
-    console.log(`- Employee data found:`, emp ? "Yes" : "No");
-    console.log(`- Employee details:`, emp);
-
-    if (!emp) {
-      console.warn(`No employee data found for ID: ${employeeId}`);
-      console.log("Available employee IDs:", Object.keys(allEmployeesData));
-    }
-
-    return {
-      ...member,
-      id: member.group_member_id || member.id,
-      employee_no: emp?.emp_no || emp?.employee_no || emp?.empNo || "N/A",
-      employee_name: emp?.firstname_eng,
-      designation: emp?.designation_name || emp?.designation || emp?.position || "N/A",
-      organization: emp?.organization_name || emp?.organization || emp?.company || "N/A",
-      effective_from_date: member.effective_from_date,
-      effective_to_date: member.effective_to_date,
-    };
+    },
+    // Remove the enabled condition since we want to fetch all employees regardless
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  console.log("Final merged data:", mergedData);
-  return mergedData;
-}, [filteredGroupMembers, allEmployeesData, employeeIds]);
+  // Update the filteredData useMemo to better handle the employee lookup
+  const filteredData = useMemo(() => {
 
-// Also update the loading state calculation
-const isLoading = isLoadingGroupMembers || isLoadingGroups || isLoadingEmployees;
+    if (!allEmployeesData || Object.keys(allEmployeesData).length === 0) {
+      return [];
+    }
+    
+    const mergedData = filteredGroupMembers.map((member: any) => {
+      const employeeId = member.employee_id;
+      const emp = allEmployeesData[employeeId];
+      
+      if (!emp) {
+        console.warn(`No employee data found for ID: ${employeeId}`);
+      }
+
+      return {
+        ...member,
+        id: member.group_member_id || member.id,
+        employee_no: emp?.emp_no || emp?.employee_no || emp?.empNo || "N/A",
+        employee_name: emp?.firstname_eng,
+        designation: emp?.designation_name || emp?.designation || emp?.position || "N/A",
+        organization: emp?.organization_name || emp?.organization || emp?.company || "N/A",
+        effective_from_date: member.effective_from_date,
+        effective_to_date: member.effective_to_date,
+      };
+    });
+
+    return mergedData;
+  }, [filteredGroupMembers, allEmployeesData, employeeIds]);
+
+  // Also update the loading state calculation
+  const isLoading = isLoadingGroupMembers || isLoadingGroups || isLoadingEmployees;
 
   useEffect(() => {
     if (!open) {

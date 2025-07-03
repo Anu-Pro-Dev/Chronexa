@@ -108,7 +108,6 @@ export default function Page() {
       </div>
       <PowerTable 
         props={props}
-        Data={Data}
         api={"/alerts/sms"} 
         showCheckbox={true} 
         onRowSelection={setSelectedRows}

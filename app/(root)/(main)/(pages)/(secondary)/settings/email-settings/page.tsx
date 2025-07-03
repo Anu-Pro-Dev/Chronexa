@@ -81,7 +81,7 @@ export default function Page() {
         }
         isLarge
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} api={"/settings/email-settings"}/>
+      <PowerTable props={props} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} api={"/settings/email-settings"}/>
     </div>
   );
 }

@@ -49,7 +49,6 @@ export default function Page() {
   const data = useMemo(() => {
     if (Array.isArray(employeeGroupData?.data)) {
       return employeeGroupData.data.map((empGroup: any) => {
-        console.log("empGroup.employee_group_id:", empGroup.employee_group_id);
         return {
           ...empGroup,
           id: empGroup.employee_group_id,

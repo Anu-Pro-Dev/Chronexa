@@ -82,9 +82,6 @@ export default function AddEmployeeGroups({
 
   useEffect(() => {
     if (selectedRowData) {
-      console.log("selectedRowData.reporting_person:", selectedRowData.reporting_person);
-      console.log("managerEmployees:", managerEmployees?.data);
-    
       form.reset({
         group_code: selectedRowData.group_code ?? "",
         group_name:
