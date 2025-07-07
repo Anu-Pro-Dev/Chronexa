@@ -1,16 +1,15 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddDesignations from "@/forms/company-master/AddDesignations";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { getAllDesignations } from "@/lib/apiHandler";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
-  const [data, setData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -18,32 +17,11 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-
-  const props = {
-    Data: data,
-    SetData: setData,
-    Columns: columns,
-    SortField: sortField,
-    CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
-    SetSortField: setSortField,
-    SortDirection: sortDirection,
-    SetSortDirection: setSortDirection,
-    open,
-    on_open_change: setOpen,
-    SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
-  };
-
-  useEffect(() => {
-    if (!open) {
-      setSelectedRowData(null);
-    }
-  }, [open]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setColumns([
-      { field: "code", headerName: language === "ar" ? "تعيين الموقع" : "Designation Code" },
+      { field: "designation_code", headerName: language === "ar" ? "تعيين الموقع" : "Designation Code" },
       {
         field: language === "ar" ? "designation_arb" : "designation_eng",
         headerName: language === "ar" ? "تعيين" : "Designation",
@@ -51,46 +29,53 @@ export default function Page() {
     ]);
   }, [language]);
 
+  const { data: designationData, isLoading } = useFetchAllEntity("designation");
+
+  const data = useMemo(() => {
+    if (Array.isArray(designationData?.data)) {
+      return designationData.data.map((desi: any) => {
+        return {
+          ...desi,
+          id: desi.designation_id,
+        };
+      });
+    }
+    return [];
+  }, [designationData]);
+
   useEffect(() => {
-    const fetchDesignation = async () => {
-      try {
-        const response = await getAllDesignations();
-        if (response?.success && Array.isArray(response.data)) {
-          const mapped = response.data.map((desi: any) => ({
-            ...desi,
-            id: desi.designation_id,
-          }));
-          setData(mapped);
-        } else {
-          console.error("Unexpected response:", response);
-        }
-      } catch (error) {
-        console.error("Error fetching designation data:", error);
-      }
-    };
+    if (!open) {
+      setSelectedRowData(null);
+    }
+  }, [open]);
 
-    fetchDesignation();
-  }, []);  
-
- const handleEditClick = useCallback((row: any) => {
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
+  };
+ 
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["designation"] });
+  };
+ 
+  const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
     setOpen(true);
   }, []);
-
-  const handleSave = (id: string | null, newData: any) => {
-    const dataWithId = {
-      ...newData,
-      id: newData.designation_id,
-    };
-
-    setData((prev) =>
-      id
-        ? prev.map((row) => (row.id === id ? { ...row, ...dataWithId } : row))
-        : [...prev, dataWithId]
-    );
-    setSelectedRowData(null);
-  };
-
+ 
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -111,7 +96,13 @@ export default function Page() {
           />
         }
       />
-      <PowerTable props={props} Data={data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} />
+      <PowerTable
+        props={props}
+        showEdit={true}
+        onEditClick={handleEditClick}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

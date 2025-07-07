@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import * as z from "zod";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import Required from "@/components/ui/required";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
@@ -29,44 +31,21 @@ import {
 import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import Required from "@/components/ui/required";
-import { useRouter } from "next/navigation";
-import { addEmployeeGroupRequest } from "@/lib/apiHandler"; // Import API request function
 import { useLanguage } from "@/providers/LanguageProvider";
-import { toast } from "react-hot-toast";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addEmployeeGroupRequest, editEmployeeGroupRequest, getManagerEmployees } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-    groupName: z.string().min(1, { message: "Required" }).max(100),
-    descriptionEng: z.string().default(""),
-    descriptionArb: z.string().default(""),
-    from_date: z.date({
-      required_error: "From Date is required.",
-    }),
-    to_date: z.date({
-      required_error: "To Date is required.",
-    }),
-    schedule_flag: z.boolean().optional(),
-    reporting_group: z.boolean().optional(),
-    user: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    refresh_member: z.boolean().optional(),
+  group_code: z.string().default("").transform((val) => val.toUpperCase()),
+  group_name: z.string().default(""),
+  group_start_date: z.date().nullable().optional(),
+  group_end_date: z.date().nullable().optional(),
+  schedule_flag: z.boolean().optional().default(false),
+  reporting_group_flag: z.boolean().optional().default(false),
+  reporting_person_id: z.coerce.number().optional(),
 });
 
-const getSchema = (lang: "en" | "ar") =>
-    formSchema.refine((data) => {
-        if (lang === "en") return !!data.descriptionEng;
-        if (lang === "ar") return !!data.descriptionArb;
-        return true;
-    }, {
-        message: "Required",
-        path: [lang === "en" ? "descriptionEng" : "descriptionArb"],
-});
-
-export default function AddEmployeeGroup({
+export default function AddEmployeeGroups({
   on_open_change,
   selectedRowData,
   onSave,
@@ -77,59 +56,119 @@ export default function AddEmployeeGroup({
 }) {
 
   const {language } = useLanguage();
-    
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      groupName: "",
-      descriptionEng: "",
-      descriptionArb: "",
+      group_code:"",
+      group_name: "",
+      group_start_date: null,
+      group_end_date: null,
+      schedule_flag: false,
+      reporting_group_flag: false,
+      reporting_person_id: undefined,
     },
   });
 
-  useEffect(() => {
-    form.reset(form.getValues());
-  }, [language]);
+  const reportingGroupChecked = form.watch("reporting_group_flag");
 
+  // Fetch employees with manager flag
+  const { data: managerEmployees } = useQuery({
+    queryKey: ["managerEmployees"],
+    queryFn: getManagerEmployees,
+  });
+  
   useEffect(() => {
-    if (!selectedRowData) {
-      form.reset();
-    } else {
-      form.reset({
-        groupName: selectedRowData.groupName,
-        descriptionEng: selectedRowData.descriptionEng,
-        descriptionArb: selectedRowData.descriptionArb,
-      });
-    }
-  }, [selectedRowData, form]);
-
-  const handleSave = () => {
-    const formData = form.getValues();
     if (selectedRowData) {
-      onSave(selectedRowData.id, formData);
+      form.reset({
+        group_code: selectedRowData.group_code ?? "",
+        group_name:
+          language === "en"
+            ? selectedRowData.group_name_eng ?? ""
+            : selectedRowData.group_name_arb ?? "",
+        group_start_date: selectedRowData.group_start_date
+          ? new Date(selectedRowData.group_start_date): null,
+        group_end_date: selectedRowData.group_end_date
+          ? new Date(selectedRowData.group_end_date)  : null,
+        schedule_flag: selectedRowData.schedule_flag ?? false,
+        reporting_group_flag: selectedRowData.reporting_group_flag ?? false,
+        reporting_person_id: selectedRowData.reporting_person_id ?? undefined,
+      });
     } else {
-      onSave(null, formData);
+      form.reset(); // clears on add
     }
-    on_open_change(false);
-  };
+  }, [selectedRowData, language]);
 
-  const router = useRouter();
-  const reportingGroupChecked = form.watch("reporting_group");
+  const addMutation = useMutation({
+    mutationFn: addEmployeeGroupRequest,
+    onSuccess: (data) => {
+      toast.success("Employee type added successfully!");
+      onSave(null, data.data);
+      on_open_change(false);
+      queryClient.invalidateQueries({ queryKey: ["employeeGroup"] });
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editEmployeeGroupRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Employee type updated successfully!");
+      onSave(variables.employee_group_id?.toString() ?? null, variables);
+      queryClient.invalidateQueries({ queryKey: ["employeeGroup"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    
     try {
-      if (selectedRowData) {
-        onSave(selectedRowData.id, values);
+      const payload: any = {
+        group_code: values.group_code,
+        group_start_date: values.group_start_date
+          ? format(values.group_start_date, "yyyy-MM-dd"): null,
+        group_end_date: values.group_end_date
+          ? format(values.group_end_date, "yyyy-MM-dd"): null,  
+        schedule_flag: values.schedule_flag,
+        reporting_group_flag: values.reporting_group_flag,        
+        reporting_person_id: values.reporting_person_id,
+      };
+
+      // Add only the language-specific name being edited
+      if (language === "en") {
+        payload.group_name_eng = values.group_name;
       } else {
-        const response = await addEmployeeGroupRequest(values.groupName, values.descriptionEng, values.descriptionArb);
-        toast.success("Employee group added successfully!");
-        
-        onSave(null, response);
+        payload.group_name_arb = values.group_name;
       }
 
-      on_open_change(false);
-    } catch (error) {
-      console.error("Form submission error", error);
+      if (selectedRowData) {
+        editMutation.mutate({
+          employee_group_id: selectedRowData.id,
+          ...payload,
+        });
+      } else {
+        addMutation.mutate(payload);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -138,7 +177,7 @@ export default function AddEmployeeGroup({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="py-5 flex flex-col">
-            <div className="flex gap-10 items-center pb-6 px-5">
+            <div className="flex gap-10 items-center p-7 pt-0">
               <FormField
                 control={form.control}
                 name="schedule_flag"
@@ -148,7 +187,7 @@ export default function AddEmployeeGroup({
                       <div className="flex items-center gap-2">
                         <Checkbox
                           id="schedule_flag"
-                          checked={field.value}
+                          checked={!!field.value}
                           onCheckedChange={field.onChange}
                         />
                         <FormLabel htmlFor="schedule_flag" className="text-sm font-semibold">Schedule flag</FormLabel>
@@ -159,17 +198,17 @@ export default function AddEmployeeGroup({
               />
               <FormField
                 control={form.control}
-                name="reporting_group"
+                name="reporting_group_flag"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormControl>
                       <div className="flex items-center gap-2">
                         <Checkbox
-                          id="reporting_group"
+                          id="reporting_group_flag"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="reporting_group" className="text-sm font-semibold">Reporting group</FormLabel>
+                        <FormLabel htmlFor="reporting_group_flag" className="text-sm font-semibold">Reporting group</FormLabel>
                       </div>
                     </FormControl>
                   </FormItem>
@@ -177,17 +216,42 @@ export default function AddEmployeeGroup({
               />
             </div>
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
+              <div className="grid grid-cols-2 gap-16 gap-y-4 pl-7">
                 <FormField
                   control={form.control}
-                  name="descriptionEng"
+                  name="group_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Group code<Required />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter employee group code"
+                          {...field}
+                          className={`uppercase placeholder:lowercase ${
+                            language === 'ar' ? 'text-right' : 'text-left'
+                          }`}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="group_name"
                   render={({ field }) => (
                   <FormItem>
                       <FormLabel>
-                          Group name (English) {language === "en" && <Required />}
+                        {language === "ar"
+                          ? "Group Name (العربية) "
+                          : "Group Name (English) "}
+                        <Required />
                       </FormLabel>
                       <FormControl>
-                      <Input placeholder="Enter group name" type="text" {...field} />
+                      <Input placeholder="Enter employee group name" type="text" {...field} />
                       </FormControl>
                       <FormMessage />
                   </FormItem>
@@ -195,22 +259,7 @@ export default function AddEmployeeGroup({
                 />
                 <FormField
                   control={form.control}
-                  name="descriptionArb"
-                  render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>
-                        Group name (العربية) {language === "ar" && <Required />}
-                      </FormLabel>
-                      <FormControl>
-                      <Input placeholder="أدخل اسم الموقع" type="text" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                  </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="from_date"
+                  name="group_start_date"
                   render={({ field }) => (
                     <FormItem className="">
                       <FormLabel>
@@ -220,7 +269,7 @@ export default function AddEmployeeGroup({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px]"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -234,11 +283,16 @@ export default function AddEmployeeGroup({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value ? field.value : undefined}
                             onSelect={field.onChange}
-                            // disabled={(date) =>
-                            //   date > new Date() || date < new Date("1900-01-01")
-                            // }
+                            disabled={(date) => {
+                              // Get today's date at start of day for comparison
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              
+                              // Disable dates before today
+                              return date < today;
+                            }}
                           />
                         </PopoverContent>
                       </Popover>
@@ -249,7 +303,7 @@ export default function AddEmployeeGroup({
                 />
                 <FormField
                   control={form.control}
-                  name="to_date"
+                  name="group_end_date"
                   render={({ field }) => (
                     <FormItem className="">
                       <FormLabel>
@@ -259,7 +313,7 @@ export default function AddEmployeeGroup({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px]"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -273,87 +327,70 @@ export default function AddEmployeeGroup({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value ? field.value : undefined}
                             onSelect={field.onChange}
-                            // disabled={(date) =>
-                            //   date > new Date() || date < new Date("1900-01-01")
-                            // }
+                            disabled={(date) => {
+                              const groupStartDate = form.getValues("group_start_date");
+                              
+                              if (!groupStartDate) {
+                                // If no start date is selected, disable all dates
+                                return true;
+                              }
+                              
+                              // Create a new date for comparison to avoid time issues
+                              const startDate = new Date(groupStartDate);
+                              startDate.setHours(0, 0, 0, 0);
+                              
+                              const compareDate = new Date(date);
+                              compareDate.setHours(0, 0, 0, 0);
+                              return compareDate <= startDate;
+                            }}
                           />
                         </PopoverContent>
                       </Popover>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="groupName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Grouping <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the group" type="text" {...field} />
-                      </FormControl>
-
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 {reportingGroupChecked && (
-                  <>
+                  <div className="pt-2">
                     <FormField
                       control={form.control}
-                      name="user"
+                      name="reporting_person_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>User <Required /></FormLabel>
+                          <FormLabel className="flex gap-1">Reporting Person <Required /></FormLabel>
                           <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                            value={field.value !== undefined ? String(field.value) : ""}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Choose user" />
+                                <SelectValue placeholder="Choose employee" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="1">1 </SelectItem>
-                              <SelectItem value="2">2</SelectItem>
+                              {managerEmployees?.data?.length > 0 &&
+                                managerEmployees.data
+                                  .filter((emp: any) => emp.employee_id != null)
+                                  .map((emp: any) => (
+                                    <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
+                                      {emp.firstname_eng}
+                                    </SelectItem>
+                                  ))}
                             </SelectContent>
                           </Select>
-
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="refresh_member"
-                      render={({ field }) => (
-                        <FormItem className=" ">
-                          <FormControl>
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                id="refresh_member"
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                              <FormLabel htmlFor="refresh_member" className="text-sm font-semibold">Auto Refresh Membership by Organization</FormLabel>
-                            </div>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-2 items-center pb-5">
+        <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-5">
             <Button
               variant={"outline"}
@@ -373,5 +410,3 @@ export default function AddEmployeeGroup({
     </Form>
   );
 }
-
-

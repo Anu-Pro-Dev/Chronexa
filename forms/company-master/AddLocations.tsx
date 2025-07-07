@@ -18,6 +18,7 @@ import Required from "@/components/ui/required";
 import CountryDropdown from "@/components/custom/country-dropdown";
 import { useCountries } from "@/hooks/use-countries";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
@@ -75,6 +76,7 @@ export default function AddLocations({
   const { language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { countries, getCountryByCode } = useCountries();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -105,9 +107,45 @@ export default function AddLocations({
     }
   }, [selectedRowData, language]);
 
+  // Use TanStack Query mutation for add/edit
+  const addMutation = useMutation({
+    mutationFn: addLocationRequest,
+    onSuccess: (data) => {
+      toast.success("Location added successfully!");
+      onSave(null, data.data);
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editLocationRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Location updated successfully!");
+      onSave(
+        variables.location_id?.toString() ?? null, // ensure string|null
+        variables
+      );
+      queryClient.invalidateQueries({ queryKey: ["location"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
-
     setIsSubmitting(true);
 
     try {
@@ -148,24 +186,12 @@ export default function AddLocations({
       }
 
       if (selectedRowData) {
-        const response = await editLocationRequest({
+        editMutation.mutate({
           location_id: selectedRowData.id,
           ...payload,
         });
-        toast.success("Location updated successfully!");
-        onSave(selectedRowData.id, payload);
       } else {
-        const response = await addLocationRequest(payload);
-        toast.success("Location added successfully!");
-        onSave(null, response.data);
-      }
-
-      on_open_change(false);
-    } catch (error: any) {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
-      } else {
-        toast.error("Form submission error.");
+        addMutation.mutate(payload);
       }
     } finally {
       setIsSubmitting(false);
@@ -176,7 +202,7 @@ export default function AddLocations({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-16 gap-y-4 pl-5">
+          <div className="grid grid-cols-2 gap-16 gap-y-4 pl-7">
             <FormField
               control={form.control}
               name="location_code"

@@ -61,7 +61,7 @@ export default function Page() {
         items={modules?.organization.items}
         isAddNewPagePath="/organization/departments/add"
       />
-      <PowerTable props={props} api={"/organization/departments"} Data={Data} showEdit={true} onEditClick={handleEditClick} />
+      <PowerTable props={props} api={"/organization/departments"} showEdit={true} onEditClick={handleEditClick} />
       
       {isModalOpen && selectedRowData && (
         <DepartmentAdmins

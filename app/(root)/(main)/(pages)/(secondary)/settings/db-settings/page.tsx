@@ -83,7 +83,7 @@ export default function Page() {
         }
         isLarge
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} api={"/settings/db-settings"}/>
+      <PowerTable props={props} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} api={"/settings/db-settings"}/>
     </div>
   );
 }

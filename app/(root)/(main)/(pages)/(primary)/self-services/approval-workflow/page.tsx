@@ -42,7 +42,7 @@ export default function Page() {
         items={modules?.selfServices?.items}
         isAddNewPagePath="/self-services/approval-workflow/add"
       />
-      <PowerTable props={props} Data={Data} api={"/self-services/workflow"} />
+      <PowerTable props={props} api={"/self-services/workflow"} />
     </div>
   );
 }

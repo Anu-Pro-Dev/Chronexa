@@ -59,7 +59,7 @@ export default function Page() {
         items={modules?.selfServices?.items} 
         isLarge
         modal_title="Leave Report"
-       //modal_description="Select the report details"
+       //modal_description="Choose the report details"
         modal_component={
           <AddLeaveReport on_open_change={on_open_change}/>
         }
@@ -120,7 +120,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.leaves?.items} />
         </div>
-        <PowerTable props={props} Data={Data} api={"/self-services/leaves/leave-approval"} showEdit={true} onEditClick={handleEditClick}/>
+        <PowerTable props={props} api={"/self-services/leaves/leave-approval"} showEdit={true} onEditClick={handleEditClick}/>
       </div>
     </div>
   );

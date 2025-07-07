@@ -149,7 +149,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.permissions?.items} />
         </div>
-        <PowerTable props={props} Data={Data} api={"/self-services/manage-permissions/application"} />
+        <PowerTable props={props} api={"/self-services/manage-permissions/application"} />
       </div>
     </div>
   );

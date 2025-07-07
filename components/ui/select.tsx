@@ -20,8 +20,12 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     dir={undefined}
     className={cn(
-      "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-full border border-border-grey bg-transparent px-3 py-2 text-sm shadow-none ring-offset-background placeholder:text-text-secondary focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 max-w-[350px]",
-      !field?.value ? "text-text-secondary" : "text-text-primary",      className
+      "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-full border border-border-grey bg-transparent px-3 py-2 text-sm shadow-none ring-offset-background focus:outline-none focus:ring-0 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 max-w-[350px]",
+      // FIX: Separate placeholder and value colors more clearly
+      "text-text-primary", // Always use primary text color for selected values
+      "[&[data-placeholder]]:text-text-secondary", // Use secondary color only for placeholder
+      "placeholder:text-text-secondary", // Fallback for placeholder styling
+      className
     )}
     {...props}
   >
@@ -33,6 +37,30 @@ const SelectTrigger = React.forwardRef<
   </SelectPrimitive.Trigger>
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+
+// FIX: Custom SelectValue component to handle placeholder styling
+const SelectValueWithPlaceholder = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Value>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Value> & {
+    hasValue?: boolean;
+  }
+>(({ className, placeholder, hasValue, ...props }, ref) => (
+  <SelectPrimitive.Value
+    ref={ref}
+    className={cn(
+      // FIX: Apply different colors based on whether we have a value
+      hasValue ? "text-text-primary" : "text-text-secondary",
+      className
+    )}
+    placeholder={
+      <span className="text-text-secondary">
+        {placeholder}
+      </span>
+    }
+    {...props}
+  />
+));
+SelectValueWithPlaceholder.displayName = "SelectValueWithPlaceholder";
 
 const SelectScrollUpButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
@@ -156,6 +184,7 @@ export {
   Select,
   SelectGroup,
   SelectValue,
+  SelectValueWithPlaceholder,
   SelectTrigger,
   SelectContent,
   SelectLabel,

@@ -43,7 +43,7 @@ export default function Page() {
           <AddRamadanDateRange on_open_change={on_open_change} />
         }
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

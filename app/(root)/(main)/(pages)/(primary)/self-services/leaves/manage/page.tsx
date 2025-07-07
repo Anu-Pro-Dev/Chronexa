@@ -64,7 +64,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.leaves?.items} />
         </div>
-        <PowerTable props={props} Data={Data} api={"/self-services/manage-leaves/leave-types"} showEdit={true} onEditClick={handleEditClick}/>
+        <PowerTable props={props} api={"/self-services/manage-leaves/leave-types"} showEdit={true} onEditClick={handleEditClick}/>
       </div>
     </div>
   );

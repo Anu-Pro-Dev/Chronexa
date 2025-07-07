@@ -118,7 +118,7 @@ export default function AddManageMovements ({
                 <div className="pb-6">
                     <h1 className="font-bold text-xl text-primary pb-2">Employees</h1>
                     {/* <h1 className="font-semibold text-sm text-text-secondary pb-2">
-                    Select the employees for further process
+                    Choose the employees for further process
                     </h1> */}
                 </div>
               </div>
@@ -404,7 +404,7 @@ export default function AddManageMovements ({
             </form>
         </Form>
         <div >
-          <PowerTable props={props} Data={Data} api={"/self-services/punches/manual/add"} ispageValue5={true} />
+          <PowerTable props={props} api={"/self-services/punches/manual/add"} ispageValue5={true} />
         </div>
       </>  
     )

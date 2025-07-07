@@ -98,7 +98,7 @@ export default function Page() {
         props={props}
         items={modules?.configuration?.items}
         modal_title="Roles"
-       //modal_description="Select the Roles of user"
+       //modal_description="Choose the Roles of user"
         modal_component={
           <AddRole 
             on_open_change={on_open_change}
@@ -107,7 +107,7 @@ export default function Page() {
           />
       }
       />
-      <PowerTable props={props} Data={Data} api={"/security/roles"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} api={"/security/roles"} showEdit={true} onEditClick={handleEditClick}/>
       {isModalOpen && selectedRowData && (
         <AssignPrivileges
           modal_props={{

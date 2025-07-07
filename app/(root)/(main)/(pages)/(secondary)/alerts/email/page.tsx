@@ -109,7 +109,7 @@ export default function Page() {
           </Popover>
         </div>
       </div>
-      <PowerTable props={props} Data={Data} api={"/alerts/email"} showCheckbox={true} onRowSelection={setSelectedRows} 
+      <PowerTable props={props} api={"/alerts/email"} showCheckbox={true} onRowSelection={setSelectedRows} 
         customColDef={{
           flex: 0,
         }}

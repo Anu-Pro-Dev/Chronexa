@@ -1,296 +1,352 @@
 "use client";
+
 import PowerHeader from "@/components/custom/power-comps/power-header";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { toast } from "react-hot-toast";
+
+interface OrganizationType {
+  organization_type_id: number;
+  organization_type_eng: string;
+  organization_type_arb: string;
+  org_type_level: number;
+  parent_id?: string;
+}
+
+interface Organization {
+  organization_id: string;
+  organization_eng: string;
+  organization_code: string;
+  parent_id?: string;
+  organization_type_id: string;
+}
+
+interface TreeNode {
+  id: string;
+  title: string;
+  organization_code?: string;
+  org_type_level: number;
+  parent_id?: string;
+  children: TreeNode[];
+  isOrgType: boolean;
+  organization_type_id?: string;
+}
 
 export default function Page() {
   const { modules } = useLanguage();
 
-  const content = [
-    {
-      sl_no: 1,
-      title: "Chairman",
-      items: [
-        {
-          title: "01-01 - Chairman Office",
-          subitems: [
-            { title: "01-01-01 - Executive Assistant" },
-            {
-              title: "01-01-02 - Secretary",
-              subitems: [
-                { title: "01-01-02-01 - Assistant Secretary" },
-                { title: "01-01-02-02 - Scheduler" },
-              ],
-            },
-          ],
-        },
-        { title: "01-02 - Internal Audit Office" },
-        { title: "01-03 - Legal Affairs Office" },
-        { title: "01-04 - Strategic Affairs Office" },
-      ],
-    },
-    {
-      sl_no: 2,
-      title: "Undersecretary",
-      items: [
-        { title: "02-01 - Corporate Communication Office" },
-        { title: "02-02 - Under Secretary Office" },
-        { title: "02-03 - Operations and Follow-up Office" },
-      ],
-    },
-    {
-      sl_no: 3,
-      title: "Corporate Support Service Centre",
-      items: [
-        { title: "03-01 - Finance & Accounting Department" },
-        { title: "03-02 - General Services & Facilities Management" },
-        { title: "03-03 - Human Capital Department" },
-        { title: "03-04 - Information Technology Department" },
-        { title: "03-05 - Contracts and Procurement" },
-      ],
-    },
-    {
-      sl_no: 4,
-      title: "Government Procurement Office",
-      items: [
-        { title: "04-01 - Entity Services" },
-        { title: "04-02 - Planning & Standards" },
-        { title: "04-03 - Supplier Services" },
-      ],
-    },
-    {
-      sl_no: 5,
-      title: "Innovation and Future Foresight Sector",
-      items: [
-        { title: "05-01 - Future Foresight and Research" },
-        { title: "05-02 - Innovation Lab & Partnerships" },
-      ],
-    },
-    {
-      sl_no: 6,
-      title: "Policies Sector",
-      items: [
-        { title: "06-01 - Data & Statistics" },
-        { title: "06-02 - Human Capital" },
-        { title: "06-03 - Technology" },
-      ],
-    },
-  ];
+  const {
+    data: orgTypesRes,
+    isLoading: loadingTypes,
+    error: orgTypesError,
+  } = useFetchAllEntity("organizationType");
+  
+  const {
+    data: orgsRes,
+    isLoading: loadingOrgs,
+    error: orgsError,
+  } = useFetchAllEntity("organization");
 
-  const [openItem, setOpenItem] = useState<number | null>(null);
-  const [showOrgTree, setShowOrgTree] = useState<boolean>(false);
-  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
+  const treeData = useMemo(() => {
+    // Early return with debug info
+    if (loadingTypes || loadingOrgs) {
+      return null;
+    }
 
-  const SubItemTree = ({
-    items,
-    parentKey = "",
-  }: {
-    items: any[];
-    parentKey?: string;
+    if (!orgTypesRes || !orgsRes) {
+      return null;
+    }
+
+    // Check different possible data structures
+    const orgTypesData = orgTypesRes.data || orgTypesRes;
+    const orgsData = orgsRes.data || orgsRes;
+
+    if (!Array.isArray(orgTypesData) || !Array.isArray(orgsData)) {
+      return null;
+    }
+
+    if (orgTypesData.length === 0 && orgsData.length === 0) {
+      return null;
+    }
+
+    const orgTypes: OrganizationType[] = orgTypesData;
+    const organizations: Organization[] = orgsData;
+
+    // Create a map for quick lookup
+    const nodeMap: Record<string, TreeNode> = {};
+
+    // First, create nodes for all organization types
+    orgTypes.forEach((orgType) => {
+      nodeMap[`type_${orgType.organization_type_id}`] = {
+        id: `type_${orgType.organization_type_id}`,
+        title: orgType.organization_type_eng,
+        org_type_level: orgType.org_type_level,
+        parent_id: orgType.parent_id ? `type_${orgType.parent_id}` : undefined,
+        children: [],
+        isOrgType: true,
+      };
+    });
+
+    // Then, create nodes for all organizations
+    organizations.forEach((org) => {
+      nodeMap[`org_${org.organization_id}`] = {
+        id: `org_${org.organization_id}`,
+        title: org.organization_eng,
+        organization_code: org.organization_code,
+        org_type_level: -1, // Will be determined by parent org type
+        parent_id: org.parent_id ? `org_${org.parent_id}` : `type_${org.organization_type_id}`,
+        children: [],
+        isOrgType: false,
+        organization_type_id: org.organization_type_id,
+      };
+    });
+
+    // Set orgTypeLevel for organizations based on their type
+    organizations.forEach((org) => {
+      const orgNode = nodeMap[`org_${org.organization_id}`];
+      const orgType = orgTypes.find(t => t.organization_type_id === Number(org.organization_type_id));
+      if (orgNode && orgType) {
+        orgNode.org_type_level = orgType.org_type_level;
+      }
+    });
+
+    // Build the tree structure - Skip ROOT org type, show its children directly
+    const roots: TreeNode[] = [];
+
+    // First, add all child nodes to their parents
+    Object.values(nodeMap).forEach((node) => {
+      if (node.parent_id) {
+        const parent = nodeMap[node.parent_id];
+        if (parent) {
+          parent.children.push(node);
+        }
+      }
+    });
+
+    // Find ROOT organization type and use its children as roots
+    const rootOrgType = Object.values(nodeMap).find(node => 
+      node.isOrgType && node.org_type_level === 0
+    );
+
+    if (rootOrgType && rootOrgType.children.length > 0) {
+      // Use children of ROOT as the actual roots
+      roots.push(...rootOrgType.children);
+    } else {
+      // Fallback: show nodes without parents
+      Object.values(nodeMap).forEach((node) => {
+        if (!node.parent_id) {
+          roots.push(node);
+        }
+      });
+    }
+    return roots;
+  }, [orgTypesRes, orgsRes, loadingTypes, loadingOrgs]);
+
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [showOrgTree, setShowOrgTree] = useState<boolean>(true); // Default to true for testing
+  
+  const toggleNode = (nodeId: string) => {
+    const newExpanded = new Set(expandedNodes);
+    if (newExpanded.has(nodeId)) {
+      newExpanded.delete(nodeId);
+    } else {
+      newExpanded.add(nodeId);
+    }
+    setExpandedNodes(newExpanded);
+  };
+
+  const TreeNodeComponent = ({ 
+    node, 
+    level = 0 
+  }: { 
+    node: TreeNode; 
+    level?: number; 
   }) => {
+    const isExpanded = expandedNodes.has(node.id);
+    const hasChildren = node.children.length > 0;
+    const isCenter = level === 0 && node.org_type_level === 0;
+    const childrenContainerRef = useRef<HTMLDivElement>(null);
+    const [lineHeight, setLineHeight] = useState<number>(0);
+
+    useEffect(() => {
+      if (childrenContainerRef.current) {
+        setLineHeight(childrenContainerRef.current.offsetHeight);
+      }
+    }, [node.children.length, isExpanded]);
+
     return (
-      <div className="flex flex-col gap-3">
-        {items.map((item, index) => {
-          const itemKey = `${parentKey}-${index}`;
-          const hasChildren = item.subitems && item.subitems.length > 0;
-          const isOpen = expandedMap[itemKey] || false;
-
-          return (
-            <div key={itemKey} className="flex flex-col">
-              <div className="flex items-center">
-                {/* Horizontal Line */}
-                <div className="w-12 h-0.5 bg-secondary"></div>
-
-                <div
-                  className={`p-4 shadow-button rounded-lg text-base font-semibold cursor-pointer w-full transition flex justify-between items-center ${
-                    isOpen
-                      ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent"
-                      : "bg-accent text-text-content"
-                  }`}
-                  onClick={() => {
-                    if (hasChildren) {
-                      setExpandedMap((prev) => ({
-                        ...prev,
-                        [itemKey]: !prev[itemKey],
-                      }));
-                    }
-                  }}
-                >
-                  <span>{item.title}</span>
-                  {hasChildren && (
-                    <span
-                      className={`px-2 py-1 text-sm font-bold z-0 rounded text-primary ${
-                        isOpen
-                          ? "bg-accent bg-opacity-15"
-                          : "bg-backdrop text-primary"
-                      }`}
-                    >
-                      0{item.subitems.length}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {hasChildren && isOpen && (
-                <div className="flex relative">
-                  {/* Vertical Line for ONLY immediate subitems */}
-                  <div
-                    className="absolute left-[4rem] w-[2px] bg-secondary"
-                    style={{
-                      height: `${item.subitems?.length * 66}px`, // Approx height per subitem
-                      top: "0",
-                    }}
-                  />
-              
-                  <div className="flex-1 mt-3 ml-[4rem]">
-                    <SubItemTree items={item.subitems} parentKey={itemKey}  />
-                  </div>
-                </div>
+      <div className="flex flex-col mb-2">
+        <div className={`flex items-center ${isCenter ? 'justify-center' : ''}`}>
+          {level > 1 && (
+            <div className="w-12 h-0.5 bg-gray-400"></div>
+          )}
+          <div
+            className={`p-4 shadow-md rounded-lg text-base font-semibold cursor-pointer transition flex justify-between items-center ${
+              isExpanded
+                ? "bg-gradient-to-tl from-blue-600 to-blue-800 text-white"
+                : "bg-white text-gray-800 border border-gray-200"
+            } ${
+              isCenter 
+                ? "w-auto min-w-[45%] mx-auto mt-5" 
+                : level === 1 
+                  ? "w-[45%]" 
+                  : "w-[50%]"
+            }`}
+            onClick={() => hasChildren && toggleNode(node.id)}
+          >
+            <div className="flex items-center gap-2">
+              <span>
+                {node.isOrgType && node.org_type_level === 0 ? 'ROOT' : node.title}
+              </span>
+              {node.organization_code && (
+                <span className="text-sm opacity-75">({node.organization_code})</span>
               )}
+              {!node.isOrgType && (() => {
+                // Find the org type for this organization
+                const orgType = orgTypesRes?.data?.find(
+                  (t: any) => String(t.organization_type_id) === String(node.organization_type_id)
+                );
+                // Show the type name except for ROOT
+                if (orgType) {
+                  return (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded uppercase">
+                      {orgType.organization_type_eng === "ROOT"
+                      ? "ORG"
+                      : orgType.organization_type_eng}
+                    </span>
+                  );
+                }
+                return null;
+              })()}
+              {/* <span className="text-xs text-gray-500">
+                Level: {node.org_type_level}
+              </span> */}
             </div>
-          );
-        })}
+            {hasChildren && (
+              <span
+                className={`px-2 py-1 text-sm font-bold rounded ${
+                  isExpanded 
+                    ? "bg-white bg-opacity-20 text-white" 
+                    : "bg-backdrop text-primary"
+                }`}
+              >
+                {String(node.children.length).padStart(2, '0')}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {hasChildren && isExpanded && (
+          <div className={`flex relative ${isCenter ? 'justify-center' : ''}`}>
+            {level > 0 && (
+              <div
+                className="absolute left-[4rem] w-[2px] bg-gray-400"
+                style={{ 
+                  // height: `${lineHeight - 25}px`,
+                  height: node.children.some(child => expandedNodes.has(child.id)) ? "43px" : `${lineHeight - 25}px`,
+                  top: "0"
+                }}
+              />
+            )}
+            <div 
+             ref={childrenContainerRef}
+              className={`flex flex-col gap-3 mt-3 ${
+                isCenter 
+                  ? 'w-full' 
+                  : level > 0 
+                    ? 'flex-1 ml-[4rem]' 
+                    : 'w-1/2'
+              }`}
+            >
+              {node.children.map((child) => (
+                <TreeNodeComponent
+                  key={child.id}
+                  node={child}
+                  level={isCenter ? 1 : level + 1}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
-  const subTreeRef = useRef<HTMLDivElement | null>(null);
-  const [lineHeight, setLineHeight] = useState<number>(0);
+  // Show loading state
+  if (loadingTypes || loadingOrgs) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PowerHeader
+          items={modules?.organization?.items}
+          disableAdd
+          disableDelete
+          disableSearch
+        />
+        <div className="flex justify-center items-center p-8">
+          <div className="text-sm">Loading organization structure...</div>
+        </div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (subTreeRef.current) {
-      setLineHeight(subTreeRef.current.offsetHeight);
-    }
-  }, [openItem, expandedMap]);
+  // Show error state
+  if (orgTypesError || orgsError) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PowerHeader
+          items={modules?.organization?.items}
+          disableAdd
+          disableDelete
+          disableSearch
+        />
+        <div className="flex justify-center items-center p-8">
+          <div className="text-sm text-danger">
+            Error loading data: {orgTypesError?.message || orgsError?.message}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state
+  if (!treeData || treeData.length === 0) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PowerHeader
+          items={modules?.organization?.items}
+          disableAdd
+          disableDelete
+          disableSearch
+        />
+        <div className="flex justify-center items-center p-8">
+          <div className="text-lg">No organization data available</div>
+          <div className="text-sm text-gray-600 mt-2">
+            Debug: Check console for API response details
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        items={modules?.organization.items}
+        items={modules?.organization?.items}
         disableAdd
         disableDelete
         disableSearch
       />
 
-      {/* Company Root Card */}
-      <div
-        className={`w-auto min-w-[40%] p-4 mx-auto rounded-lg font-bold text-base shadow-button text-center cursor-pointer transition bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent mt-5`}
-        onClick={() => {
-          setShowOrgTree(!showOrgTree);
-          setOpenItem(null);
-        }}
-      >
-        CHRONOLOGIX
+      <div className="py-5">
+        {treeData.map((rootNode) => (
+          <TreeNodeComponent
+            key={rootNode.id}
+            node={rootNode}
+            level={0}
+          />
+        ))}
       </div>
-
-      {showOrgTree && (
-        <div className="py-5">
-          {content.map((item, index) => (
-            <div key={index} className="relative flex items-start mb-3">
-              <div className="relative w-1/2">
-                <div
-                  className={`relative flex justify-between items-center p-4 rounded-lg font-semibold text-base shadow-button cursor-pointer transition w-[85%] ${
-                    openItem === item.sl_no
-                      ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent"
-                      : "bg-accent text-text-content"
-                  }`}
-                  onClick={() =>
-                    setOpenItem(openItem === item.sl_no ? null : item.sl_no)
-                  }
-                >
-                  <div>
-                    0{index + 1} - {item.title}
-                  </div>
-                  <div
-                    className={`px-1.5 py-1 font-bold text-sm rounded-[5px] ${
-                      openItem === item.sl_no
-                        ? "bg-accent text-primary shadow-sm bg-opacity-15"
-                        : "bg-backdrop text-primary"
-                    }`}
-                  >
-                    0{item.items.length}
-                  </div>
-                </div>
-                {openItem === item.sl_no && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-[15%] h-0.5 bg-secondary"></div>
-                )}
-              </div>
-
-              {openItem === item.sl_no && (
-                <div ref={subTreeRef}  className="absolute left-1/2 top-0 max-w-[400px] flex flex-col gap-3 py-5">
-                  {/* Vertical Line */}
-                  <div
-                    className="absolute left-0 top-[28px] w-[2px] bg-secondary"
-                    style={{ height: `${lineHeight - 75}px` }}
-                  ></div>
-
-                  {item.items.map((subItem, subIndex) => {
-                    const itemKey = `section-${item.sl_no}-${subIndex}`;
-                    const hasChildren = subItem.subitems && subItem.subitems.length > 0;
-                    const isOpen = expandedMap[itemKey] || false;
-
-                    return (
-                      <div key={itemKey} className="flex flex-col">
-                        <div className="flex items-center">
-                          {/* Horizontal Line */}
-                          <div className="w-12 h-0.5 bg-secondary"></div>
-
-                          <div
-                            className={`p-4 shadow-button rounded-lg text-base font-semibold cursor-pointer w-full transition flex justify-between items-center ${
-                              isOpen
-                                ? "bg-gradient-to-tl from-[#0078D4] to-[#003E6E] text-accent"
-                                : "bg-accent text-text-content"
-                            }`}
-                            onClick={() => {
-                              if (hasChildren) {
-                                setExpandedMap((prev) => ({
-                                  ...prev,
-                                  [itemKey]: !prev[itemKey],
-                                }));
-                              }
-                            }}
-                          >
-                            <span>{subItem.title}</span>
-                            {hasChildren && (
-                              <span
-                                className={`px-2 py-1 text-sm font-bold rounded text-primary ${
-                                  isOpen
-                                    ? "bg-accent bg-opacity-15"
-                                    : "bg-backdrop text-primary"
-                                }`}
-                              >
-                                0{subItem.subitems.length}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {hasChildren && isOpen && (
-                          <div className="flex relative">
-                            {/* Vertical Line for ONLY immediate subitems */}
-                            <div
-                              className="absolute left-[4rem] w-[2px] bg-secondary"
-                              style={{
-                                height: `${subItem.subitems?.length * 55}px`, // Approx height per subitem
-                                top: "0",
-                              }}
-                            />
-                        
-                            <div className="flex-1 mt-3 ml-[4rem]">
-                              <SubItemTree items={subItem.subitems} parentKey={itemKey} />
-                            </div>
-                          </div>
-                        )}
-                        
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

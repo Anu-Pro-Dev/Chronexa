@@ -78,7 +78,7 @@ export default function FilterPendingApproval ({
                 <div className="pb-6">
                     <h1 className="font-bold text-xl text-primary pb-2">Filter</h1>
                     <h1 className="font-semibold text-sm text-text-secondary pb-2">
-                    Select the Filters for easy search
+                    Choose the Filters for easy search
                     </h1>
                 </div>
                 </div>

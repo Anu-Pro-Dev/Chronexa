@@ -20,7 +20,7 @@ export default function Page() {
       {/* <div className="bg-accent p-4">
         <h1 className="text-primary text-lg font-bold">Schedule add section</h1>
         <p className="text-secondary pb-6">
-          Select the schedule for further process
+          Choose the schedule for further process
         </p> */}
       <div className="pt-4">
         <AddWeeklySchedule />

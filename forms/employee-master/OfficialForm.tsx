@@ -1,49 +1,50 @@
 "use client";
+
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "@/icons/icons";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import CountryDropdown from "@/components/custom/country-dropdown";
+import { useQuery } from "@tanstack/react-query";
+import { getManagerEmployees } from "@/lib/apiHandler";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function OfficialForm({
   Page,
   SetPage,
   officialFormSchema,
-  officialForm
+  officialForm,
 }: {
   Page?: any;
-  SetPage?:any;
-  officialFormSchema:any;
-  officialForm:any
+  SetPage?: any;
+  officialFormSchema: any;
+  officialForm: any;
 }) {
-  
+  const router = useRouter();
+  const managerFlagChecked = officialForm.watch("manager_flag");
+  const [step, setStep] = useState(1);
+
+  // Dynamic fetches
+  const { data: employeeTypes } = useFetchAllEntity("employeeType");
+  const { data: locations } = useFetchAllEntity("location");
+  const { data: citizenships } = useFetchAllEntity("citizenship");
+  const { data: designations } = useFetchAllEntity("designation");
+  const { data: organizations } = useFetchAllEntity("organization");
+  const { data: grades } = useFetchAllEntity("grade");
+
+  // Manager list
+  const { data: managerEmployees } = useQuery({
+    queryKey: ["managerEmployees"],
+    queryFn: getManagerEmployees,
+  });
 
   function onSubmit(values: z.infer<typeof officialFormSchema>) {
     try {
@@ -55,10 +56,6 @@ export default function OfficialForm({
     }
   }
 
-  const router = useRouter();
-  const managerFlagChecked = officialForm.watch("manager_flag");
-  const [step, setStep] = useState(1);
-
   return (
     <Form {...officialForm}>
       <form onSubmit={officialForm.handleSubmit(onSubmit)}>
@@ -67,7 +64,7 @@ export default function OfficialForm({
             control={officialForm.control}
             name="manager_flag"
             render={({ field }) => (
-              <FormItem className=" ">
+              <FormItem>
                 <FormControl>
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -75,220 +72,250 @@ export default function OfficialForm({
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
-                    <FormLabel htmlFor="manager_flag" className="text-sm font-semibold">Manager flag</FormLabel>
+                    <FormLabel htmlFor="manager_flag" className="text-sm font-semibold">
+                      Manager flag
+                    </FormLabel>
                   </div>
                 </FormControl>
               </FormItem>
             )}
           />
         </div>
+
         <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+          {/* Employee Type */}
           <FormField
             control={officialForm.control}
-            name="user_type"
+            name="employee_type_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Employee type <Required/> </FormLabel>
+                <FormLabel className="flex gap-1">Employee Type <Required /></FormLabel>
                 <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
-                <FormControl>
+                  <FormControl>
                     <SelectTrigger>
-                    <SelectValue placeholder="Choose employee type" />
+                      <SelectValue placeholder="Choose employee type" />
                     </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">Employee 1</SelectItem>
-                </SelectContent>
+                  </FormControl>
+                  <SelectContent>
+                    {(employeeTypes?.data || []).map((item: any) => {
+                      if (!item.employee_type_id || item.employee_type_id.toString().trim() === '') return null;
+                      return (
+                        <SelectItem key={item.employee_type_id} value={item.employee_type_id.toString()}>
+                          {item.employee_type_eng}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
+                <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Location */}
           <FormField
             control={officialForm.control}
-            name="location"
+            name="location_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Location <Required/> </FormLabel>
+                <FormLabel className="flex gap-1">Location <Required /></FormLabel>
                 <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
-                <FormControl>
+                  <FormControl>
                     <SelectTrigger>
-                    <SelectValue placeholder="Choose region" />
+                      <SelectValue placeholder="Choose location" />
                     </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">RYD</SelectItem>
-                    <SelectItem value="2">Not defined</SelectItem>
-                </SelectContent>
+                  </FormControl>
+                  <SelectContent>
+                    {(locations?.data || []).map((item: any) => {
+                      if (!item.location_id || item.location_id.toString().trim() === '') return null;
+                      return (
+                        <SelectItem key={item.location_id} value={item.location_id.toString()}>
+                          {item.location_eng}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
+                <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Citizenship */}
           <FormField
             control={officialForm.control}
-            name="citizenship"
+            name="citizenship_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Citizenship <Required/> </FormLabel>
+                <FormLabel className="flex gap-1">Citizenship <Required /></FormLabel>
                 <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
-                <FormControl>
+                  <FormControl>
                     <SelectTrigger>
-                    <SelectValue placeholder="Choose citizenship" />
+                      <SelectValue placeholder="Choose citizenship" />
                     </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">citizenship 1</SelectItem>
-                    <SelectItem value="2">citizenship 2</SelectItem>
-                </SelectContent>
+                  </FormControl>
+                  <SelectContent>
+                     {(citizenships?.data || []).map((item: any) => {
+                      if (!item.citizenship_id || item.citizenship_id.toString().trim() === '') return null;
+                      return (
+                        <SelectItem key={item.citizenship_id} value={item.citizenship_id.toString()}>
+                          {item.citizenship_eng}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
+                <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Designation */}
           <FormField
             control={officialForm.control}
-            name="designation"
+            name="designation_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Designation <Required/> </FormLabel>
+                <FormLabel className="flex gap-1">Designation <Required /></FormLabel>
                 <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
-                <FormControl>
+                  <FormControl>
                     <SelectTrigger>
-                    <SelectValue placeholder="Choose designation" />
+                      <SelectValue placeholder="Choose designation" />
                     </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">Unknown</SelectItem>
-                    <SelectItem value="2">A/ Executive Director Corporate Support Services Centre</SelectItem>
-                </SelectContent>
+                  </FormControl>
+                  <SelectContent>
+                     {(designations?.data || []).map((item: any) => {
+                      if (!item.designation_id || item.designation_id.toString().trim() === '') return null;
+                      return (
+                        <SelectItem key={item.designation_id} value={item.designation_id.toString()}>
+                          {item.designation_eng}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
+                <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Organization */}
           <FormField
             control={officialForm.control}
-            name="organization_type"
+            name="organization_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Organization type <Required/> </FormLabel>
+                <FormLabel className="flex gap-1">Organization <Required /></FormLabel>
                 <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value !== undefined ? String(field.value) : ""}
                 >
-                <FormControl>
-                    <SelectTrigger>
-                    <SelectValue placeholder="Choose schedule type" />
-                    </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">Miscellaneous</SelectItem>
-                    <SelectItem value="2">Calendar Days</SelectItem>
-                    <SelectItem value="3">Working Days</SelectItem>
-                </SelectContent>
-                </Select>
-                <FormMessage className="mt-1"/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={officialForm.control}
-            name="organization"
-            render={({ field }) => (
-            <FormItem>
-                <FormLabel className="flex gap-1">Organization <Required/></FormLabel>
-                <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-                >
-                <FormControl>
+                  <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose organization" />
                     </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">organization 1</SelectItem>
-                </SelectContent>
+                  </FormControl>
+                  <SelectContent>
+                     {(organizations?.data || []).map((item: any) => {
+                      if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
+                      return (
+                        <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                          {item.organization_eng}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
-            </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={officialForm.control}
-            name="grade"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex gap-1">Grade <Required/> </FormLabel>
-                <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                >
-                <FormControl>
-                    <SelectTrigger>
-                    <SelectValue placeholder="Choose grade" />
-                    </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                    <SelectItem value="1">grade 1</SelectItem>
-                </SelectContent>
-                </Select>
-                <FormMessage className="mt-1"/>
+                <FormMessage />
               </FormItem>
             )}
           />
-          {!managerFlagChecked && (
-            <FormField
-              control={officialForm.control}
-              name="manager"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">Manager </FormLabel>
-                  <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  >
+
+          {/* Grade */}
+          <FormField
+            control={officialForm.control}
+            name="grade_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">Grade <Required /></FormLabel>
+                <Select
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value !== undefined ? String(field.value) : ""}
+                >
                   <FormControl>
-                      <SelectTrigger>
-                      <SelectValue placeholder="Choose manager" />
-                      </SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose grade" />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                      <SelectItem value="1">ADMIN - ADMIN</SelectItem>
+                    {(grades?.data || []).map((item: any) => {
+                      if (!item.grade_id || item.grade_id.toString().trim() === '') return null;
+                      return (
+                        <SelectItem key={item.grade_id} value={item.grade_id.toString()}>
+                          {item.grade_eng || item.grade_name}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Manager (conditionally shown if manager_flag is false) */}
+          {/* {!managerFlagChecked && ( */}
+            <FormField
+              control={officialForm.control}
+              name="manager_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex gap-1">Manager</FormLabel>
+                  <Select
+                    onValueChange={(val) => field.onChange(Number(val))}
+                    value={field.value !== undefined ? String(field.value) : ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose manager" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {managerEmployees?.data?.length > 0 &&
+                        managerEmployees.data
+                          .filter((emp: any) => emp.employee_id != null)
+                          .map((emp: any) => (
+                            <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
+                              {emp.firstname_eng}
+                            </SelectItem>
+                          ))}
+                    </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-          )}         
+          {/* )} */}
         </div>
+
         <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-5">
-            <Button
-              variant={"outline"}
-              type="button"
-              size={"lg"}
-              className="w-full"
-              onClick={() => setStep((prev) => prev - 1)}
-            >
+            <Button variant="outline" type="button" size="lg" className="w-full" onClick={() => setStep((prev) => prev - 1)}>
               Back
             </Button>
-            <Button type="submit" size={"lg"} className="w-full">
+            <Button type="submit" size="lg" className="w-full">
               Next
             </Button>
           </div>

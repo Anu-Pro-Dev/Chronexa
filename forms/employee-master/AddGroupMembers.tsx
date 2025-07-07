@@ -1,183 +1,215 @@
 "use client";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import PowerTable from "@/components/custom/power-comps/power-table";
-import { AddIcon, CancelIcon2 } from "@/icons/icons";
-import Required from "@/components/ui/required";
-import { useState } from "react";
 import PowerSearch from "@/components/custom/power-comps/power-search";
+import PowerTable from "@/components/custom/power-comps/power-table";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addEmployeeGroupMemberRequest } from "@/lib/apiHandler";
+import { useRouter } from "next/navigation";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { AddIcon, CancelIcon2 } from "@/icons/icons";
 
-const formSchema = z.object({
-    join_date: z.date({
-      required_error: "From Date is required.",
-    }),
-    name: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    manager: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    designation: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100), 
-    organization: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),
-    schedule_type: z
-      .string()
-      .min(1, {
-        message: "Required",
-      })
-      .max(100),           
-  });
+export default function AddGroupMembers({
+  on_open_change,
+  selectedRowData,
+  onSave,
+  props,
+}: {
+  on_open_change: any;
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
+  props: any;
+}) {
+  const { modules, language } = useLanguage();
+  const router = useRouter();
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const queryClient = useQueryClient();
 
+  const searchParams = useSearchParams();
+  const groupCode = searchParams.get("group");
 
-export default function AddGroupMembers ({
-    on_open_change,props
-  }: {
-    on_open_change: any;
-    props:any;
-  }){
+  const { data: groupListData } = useFetchAllEntity("employeeGroup");
+  // const group = groupListData?.data?.find(g => g.group_code === groupCode);
+  const group = groupListData?.data?.find((g: EmployeeGroup) => g.group_code === groupCode);
+  const employee_group_id = group?.employee_group_id ?? null;
+  const { data: employeeData, isLoading } = useFetchAllEntity("employee");
 
-  const [Data, SetData] = useState<any>([]);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-         
+  const addMutation = useMutation({
+    mutationFn: addEmployeeGroupMemberRequest,
+    onSuccess: (data) => {
+      toast.success("Employee group member added successfully!");
+      onSave(null, data.data);
+      on_open_change(false);
+      queryClient.invalidateQueries({ queryKey: ["employeeGroupMemebr"] });
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
     },
   });
 
-  const [isChecked, setIsChecked] = useState(false)
+  type EmployeeGroup = {
+    employee_group_id: number;
+    group_code: string;
+  };
 
+  const handleAdd = async () => {
+    const group = groupListData?.data?.find((g: EmployeeGroup) => g.group_code === groupCode);
+    const employee_group_id = group?.employee_group_id;
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+    if (!employee_group_id) {
+      toast.error("Group not found.");
+      return;
     }
-  }
 
-    return(
-      <>
-      
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent rounded-2xl ">
-              <div className="flex justify-between">
-                <div className="pb-6">
-                    <h1 className="font-bold text-xl text-primary pb-2">Employees</h1>
-                    <h1 className="font-semibold text-sm text-text-secondary pb-2">
-                    Select the employees for the group
-                    </h1>
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one employee.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const today = new Date();
+    const oneYearLater = new Date();
+    oneYearLater.setFullYear(today.getFullYear() + 1);
+
+    const effective_from_date = today.toISOString();
+    const effective_to_date = oneYearLater.toISOString();
+
+    try {
+      for (const row of selectedRows) {
+        const payload = {
+          employee_group_id,
+          employee_id: row.employee_id,
+          effective_from_date,
+          effective_to_date,
+          active_flag: true,
+        };
+
+        await addMutation.mutateAsync(payload);
+      }
+
+      toast.success("Employees added to the group successfully.");
+      onSave(null, null);
+      on_open_change(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to add some or all employees.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
+  useEffect(() => {
+      setColumns([
+        { field: "emp_no", headerName: "Emp No" },
+        {
+          field: language === "ar" ? "firstname_arb" : "firstname_eng",
+          headerName: language === "ar" ? "اسم الموظف" : "Employee Name",
+        },
+        { field: "manager_flag", headerName: "Manager" },
+        // { field: "designation_id", headerName: language === "ar" ? "المسمى الوظيفي" : "Designation" },
+      ]);
+    }, [language]);
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  const handleSearchChange = (searchValue: string) => {
+    setSearchTerm(searchValue);
+  };
+
+  const data = useMemo(() => {
+      if (Array.isArray(employeeData?.data)) {
+        return employeeData.data.map((emp: any) => ({
+          ...emp,
+          id: emp.employee_id,
+        }));
+      }
+      return [];
+    }, [employeeData]);
+
+  const tableProps = {
+    Data: data,
+    Columns: columns,
+    open,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
+  };
+
+  return (
+    <>
+      {/* <Form> */}
+          <form className="bg-accent rounded-2xl">
+            {/* <div className="flex justify-between">
+              <h1 className="font-bold text-xl text-primary pb-2">Employees</h1>
+            </div> */}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2 items-center justify-between">
+                <div className="flex">
+                  <h1 className="font-bold text-xl text-primary">Employees</h1>
+                </div>
+                <div className="flex gap-4">
+                  <PowerSearch 
+                    props={{
+                      ...props,
+                      onSearchChange: handleSearchChange,
+                      placeholder: "Search employees..."
+                    }} 
+                  />
+                  <Button 
+                    type="submit" 
+                    variant={"success"} 
+                    size={"sm"}
+                    disabled={isSubmitting}
+                    onClick={handleAdd}
+                    className="flex items-center space-y-0.5 border border-success"
+                  >
+                    <AddIcon/> Add
+                  </Button>
+                  <Button
+                      variant={"outlineGrey"}
+                      type="button"
+                      size={"sm"}
+                      className="flex items-center gap-1 p-0 pl-1 pr-2 bg-[#F3F3F3] border-[#E7E7E7]"
+                      onClick={() => on_open_change(false)}
+                  >
+                    <CancelIcon2  />  Cancel
+                  </Button>
+                  
                 </div>
               </div>
-
-              <div className="flex flex-col gap-3">
-                    <div className="flex justify-between gap-2 items-center">
-                      <div className="flex items-center gap-2">
-                        <FormField
-                            control={form.control}
-                            name="organization"
-                            render={({ field }) => (
-                            <FormItem>
-                                <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                >
-                                <FormControl>
-                                    <SelectTrigger className="w-full bg-accent px-3 flex justify-between text-text-primary border-grey">
-                                    <p>
-                                        <FormLabel className="font-normal text-secondary">
-                                        Organization: 
-                                        </FormLabel>
-                                        <span className="px-1 text-sm text-text-primary">
-                                        {field.value ? (
-                                            // Display the selected workflow label
-                                            field.value === "1" ? "Leaves" :
-                                            field.value === "2" ? "Permissions" :
-                                            field.value === "3" ? "Missing movements" :
-                                            field.value === "4" ? "Manual movements" :
-                                            "Choose workflows"
-                                        ) : (
-                                            <span className="">Choose Organization</span>
-                                        )}
-                                        </span>
-                                    </p>
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="1">Organization 1</SelectItem>
-                                    <SelectItem value="2">Permissions</SelectItem>
-                                    <SelectItem value="3">Missing movements</SelectItem>
-                                    <SelectItem value="4">Manual movements</SelectItem>
-                                </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                      </div>
-                      <div className="flex gap-4">
-                        <PowerSearch props={props} />
-                        <Button type="submit" variant={"success"} size={"sm"} className="flex items-center space-y-0.5 border border-success">
-                            <AddIcon/> Add
-                        </Button>
-                        <Button
-                            variant={"outlineGrey"}
-                            type="button"
-                            size={"sm"}
-                            className="flex items-center gap-1 p-0 pl-1 pr-2 bg-[#F3F3F3] border-[#E7E7E7]"
-                            onClick={() => on_open_change(false)}
-                        >
-                          <CancelIcon2  />  Cancel
-                        </Button>
-                        
-                      </div>
-                    </div>
-              </div>
-            </form>
-        </Form>
-        <div className="py-3">
-          <PowerTable props={props} Data={Data} api={"/self-services/punches/manual/add"} ispageValue5={true} />
-        </div>
-      </>  
-    )
+            </div>
+          </form>
+      {/* </Form> */}
+      <div className="border border-[#E5E7EB] mt-6">
+        <PowerTable props={tableProps} ispageValue5={true} />
+      </div>
+    </> 
+  );
 }

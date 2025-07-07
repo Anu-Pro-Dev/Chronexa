@@ -136,7 +136,7 @@ export default function AddWeeklySchedule() {
         {/* <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Scheduling</h1>
           <h1 className="font-semibold text-sm text-text-secondary">
-            Select the choices for weekly schedule for employee
+            Choose the choices for weekly schedule for employee
           </h1>
         </div> */}
         <div className="flex flex-col gap-6 px-5">

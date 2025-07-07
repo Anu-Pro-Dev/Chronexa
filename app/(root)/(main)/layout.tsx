@@ -1,9 +1,10 @@
 "use client";
 
-import { Spinner } from "@/components/ui/spinner";
 import { USER_TOKEN, ROUTES } from "@/utils/constants";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Lottie from "lottie-react";
+import loadingAnimation from "@/animations/hourglass-blue.json";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-dvh">
-        <Spinner />
+        <div style={{ width: 50}}>
+          <Lottie animationData={loadingAnimation} loop={true} />
+        </div>
       </div>
     );
   }

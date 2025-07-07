@@ -1,16 +1,15 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddLocations from "@/forms/company-master/AddLocations";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { getAllLocations } from "@/lib/apiHandler";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
-  const [data, setData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -18,28 +17,7 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-
-  const props = {
-    Data: data,
-    SetData: setData,
-    Columns: columns,
-    SortField: sortField,
-    CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
-    SetSortField: setSortField,
-    SortDirection: sortDirection,
-    SetSortDirection: setSortDirection,
-    open,
-    on_open_change: setOpen,
-    SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
-  };
-
-  useEffect(() => {
-    if (!open) {
-      setSelectedRowData(null);
-    }
-  }, [open]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setColumns([
@@ -62,68 +40,60 @@ export default function Page() {
     ]);
   }, [language]);
 
-  // Fetch locations once on mount
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const response = await getAllLocations();
-        if (response?.success && Array.isArray(response?.data)) {
-          const mapped = response.data.map((loc: any) => {
-            const pointMatch = loc.geolocation?.match(/\(([^)]+)\)/);
-            if (pointMatch) {
-              const [lng, lat] = pointMatch[1].split(" ");
-              return {
-                ...loc,
-                geolocation: `${lat}, ${lng}`,
-                id: loc.location_id,
-              };
-            } else {
-              return {
-                ...loc,
-                geolocation: "",  // or null
-                id: loc.location_id,
-              };
-            }
-          });
-          setData(mapped);
-        } else {
-          console.error("Unexpected response structure:", response);
-        }
-      } catch (error) {
-        console.error("Error fetching locations:", error);
-      }
-    };
+  const { data: locationsData, isLoading } = useFetchAllEntity("location");
 
-    fetchLocations();
-  }, []);
+  const data = useMemo(() => {
+    if (Array.isArray(locationsData?.data)) {
+      return locationsData.data.map((loc: any) => {
+        let geo = "";
+        if (loc.geolocation) {
+          const match = loc.geolocation.match(/\(([^)]+)\)/);
+          if (match) {
+            const [lng, lat] = match[1].split(" ");
+            geo = `${lat}, ${lng}`;
+          }
+        }
+        return {
+          ...loc,
+          id: loc.location_id,
+          geolocation: geo,
+        };
+      });
+    }
+    return [];
+  }, [locationsData]);
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedRowData(null);
+    }
+  }, [open]);
+
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
+  };
+
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["location"] });
+  };
 
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
     setOpen(true);
-  }, []);
-
-  const handleSave = useCallback((id: string | null, newData: any) => {
-    const pointMatch = newData.geolocation?.match(/\(([^)]+)\)/);
-    let coordinates = newData.geolocation;
-    if (pointMatch) {
-      const [lng, lat] = pointMatch[1].split(" ");
-      coordinates = `${lat}, ${lng}`;
-    }
-
-    const formattedData = { ...newData, geolocation: coordinates };
-
-    const dataWithId = {
-      ...formattedData,
-      id: formattedData.id ?? formattedData.location_id ?? null,
-    };
-
-    setData((prevData) =>
-      id
-        ? prevData.map((row) => (row.id === id ? { ...row, ...dataWithId } : row))
-        : [...prevData, dataWithId]
-    );
-
-    setSelectedRowData(null);
   }, []);
 
   const handleRowSelection = useCallback((rows: any[]) => {
@@ -149,10 +119,10 @@ export default function Page() {
       />
       <PowerTable
         props={props}
-        Data={data}
         showEdit={true}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
+        isLoading={isLoading}
       />
     </div>
   );

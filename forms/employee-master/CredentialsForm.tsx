@@ -18,14 +18,16 @@ import { useRouter } from "next/navigation";
 import { generateRandomPassword } from "@/utils/password";
 
 export default function credentialsForm({
-  Page, SetPage,credentialsFormSchema,credentialsForm
+  Page, SetPage,credentialsFormSchema,credentialsForm, selectedRowData,
 }: {
   Page?: any;
   SetPage?:any;
   credentialsFormSchema:any;
   credentialsForm:any
+  selectedRowData?: any;
 }) {
  
+  const isEditing = !!selectedRowData;
 
   function onSubmit(values: z.infer<typeof credentialsFormSchema>) {
     try {
@@ -54,7 +56,7 @@ export default function credentialsForm({
                   </div>
                   <div>
                     <FormControl>
-                      <Input placeholder="Enter the username" type="text" {...field} />
+                      <Input placeholder="Enter the username" type="text" {...field} disabled={isEditing}/>
                     </FormControl>
                     <FormMessage className="mt-1"/>
                   </div>
@@ -75,15 +77,17 @@ export default function credentialsForm({
                     <FormControl>
                       <Input
                         placeholder="Click 'Create Password'"
-                        type="text"
+                        type={isEditing ? "password" : "text"}
                         {...field}
                         readOnly
+                        disabled={isEditing}
                       />
                     </FormControl>
                     <Button
                       type="button"
                       variant={"gradient"}
                       className="text-sm"
+                      disabled={isEditing}
                       onClick={() => {
                         const newPassword = generateRandomPassword();
                         credentialsForm.setValue("password", newPassword);

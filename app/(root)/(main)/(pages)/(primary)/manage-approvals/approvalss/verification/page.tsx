@@ -74,7 +74,7 @@ export default function Page() {
         <div className="px-6">
           <PowerTabs items={modules?.manageApprovals?.approvals?.items} />
         </div>
-        <PowerTable props={props} Data={Data} api={"/self-services/approvals/verification"} />
+        <PowerTable props={props} api={"/self-services/approvals/verification"} />
       </div>
     </div>
   );

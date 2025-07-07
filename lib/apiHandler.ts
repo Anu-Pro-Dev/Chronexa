@@ -31,7 +31,7 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
     const response = await apiInstance(config);
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
+    if ((error as any).isAxiosError && (error as any).response) {
       // throw new Error(error.response.data.message || ERROR_GENERIC);
       throw error;
     } else {
@@ -102,21 +102,6 @@ export const resetPasswordRequest = async (newPassword: string) => {
 export const getAllCountries = async () => {
   return apiRequest("/countries/all", "GET");
 };
-  
-// Function to delete tanle entity dynamically
-export const deleteEntityRequest = (entity: string | undefined, id: string) => {
-  console.log(`Deleting ${entity} with ID: ${id}`);
-  return apiRequest(`/${entity}/delete/${id}`, "DELETE")
-    .then(response => response)
-    .catch(error => {
-      throw error;
-    });
-};
-
-// Function to fetch all location
-export const getAllLocations = async () => {
-  return apiRequest("/location/all", "GET");
-};
 
 // Function to add a new location
 export const addLocationRequest = async (data: {
@@ -148,11 +133,6 @@ export const editLocationRequest = async (data: {
   return apiRequest(`/location/edit/${data.location_id}`, "PUT", data);
 };
 
-// Function to fetch all citizenship
-export const getAllCitizenships = async () => {
-  return apiRequest("/citizenship/all", "GET");
-};
-
 // Function to add a new citizenship
 export const addCitizenshipRequest = async (data: {
   citizenship_id?: number;
@@ -171,11 +151,6 @@ export const editCitizenshipRequest = async (data: {
   citizenship_arb?: string,
 }) => {
   return apiRequest(`/citizenship/edit/${data.citizenship_id}`, "PUT", data);
-};
-
-// Function to fetch all designations
-export const getAllDesignations = async () => {
-  return apiRequest("/designation/all", "GET");
 };
 
 // Function to add a new designation
@@ -198,11 +173,6 @@ export const editDesignationRequest = async (data: {
   const { designation_id, ...payload } = data;
 
   return apiRequest(`/designation/edit/${designation_id}`, "PUT", payload);
-};
-
-// Function to fetch all grades
-export const getAllGrades = async () => {
-  return apiRequest("/grade/all", "GET");
 };
 
 // Function to add a new grade
@@ -229,74 +199,163 @@ export const editGradeRequest = async (data: {
   return apiRequest(`/grade/edit/${grade_id}`, "PUT", payload);
 };
 
-// Function to fetch all organization type
-export const getAllOrganizationType = async () => {
-  return apiRequest("/organizationType/all", "GET");
+// Function to add a new organization type
+export const addOrganizationTypeRequest = async (data: {
+  organization_type_id?: number;
+  org_type_level: number;
+  organization_type_eng?: string;
+  organization_type_arb?: string;
+}) => {
+  return apiRequest("/organizationType/add", "POST", data);
+};
+
+// Function to edit a organization type by ID
+export const editOrganizationTypeRequest = async (data: {
+  organization_type_id: number;
+  org_type_level?: number;
+  organization_type_eng?: string;
+  organization_type_arb?: string;
+}) => {
+  const { organization_type_id, ...payload } = data;
+
+  return apiRequest(`/organizationType/edit/${organization_type_id}`, "PUT", payload);
 };
 
 // Function to add a new organization type
-export const addOrganizationTypeRequest = async (hierarchy: number, organizationTypeNameEng: string, organizationTypeNameArb: string) => {
-  return apiRequest("/organizationType/add", "POST", {
-    hierarchy,
-    organizationTypeNameEng,
-    organizationTypeNameArb,
-  });
+export const addOrganizationRequest = async (data: {
+  organization_id?: number;
+  organization_type_id?: number;
+  organization_code?: string;
+  organization_eng?: string;
+  organization_arb?: string;
+}) => {
+  return apiRequest("/organization/add", "POST", data);
 };
 
-// Function to edit a location by ID
-export const editOrganizationTypeRequest = async (
-  id: string,
-  hierarchy: number,
-  organizationTypeNameEng: string,
-  organizationTypeNameArb: string,
-) => {
-  return apiRequest(`/organizationType/edit/${id}`, "PUT", {
-    hierarchy,
-    organizationTypeNameEng,
-    organizationTypeNameArb,
-  });
+// Function to edit a organization type by ID
+export const editOrganizationRequest = async (data: {
+  organization_id: number;
+  organization_type_id?: number;
+  organization_code?: string;
+  organization_eng?: string;
+  organization_arb?: string;
+}) => {
+  const { organization_id, ...payload } = data;
+
+  return apiRequest(`/organization/edit/${organization_id}`, "PUT", payload);
 };
 
-// // Function to fetch all organization
-// export const getAllOrganization = async () => {
-//   return apiRequest("/organization/all", "GET");
-// };
+// Function to add a new designation
+export const addEmployeeTypeRequest = async (data: {
+  employee_type_id?: number;
+  employee_type_code: string;
+  employee_type_eng?: string;
+  employee_type_arb?: string;
+}) => {
+  return apiRequest("/employeeType/add", "POST", data);
+};
 
-// // Function to add a new organization
-// export const addOrganizationRequest = async (organizationName: string, descriptionEng: string, descriptionArb: string, organizationType: string) => {
-//   return apiRequest("/organization/add", "POST", {
-//     organizationName,
-//     descriptionEng,
-//     descriptionArb,
-//     organizationType,
-//   });
-// };
+// Function to edit a designation by ID
+export const editEmployeeTypeRequest = async (data: {
+  employee_type_id: number;
+  employee_type_code?: string;
+  employee_type_eng?: string;
+  employee_type_arb?: string;
+}) => {
+  const { employee_type_id, ...payload } = data;
+
+  return apiRequest(`/employeeType/edit/${employee_type_id}`, "PUT", payload);
+};
+
+// Function to add a new employee group
+export const addEmployeeGroupRequest = async (data: {
+  employee_group_id?: number;
+  group_code: string;
+  group_name_eng?: string;
+  group_name_arb?: string;
+  schedule_flag?: boolean;
+  reporting_group_flag?: boolean;
+}) => {
+  return apiRequest("/employeeGroup/add", "POST", data);
+};
+
+// Function to edit a employee group by ID
+export const editEmployeeGroupRequest = async (data: {
+  employee_group_id: number;
+  group_code?: string;
+  group_name_eng?: string;
+  group_name_arb?: string;
+  schedule_flag?: boolean;
+  reporting_group_flag?: boolean;
+}) => {
+  const { employee_group_id, ...payload } = data;
+
+  return apiRequest(`/employeeGroup/edit/${employee_group_id}`, "PUT", payload);
+};
 
 
-// // Function to fetch all employee groups
-// export const getAllEmployeeGroup = async () => {
-//   return apiRequest("/employeeGroup/all", "GET");
-// };
+// Function to add a new employee group member
+export const addEmployeeGroupMemberRequest = async (data: {
+  employee_group_id?: number;
+  employee_id?: number;
+  active_flag?: boolean;
+}) => {
+  return apiRequest("/employeeGroupMember/add", "POST", data);
+};
 
-// // Function to add a new employee group
-// export const addEmployeeGroupRequest = async (groupName: string, descriptionEng: string, descriptionArb: string) => {
-//   return apiRequest("/employeeGroup/add", "POST", {
-//     groupName,
-//     descriptionEng,
-//     descriptionArb,
-//   });
-// };
+// Function to fetch members of a group by employee_group_id
+export const getEmployeeGroupMembersByGroupId = async (employee_group_id: number) => {
+  return apiRequest(`/employeeGroupMember/byGroup/${employee_group_id}`, "GET");
+};
 
-// // Function to fetch all employee type
-// export const getAllEmployeeType = async () => {
-//   return apiRequest("/employeeType/all", "GET");
-// };
+// Function to add a new employee
+export const addEmployeeRequest = async (data: {
+  employee_id?: number;
+  emp_no: string;
+  firstname_eng?: string;
+  lastname_eng?: string;
+  firstname_arb?: string;
+  lastname_arb?: string;
+  [key: string]: any;
+}) => {
+  return apiRequest("/employee/add", "POST", data);
+};
 
-// // Function to add a new employee type
-// export const addEmployeeTypeRequest = async (typeName: string, descriptionEng: string, descriptionArb: string) => {
-//   return apiRequest("/employeeType/add", "POST", {
-//     typeName,
-//     descriptionEng,
-//     descriptionArb,
-//   });
-// };
+// Function to edit a employee by ID
+export const editEmployeeRequest = async (data: {
+  employee_id: number;
+  emp_no?: string;
+  firstname_eng?: string;
+  lastname_eng?: string;
+  firstname_arb?: string;
+  lastname_arb?: string;
+  [key: string]: any;
+}) => {
+  const { employee_id, ...payload } = data;
+
+  return apiRequest(`/employee/edit/${employee_id}`, "PUT", payload);
+};
+
+// Function to get a employees who is manager
+export async function getManagerEmployees() {
+  return apiRequest("/employee/all?manager_flag=true", "GET");
+}
+
+// Function to add a new user creditnals
+export const addSecUserRequest = async (data: {
+  employee_id: number;
+  login: string;
+  password: string;
+}) => {
+  return apiRequest("/secuser/add", "POST", data);
+};
+
+// Function to fetch secuser by Id
+export const getSecUserByUserId = async (user_id: number) => {
+  return apiRequest(`/secuser/get/${user_id}`, "GET");
+};
+
+// Function to get a user by its employee_id
+export const getSecUserByEmployeeId = async (employee_id: number) => {
+  return apiRequest(`/secuser/get-by-emp-id/${employee_id}`, "GET");
+};

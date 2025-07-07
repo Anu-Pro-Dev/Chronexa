@@ -42,7 +42,7 @@ export default function Page() {
         modal_component={<AddHoliday on_open_change={on_open_change} />}
         isLarge
       />
-      <PowerTable props={props} Data={Data} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable props={props} showEdit={true} onEditClick={handleEditClick}/>
     </div>
   );
 }

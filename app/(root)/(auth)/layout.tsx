@@ -3,7 +3,8 @@
 import { USER_TOKEN, ROUTES } from "@/utils/constants";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import Lottie from "lottie-react";
+import loadingAnimation from "@/animations/hourglass-blue.json";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [render, setRender] = useState(false);
@@ -24,7 +25,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <>
       {render ? children : (
         <div className="flex flex-col justify-center items-center h-dvh">
-          <Spinner />
+          <div style={{ width: 50}}>
+            <Lottie animationData={loadingAnimation} loop={true} />
+          </div>
         </div>
       )}
     </>
