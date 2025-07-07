@@ -48,7 +48,7 @@ export default function AddOrganizationType({
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
-        hierarchy: selectedRowData.OrgTypeLevel ?? "",
+        hierarchy: selectedRowData.org_type_level ?? "",
         organization_type_name:
           language === "en"
             ? selectedRowData.organization_type_eng ?? ""
@@ -100,7 +100,7 @@ export default function AddOrganizationType({
     
     try {
       const payload: any = {
-        OrgTypeLevel: values.hierarchy,
+        org_type_level: values.hierarchy,
       };
 
       // Add only the language-specific name being edited

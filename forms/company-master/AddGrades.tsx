@@ -21,7 +21,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addGradeRequest, editGradeRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  code: z.string().default("").transform((val) => val.toUpperCase()),
+  grade_code: z.string().default("").transform((val) => val.toUpperCase()),
   grade_name: z.string().default(""),
   overtime_eligible_flag: z.boolean().optional().default(true), // true = "Y"
 });
@@ -43,7 +43,7 @@ export default function AddGrades({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      code:"",
+      grade_code:"",
       grade_name: "",
       overtime_eligible_flag: false,
     },
@@ -52,7 +52,7 @@ export default function AddGrades({
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
-        code: selectedRowData.code ?? "",
+        grade_code: selectedRowData.grade_code ?? "",
         grade_name:
           language === "en"
             ? selectedRowData.grade_eng ?? ""
@@ -105,7 +105,7 @@ export default function AddGrades({
     
     try {
       const payload: any = {
-        code: values.code,
+        grade_code: values.grade_code,
         overtime_eligible_flag: values.overtime_eligible_flag,
       };
 
@@ -136,7 +136,7 @@ export default function AddGrades({
           <div className="grid gap-16 gap-y-4">
             <FormField
               control={form.control}
-              name="code"
+              name="grade_code"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>

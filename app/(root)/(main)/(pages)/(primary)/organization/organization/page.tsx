@@ -38,10 +38,10 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       { 
-        field: "code", 
+        field: "organization_code", 
         headerName: "Organization Code", 
         cellRenderer: (row: any) =>
-         (row["code"] || "").toUpperCase(),
+         (row["organization_code"] || "").toUpperCase(),
       },
       {
         field: language === "ar" ? "organization_arb" : "organization_eng",

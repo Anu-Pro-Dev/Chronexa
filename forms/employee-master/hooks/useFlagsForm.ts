@@ -25,7 +25,7 @@ export const useFlagsForm = () => {
   const form = useForm<z.infer<typeof flagsFormSchema>>({
     resolver: zodResolver(flagsFormSchema),
     defaultValues: {
-      active_flag: false,
+      active_flag: true,
       punch_flag: false,
       overtime_flag: false,
       inpayroll_flag: false,

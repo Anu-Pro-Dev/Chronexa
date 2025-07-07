@@ -90,7 +90,7 @@ export default function EmployeeOnboardingPage() {
         pin: selectedRowData.pin ?? "",
         gender: selectedRowData.gender ?? "",
         passport_number: selectedRowData.passport_number ?? "",
-        passport_issue_country_Id: selectedRowData.passport_issue_country_Id ?? undefined,
+        passport_issue_country_id: selectedRowData.passport_issue_country_id ?? undefined,
         national_id: selectedRowData.national_id ?? "",
         remarks: selectedRowData.remarks ?? "",
         join_date: convertToDate(selectedRowData.join_date),

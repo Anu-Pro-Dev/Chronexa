@@ -10,14 +10,14 @@ interface OrganizationType {
   organization_type_id: number;
   organization_type_eng: string;
   organization_type_arb: string;
-  OrgTypeLevel: number;
+  org_type_level: number;
   parent_id?: string;
 }
 
 interface Organization {
   organization_id: string;
   organization_eng: string;
-  code: string;
+  organization_code: string;
   parent_id?: string;
   organization_type_id: string;
 }
@@ -25,8 +25,8 @@ interface Organization {
 interface TreeNode {
   id: string;
   title: string;
-  code?: string;
-  orgTypeLevel: number;
+  organization_code?: string;
+  org_type_level: number;
   parent_id?: string;
   children: TreeNode[];
   isOrgType: boolean;
@@ -81,7 +81,7 @@ export default function Page() {
       nodeMap[`type_${orgType.organization_type_id}`] = {
         id: `type_${orgType.organization_type_id}`,
         title: orgType.organization_type_eng,
-        orgTypeLevel: orgType.OrgTypeLevel,
+        org_type_level: orgType.org_type_level,
         parent_id: orgType.parent_id ? `type_${orgType.parent_id}` : undefined,
         children: [],
         isOrgType: true,
@@ -93,8 +93,8 @@ export default function Page() {
       nodeMap[`org_${org.organization_id}`] = {
         id: `org_${org.organization_id}`,
         title: org.organization_eng,
-        code: org.code,
-        orgTypeLevel: -1, // Will be determined by parent org type
+        organization_code: org.organization_code,
+        org_type_level: -1, // Will be determined by parent org type
         parent_id: org.parent_id ? `org_${org.parent_id}` : `type_${org.organization_type_id}`,
         children: [],
         isOrgType: false,
@@ -107,7 +107,7 @@ export default function Page() {
       const orgNode = nodeMap[`org_${org.organization_id}`];
       const orgType = orgTypes.find(t => t.organization_type_id === Number(org.organization_type_id));
       if (orgNode && orgType) {
-        orgNode.orgTypeLevel = orgType.OrgTypeLevel;
+        orgNode.org_type_level = orgType.org_type_level;
       }
     });
 
@@ -126,7 +126,7 @@ export default function Page() {
 
     // Find ROOT organization type and use its children as roots
     const rootOrgType = Object.values(nodeMap).find(node => 
-      node.isOrgType && node.orgTypeLevel === 0
+      node.isOrgType && node.org_type_level === 0
     );
 
     if (rootOrgType && rootOrgType.children.length > 0) {
@@ -165,7 +165,7 @@ export default function Page() {
   }) => {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.children.length > 0;
-    const isCenter = level === 0 && node.orgTypeLevel === 0;
+    const isCenter = level === 0 && node.org_type_level === 0;
     const childrenContainerRef = useRef<HTMLDivElement>(null);
     const [lineHeight, setLineHeight] = useState<number>(0);
 
@@ -197,10 +197,10 @@ export default function Page() {
           >
             <div className="flex items-center gap-2">
               <span>
-                {node.isOrgType && node.orgTypeLevel === 0 ? 'ROOT' : node.title}
+                {node.isOrgType && node.org_type_level === 0 ? 'ROOT' : node.title}
               </span>
-              {node.code && (
-                <span className="text-sm opacity-75">({node.code})</span>
+              {node.organization_code && (
+                <span className="text-sm opacity-75">({node.organization_code})</span>
               )}
               {!node.isOrgType && (() => {
                 // Find the org type for this organization
@@ -220,7 +220,7 @@ export default function Page() {
                 return null;
               })()}
               {/* <span className="text-xs text-gray-500">
-                Level: {node.orgTypeLevel}
+                Level: {node.org_type_level}
               </span> */}
             </div>
             {hasChildren && (

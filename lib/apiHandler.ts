@@ -202,7 +202,7 @@ export const editGradeRequest = async (data: {
 // Function to add a new organization type
 export const addOrganizationTypeRequest = async (data: {
   organization_type_id?: number;
-  OrgTypeLevel: number;
+  org_type_level: number;
   organization_type_eng?: string;
   organization_type_arb?: string;
 }) => {
@@ -212,7 +212,7 @@ export const addOrganizationTypeRequest = async (data: {
 // Function to edit a organization type by ID
 export const editOrganizationTypeRequest = async (data: {
   organization_type_id: number;
-  OrgTypeLevel?: number;
+  org_type_level?: number;
   organization_type_eng?: string;
   organization_type_arb?: string;
 }) => {
@@ -225,7 +225,7 @@ export const editOrganizationTypeRequest = async (data: {
 export const addOrganizationRequest = async (data: {
   organization_id?: number;
   organization_type_id?: number;
-  code?: string;
+  organization_code?: string;
   organization_eng?: string;
   organization_arb?: string;
 }) => {
@@ -236,7 +236,7 @@ export const addOrganizationRequest = async (data: {
 export const editOrganizationRequest = async (data: {
   organization_id: number;
   organization_type_id?: number;
-  code?: string;
+  organization_code?: string;
   organization_eng?: string;
   organization_arb?: string;
 }) => {

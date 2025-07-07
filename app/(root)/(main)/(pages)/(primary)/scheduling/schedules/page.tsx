@@ -16,7 +16,7 @@ export default function Page() {
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [Columns, setColumns] = useState([
-    { field: "code" },
+    { field: "schedule_code" },
     {
       field: "color",
       cellRenderer: (params: any) => {

@@ -38,11 +38,11 @@ import { addEmployeeGroupRequest, editEmployeeGroupRequest, getManagerEmployees 
 const formSchema = z.object({
   group_code: z.string().default("").transform((val) => val.toUpperCase()),
   group_name: z.string().default(""),
-  group_start_Date: z.date().nullable().optional(),
-  group_end_Date: z.date().nullable().optional(),
+  group_start_date: z.date().nullable().optional(),
+  group_end_date: z.date().nullable().optional(),
   schedule_flag: z.boolean().optional().default(false),
   reporting_group_flag: z.boolean().optional().default(false),
-  reporting_person: z.string().optional(),
+  reporting_person_id: z.coerce.number().optional(),
 });
 
 export default function AddEmployeeGroups({
@@ -64,22 +64,22 @@ export default function AddEmployeeGroups({
     defaultValues: {
       group_code:"",
       group_name: "",
-      group_start_Date: null,
-      group_end_Date: null,
+      group_start_date: null,
+      group_end_date: null,
       schedule_flag: false,
       reporting_group_flag: false,
-      reporting_person: "",
+      reporting_person_id: undefined,
     },
   });
 
   const reportingGroupChecked = form.watch("reporting_group_flag");
 
   // Fetch employees with manager flag
-  const { data: managerEmployees, isLoading: isManagersLoading } = useQuery({
+  const { data: managerEmployees } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
   });
-
+  
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
@@ -88,15 +88,13 @@ export default function AddEmployeeGroups({
           language === "en"
             ? selectedRowData.group_name_eng ?? ""
             : selectedRowData.group_name_arb ?? "",
-        group_start_Date: selectedRowData.group_start_Date
-          ? new Date(selectedRowData.group_start_Date): null,
-        group_end_Date: selectedRowData.group_end_Date
-          ? new Date(selectedRowData.group_end_Date)  : null,
+        group_start_date: selectedRowData.group_start_date
+          ? new Date(selectedRowData.group_start_date): null,
+        group_end_date: selectedRowData.group_end_date
+          ? new Date(selectedRowData.group_end_date)  : null,
         schedule_flag: selectedRowData.schedule_flag ?? false,
         reporting_group_flag: selectedRowData.reporting_group_flag ?? false,
-        reporting_person: selectedRowData.reporting_person != null 
-        ? String(selectedRowData.reporting_person) 
-        : "",
+        reporting_person_id: selectedRowData.reporting_person_id ?? undefined,
       });
     } else {
       form.reset(); // clears on add
@@ -145,13 +143,13 @@ export default function AddEmployeeGroups({
     try {
       const payload: any = {
         group_code: values.group_code,
-        group_start_Date: values.group_start_Date
-          ? format(values.group_start_Date, "yyyy-MM-dd"): null,
-        group_end_Date: values.group_end_Date
-          ? format(values.group_end_Date, "yyyy-MM-dd"): null,  
+        group_start_date: values.group_start_date
+          ? format(values.group_start_date, "yyyy-MM-dd"): null,
+        group_end_date: values.group_end_date
+          ? format(values.group_end_date, "yyyy-MM-dd"): null,  
         schedule_flag: values.schedule_flag,
         reporting_group_flag: values.reporting_group_flag,        
-        reporting_person: values.reporting_person,
+        reporting_person_id: values.reporting_person_id,
       };
 
       // Add only the language-specific name being edited
@@ -261,7 +259,7 @@ export default function AddEmployeeGroups({
                 />
                 <FormField
                   control={form.control}
-                  name="group_start_Date"
+                  name="group_start_date"
                   render={({ field }) => (
                     <FormItem className="">
                       <FormLabel>
@@ -305,7 +303,7 @@ export default function AddEmployeeGroups({
                 />
                 <FormField
                   control={form.control}
-                  name="group_end_Date"
+                  name="group_end_date"
                   render={({ field }) => (
                     <FormItem className="">
                       <FormLabel>
@@ -332,7 +330,7 @@ export default function AddEmployeeGroups({
                             selected={field.value ? field.value : undefined}
                             onSelect={field.onChange}
                             disabled={(date) => {
-                              const groupStartDate = form.getValues("group_start_Date");
+                              const groupStartDate = form.getValues("group_start_date");
                               
                               if (!groupStartDate) {
                                 // If no start date is selected, disable all dates
@@ -355,21 +353,20 @@ export default function AddEmployeeGroups({
                   )}
                 />
                 {reportingGroupChecked && (
-                  <>
+                  <div className="pt-2">
                     <FormField
                       control={form.control}
-                      name="reporting_person"
+                      name="reporting_person_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Reporting Person <Required /></FormLabel>
+                          <FormLabel className="flex gap-1">Reporting Person <Required /></FormLabel>
                           <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            disabled={isManagersLoading}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                            value={field.value !== undefined ? String(field.value) : ""}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={isManagersLoading ? "Loading..." : "Choose employee"} />
+                                <SelectValue placeholder="Choose employee" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -387,25 +384,7 @@ export default function AddEmployeeGroups({
                         </FormItem>
                       )}
                     />
-                    {/* <FormField
-                      control={form.control}
-                      name="refresh_member"
-                      render={({ field }) => (
-                        <FormItem className=" ">
-                          <FormControl>
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                id="refresh_member"
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                              <FormLabel htmlFor="refresh_member" className="text-sm font-semibold">Auto Refresh Membership by Organization</FormLabel>
-                            </div>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    /> */}
-                  </>
+                  </div>
                 )}
               </div>
             </div>

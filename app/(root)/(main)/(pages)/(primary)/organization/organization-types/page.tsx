@@ -27,7 +27,7 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "OrgTypeLevel", headerName: "Hierarchy" },
+      { field: "org_type_level", headerName: "Hierarchy" },
       {
         field: language === "ar" ? "organization_type_arb" : "organization_type_eng",
         headerName: language === "ar" ? "نوع المنظمة" : "Organization Type",

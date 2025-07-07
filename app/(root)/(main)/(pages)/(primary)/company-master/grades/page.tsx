@@ -21,7 +21,7 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "code", headerName: language === "ar" ? "تعيين الموقع" : "Grade Code" },
+      { field: "grade_code", headerName: language === "ar" ? "تعيين الموقع" : "Grade Code" },
       {
         field: language === "ar" ? "grade_arb" : "grade_eng",
         headerName: language === "ar" ? "تعيين" : "Grade",

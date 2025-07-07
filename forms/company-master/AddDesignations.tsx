@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addDesignationRequest, editDesignationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  code: z.string().default("").transform((val) => val.toUpperCase()),
+  designation_code: z.string().default("").transform((val) => val.toUpperCase()),
   designation_name: z.string().default(""),
 });
 
@@ -41,7 +41,7 @@ export default function AddDesignations({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      code:"",
+      designation_code:"",
       designation_name: "",
     },
   });
@@ -49,7 +49,7 @@ export default function AddDesignations({
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
-        code: selectedRowData.code ?? "",
+        designation_code: selectedRowData.designation_code ?? "",
         designation_name:
           language === "en"
             ? selectedRowData.designation_eng ?? ""
@@ -101,7 +101,7 @@ export default function AddDesignations({
     
     try {
       const payload: any = {
-        code: values.code,
+        designation_code: values.designation_code,
       };
 
       // Add only the language-specific name being edited
@@ -131,7 +131,7 @@ export default function AddDesignations({
           <div className="grid gap-16 gap-y-4">
             <FormField
               control={form.control}
-              name="code"
+              name="designation_code"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
