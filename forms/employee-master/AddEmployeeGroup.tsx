@@ -104,7 +104,7 @@ export default function AddEmployeeGroups({
   const addMutation = useMutation({
     mutationFn: addEmployeeGroupRequest,
     onSuccess: (data) => {
-      toast.success("Employee type added successfully!");
+      toast.success("Employee group added successfully!");
       onSave(null, data.data);
       on_open_change(false);
       queryClient.invalidateQueries({ queryKey: ["employeeGroup"] });
@@ -121,7 +121,7 @@ export default function AddEmployeeGroups({
   const editMutation = useMutation({
     mutationFn: editEmployeeGroupRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Employee type updated successfully!");
+      toast.success("Employee group updated successfully!");
       onSave(variables.employee_group_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["employeeGroup"] });
       on_open_change(false);
@@ -189,7 +189,7 @@ export default function AddEmployeeGroups({
                           checked={!!field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="schedule_flag" className="text-sm font-semibold">Schedule flag</FormLabel>
+                        <FormLabel htmlFor="schedule_flag" className="text-sm font-semibold">Schedule</FormLabel>
                       </div>
                     </FormControl>
                   </FormItem>

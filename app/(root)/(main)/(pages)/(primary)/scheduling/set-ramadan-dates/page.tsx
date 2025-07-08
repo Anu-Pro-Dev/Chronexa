@@ -30,19 +30,19 @@ export default function Page() {
     ]);
   }, [language]);
 
-  const { data: ramadanData, isLoading } = useFetchAllEntity("ramadanDates");
+  const { data: ramadanData, isLoading } = useFetchAllEntity("ramadan");
 
   const data = useMemo(() => {
     if (Array.isArray(ramadanData?.data)) {
       return ramadanData.data.map((ramadan: any) => ({
         ...ramadan,
         id: ramadan.ramadan_id,
-        from_date: new Date(ramadan.from_date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
+        from_date: new Date(ramadan.from_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
         }),
-        to_date: new Date(ramadan.to_date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
+        to_date: new Date(ramadan.to_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
@@ -77,7 +77,7 @@ export default function Page() {
   };
  
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["ramadanDates"] });
+    queryClient.invalidateQueries({ queryKey: ["ramadan"] });
   };
  
   const handleEditClick = useCallback((row: any) => {

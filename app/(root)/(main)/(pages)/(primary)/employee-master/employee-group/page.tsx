@@ -54,12 +54,12 @@ export default function Page() {
         ...empGroup,
         id: empGroup.employee_group_id,
         employee_group_members: "Members",
-        group_start_date: new Date(empGroup.group_start_date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
+        group_start_date: new Date(empGroup.group_start_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
         }),
-        group_end_date: new Date(empGroup.group_end_date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
+        group_end_date: new Date(empGroup.group_end_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",

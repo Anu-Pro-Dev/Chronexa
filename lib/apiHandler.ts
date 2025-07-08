@@ -369,7 +369,7 @@ export const addRamadanScheduleRequest = async (data: {
   from_date?: string;
   to_date?: string;
 }) => {
-  return apiRequest("/ramadanDates/add", "POST", data);
+  return apiRequest("/ramadan/add", "POST", data);
 };
 
 // Function to add a new ramadan schedule
@@ -383,5 +383,35 @@ export const editRamadanScheduleRequest = async (data: {
 }) => {
   const { ramadan_id, ...payload } = data;
 
-  return apiRequest(`/ramadanDates/edit/${ramadan_id}`, "PUT", payload);
+  return apiRequest(`/ramadan/edit/${ramadan_id}`, "PUT", payload);
+};
+
+// Function to add a new ramadan schedule
+export const addHolidayScheduleRequest = async (data: {
+  holiday_id?: number;
+  holiday_eng?: string;
+  holiday_arb?: string;
+  remarks?: string;
+  from_date?: string;
+  to_date?: string;
+  recurring_flag?: boolean;
+  public_holiday_flag?: boolean;
+}) => {
+  return apiRequest("/holiday/add", "POST", data);
+};
+
+// Function to add a new ramadan schedule
+export const editHolidayScheduleRequest = async (data: {
+  holiday_id: number;
+  holiday_eng?: string;
+  holiday_arb?: string;
+  remarks?: string;
+  from_date?: string;
+  to_date?: string;
+  recurring_flag?: boolean;
+  public_holiday_flag?: boolean;
+}) => {
+  const { holiday_id, ...payload } = data;
+
+  return apiRequest(`/holiday/edit/${holiday_id}`, "PUT", payload);
 };
