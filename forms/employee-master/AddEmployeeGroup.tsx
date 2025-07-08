@@ -151,7 +151,6 @@ export default function AddEmployeeGroups({
         reporting_group_flag: values.reporting_group_flag,        
         reporting_person_id: values.reporting_person_id,
       };
-
       // Add only the language-specific name being edited
       if (language === "en") {
         payload.group_name_eng = values.group_name;

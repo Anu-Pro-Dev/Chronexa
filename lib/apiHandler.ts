@@ -359,3 +359,29 @@ export const getSecUserByUserId = async (user_id: number) => {
 export const getSecUserByEmployeeId = async (employee_id: number) => {
   return apiRequest(`/secuser/get-by-emp-id/${employee_id}`, "GET");
 };
+
+// Function to add a new ramadan schedule
+export const addRamadanScheduleRequest = async (data: {
+  ramadan_id?: number;
+  ramadan_name_eng?: string;
+  ramadan_name_arb?: string;
+  remarks?: string;
+  from_date?: string;
+  to_date?: string;
+}) => {
+  return apiRequest("/ramadanDates/add", "POST", data);
+};
+
+// Function to add a new ramadan schedule
+export const editRamadanScheduleRequest = async (data: {
+  ramadan_id: number;
+  ramadan_name_eng?: string;
+  ramadan_name_arb?: string;
+  remarks?: string;
+  from_date?: string;
+  to_date?: string;
+}) => {
+  const { ramadan_id, ...payload } = data;
+
+  return apiRequest(`/ramadanDates/edit/${ramadan_id}`, "PUT", payload);
+};

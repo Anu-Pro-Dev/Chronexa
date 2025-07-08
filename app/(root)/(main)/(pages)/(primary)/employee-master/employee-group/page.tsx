@@ -37,6 +37,8 @@ export default function Page() {
         clickable: true, 
         onCellClick: handleCellClickPath,
       },
+      { field: "group_start_date", headerName: "Group Start Date" },
+      { field: "group_end_date", headerName: "Group End Date" },
       {
         field: "reporting_group_flag",
         headerName: "Reporting"
@@ -48,16 +50,24 @@ export default function Page() {
 
   const data = useMemo(() => {
     if (Array.isArray(employeeGroupData?.data)) {
-      return employeeGroupData.data.map((empGroup: any) => {
-        return {
-          ...empGroup,
-          id: empGroup.employee_group_id,
-          employee_group_members: "Members",
-        };
-      });
+      return employeeGroupData.data.map((empGroup: any) => ({
+        ...empGroup,
+        id: empGroup.employee_group_id,
+        employee_group_members: "Members",
+        group_start_date: new Date(empGroup.group_start_date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        group_end_date: new Date(empGroup.group_end_date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+      }));
     }
     return [];
-  }, [employeeGroupData]);
+  }, [employeeGroupData, language]);
 
   useEffect(() => {
     if (!open) {

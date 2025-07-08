@@ -20,7 +20,7 @@ export default function Layout({ children }: { children: any }) {
               </div>
             </div>
           </header>
-          <div className="bg-background flex flex-1 flex-col gap-4 p-5 pl-7">
+          <div className="bg-background flex flex-1 flex-col gap-4 p-5 pl-7 overflow-auto scrollbar-hide">
             {children}
           </div>
         </div>

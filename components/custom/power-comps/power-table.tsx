@@ -321,7 +321,7 @@ export default function PowerTable({
   const displayData = api ? tableData : filteredAndSortedData;
 
   return (
-    <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6">
+    <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6 overflow-auto scrollbar-hide">
       
       <div style={{ width: "100%" }}>
         <AgGridReact

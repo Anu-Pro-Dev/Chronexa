@@ -37,17 +37,20 @@ type EmployeeData =
 const transformDatesForAPI = (data: any, language: any) => {
   const transformed = { ...data };
 
-  // Handle name localization
-  if (language === "en") {
-    transformed.firstname_eng = data.firstname;
-    transformed.lastname_eng = data.lastname;
-  } else {
-    transformed.firstname_arb = data.firstname;
-    transformed.lastname_arb = data.lastname;
+  // Handle name localization - only if firstname and lastname exist
+  if (data.firstname && data.lastname) {
+    if (language === "en") {
+      transformed.firstname_eng = data.firstname;
+      transformed.lastname_eng = data.lastname;
+    } else {
+      transformed.firstname_arb = data.firstname;
+      transformed.lastname_arb = data.lastname;
+    }
+    
+    // Remove the generic firstname/lastname fields
+    delete transformed.firstname;
+    delete transformed.lastname;
   }
-
-  delete transformed.firstname;
-  delete transformed.lastname;
 
   return transformed;
 };
@@ -80,10 +83,19 @@ export default function EmployeeOnboardingPage() {
       const convertToDate = (val: any) =>
         val && typeof val === "string" ? new Date(val) : val;
 
+      // Get the name based on current language preference
+      const firstName = language === "en" 
+        ? selectedRowData.firstname_eng || selectedRowData.firstname_arb || ""
+        : selectedRowData.firstname_arb || selectedRowData.firstname_eng || "";
+      
+      const lastName = language === "en" 
+        ? selectedRowData.lastname_eng || selectedRowData.lastname_arb || ""
+        : selectedRowData.lastname_arb || selectedRowData.lastname_eng || "";
+
       personalForm.reset({
         emp_no: selectedRowData.emp_no ?? "",
-        firstname: selectedRowData.firstname_eng || selectedRowData.firstname_arb || "",
-        lastname: selectedRowData.lastname_eng || selectedRowData.lastname_arb || "",
+        firstname: firstName,
+        lastname: lastName,
         mobile: selectedRowData.mobile ?? "",
         email: selectedRowData.email ?? "",
         card_number: selectedRowData.card_number ?? "",
@@ -153,7 +165,7 @@ export default function EmployeeOnboardingPage() {
       resetAllForms();
       clearSelectedRowData();
     }
-  }, [selectedRowData]);
+  }, [selectedRowData, language]); // Added language dependency
 
   const createEmployeeWithCredentials = async (data: EmployeeData) => {
     const transformed = transformDatesForAPI(data, language);
