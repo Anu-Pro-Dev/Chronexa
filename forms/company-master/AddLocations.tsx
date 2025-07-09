@@ -210,7 +210,7 @@ export default function AddLocations({
                 <FormItem>
                   <FormLabel>Location code<Required /></FormLabel>
                   <FormControl>
-                    <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    {/* <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                       <span className={`absolute top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none ${language === 'ar' ? 'right-3' : 'left-3'}`}>
                         CODE_
                       </span>
@@ -223,7 +223,12 @@ export default function AddLocations({
                         }
                         className={`uppercase placeholder:lowercase ${language === 'ar' ? 'pr-14 text-right' : 'pl-14 text-left'}`}
                       />
-                    </div>
+                    </div> */}
+                    <Input
+                      type="text"
+                      placeholder="Enter location code"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

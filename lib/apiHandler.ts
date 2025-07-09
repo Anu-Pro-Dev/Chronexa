@@ -245,6 +245,11 @@ export const editOrganizationRequest = async (data: {
   return apiRequest(`/organization/edit/${organization_id}`, "PUT", payload);
 };
 
+// Function to fetch organization by Id
+export const getOrganizationById = async (organization_id: number) => {
+  return apiRequest(`/organization/get/${organization_id}`, "GET");
+};
+
 // Function to add a new designation
 export const addEmployeeTypeRequest = async (data: {
   employee_type_id?: number;
@@ -414,4 +419,26 @@ export const editHolidayScheduleRequest = async (data: {
   const { holiday_id, ...payload } = data;
 
   return apiRequest(`/holiday/edit/${holiday_id}`, "PUT", payload);
+};
+
+// Function to add a new employee
+export const addScheduleRequest = async (data: {
+  schedule_id?: number;
+  schedule_code: string;
+  organization_id: number;
+  [key: string]: any;
+}) => {
+  return apiRequest("/schedule/add", "POST", data);
+};
+
+// Function to edit a employee by ID
+export const editScheduleRequest = async (data: {
+  schedule_id: number;
+  schedule_code?: string;
+  organization_id: number;
+  [key: string]: any;
+}) => {
+  const { schedule_id, ...payload } = data;
+
+  return apiRequest(`/schedule/edit/${schedule_id}`, "PUT", payload);
 };

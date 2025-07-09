@@ -14,9 +14,10 @@ interface MultiStepFormProps {
   Page: string;
   SetPage: (page: string) => void;
   validateCurrentForm?: () => Promise<boolean>
+  onSubmit?: () => void;
 }
 
-export default function PowerMultiStepForm({ Pages, Page, SetPage, validateCurrentForm }: MultiStepFormProps) {
+export default function PowerMultiStepForm({ Pages, Page, SetPage, validateCurrentForm, onSubmit }: MultiStepFormProps) {
 
   const handleTabChange = async (newPage: string) => {
     if (validateCurrentForm) {

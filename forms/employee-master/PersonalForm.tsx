@@ -1,38 +1,20 @@
 "use client";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import Required from "@/components/ui/required"
-import { useRouter } from "next/navigation"
-import { CalendarIcon } from "@/icons/icons"
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
+} from "@/components/ui/popover";
+import Required from "@/components/ui/required";
+import { useRouter } from "next/navigation";
+import { CalendarIcon } from "@/icons/icons";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import CountryDropdown from "@/components/custom/country-dropdown";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useCountries, Country } from "@/hooks/use-countries";

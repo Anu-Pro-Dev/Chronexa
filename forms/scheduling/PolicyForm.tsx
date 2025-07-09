@@ -1,9 +1,6 @@
 "use client";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,44 +14,64 @@ import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useFormContext } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { addScheduleRequest, editScheduleRequest } from "@/lib/apiHandler";
+import { useScheduleEditStore } from "@/stores/scheduleEditStore";
 
-const formSchema = z.object({
-    show_on_report: z.enum(['first-in-last-out', 'all-transactions']),
-    email_notification: z.enum(['first-in-last-out', 'all-transactions']),
-    calculate_hours: z.boolean(),
-    enable_overtime: z.boolean(),
-    enable_break: z.boolean(),
-    override_schedule: z.boolean(),
-    reduce_required_hours: z.boolean(),
-});
+export default function PolicyForm() {
+  const form = useFormContext();
+  const router = useRouter();
+  const { clearSelectedRowData, selectedRowData } = useScheduleEditStore();
 
-export default function PolicyForm({
-  on_open_change,
-}: {
-  on_open_change?: any;
-}) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const isEditMode = Boolean(selectedRowData?.schedule_id);
+  const [loading, setLoading] = useState(false);
+
+  const addMutation = useMutation({
+    mutationFn: addScheduleRequest,
+    onSuccess: () => {
+      setLoading(false);
+      toast.success("Schedule added successfully!");
+      clearSelectedRowData();
+      router.push("/scheduling/schedules/");
+    },
+    onError: (error: any) => {
+      setLoading(false);
+      console.error("Add Error", error);
+      toast.error(error?.response?.data?.message || "Failed to add schedule.");
+    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
-    }
-  }
+  const editMutation = useMutation({
+    mutationFn: editScheduleRequest,
+    onSuccess: () => {
+      setLoading(false);
+      toast.success("Schedule updated successfully!");
+      clearSelectedRowData();
+      router.push("/scheduling/schedules/");
+    },
+    onError: (error: any) => {
+      setLoading(false);
+      console.error("Edit Error", error);
+      toast.error(error?.response?.data?.message || "Failed to update schedule.");
+    },
+  });
 
-  const router = useRouter();
+  const handleSave = (values: any) => {
+    setLoading(true);
+    if (selectedRowData?.schedule_id) {
+      editMutation.mutate({
+        schedule_id: selectedRowData.schedule_id,
+        ...values,
+      });
+    } else {
+      addMutation.mutate(values);
+    }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form>
         <div className="flex p-5">
             <div className="flex flex-col gap-6 items-start">
                 <FormField
@@ -113,17 +130,17 @@ export default function PolicyForm({
                 />
                 <FormField
                     control={form.control}
-                    name="calculate_hours"
+                    name="calculate_worked_hrs_flag"
                     render={({ field }) => (
                     <FormItem className=" ">
                     <FormControl>
                         <div className="flex items-center gap-2">
                             <Checkbox
-                            id="calculate_hours"
+                            id="calculate_worked_hrs_flag"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                             />
-                            <FormLabel htmlFor="calculate_hours" className="text-sm font-semibold">Calculate Worked Hours From Schedule Start Time</FormLabel>
+                            <FormLabel htmlFor="calculate_worked_hrs_flag" className="text-sm font-semibold">Calculate Worked Hours From Schedule Start Time</FormLabel>
                         </div>
                     </FormControl>
                     </FormItem>
@@ -131,17 +148,17 @@ export default function PolicyForm({
                 />
                 <FormField
                     control={form.control}
-                    name="enable_overtime"
+                    name="default_overtime_flag"
                     render={({ field }) => (
                     <FormItem className=" ">
                     <FormControl>
                     <div className="flex items-center gap-2">
                         <Checkbox
-                        id="enable_overtime"
+                        id="default_overtime_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="enable_overtime" className="text-sm font-semibold">Enable Default Overtime</FormLabel>
+                        <FormLabel htmlFor="default_overtime_flag" className="text-sm font-semibold">Enable Default Overtime</FormLabel>
                     </div>
                     </FormControl>
                     </FormItem>
@@ -149,17 +166,17 @@ export default function PolicyForm({
                 />
                 <FormField
                     control={form.control}
-                    name="enable_break"
+                    name="default_break_hrs_flag"
                     render={({ field }) => (
                     <FormItem className=" ">
                     <FormControl>
                     <div className="flex items-center gap-2">
                         <Checkbox
-                        id="enable_break"
+                        id="default_break_hrs_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="enable_break" className="text-sm font-semibold"> Enable Default Break Hours</FormLabel>
+                        <FormLabel htmlFor="default_break_hrs_flag" className="text-sm font-semibold"> Enable Default Break Hours</FormLabel>
                     </div>
                     </FormControl>
                     </FormItem>
@@ -167,17 +184,17 @@ export default function PolicyForm({
                 />
                 <FormField
                     control={form.control}
-                    name="override_schedule"
+                    name="override_schedule_on_holiday_flag"
                     render={({ field }) => (
                     <FormItem className=" ">
                     <FormControl>
                     <div className="flex items-center gap-2">
                         <Checkbox
-                        id="override_schedule"
+                        id="override_schedule_on_holiday_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="override_schedule" className="text-sm font-semibold">Overide Schedule On Holiday</FormLabel>
+                        <FormLabel htmlFor="override_schedule_on_holiday_flag" className="text-sm font-semibold">Overide Schedule On Holiday</FormLabel>
                     </div>
                     </FormControl>
                     </FormItem>
@@ -185,17 +202,17 @@ export default function PolicyForm({
                 />
                 <FormField
                     control={form.control}
-                    name="reduce_required_hours"
+                    name="reduce_required_hrs_flag"
                     render={({ field }) => (
                     <FormItem className=" ">
                     <FormControl>
                     <div className="flex items-center gap-2">
                         <Checkbox
-                        id="reduce_required_hours"
+                        id="reduce_required_hrs_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="reduce_required_hours" className="text-sm font-semibold">Reduce Required Hours if Personal Permission is approved</FormLabel>
+                        <FormLabel htmlFor="reduce_required_hrs_flag" className="text-sm font-semibold">Reduce Required Hours if Personal Permission is approved</FormLabel>
                     </div>
                     </FormControl>
                     </FormItem>
@@ -214,8 +231,13 @@ export default function PolicyForm({
             >
               Cancel
             </Button>
-            <Button type="submit" size={"lg"} className="w-full">
-              Save
+            <Button 
+              type="button" 
+              size={"lg"} 
+              className="w-full"
+              onClick={form.handleSubmit(handleSave)}
+            >
+              {loading ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update" : "Save")}
             </Button>
           </div>
         </div>

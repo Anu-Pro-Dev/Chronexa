@@ -143,7 +143,7 @@ export default function AddGrades({
                     Grade code<Required />
                   </FormLabel>
                   <FormControl>
-                    <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    {/* <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                       <span
                         className={`absolute top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none
                           ${language === 'ar' ? 'right-3' : 'left-3'}`}
@@ -161,7 +161,12 @@ export default function AddGrades({
                           language === 'ar' ? 'pr-14 text-right' : 'pl-14 text-left'
                         }`}
                       />
-                    </div>
+                    </div> */}
+                    <Input
+                      type="text"
+                      placeholder="Enter grade code"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

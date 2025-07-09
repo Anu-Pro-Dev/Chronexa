@@ -142,9 +142,6 @@ export default function AddEmployeeTypes({
                       type="text"
                       placeholder="Enter employee type code"
                       {...field}
-                      className={`uppercase placeholder:lowercase ${
-                        language === 'ar' ? 'text-right' : 'text-left'
-                      }`}
                     />
                   </FormControl>
                   <FormMessage />

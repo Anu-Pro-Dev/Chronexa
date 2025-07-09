@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Popover,
     PopoverContent,
@@ -6,12 +6,28 @@ import {
   } from "@/components/ui/popover";
 import { PaletteIcon } from "@/icons/icons"
 
+type ColorPickerProps = {
+  value?: string;
+  onChange?: (color: string) => void;
+};
+
 const colors = [
   "#0E6ECF", "#00C875", "#DF2F4A", "#9D50DD",
 ];
 
-const ColorPicker = () => {
-  const [selectedColor, setSelectedColor] = useState("#000000");
+const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange }) => {
+  const [selectedColor, setSelectedColor] = useState(value || "#000000");
+
+  const handleColorChange = (color: string) => {
+    setSelectedColor(color);
+    onChange?.(color);
+  };
+
+  useEffect(() => {
+    if (value && value !== selectedColor) {
+      setSelectedColor(value);
+    }
+  }, [value]);
 
   return (
     <div className="w-full max-w-[350px] flex flex-col items-center space-y-4">
@@ -29,7 +45,7 @@ const ColorPicker = () => {
               <button
                 key={color}
                 className="flex gap-3 justify-between items-center px-2 py-3 hover:bg-backdrop hover:text-primary"
-                onClick={() => setSelectedColor(color)}
+                onClick={() => handleColorChange(color)} 
               >
                 <span className="uppercase font-medium text-sm">{color}</span>
                 <div
@@ -44,7 +60,7 @@ const ColorPicker = () => {
             <input
               type="color"
               value={selectedColor}
-              onChange={(e) => setSelectedColor(e.target.value)}
+              onChange={(e) => handleColorChange(e.target.value)}
               className="w-full cursor-pointer bg-transparent border-none"
             />
           </div>

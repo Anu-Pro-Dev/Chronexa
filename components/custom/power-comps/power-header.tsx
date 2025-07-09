@@ -102,9 +102,9 @@ export default function PowerHeader({
         <PowerShifterTab items={items} />
         {
           <div className="flex gap-2 items-center">
-            {!disableFeatures && !disableSearch && (
+            {/* {!disableFeatures && !disableSearch && (
               <PowerSearch props={props} />
-            )}
+            )} */}
             {enableFilters && (
               <PowerFilter
                 modal_title={filter_modal_title}
