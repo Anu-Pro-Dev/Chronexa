@@ -421,7 +421,7 @@ export const editHolidayScheduleRequest = async (data: {
   return apiRequest(`/holiday/edit/${holiday_id}`, "PUT", payload);
 };
 
-// Function to add a new employee
+// Function to add a new schedule
 export const addScheduleRequest = async (data: {
   schedule_id?: number;
   schedule_code: string;
@@ -431,7 +431,7 @@ export const addScheduleRequest = async (data: {
   return apiRequest("/schedule/add", "POST", data);
 };
 
-// Function to edit a employee by ID
+// Function to edit a schedule by ID
 export const editScheduleRequest = async (data: {
   schedule_id: number;
   schedule_code?: string;
@@ -441,4 +441,33 @@ export const editScheduleRequest = async (data: {
   const { schedule_id, ...payload } = data;
 
   return apiRequest(`/schedule/edit/${schedule_id}`, "PUT", payload);
+};
+
+// Function to get a schedules by organization ID
+export async function getScheduleByOrganization(organization_id: number) {
+  return apiRequest(`/schedule/organization/${organization_id}`, "GET");
+}
+
+// Function to add a new weekly schedule
+export const addOrgScheduleRequest = async (data: {
+  organization_schedule_id?: number;
+  organization_id: number;
+  from_date: string;
+  to_date?: string;
+  [key: string]: any;
+}) => {
+  return apiRequest("/organizationSchedule/add", "POST", data);
+};
+
+// Function to edit a weekly schedule by ID
+export const editOrgScheduleRequest = async (data: {
+  organization_schedule_id: number;
+  organization_id?: number;
+  from_date?: string;
+  to_date?: string;
+  [key: string]: any;
+}) => {
+  const { organization_schedule_id, ...payload } = data;
+
+  return apiRequest(`/organizationSchedule/edit/${organization_schedule_id}`, "PUT", payload);
 };

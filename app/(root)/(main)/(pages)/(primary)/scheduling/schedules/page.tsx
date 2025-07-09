@@ -71,13 +71,13 @@ export default function Page() {
         in_time: new Date(schedule.in_time).toLocaleTimeString("en-GB", {
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit",
+          // second: "2-digit",
           hour12: false,
         }),
         out_time: new Date(schedule.out_time).toLocaleTimeString("en-GB", {
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit",
+          // second: "2-digit",
           hour12: false,
         }),
       }));

@@ -74,9 +74,9 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
         .toString()
         .padStart(2, "0")}`;
 
-      // form.setValue("required_work_hours", formatted);
+      form.setValue("required_work_hours", formatted);
     } else {
-      // form.setValue("required_work_hours", "");
+      form.setValue("required_work_hours", "");
     }
   }, [form.watch("in_time"), form.watch("out_time")]);
 
@@ -257,7 +257,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               );
             }}
           />
-          {/* <FormField
+          <FormField
             control={form.control}
             name="required_work_hours"
             render={({ field }) => (
@@ -274,7 +274,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                 <FormMessage className="mt-1"/>
               </FormItem>
             )}
-          /> */}
+          />
           <FormField
             control={form.control}
             name="flexible_min"

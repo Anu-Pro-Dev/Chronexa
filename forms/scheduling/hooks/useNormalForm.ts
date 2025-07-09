@@ -16,27 +16,3 @@ export const normalFormSchema = z.object({
     grace_out_min: z.coerce.number().optional(),
     inactive_date: z.date().nullable().optional(),
 });
-
-// export const useNormalForm = () => {
-//   const form = useForm<z.infer<typeof normalFormSchema>>({
-//     resolver: zodResolver(normalFormSchema),
-//     defaultValues: {
-//       schedule_code: "",
-//       schedule_location: undefined,
-//       organization_id: undefined,
-//       in_time: null,
-//       out_time: null,
-//       sch_color: "",
-//       required_work_hours: "",
-//       open_shift_flag: false,
-//       night_shift_flag: false,
-//       ramadan_flag: false,
-//       flexible_min: undefined,
-//       grace_in_min: undefined,
-//       grace_out_min: undefined,
-//       inactive_date: null,
-//     },
-//   });
-
-//   return { form, schema: normalFormSchema };
-// };

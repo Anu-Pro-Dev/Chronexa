@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,9 +15,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-import { useRouter } from "next/navigation";
-
+import Required from "@/components/ui/required";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -25,71 +31,24 @@ import {
 import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import Required from "@/components/ui/required";
-import { Input } from "@/components/ui/input";
-const formSchema = z.object({
-  to_date: z.date({
-    required_error: "To Date is required.",
-  }),
-  from_date: z.date({
-    required_error: "From Date is required.",
-  }),
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useQuery } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addOrgScheduleRequest, editOrgScheduleRequest, getScheduleByOrganization } from "@/lib/apiHandler";
 
-  schedule: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  sunday: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  monday: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  tuesday: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  wednesday: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  thursday: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  friday: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  saturday: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+const formSchema = z.object({
+  from_date: z.date().nullable().optional(),
+  to_date: z.date().nullable().optional(),
+  organization_id: z.coerce.number().optional(),
+  schedule_id: z.coerce.number().optional(),
+  sunday_schedule_id: z.coerce.number().optional(),
+  monday_schedule_id: z.coerce.number().optional(),
+  tuesday_schedule_id: z.coerce.number().optional(),
+  wednesday_schedule_id: z.coerce.number().optional(),
+  thursday_schedule_id: z.coerce.number().optional(),
+  friday_schedule_id: z.coerce.number().optional(),
+  saturday_schedule_id: z.coerce.number().optional(),
   attachment: z.custom<any>(
     (value) => {
       if (!(value instanceof File)) {
@@ -113,32 +72,179 @@ const formSchema = z.object({
       message:
         "Invalid file. Ensure it's an image (JPEG/PNG) and less than 5MB.",
     }
-  ),
+  ).optional(),
 });
 
-export default function AddWeeklySchedule() {
+export default function AddWeeklySchedule({
+  selectedRowData,
+  onSave,
+}: {
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
+}) {
+
+  const {language } = useLanguage();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      from_date: null,
+      to_date: null,
+      organization_id: undefined,
+      schedule_id: undefined,
+      sunday_schedule_id: undefined,
+      monday_schedule_id: undefined,
+      tuesday_schedule_id: undefined,
+      wednesday_schedule_id: undefined,
+      thursday_schedule_id: undefined,
+      friday_schedule_id: undefined,
+      saturday_schedule_id: undefined,
+    },
   });
 
-  const router = useRouter();
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const scheduleId = form.watch("schedule_id");
+
+  useEffect(() => {
+    if (!scheduleId) return;
+
+    const currentValues = form.getValues();
+
+    const updatedFields: Partial<typeof currentValues> = {};
+
+    const days: (keyof typeof currentValues)[] = [
+      "monday_schedule_id",
+      "tuesday_schedule_id",
+      "wednesday_schedule_id",
+      "thursday_schedule_id",
+      "friday_schedule_id",
+      "saturday_schedule_id",
+      "sunday_schedule_id",
+    ];
+
+    let shouldUpdate = false;
+
+    days.forEach((dayKey) => {
+      if (!currentValues[dayKey]) {
+        updatedFields[dayKey] = scheduleId;
+        shouldUpdate = true;
+      }
+    });
+
+    if (shouldUpdate) {
+      form.setValue("monday_schedule_id", updatedFields.monday_schedule_id ?? currentValues.monday_schedule_id);
+      form.setValue("tuesday_schedule_id", updatedFields.tuesday_schedule_id ?? currentValues.tuesday_schedule_id);
+      form.setValue("wednesday_schedule_id", updatedFields.wednesday_schedule_id ?? currentValues.wednesday_schedule_id);
+      form.setValue("thursday_schedule_id", updatedFields.thursday_schedule_id ?? currentValues.thursday_schedule_id);
+      form.setValue("friday_schedule_id", updatedFields.friday_schedule_id ?? currentValues.friday_schedule_id);
+      form.setValue("saturday_schedule_id", updatedFields.saturday_schedule_id ?? currentValues.saturday_schedule_id);
+      form.setValue("sunday_schedule_id", updatedFields.sunday_schedule_id ?? currentValues.sunday_schedule_id);
+    }
+  }, [scheduleId]);
+
+  const organizationId = form.watch("organization_id");
+
+  const { data: organizations } = useFetchAllEntity("organization");
+  // const { data: schedules } = useFetchAllEntity("schedule");
+
+  const { data: schedules } = useQuery({
+    queryKey: ["schedules", organizationId],
+    queryFn: () => getScheduleByOrganization(organizationId!),
+    enabled: !!organizationId, // only run if organizationId is truthy
+  });
+
+  const addMutation = useMutation({
+    mutationFn: addOrgScheduleRequest,
+    onSuccess: (data) => {
+      toast.success("Weekly schedule added successfully!");
+      onSave(null, data.data);
+      queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
+      router.push("/scheduling/weekly-schedule");
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editOrgScheduleRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Weekly schedule updated successfully!");
+      onSave(variables.organization_schedule_id?.toString() ?? null, variables);
+      queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
     try {
-      return;
-    } catch (error) {
-      console.error("Form submission error", error);
+      const payload: any = {
+        from_date: values.from_date
+          ? format(values.from_date, "yyyy-MM-dd")
+          : null,
+        to_date: values.to_date
+          ? format(values.to_date, "yyyy-MM-dd")
+          : null,
+        organization_id: values.organization_id,
+        schedule_id: values.schedule_id,
+        sunday_schedule_id: values.sunday_schedule_id,
+        monday_schedule_id: values.monday_schedule_id,
+        tuesday_schedule_id: values.tuesday_schedule_id,
+        wednesday_schedule_id: values.wednesday_schedule_id,
+        thursday_schedule_id: values.thursday_schedule_id,
+        friday_schedule_id: values.friday_schedule_id,
+        saturday_schedule_id: values.saturday_schedule_id,
+      };
+
+      // If attachment is provided, append it (e.g., convert to Base64 or use FormData depending on API)
+      if (values.attachment) {
+        payload.attachment = values.attachment;
+      }
+
+      if (selectedRowData) {
+        editMutation.mutate({
+          organizationSchedule_id: selectedRowData.id,
+          ...payload,
+        });
+      } else {
+        addMutation.mutate(payload);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
+  useEffect(() => {
+    form.setValue("schedule_id", undefined);
+    form.setValue("monday_schedule_id", undefined);
+    form.setValue("tuesday_schedule_id", undefined);
+    form.setValue("wednesday_schedule_id", undefined);
+    form.setValue("thursday_schedule_id", undefined);
+    form.setValue("friday_schedule_id", undefined);
+    form.setValue("saturday_schedule_id", undefined);
+    form.setValue("sunday_schedule_id", undefined);
+  }, [organizationId]);
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        {/* <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Scheduling</h1>
-          <h1 className="font-semibold text-sm text-text-secondary">
-            Choose the choices for weekly schedule for employee
-          </h1>
-        </div> */}
+        <h1 className="text-primary text-lg font-bold">Organization Schedule</h1>
         <div className="flex flex-col gap-6 px-5">
           <div className="p-5 grid grid-cols-2 gap-y-5 gap-x-20">
             <FormField
@@ -153,7 +259,7 @@ export default function AddWeeklySchedule() {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full max-w-[350px] bg-accent px-3 flex justify-between text-text-primary"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
@@ -167,11 +273,16 @@ export default function AddWeeklySchedule() {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
+                        selected={field.value ? field.value : undefined}
                         onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
+                        disabled={(date) => {
+                          // Get today's date at start of day for comparison
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          
+                          // Disable dates before today
+                          return date < today;
+                        }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -192,7 +303,7 @@ export default function AddWeeklySchedule() {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full max-w-[350px] bg-accent px-3 flex justify-between text-text-primary"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
@@ -206,224 +317,298 @@ export default function AddWeeklySchedule() {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
+                        selected={field.value ? field.value : undefined}
                         onSelect={field.onChange}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
+                        disabled={(date) => {
+                          const orgScheduleStartDate = form.getValues("from_date");
+                          
+                          if (!orgScheduleStartDate) {
+                            // If no start date is selected, disable all dates
+                            return true;
+                          }
+                          
+                          // Create a new date for comparison to avoid time issues
+                          const startDate = new Date(orgScheduleStartDate);
+                          startDate.setHours(0, 0, 0, 0);
+                          
+                          const compareDate = new Date(date);
+                          compareDate.setHours(0, 0, 0, 0);
+                          return compareDate <= startDate;
+                        }}
                       />
                     </PopoverContent>
                   </Popover>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="schedule"
+              name="organization_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Schedule <Required />
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Organization <Required/> </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder="Choose organization" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(organizations?.data || []).map((item: any) => {
+                        if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                            {item.organization_eng}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="sunday"
+              name="schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Sunday 
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Schedule <Required/> </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="monday"
+              name="monday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Monday 
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Monday </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="tuesday"
+              name="tuesday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Tuesday 
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Tuesday </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="wednesday"
+              name="wednesday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Wednesday 
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Wednesday </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="thursday"
+              name="thursday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Thursday 
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Thursday </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="friday"
+              name="friday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Friday 
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Friday </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="saturday"
+              name="saturday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Saturday 
-                  </FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <FormLabel className="flex gap-1">Saturday </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Normal(08:00 - 16:00)</SelectItem>
-                      <SelectItem value="2">Day(06:00 - 13:00)</SelectItem>
-                      <SelectItem value="3">Night(22:00 - 06:00)</SelectItem>
-                      <SelectItem value="4">Friday(07:30 - 12:00)</SelectItem>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
-                  <FormMessage />
+                  <FormMessage className="mt-1"/>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="sunday_schedule_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex gap-1">Sunday </FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val))}
+                    value={field.value ? String(field.value) : ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose schedule" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(schedules?.data || []).map((item: any) => {
+                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
+                            {item.schedule_code}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="mt-1"/>
                 </FormItem>
               )}
             />
