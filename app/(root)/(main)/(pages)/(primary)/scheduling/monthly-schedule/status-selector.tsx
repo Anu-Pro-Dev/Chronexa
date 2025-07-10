@@ -1,5 +1,4 @@
 "use client";
-
 import * as React from "react";
 import {
   Popover,
@@ -7,69 +6,86 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+
+interface Schedule {
+  schedule_id: number;
+  schedule_code: string;
+  schedule_name: string;
+  schedule_name_arb: string;
+  sch_color: string;
+}
 
 interface StatusSelectorProps {
   status: string | null;
-  onStatusChange: (newStatus: string) => void;
+  onStatusChange: (newStatusCode: string) => void;
 }
 
 export function StatusSelector({
   status,
   onStatusChange,
 }: StatusSelectorProps) {
-  if (!status) return null;
+  const { language } = useLanguage();
+  const { data: scheduleListData } = useFetchAllEntity("schedule");
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+
+  useEffect(() => {
+    if (scheduleListData?.data?.length) {
+      setSchedules(scheduleListData.data);
+    }
+  }, [scheduleListData]);
+
+  if (!schedules.length) return null;
+
+  const activeSchedule = schedules.find(
+    (s) => s.schedule_code.toLowerCase().startsWith(status?.toLowerCase() || "")
+  );
+
+  const bgColor = activeSchedule?.sch_color;
+
+  const formatStatusCode = (code: string | null): string => {
+    if (!code) return "+";
+    const trimmed = code.trim();
+    return trimmed.length >= 3
+      ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1, 3).toLowerCase()
+      : trimmed;
+  };
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          size={'sm'}
-          className={`w-8 h-7 rounded ${
-            status === "Day"
-              ? "bg-success hover:bg-success-100"
-              : status === "Nig"
-            ? "bg-destructive hover:bg-destructive-100"
-              : status === "Fri"
-              ? "bg-purple-500 hover:bg-purple-600"
-              : "bg-primary hover:bg-primary-100"
-          }`}
+          size="sm"
+          variant="ghost"
+          className="w-10 h-7 rounded text-white text-xs font-semibold mx-1 my-3"
+          style={{
+            backgroundColor:
+              typeof status === "string" && status.trim() !== ""
+                ? activeSchedule?.sch_color
+                : "transparent",
+            color: status ? "#fff" : "#9ba9d2",
+          }}
         >
-          {status}
+          {status ? formatStatusCode(status) : "+"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-40 p-2 bg-accent">
+      <PopoverContent className="w-48 p-2 bg-accent">
         <div className="grid grid-cols-2 gap-2">
-          <Button
-            size={'sm'}
-            variant="default"
-            onClick={() => onStatusChange("Nor")}
-            className="w-full rounded-md"
-          >
-            Normal
-          </Button>
-          <Button
-            size={'sm'}
-            variant="destructive"
-            onClick={() => onStatusChange("Nig")}
-            className="w-full rounded-md"
-          >
-            Night
-          </Button>
-          <Button
-            size={'sm'}
-            variant="success"
-            onClick={() => onStatusChange("Day")}
-            className="w-full rounded-md"
-          >
-            Day
-          </Button>
-          <Button
-            size={'sm'}
-            onClick={() => onStatusChange("Fri")}
-            className="w-full rounded-md bg-purple-500 hover:bg-purple-600"
-          >
-            Friday
-          </Button>
+          {schedules.map((schedule) => (
+            <Button
+              key={schedule.schedule_code}
+              size="sm"
+              onClick={() => onStatusChange(schedule.schedule_code)}
+              className="w-full rounded-md text-white text-xs capitalize"
+              style={{
+                backgroundColor: schedule.sch_color,
+              }}
+            >
+              {schedule.schedule_code}
+            </Button>
+          ))}
         </div>
       </PopoverContent>
     </Popover>

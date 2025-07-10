@@ -63,7 +63,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <MonthlyScheduleTable />
       <div className="justify-end gap-4 flex">
         <Button size={"sm"} type="button">
           <SaveIcon />
@@ -81,6 +80,9 @@ export default function Page() {
           <DeleteIcon />
           Clear
         </Button>
+      </div>
+      <div className="relative">
+        <MonthlyScheduleTable />
       </div>
     </div>
   );

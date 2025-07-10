@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { UnlockIcon } from "@/icons/icons";
+import { StatusSelector } from "./status-selector";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 import { getEmployeeGroupByEmployeeId } from "@/lib/apiHandler";
@@ -33,6 +34,35 @@ export default function ScheduleGrid() {
   const { data: employeeListData } = useFetchAllEntity("employee");
 
   const [data, setData] = useState<any[]>([]);
+
+  const handleStatusChange = (
+    rowId: number,
+    dayIndex: number,
+    newStatusCode: string
+  ) => {
+    setData((prevData: any) =>
+      prevData.map((category: any) => ({
+        ...category,
+        subcategories: category.subcategories.map((sub: any) => ({
+          ...sub,
+          rows: sub.rows.map((row: any) => {
+            if (row.id !== rowId) return row;
+
+            const updatedSlots = [...row.slots];
+            // We just update the status code here.
+            // Color will be set by StatusSelector on render.
+            updatedSlots[dayIndex] = {
+              ...updatedSlots[dayIndex],
+              status: newStatusCode,
+            };
+
+            return { ...row, slots: updatedSlots };
+          }),
+        })),
+      }))
+    );
+  };
+
 
   useEffect(() => {
     if (
@@ -141,26 +171,30 @@ export default function ScheduleGrid() {
   }, [monthlyScheduleData, scheduleListData, employeeListData, language]);
 
   return (
-    <div className="">
-      <div className="bg-accent px-5 rounded-t-2xl py-4">
-        <Table className="text-sm">
+    <div className="absolute w-full">
+      <div className="bg-accent rounded-t-2xl py-4 px-5 overflow-x-auto scrollbar-hide">
+        <Table className="w-full text-sm">
           <TableHeader>
-            <TableRow className="table-header">
+            <TableRow className="table-header text-[15px]">
               <TableHead className="h-12 w-12 px-4">
                 <Checkbox className="border-2 border-[#E5E7EB] rounded-[3px]" />
               </TableHead>
-              <TableHead className="h-12 px-6 text-center">Number</TableHead>
-              <TableHead className="h-12 px-6 text-center">Name</TableHead>
-              <TableHead className="h-12 px-6 text-center">Version</TableHead>
-              <TableHead className="h-12 w-10 px-6">Status</TableHead>
+              <TableHead className="h-12 w-[100px] px-4 text-center">Number</TableHead>
+              <TableHead className="h-12 w-[150px] px-4 text-center">Name</TableHead>
+              <TableHead className="h-12 w-[100px] px-4 text-center">Version</TableHead>
+              <TableHead className="h-12 w-[70px] px-4 text-center">Status</TableHead>
               {columnNumbers.map((num) => (
-                <TableHead key={num} className="h-12 w-7 text-center">
+                <TableHead
+                  key={num}
+                  className="h-12 w-[40px] px-[2px] text-center"
+                >
                   {num}
                 </TableHead>
               ))}
-              <TableHead className="h-12 px-6 text-center">Work hours</TableHead>
+              <TableHead className="h-12 w-[100px] px-4 text-center">Work hours</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody className="space-y-2">
             {data.map((category) => (
               <React.Fragment key={category.name}>
@@ -172,6 +206,7 @@ export default function ScheduleGrid() {
                     {category.name}
                   </TableCell>
                 </TableRow>
+
                 {category.subcategories.map((subcategory: any) => (
                   <React.Fragment key={subcategory.name}>
                     <TableRow className="bg-[#a3aed040]">
@@ -182,6 +217,7 @@ export default function ScheduleGrid() {
                         {subcategory.name}
                       </TableCell>
                     </TableRow>
+
                     {subcategory.rows.map((row: any) => (
                       <TableRow
                         key={row.id}
@@ -190,37 +226,30 @@ export default function ScheduleGrid() {
                         <TableCell className="w-12 px-4">
                           <Checkbox className="border-2 border-[#E5E7EB] rounded-[3px]" />
                         </TableCell>
-                        <TableCell className="px-4 text-center">{row.number}</TableCell>
-                        <TableCell className="px-4 text-center">{row.name}</TableCell>
-                        <TableCell className="px-4 text-center">{row.version}</TableCell>
-                        <TableCell className="w-10 px-4">
+                        <TableCell className="w-[100px] px-4 text-center">{row.number}</TableCell>
+                        <TableCell className="w-[150px] px-4 text-center">{row.name}</TableCell>
+                        <TableCell className="w-[100px] px-4 text-center">{row.version}</TableCell>
+                        <TableCell className="w-[70px] px-4">
                           <div className="flex items-center justify-center h-full">
                             <UnlockIcon color="#0078d4" className="h-4" />
                           </div>
                         </TableCell>
+
                         {row.slots.map((slot: any, slotIndex: number) => (
                           <TableCell
                             key={slotIndex}
-                            className="text-center text-xs py-3 px-[2px]"
+                            className="p-0"
                           >
-                            <div
-                              key={slotIndex}
-                              style={{
-                                backgroundColor: slot.sch_color,
-                                color: "#fff",
-                                borderRadius: 4,
-                                fontWeight: 700,
-                                textTransform: "capitalize",
-                                width: "40px",
-                                height: "28px",
-                                lineHeight: "28px",
-                              }}
-                            >
-                              {slot.status}
-                            </div>
+                            <StatusSelector
+                              status={slot.status}
+                              onStatusChange={(newStatus) =>
+                                handleStatusChange(row.id, slotIndex, newStatus)
+                              }
+                            />
                           </TableCell>
                         ))}
-                        <TableCell className="text-right">{row.hours}</TableCell>
+
+                        <TableCell className="w-[100px] px-4 text-center">{row.hours}</TableCell>
                       </TableRow>
                     ))}
                   </React.Fragment>

@@ -58,6 +58,7 @@ export default function Page() {
       },
       { field: "in_time", headerName: "In Time" },
       { field: "out_time", headerName: "Out Time" },
+      { field: "required_work_hours", headerName: "Duration"},
     ]);
   }, [language]);
 
