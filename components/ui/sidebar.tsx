@@ -127,7 +127,7 @@ const SidebarProvider = React.forwardRef<
         <TooltipProvider delayDuration={0}>
           <div
             className={cn(
-              "group/sidebar-wrapper overflow-y-auto flex h-full",
+              "group/sidebar-wrapper overflow-y-auto flex h-full scrollbar-hide",
               className
             )}
             ref={ref}

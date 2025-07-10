@@ -127,7 +127,7 @@ export default function ChatBotWidget() {
               <XIcon size={20} />
             </button>
           </div>
-          <div className="p-2 h-64 overflow-y-auto text-sm space-y-2 flex-1">
+          <div className="p-2 h-64 overflow-y-auto scrollbar-hide text-sm space-y-2 flex-1">
             {messages.map((msg, idx) => (
               <div key={idx} className={`text-${msg.from === 'You' ? 'right' : 'left'}`}>
                 <strong>{msg.from}:</strong> <span className="whitespace-pre-line">{msg.text}</span>

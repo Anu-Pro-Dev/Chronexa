@@ -298,6 +298,10 @@ export const editEmployeeGroupRequest = async (data: {
   return apiRequest(`/employeeGroup/edit/${employee_group_id}`, "PUT", payload);
 };
 
+// Function to fetch employee group by employee ID
+export const getEmployeeGroupByEmployeeId = async (employee_id: number) => {
+  return apiRequest(`/employeeGroup/get/${employee_id}`, "GET");
+};
 
 // Function to add a new employee group member
 export const addEmployeeGroupMemberRequest = async (data: {
