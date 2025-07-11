@@ -490,22 +490,25 @@ export const AlertsIcon = (color: string = "#64748B") => (
   </svg>
 );
 
-export const AddIcon = () => (
+export const AddIcon: React.FC<IconProps> = ({ className, color, width, height }) => (
   <svg
-    width="18"
-    height="18"
+    className={className}
     viewBox="0 0 18 18"
     fill="none"
+    width={width || "18"}
+    height={height || "18"}
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
       d="M8.78049 18C13.6298 18 17.561 13.9706 17.561 9C17.561 4.02944 13.6298 0 8.78049 0C3.93116 0 0 4.02944 0 9C0 13.9706 3.93116 18 8.78049 18Z"
-      fill="white"
+      // fill="white"
+      fill={color || 'currentColor'} 
       fillOpacity="0.25"
     />
     <path
       d="M9.18702 4.54167C9.18702 4.39801 9.13134 4.26023 9.03224 4.15865C8.93313 4.05707 8.79872 4 8.65856 4C8.51841 4 8.38399 4.05707 8.28489 4.15865C8.18578 4.26023 8.13011 4.39801 8.13011 4.54167V8.33333H4.43092C4.29077 8.33333 4.15635 8.3904 4.05725 8.49198C3.95814 8.59357 3.90247 8.73134 3.90247 8.875C3.90247 9.01866 3.95814 9.15643 4.05725 9.25802C4.15635 9.3596 4.29077 9.41667 4.43092 9.41667H8.13011V13.2083C8.13011 13.352 8.18578 13.4898 8.28489 13.5914C8.38399 13.6929 8.51841 13.75 8.65856 13.75C8.79872 13.75 8.93313 13.6929 9.03224 13.5914C9.13134 13.4898 9.18702 13.352 9.18702 13.2083V9.41667H12.8862C13.0264 9.41667 13.1608 9.3596 13.2599 9.25802C13.359 9.15643 13.4147 9.01866 13.4147 8.875C13.4147 8.73134 13.359 8.59357 13.2599 8.49198C13.1608 8.3904 13.0264 8.33333 12.8862 8.33333H9.18702V4.54167Z"
-      fill="white"
+      // fill="white"
+      fill={color || 'currentColor'}
     />
   </svg>
 );
@@ -600,13 +603,14 @@ export const ActionIcon = () => (
   </svg>
 );
 
-export const GenerateIcon = () => (
+export const GenerateIcon: React.FC<IconProps> = ({ className, color, width, height }) => (
   <svg
-    width="17"
-    height="16"
     viewBox="0 0 17 16"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    height={height || '16'} 
+    width={width || '17'}
   >
     <mask
       id="mask0_2210_9707"
@@ -625,11 +629,13 @@ export const GenerateIcon = () => (
       />
       <path
         d="M9.6366 5.91797H2.06924C1.6513 5.91797 1.3125 6.25677 1.3125 6.67471V14.2421C1.3125 14.66 1.6513 14.9988 2.06924 14.9988H9.6366C10.0545 14.9988 10.3933 14.66 10.3933 14.2421V6.67471C10.3933 6.25677 10.0545 5.91797 9.6366 5.91797Z"
-        fill="white"
+        // fill="white"
         stroke="white"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+        fill={color || 'currentColor'} 
+
       />
       <path
         d="M5.85278 8.56641V12.3501M3.96094 10.4582H7.74462"
@@ -642,7 +648,8 @@ export const GenerateIcon = () => (
     <g mask="url(#mask0_2210_9707)">
       <path
         d="M-0.582031 -0.890625H17.5796V17.271H-0.582031V-0.890625Z"
-        fill="white"
+        // fill="white"
+        fill={color || 'currentColor'} 
       />
     </g>
   </svg>

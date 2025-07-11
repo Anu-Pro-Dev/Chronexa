@@ -207,6 +207,17 @@ export default function LanguageProvider({
     path: "/self-services/",
     items: [
       {
+        label: "Workflow",
+        path: "/self-services/workflow/",
+        value: "workflow",
+      },
+      {
+        label: "Workflow",
+        path: "/self-services/workflow/add/",
+        value: "add_workflow",
+        hide: true,
+      },
+      {
         label: "Permissions",
         path: "/self-services/permissions/",
         value: "permissions",
@@ -274,17 +285,6 @@ export default function LanguageProvider({
         path: "/self-services/punches/my-requests/add/",
         value: "punches",
         hide:true
-      },
-      {
-        label: "Approval Workflow",
-        path: "/self-services/approval-workflow/",
-        value: "approval_workflow",
-      },
-      {
-        label: "Approval Workflow",
-        path: "/self-services/approval-workflow/add/",
-        value: "add_approval_workflow",
-        hide: true,
       },
     ],
     permissions: { 

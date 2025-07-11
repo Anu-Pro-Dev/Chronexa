@@ -40,7 +40,7 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.selfServices?.items}
-        isAddNewPagePath="/self-services/approval-workflow/add"
+        isAddNewPagePath="/self-services/workflow/add"
       />
       <PowerTable props={props} api={"/self-services/workflow"} />
     </div>
