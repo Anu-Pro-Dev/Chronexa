@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,64 +14,323 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Required from "@/components/ui/required";
+import toast from "react-hot-toast";
 import { GenerateIcon, AddIcon } from "@/icons/icons";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addDesignationRequest, editDesignationRequest } from "@/lib/apiHandler";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import {
+  addWorkflowTypeRequest,
+  editWorkflowTypeRequest,
+  addWorkflowTypeStepRequest,
+  editWorkflowTypeStepRequest,
+} from "@/lib/apiHandler";
 
 const formSchema = z.object({
-  code: z.string().min(1, { message: "Required" }).max(100),
-  // levels: z.string().min(1, { message: "Required" }).max(100),
-  workflows: z.string().min(1, { message: "Required" }).max(100),
-  workflow_name: z.string().default(""),
+  workflow_code: z.string().min(1, { message: "Required" }).max(100),
+  workflow_category: z.string().min(1, { message: "Required" }).max(100),
+  workflow_name: z.string().min(1, { message: "Required" }).max(100),
 });
 
+interface StepData {
+  id: number;
+  stepName: string;
+  roleId: string;
+  onSuccess: string;
+  onFailure: string;
+  workflow_steps_id?: number;
+  step_order?: number;
+}
+
 export default function AddWorkflow() {
-  const {language } = useLanguage();
+  const { language } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [rows, setRows] = useState<number[]>([]);
   const [showTable, setShowTable] = useState(false);
-
-  const [selectedLevels, setSelectedLevels] = useState(0);
+  const [workflowId, setWorkflowId] = useState<string | null>(null);
+  const [stepData, setStepData] = useState<Record<number, StepData>>({});
+  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [existingWorkflowData, setExistingWorkflowData] = useState<any>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { code: "", workflows: "", workflow_name: "", },
+    defaultValues: { workflow_code: "", workflow_category: "", workflow_name: "" },
   });
 
-  // function onSubmit(values: z.infer<typeof formSchema>) {
-  //   try {
-  //     const levelsCount = Number(values.levels);
-  //     setRows(Array.from({ length: levelsCount }, (_, i) => i + 1));
-  //     setSelectedLevels(parseInt(values.levels));
-  //   } catch (error) {
-  //     console.error("Form submission error", error);
-  //   }
-  // }
+  // Check if we're in edit mode by looking for selectedRow data
+  useEffect(() => {
+    const editData = sessionStorage.getItem('editWorkflowData');
+    if (editData) {
+      const workflowData = JSON.parse(editData);
+      setSelectedRow(workflowData);
+      setExistingWorkflowData(workflowData);
+      setWorkflowId(workflowData.workflow_id?.toString());
+      
+      // Debug log
+      console.log('Edit Data:', workflowData);
+      console.log('Category values:', {
+        eng: workflowData.workflow_category_eng,
+        arb: workflowData.workflow_category_arb
+      });
+
+      // Get the category value - prioritize the one that matches our dropdown options
+      let categoryValue = '';
+      const engCategory = workflowData.workflow_category_eng;
+      const arbCategory = workflowData.workflow_category_arb;
+      
+      // Check which one matches our dropdown options
+      const validCategories = ['Permissions', 'Leaves', 'Punches'];
+      if (validCategories.includes(engCategory)) {
+        categoryValue = engCategory;
+      } else if (validCategories.includes(arbCategory)) {
+        categoryValue = arbCategory;
+      } else {
+        // Fallback to language preference
+        categoryValue = language === 'ar' ? (arbCategory || engCategory || '') : (engCategory || arbCategory || '');
+      }
+
+      // Set form values with a delay to ensure component is ready
+      setTimeout(() => {
+        form.setValue('workflow_code', workflowData.workflow_code || '');
+        form.setValue('workflow_category', categoryValue);
+        form.setValue('workflow_name', 
+          language === 'ar' 
+            ? workflowData.workflow_name_arb || workflowData.workflow_name_eng || ''
+            : workflowData.workflow_name_eng || workflowData.workflow_name_arb || ''
+        );
+
+        console.log('Set category value:', categoryValue);
+        console.log('Form values after set:', form.getValues());
+      }, 100);
+
+      // If there are existing steps, show table and populate step data
+      if (workflowData.workflow_type_steps && workflowData.workflow_type_steps.length > 0) {
+        setShowTable(true);
+        const stepRows = workflowData.workflow_type_steps.map((_: any, index: number) => index + 1);
+        setRows(stepRows);
+        
+        const stepDataMap: Record<number, StepData> = {};
+        workflowData.workflow_type_steps.forEach((step: any, index: number) => {
+          stepDataMap[index + 1] = {
+            id: index + 1,
+            stepName: language === 'ar' ? step.step_arb || '' : step.step_eng || '',
+            roleId: step.role_id?.toString() || '',
+            onSuccess: step.is_final_step ? 'approved' : `step${index + 2}`,
+            onFailure: 'Rejected',
+            workflow_steps_id: step.workflow_steps_id,
+            step_order: step.step_order
+          };
+        });
+        setStepData(stepDataMap);
+      }
+
+      // Clear the session storage
+      sessionStorage.removeItem('editWorkflowData');
+    }
+  }, [form, language]);
+
+  // Update form values when language changes for existing data
+  useEffect(() => {
+    if (selectedRow && existingWorkflowData) {
+      const nameValue = language === 'ar' 
+        ? existingWorkflowData.workflow_name_arb || existingWorkflowData.workflow_name_eng || ''
+        : existingWorkflowData.workflow_name_eng || existingWorkflowData.workflow_name_arb || '';
+      
+      form.setValue('workflow_name', nameValue);
+    }
+  }, [language, selectedRow, existingWorkflowData, form]);
+
+  const addWorkflowMutation = useMutation({
+    mutationFn: addWorkflowTypeRequest,
+    onSuccess: (response) => {
+      toast.success("Workflow added successfully!");
+      queryClient.invalidateQueries({ queryKey: ["workflowType"] });
+      const workflowId = response.data?.workflow_id || response.workflow_id;
+      setWorkflowId(workflowId?.toString());
+      setRows([1]);
+      setShowTable(true);
+      setStepData({
+        1: {
+          id: 1,
+          stepName: "",
+          roleId: "",
+          onSuccess: "",
+          onFailure: "Rejected"
+        }
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to add workflow.");
+    },
+  });
+
+  const editWorkflowMutation = useMutation({
+    mutationFn: editWorkflowTypeRequest,
+    onSuccess: (response) => {
+      toast.success("Workflow updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["workflowType"] });
+      // Show table for editing steps
+      if (!showTable) {
+        setShowTable(true);
+        if (rows.length === 0) {
+          setRows([1]);
+          setStepData({
+            1: {
+              id: 1,
+              stepName: "",
+              roleId: "",
+              onSuccess: "",
+              onFailure: "Rejected"
+            }
+          });
+        }
+      }
+    },
+    onError: (error: any) => {
+      toast.error("Failed to update workflow.");
+    },
+  });
 
   const addRowBelow = (index: number) => {
-    if (rows.length >= 5) return; // Prevent adding more than 5 rows
+    if (rows.length >= 5) return;
     const newId = rows.length ? Math.max(...rows) + 1 : 1;
     const newRows = [...rows];
     newRows.splice(index + 1, 0, newId);
     setRows(newRows);
+    
+    setStepData(prev => ({
+      ...prev,
+      [newId]: {
+        id: newId,
+        stepName: "",
+        roleId: "",
+        onSuccess: "",
+        onFailure: "Rejected"
+      }
+    }));
   };
 
+  const updateStepData = (rowId: number, field: keyof StepData, value: string) => {
+    setStepData(prev => ({
+      ...prev,
+      [rowId]: {
+        ...prev[rowId],
+        [field]: value
+      }
+    }));
+  };
+
+  const addStepMutation = useMutation({
+    mutationFn: addWorkflowTypeStepRequest,
+    onSuccess: () => {
+      // This will be called for each individual step
+    },
+    onError: (error: any) => {
+      toast.error("Error saving step.");
+    },
+  });
+
+  const editStepMutation = useMutation({
+    mutationFn: editWorkflowTypeStepRequest,
+    onSuccess: () => {
+      // This will be called for each individual step update
+    },
+    onError: (error: any) => {
+      toast.error("Error updating step.");
+    },
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      setRows([1]); // One row initially
-      setShowTable(true);
+      const payload: any = {
+        workflow_code: values.workflow_code,
+      };
+
+      if (language === "en") {
+        payload.workflow_name_eng = values.workflow_name;
+        payload.workflow_category_eng = values.workflow_category;
+      } else {
+        payload.workflow_name_arb = values.workflow_name;
+        payload.workflow_category_arb = values.workflow_category;
+      }
+
+      if (selectedRow && workflowId) {
+        // Update existing workflow
+        payload.workflow_id = parseInt(workflowId);
+        editWorkflowMutation.mutate(payload);
+      } else {
+        // Create new workflow
+        addWorkflowMutation.mutate(payload);
+      }
     } catch (error) {
       console.error("Form submission error", error);
     }
   }
 
+  const handleSaveSteps = async () => {
+    try {
+      // Validate all steps have required data
+      const incompleteSteps = rows.filter(rowId => {
+        const step = stepData[rowId];
+        return !step?.stepName || !step?.roleId || !step?.onSuccess;
+      });
+
+      if (incompleteSteps.length > 0) {
+        toast.error("Please fill in all required fields for all steps.");
+        return;
+      }
+
+      // Process each step individually
+      const stepPromises = rows.map(async (rowId, index) => {
+        const step = stepData[rowId];
+        const stepOrder = index + 1;
+        
+        const stepPayload: any = {
+          workflow_id: workflowId ? parseInt(workflowId) : undefined,
+          step_order: stepOrder,
+          role_id: parseInt(step.roleId),
+          is_final_step: step.onSuccess === "approved",
+        };
+
+        // Add step name based on language
+        if (language === "en") {
+          stepPayload.step_eng = step.stepName;
+        } else {
+          stepPayload.step_arb = step.stepName;
+        }
+
+        // Check if this is an existing step (has workflow_steps_id)
+        if (step.workflow_steps_id) {
+          // Update existing step
+          stepPayload.workflow_steps_id = step.workflow_steps_id;
+          return editStepMutation.mutateAsync(stepPayload);
+        } else {
+          // Create new step
+          return addStepMutation.mutateAsync(stepPayload);
+        }
+      });
+
+      // Wait for all steps to be processed
+      await Promise.all(stepPromises);
+      
+      toast.success(`All workflow steps ${selectedRow ? 'updated' : 'saved'} successfully!`);
+      queryClient.invalidateQueries({ queryKey: ["workflowType"] });
+      queryClient.invalidateQueries({ queryKey: ["workflowSteps"] });
+      router.push("/self-services/workflow");
+      
+    } catch (error) {
+      console.error("Error processing steps:", error);
+      toast.error(`Failed to ${selectedRow ? 'update' : 'save'} some workflow steps.`);
+    }
+  };
+
   const getOnSuccessOptions = (currentIndex: number) => {
     const options = [];
 
+    // Add next steps as options (only steps that come after current step)
     for (let i = currentIndex + 2; i <= rows.length; i++) {
       options.push({ value: `step${i}`, label: `Step ${i}` });
     }
@@ -85,12 +344,14 @@ export default function AddWorkflow() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
         <div className="bg-accent p-6 rounded-2xl">
           <div className="pb-5">
-            <h1 className="font-bold text-xl text-primary">Generate the workflows</h1>
+            <h1 className="font-bold text-xl text-primary">
+              {selectedRow ? "Edit Workflow" : "Generate the workflows"}
+            </h1>
           </div>
           <div className="grid lg:grid-cols-3 gap-10">
             <FormField
               control={form.control}
-              name="code"
+              name="workflow_code"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Code <Required/></FormLabel>
@@ -103,21 +364,20 @@ export default function AddWorkflow() {
             />
             <FormField
               control={form.control}
-              name="workflows"
+              name="workflow_category"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Workflows <Required/></FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Choose workflows" />
+                        <SelectValue placeholder="Choose workflows category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Leaves</SelectItem>
-                      <SelectItem value="2">Permissions</SelectItem>
-                      <SelectItem value="3">Missing movements</SelectItem>
-                      <SelectItem value="4">Manual movements</SelectItem>
+                      <SelectItem value="Permissions">Permissions</SelectItem>
+                      <SelectItem value="Leaves">Leaves</SelectItem>
+                      <SelectItem value="Punches">Punches</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -142,108 +402,34 @@ export default function AddWorkflow() {
               </FormItem>
               )}
             />
-            {/* <FormField
-              control={form.control}
-              name="levels"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Levels <Required/></FormLabel>
-                  <Select onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose levels" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
           </div>
           <div className="w-full flex pt-8 gap-2 items-center justify-end">
-            <Button type="submit" variant="success" size="sm">
-              <GenerateIcon /> Generate
+            <Button
+              type="submit"
+              variant="success"
+              size="sm"
+              disabled={
+                selectedRow
+                  ? editWorkflowMutation.isPending
+                  : addWorkflowMutation.isPending
+              }
+            >
+              {selectedRow ? (
+                editWorkflowMutation.isPending ? "Updating..." : "Update"
+              ) : (
+                <>
+                  <GenerateIcon />
+                  {addWorkflowMutation.isPending ? "Generating..." : "Generate"}
+                </>
+              )}
             </Button>
           </div>
         </div>
 
-        {/* {rows.length > 0 && (
-          <div className="bg-accent p-8 rounded-2xl">
-            <div className="grid gap-4">
-              <div className="grid grid-cols-[auto,1fr,1fr,1fr,1fr,1fr] gap-4 text-[15px] font-semibold text-text-content text-center">
-                <div></div>
-                <div>Type</div>
-                <div>Value</div>
-                <div>On Success</div>
-                <div>On Failure</div>
-                <div>Status Text</div>
-              </div>
-
-              {rows.map((level) => (
-                <div key={level} className="grid grid-cols-[auto,1fr,1fr,1fr,1fr,1fr] gap-4">
-                  <div className="flex items-center text-[15px] font-semibold text-text-content whitespace-nowrap">{`${level}`}</div>
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Workflows" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="workflow1">Employee</SelectItem>
-                      <SelectItem value="workflow2">Group</SelectItem>
-                      <SelectItem value="workflow3">Organization</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose value" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="value1">Value 1</SelectItem>
-                      <SelectItem value="value2">Value 2</SelectItem>
-                      <SelectItem value="value3">Value 3</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose step" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOnSuccessOptions().map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Input type="text" placeholder="Rejected" className="w-full" />
-                  <Input type="text" placeholder="Enter sample text" className="w-full" />
-                </div>
-              ))}
-            </div>
-            {/* <div className="flex justify-end gap-2 items-center pt-7 py-5"> */}
-            {/* <div className="flex justify-end gap-4 pt-8">
-              <Button variant="outline" type="button" size="lg" onClick={() => router.push("/self-services/workflow")}>
-                Cancel
-              </Button>
-              <Button type="submit" size="lg">
-                Save
-              </Button>
-            </div>
-            {/* </div> */}
-          {/* </div> */}
-        {/* )} */} 
         {showTable && (
           <div className="bg-accent px-6 py-8 rounded-2xl">
             <div className="grid gap-4">
-              <div className="grid grid-cols-[40px,80px,1fr,1fr,1fr,1fr] gap-4 text-[15px] font-semibold text-text-content text-center">
+              <div className="grid grid-cols-[24px,80px,1fr,1fr,1fr,1fr] gap-4 text-[15px] font-semibold text-text-content text-center">
                 <div></div>
                 <div>Step Order</div>
                 <div>Step Name</div>
@@ -254,7 +440,7 @@ export default function AddWorkflow() {
               {rows.map((rowId, index) => (
                 <div
                   key={rowId}
-                  className="grid grid-cols-[40px,80px,1fr,1fr,1fr,1fr] gap-4 items-center"
+                  className="grid grid-cols-[24px,80px,1fr,1fr,1fr,1fr] gap-4 items-center"
                 >
                   {index === rows.length - 1 && rows.length < 5 ? (
                     <button
@@ -272,31 +458,32 @@ export default function AddWorkflow() {
                     {index + 1}
                   </div>
 
-                  <Input type="text" placeholder="Enter step name" className="w-full" />
+                  <Input 
+                    type="text" 
+                    placeholder="Enter step name" 
+                    className="w-full"
+                    value={stepData[rowId]?.stepName || ""}
+                    onChange={(e) => updateStepData(rowId, 'stepName', e.target.value)}
+                  />
 
-                  {/* <Select>
+                  <Select 
+                    value={stepData[rowId]?.roleId || ""}
+                    onValueChange={(value) => updateStepData(rowId, 'roleId', value)}
+                  >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Type" />
+                      <SelectValue placeholder="Choose Role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="employee">Employee</SelectItem>
-                      <SelectItem value="group">Group</SelectItem>
-                      <SelectItem value="organization">Organization</SelectItem>
-                    </SelectContent>
-                  </Select> */}
-
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Value" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Value 1</SelectItem>
-                      <SelectItem value="2">Value 2</SelectItem>
-                      <SelectItem value="3">Value 3</SelectItem>
+                      <SelectItem value="1">Role 1</SelectItem>
+                      <SelectItem value="2">Role 2</SelectItem>
+                      <SelectItem value="3">Role 3</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  <Select>
+                  <Select
+                    value={stepData[rowId]?.onSuccess || ""}
+                    onValueChange={(value) => updateStepData(rowId, 'onSuccess', value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Step" />
                     </SelectTrigger>
@@ -309,7 +496,13 @@ export default function AddWorkflow() {
                     </SelectContent>
                   </Select>
 
-                  <Input type="text" placeholder="Rejected" className="w-full" />
+                  <Input 
+                    type="text" 
+                    placeholder="Rejected" 
+                    className="w-full"
+                    value={stepData[rowId]?.onFailure || "Rejected"}
+                    onChange={(e) => updateStepData(rowId, 'onFailure', e.target.value)}
+                  />
 
                 </div>
               ))}
@@ -323,14 +516,27 @@ export default function AddWorkflow() {
                 onClick={() => {
                   setShowTable(false);
                   setRows([]);
+                  setStepData({});
                   router.push("/self-services/workflow");
                 }}
               >
                 Cancel
               </Button>
-              <Button type="submit" size="lg">
-                Save
+              <Button 
+                type="button" 
+                size="lg"
+                onClick={handleSaveSteps}
+                disabled={addStepMutation.isPending || editStepMutation.isPending}
+              >
+                {editStepMutation.isPending
+                  ? "Updating..."
+                  : addStepMutation.isPending
+                  ? "Saving..."
+                  : selectedRow
+                  ? "Update"
+                  : "Save"}
               </Button>
+
             </div>
           </div>
         )}

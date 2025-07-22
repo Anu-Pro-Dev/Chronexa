@@ -84,17 +84,64 @@ export default function PowerHeader({
     onSelectionClear: () => props.setSelectedRows?.([]),
   });
 
+  const getEntityIdField = (entityName: string) => {
+    // Handle special cases where the ID field doesn't follow the standard pattern
+    const specialMappings: Record<string, string> = {
+      'workflowType': 'workflow_id',
+      'employeeShortPermission': 'single_permissions_id',
+    };
+    
+    if (specialMappings[entityName]) {
+      return specialMappings[entityName];
+    }
+    
+    
+    // Default pattern - convert camelCase to snake_case and append _id
+    return `${camelToSnake(entityName)}_id`;
+  };
+
   const handleDelete = async () => {
     if (!entityName) {
       toast.error("Entity name is not defined");
       return;
     }
-    const entityIdField = `${camelToSnake(entityName)}_id`;
+    
+    const entityIdField = getEntityIdField(entityName);
     const selectedRowIds = selectedRows?.map(row => row[entityIdField]) || [];
-    if (selectedRowIds.length === 0) return;
-
-    deleteMutation.mutate({ entityName, ids: selectedRowIds });
+    
+    // Check if we found any valid IDs
+    if (selectedRowIds.length === 0) {
+      toast.error("No valid items selected for deletion");
+      return;
+    }
+    
+    // Filter out any undefined values that might have slipped through
+    const validIds = selectedRowIds.filter(id => id !== undefined && id !== null);
+    
+    if (validIds.length === 0) {
+      toast.error("Selected items do not have valid IDs");
+      return;
+    }
+    
+    try {
+      deleteMutation.mutate({ entityName, ids: validIds });
+    } catch (error) {
+      console.error('Delete operation failed:', error);
+      toast.error("Delete operation failed");
+    }
   };
+
+  // const handleDelete = async () => {
+  //   if (!entityName) {
+  //     toast.error("Entity name is not defined");
+  //     return;
+  //   }
+  //   const entityIdField = `${camelToSnake(entityName)}_id`;
+  //   const selectedRowIds = selectedRows?.map(row => row[entityIdField]) || [];
+  //   if (selectedRowIds.length === 0) return;
+
+  //   deleteMutation.mutate({ entityName, ids: selectedRowIds });
+  // };
 
   return (
     <div className="flex flex-col">

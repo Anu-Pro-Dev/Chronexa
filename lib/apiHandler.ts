@@ -122,8 +122,7 @@ export const addLocationRequest = async (data: {
 export const editLocationRequest = async (data: {
   location_id?: number;
   location_code: string;
-  location_eng?: string;
-  location_arb?: string;
+  
   city?: string;
   region_name?: string;
   country_code?: string;
@@ -474,4 +473,58 @@ export const editOrgScheduleRequest = async (data: {
   const { organization_schedule_id, ...payload } = data;
 
   return apiRequest(`/organizationSchedule/edit/${organization_schedule_id}`, "PUT", payload);
+};
+
+// Function to add a new workflow type
+export const addWorkflowTypeRequest = async (data: {
+  workflow_id?: number;
+  workflow_code: string;
+  workflow_name_eng?: string;
+  workflow_name_arb?: string;
+  workflow_category_eng?: string;
+  workflow_category_arb?: string;
+}) => {
+  return apiRequest("/workflowType/add", "POST", data);
+};
+
+// Function to edit a workflow type
+export const editWorkflowTypeRequest = async (data: {
+  workflow_id: number;
+  workflow_code?: string;
+  workflow_name_eng?: string;
+  workflow_name_arb?: string;
+  workflow_category_eng?: string;
+  workflow_category_arb?: string;
+}) => {
+  const { workflow_id, ...payload } = data;
+
+  return apiRequest(`/workflowType/edit/${workflow_id}`, "PUT", payload);
+};
+
+// Function to add a new workflow type step
+export const addWorkflowTypeStepRequest = async (data: {
+  workflow_steps_id?: number;
+  workflow_id?: number;
+  step_order: number;
+  step_eng?: string;
+  step_arb?: string;
+  role_id?: number;
+  is_final_step?: boolean;
+}) => {
+  return apiRequest("/workflowTypeStep/add", "POST", data);
+};
+
+// Function to edit a workflow type step
+export const editWorkflowTypeStepRequest = async (data: {
+  workflow_steps_id?: number;
+  workflow_id?: number;
+  step_order: number;
+  step_eng?: string;
+  step_arb?: string;
+  role_id?: number;
+  is_final_step?: boolean;
+}) => {
+  const { workflow_steps_id, ...payload } = data;
+
+  return apiRequest(`/workflowTypeStep/edit/${workflow_steps_id}`, "PUT", payload);
 };

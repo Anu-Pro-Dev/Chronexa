@@ -11,7 +11,7 @@ const font_nunito_sans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Chronologix",
+  title: "Chronexa",
   description: "",
 };
 

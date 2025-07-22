@@ -1,8 +1,226 @@
+// "use client";
+// import React, { useEffect, useState, useCallback, useMemo } from "react";
+// import PowerHeader from "@/components/custom/power-comps/power-header";
+// import PowerTable from "@/components/custom/power-comps/power-table";
+// import PowerTabs from "@/components/custom/power-comps/power-tabs";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import {
+//   Popover,
+//   PopoverContent,
+//   PopoverTrigger,
+// } from "@/components/ui/popover";
+// import { CalendarIcon } from "@/icons/icons";
+// import { Calendar } from "@/components/ui/calendar";
+// import { format } from "date-fns";
+// import { Label } from "@/components/ui/label";
+// import { Button } from "@/components/ui/button";
+// import { useLanguage } from "@/providers/LanguageProvider";
+// import { useQueryClient } from "@tanstack/react-query";
+// import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+// import { useRouter } from "next/navigation";
+// import { toast } from "react-hot-toast";
+
+// export default function Page() {
+//   const router = useRouter();
+//   const { modules, language } = useLanguage();
+//   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+//   const [currentPage, setCurrentPage] = useState<number>(1);
+//   const [sortField, setSortField] = useState<string>("");
+//   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+//   const [searchValue, setSearchValue] = useState<string>("");
+//   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+//   const queryClient = useQueryClient();
+//   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+//   const [toDate, setToDate] = useState<Date | undefined>(undefined);
+//   const [selectedOption, setSelectedOption] = useState<string>("");
+
+//   const options = [
+//     { value: "option1", label: "All" },
+//     { value: "option2", label: "Pending manger" },
+//     { value: "option3", label: "Pending HR" },
+//     { value: "option4", label: "Approved" },
+//     { value: "option5", label: "Rejected" },
+//     { value: "option6", label: "Cancelled" },
+//   ];
+
+//   useEffect(() => {
+//     setColumns([
+//       { field: "permission_type_id", headerName: language === "ar" ? "الكود" : "Permission Type" },
+//       { field: "employee_id", headerName: language === "ar" ? "الموظف" : "Employee" },
+//       { field: "from_time", headerName: "From time" },
+//       { field: "to_time", headerName: "To Time" },
+//       { field: "remarks", headerName: "Justification" },
+//       { field: "perm_minutes", headerName: language === "ar" ? "ماكس ماكس" : "Permission Minutes" },
+//     ]);
+//   }, [language]);
+
+
+//   const { data: employeeShortPermissionData, isLoading } = useFetchAllEntity("employeeShortPermission");
+
+//   const data = useMemo(() => {
+//     if (Array.isArray(employeeShortPermissionData?.data)) {
+//       return employeeShortPermissionData.data.map((permReqs: any) => {
+//         return {
+//           ...permReqs,
+//           id: permReqs.single_permissions_id,
+//           from_time: new Date(permReqs.from_time).toLocaleTimeString("en-US", {
+//             hour: "2-digit",
+//             minute: "2-digit",
+//             hour12: true, // use false for 24-hour format
+//           }),
+//           to_time: new Date(permReqs.to_time).toLocaleTimeString("en-US", {
+//             hour: "2-digit",
+//             minute: "2-digit",
+//             hour12: true, // use false for 24-hour format
+//           }),
+//         };
+//       });
+//     }
+//     return [];
+//   }, [employeeShortPermissionData]);
+
+//   const props = {
+//     Data: data,
+//     Columns: columns,
+//     selectedRows,
+//     setSelectedRows,
+//     isLoading,
+//     SortField: sortField,
+//     CurrentPage: currentPage,
+//     SetCurrentPage: setCurrentPage,
+//     SetSortField: setSortField,
+//     SortDirection: sortDirection,
+//     SetSortDirection: setSortDirection,
+//     SearchValue: searchValue,
+//     SetSearchValue: setSearchValue,
+//   };
+ 
+//   const handleSave = () => {
+//     queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+//   };
+ 
+//   const handleEditClick = (rowData: any) => {
+//     try {
+//       const editData = {
+//         ...rowData,
+//       };
+      
+//       sessionStorage.setItem('editPermissionRequestData', JSON.stringify(editData));
+      
+//       // Navigate to the add page (which will handle edit mode)
+//       router.push("/self-services/permissions/requests/add");
+//     } catch (error) {
+//       console.error("Error setting edit data:", error);
+//       toast.error("Failed to load permission data for editing");
+//     }
+//   };
+ 
+//   const handleRowSelection = useCallback((rows: any[]) => {
+//     setSelectedRows(rows);
+//   }, []);
+
+//   return (
+//     <div className="flex flex-col gap-4">
+//       <PowerHeader
+//         props={props}
+//         selectedRows={selectedRows}
+//         items={modules?.selfServices.items}
+//         entityName="employeeShortPermission"
+//         isAddNewPagePath="/self-services/permissions/manage/add"
+//       />
+//       <div className="grid grid-cols-3 gap-4">
+//         <div>
+//           <Select onValueChange={setSelectedOption} value={selectedOption}>
+//             <SelectTrigger className="bg-accent border-grey">
+//               <Label className="font-normal text-secondary">
+//                 Status :
+//               </Label>
+//               <SelectValue placeholder="Choose status"/>
+//             </SelectTrigger>
+//             <SelectContent>
+//               {options.map((option) => (
+//                 <SelectItem key={option.value} value={option.value}>
+//                   {option.label}
+//                 </SelectItem>
+//               ))}
+//             </SelectContent>
+//           </Select>
+//         </div>
+//         <div>
+//           <Popover>
+//             <PopoverTrigger asChild>
+//               <Button size={"lg"} variant={"outline"}
+//                 className="w-full bg-accent px-4 flex justify-between border-grey"
+//               >
+//                 <p>
+//                   <Label className="font-normal text-secondary">
+//                     From Date :
+//                   </Label>
+//                   <span className="px-1 text-sm text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
+//                 </p>
+//                 <CalendarIcon />
+//               </Button>
+//             </PopoverTrigger>
+//             <PopoverContent className="w-auto p-0" align="start">
+//               <Calendar
+//                 mode="single"
+//                 selected={fromDate}
+//                 onSelect={setFromDate}
+//               />
+//             </PopoverContent>
+//           </Popover>
+//         </div>
+//         <div>
+//           <Popover>
+//           <PopoverTrigger asChild>
+//               <Button size={"lg"} variant={"outline"}
+//                 className="w-full bg-accent px-4 flex justify-between border-grey"
+//               >
+//                 <p>
+//                   <Label className="font-normal text-secondary">
+//                     To Date :
+//                   </Label>
+//                   <span className="px-1 text-sm text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
+//                 </p>
+//                 <CalendarIcon />
+//               </Button>
+//             </PopoverTrigger>
+//             <PopoverContent className="w-auto p-0" align="start">
+//               <Calendar mode="single" selected={toDate} onSelect={setToDate} />
+//             </PopoverContent>
+//           </Popover>
+//         </div>
+//       </div>
+//       <div className="bg-accent rounded-2xl">
+//         <div className="col-span-2 p-6">
+//           <h1 className="font-bold text-xl text-primary">Manage Permissions</h1>
+//         </div>
+//         <div className="px-6">
+//           <PowerTabs items={modules?.selfServices?.permissions?.items} />
+//         </div>
+//         <PowerTable
+//           props={props}
+//           showEdit={false}
+//           onEditClick={handleEditClick}
+//           onRowSelection={handleRowSelection}
+//           isLoading={isLoading}
+//         />
+//       </div>
+//     </div>
+//   );
+// }
+
+
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import { useLanguage } from "@/providers/LanguageProvider";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
 import {
   Select,
@@ -21,63 +239,161 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 export default function Page() {
-  const { modules } = useLanguage();
-  const [Data, SetData] = useState<any>([]);
-  const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "employee" },
-    { field: "date" },
-    { field: "from_date", headerName: "From date" },
-    { field: "to_date", headerName: "To date" },
-    { field: "from_time", headerName: "From time" },
-    { field: "to_time", headerName: "To Time" },
-    { field: "remarks", headerName: "Justification" },
-  ]);
-  const [open, on_open_change] = useState<boolean>(false)
-  const [filter_open, filter_on_open_change] = useState<boolean>(false)
-  const [CurrentPage, SetCurrentPage] = useState<number>(1)
-  const [SortField, SetSortField] = useState<string>("")
-  const [SortDirection, SetSortDirection] = useState<string>("asc")
-  const [SearchValue, SetSearchValue] = useState<string>("")
+  const router = useRouter();
+  const { modules, language } = useLanguage();
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const queryClient = useQueryClient();
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [selectedOption, setSelectedOption] = useState<string>("all");
 
+  // Updated status options to match approve_reject_flag values
   const options = [
-    { value: "option1", label: "All" },
-    { value: "option2", label: "Pending manger" },
-    { value: "option3", label: "Pending HR" },
-    { value: "option4", label: "Approved" },
-    { value: "option5", label: "Rejected" },
-    { value: "option6", label: "Cancelled" },
+    { value: "all", label: "All" },
+    { value: "0", label: "Pending" },
+    { value: "1", label: "Approved" },
+    { value: "2", label: "Rejected" },
   ];
 
-   const props = {
-    Data,
-    SetData,
-    Columns,
-    filter_open,
-    filter_on_open_change,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    SearchValue,
-    SetSearchValue,
-    open,
-    on_open_change,
-  }
+  useEffect(() => {
+    setColumns([
+      { field: "permission_type_name", headerName: language === "ar" ? "نوع الإذن" : "Permission Type" },
+      { field: "employee_name", headerName: language === "ar" ? "الموظف" : "Employee" },
+      { field: "from_time", headerName: "From Time" },
+      { field: "to_time", headerName: "To Time" },
+      { field: "remarks", headerName: "Justification" },
+      { field: "perm_minutes", headerName: language === "ar" ? "دقائق الإذن" : "Permission Minutes" },
+      { field: "status", headerName: language === "ar" ? "الحالة" : "Status" },
+    ]);
+  }, [language]);
+
+  // Fetch related data for displaying names
+  const { data: employeeShortPermissionData, isLoading } = useFetchAllEntity("employeeShortPermission");
+  const { data: permissionTypesData } = useFetchAllEntity("permissionTypes");
+  const { data: employeesData } = useFetchAllEntity("employees");
+
+  // Helper function to get status label
+  const getStatusLabel = (flag: number) => {
+    switch(flag) {
+      case 0: return "Pending";
+      case 1: return "Approved"; 
+      case 2: return "Rejected";
+      default: return "Unknown";
+    }
+  };
+
+  const data = useMemo(() => {
+    if (Array.isArray(employeeShortPermissionData?.data)) {
+      return employeeShortPermissionData.data
+        .filter((permReqs: any) => {
+          // Filter by status if selected
+          if (selectedOption && selectedOption !== "all") {
+            return permReqs.approve_reject_flag?.toString() === selectedOption;
+          }
+          return true;
+        })
+        .filter((permReqs: any) => {
+          // Filter by date range if selected
+          if (fromDate || toDate) {
+            const permDate = new Date(permReqs.from_time);
+            if (fromDate && permDate < fromDate) return false;
+            if (toDate && permDate > toDate) return false;
+          }
+          return true;
+        })
+        .map((permReqs: any) => {
+          // Find permission type name
+          const permissionType = permissionTypesData?.data?.find(
+            (pt: any) => pt.permission_type_id === permReqs.permission_type_id
+          );
+          
+          // Find employee name
+          const employee = employeesData?.data?.find(
+            (emp: any) => emp.employee_id === permReqs.employee_id
+          );
+
+          return {
+            ...permReqs,
+            id: permReqs.single_permissions_id,
+            permission_type_name: permissionType?.permission_type_name || `ID: ${permReqs.permission_type_id}`,
+            employee_name: employee ? `${employee.first_name} ${employee.last_name}`.trim() : `ID: ${permReqs.employee_id}`,
+            from_time: new Date(permReqs.from_time).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            to_time: new Date(permReqs.to_time).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            status: getStatusLabel(permReqs.approve_reject_flag),
+          };
+        });
+    }
+    return [];
+  }, [employeeShortPermissionData, permissionTypesData, employeesData, selectedOption, fromDate, toDate]);
+
+  const props = {
+    Data: data,
+    Columns: columns,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
+  };
+ 
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+  };
+ 
+  const handleEditClick = (rowData: any) => {
+    try {
+      const editData = {
+        ...rowData,
+      };
+      
+      sessionStorage.setItem('editPermissionRequestData', JSON.stringify(editData));
+      
+      // Navigate to the add page (which will handle edit mode)
+      router.push("/self-services/permissions/requests/add");
+    } catch (error) {
+      console.error("Error setting edit data:", error);
+      toast.error("Failed to load permission data for editing");
+    }
+  };
+ 
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader 
-        props={props} 
-        items={modules?.selfServices?.items} 
-        isAddNewPagePath="/self-services/permissions/requests/add"
+      <PowerHeader
+        props={props}
+        selectedRows={selectedRows}
+        items={modules?.selfServices.items}
+        entityName="employeeShortPermission"
+        isAddNewPagePath="/self-services/permissions/manage/add"
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
@@ -144,12 +460,18 @@ export default function Page() {
       </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">My Permission Request</h1>
+          <h1 className="font-bold text-xl text-primary">Manage Permissions</h1>
         </div>
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.permissions?.items} />
         </div>
-        <PowerTable props={props} api={"/self-services/manage-permissions/application"} />
+        <PowerTable
+          props={props}
+          showEdit={false}
+          onEditClick={handleEditClick}
+          onRowSelection={handleRowSelection}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

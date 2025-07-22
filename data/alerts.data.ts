@@ -26,10 +26,10 @@ export const sms_columns = [
 
 export const email_data: EmailDataType[] = [
   {
-    email: "ADMIN@chronologix.biz",
+    email: "ADMIN@chronexa.biz",
     subject: "Permission Notification",
     email_body:
-      "Dear Employee102,Employee58 has applied in chronologix attendance system for manual movement for 18-07-2024 please Click here to take necessary action for the same.Regards,HR DepartmentTime And Attendance System",
+      "Dear Employee102,Employee58 has applied in chronexa attendance system for manual movement for 18-07-2024 please Click here to take necessary action for the same.Regards,HR DepartmentTime And Attendance System",
     status: "Sent",
     cc_email: "",
     bcc_email: "",
@@ -38,10 +38,10 @@ export const email_data: EmailDataType[] = [
     updated: "03-09-2024 08:42",
   },
   {
-    email: "ADMIN@chronologix.biz",
+    email: "ADMIN@chronexa.biz",
     subject: "Permission Notification",
     email_body:
-      "Dear ADMIN, ADMIN has applied in chronologix attendance system for  Permission for 06-09-2024, please <a href='https://ta.dgs.gov.ae/Approval/Pending-Approval' target='_blank'>Click here</a> to take necessary action for the same.  Regards, HR Department Time And Attendance System Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HR Department .",
+      "Dear ADMIN, ADMIN has applied in chronexa attendance system for  Permission for 06-09-2024, please <a href='https://ta.dgs.gov.ae/Approval/Pending-Approval' target='_blank'>Click here</a> to take necessary action for the same.  Regards, HR Department Time And Attendance System Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HR Department .",
     status: "Unsent",
     cc_email: "",
     bcc_email: "",
@@ -50,10 +50,10 @@ export const email_data: EmailDataType[] = [
     updated: "05-09-2024 05:23",
   },
   {
-    email: "Employee79@chronologix.biz",
+    email: "Employee79@chronexa.biz",
     subject: "Permission Notification",
     email_body:
-      "Dear Employee79, Employee56 has applied in chronologix attendance system for  Permission for 21-09-2024, please <a href='https://ta.dgs.gov.ae/Approval/Pending-Approval' target='_blank'>Click here</a> to take necessary action for the same.  Regards, HR Department Time And Attendance System Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HR Department .",
+      "Dear Employee79, Employee56 has applied in chronexa attendance system for  Permission for 21-09-2024, please <a href='https://ta.dgs.gov.ae/Approval/Pending-Approval' target='_blank'>Click here</a> to take necessary action for the same.  Regards, HR Department Time And Attendance System Note: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HR Department .",
     status: "Unsent",
     cc_email: "",
     bcc_email: "",
@@ -62,7 +62,7 @@ export const email_data: EmailDataType[] = [
     updated: "16-09-2024 11:43",
   },
   {
-    email: "Employee56@chronologix.biz",
+    email: "Employee56@chronexa.biz",
     subject: "Permission Notification",
     email_body:
       "Dear Employee56,\nYour Permission request for 21-09-2024 has been approved by ADMIN.\nRegards,\nHC Department\nNote: This is an automated email notification generated from the system. Please do not respond to this email address. If further assistance is required, please contact HC Department",

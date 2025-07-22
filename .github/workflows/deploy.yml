@@ -28,7 +28,7 @@ jobs:
           try {
             Write-Host '--- Starting deployment on Host 1 ---'
 
-            cd 'E:\APP\Chronologix'
+            cd 'E:\APP\Chronexa'
 
             Write-Host 'Resetting any local changes...'
             git reset --hard
@@ -44,7 +44,7 @@ jobs:
 
             Write-Host 'Restarting IIS App Pool...'
             Import-Module WebAdministration
-            Restart-WebAppPool 'chronologix'
+            Restart-WebAppPool 'chronexa'
 
             Write-Host '--- Deployment successful on Host 1 ---'
           } catch {
@@ -63,7 +63,7 @@ jobs:
           try {
             Write-Host '--- Starting deployment on Host 2 ---'
 
-            cd 'E:\APP\Chronologix'
+            cd 'E:\APP\Chronexa'
 
             Write-Host 'Resetting any local changes...'
             git reset --hard
@@ -79,7 +79,7 @@ jobs:
 
             Write-Host 'Restarting IIS App Pool...'
             Import-Module WebAdministration
-            Restart-WebAppPool 'chronologix'
+            Restart-WebAppPool 'chronexa'
 
             Write-Host '--- Deployment successful on Host 2 ---'
           } catch {

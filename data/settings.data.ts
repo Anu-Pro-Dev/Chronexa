@@ -56,10 +56,10 @@ export const db_settings_data: DBSettingsDataType[] = [
   },
   {
     databaseType: "Microsoft SQL Server",
-    databaseName: "Chronologix",
+    databaseName: "Chronexa",
     host: "192.168.1.187 \ SQLEXPRESS",
     port: 61627,
-    user: "Chronologix",
+    user: "Chronexa",
     password: "Chr0n0l0g1x",
     isConnected: true,
     createdBy: "super-admin",

@@ -23,8 +23,8 @@ export const organizationtypes_columns = [
 export const organizationtypes_data: OrganizationTypesDataType[] = [
   {
     hierarchy: 0,
-    descriptionEng: "Chronologix",
-    descriptionArb: "Chronologix",
+    descriptionEng: "Chronexa",
+    descriptionArb: "Chronexa",
   },
   {
     hierarchy: 1,

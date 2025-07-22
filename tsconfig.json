@@ -35,7 +35,7 @@
     ".next/types/**/*.ts",
     "C:\\temp\\.next/types/**/*.ts",
     "D:\\.next/types/**/*.ts",
-    "D:\\Chronologix-new\\.next/types/**/*.ts"
+    "D:\\Chronexa-new\\.next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

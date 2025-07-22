@@ -1,5 +1,5 @@
 
-# Chronologix
+# Chronexa
 
 We are developing a comprehensive Time & attendance application from scratch. This software
 will enable organizations to efficiently monitor employee check-in and check-out times, track
@@ -11,7 +11,7 @@ This is a Next.js project with NextUI & shadcn/ui.
 Clone the project
 
 ```bash
-  git clone https://github.com/Anu-Pro-Dev/Chronologix.git
+  git clone https://github.com/Anu-Pro-Dev/Chronexa.git
 ```
 
 Install dependencies
