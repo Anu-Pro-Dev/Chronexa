@@ -75,6 +75,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader 
         props={props} 
+        disableAdd
         items={modules?.selfServices?.items}
         isAddNewPagePath="/self-services/leaves/requests/add"
       />

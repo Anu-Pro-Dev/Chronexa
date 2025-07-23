@@ -77,11 +77,16 @@ const formSchema = z.object({
 
 
 export default function AddManageMovements ({
-    on_open_change,props
-  }: {
-    on_open_change: any;
-    props:any;
-  }){
+  on_open_change,
+  selectedRowData,
+  onSave,
+  // props,
+}: {
+  on_open_change: any;
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
+  // props: any;
+}) {
     
   const [Data, SetData] = useState<any>([]);
   
@@ -403,9 +408,9 @@ export default function AddManageMovements ({
               </div>
             </form>
         </Form>
-        <div >
-          <PowerTable props={props} api={"/self-services/punches/manual/add"} ispageValue5={true} />
-        </div>
+        {/* <div >
+          <PowerTable api={"/self-services/punches/manual/add"} ispageValue5={true} />
+        </div> */}
       </>  
     )
 }
