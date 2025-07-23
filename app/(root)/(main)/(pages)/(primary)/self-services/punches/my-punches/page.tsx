@@ -1,114 +1,3 @@
-// "use client";
-// import PowerHeader from "@/components/custom/power-comps/power-header";
-// import PowerTable from "@/components/custom/power-comps/power-table";
-
-// import React, { useState } from "react";
-
-// import { useLanguage } from "@/providers/LanguageProvider";
-// import PowerTabs from "@/components/custom/power-comps/power-tabs";
-// import AddManageMovements from "@/forms/self-services/AddManageMovements";
-// import FilterManualMovement from "@/forms/self-services/FilterManualMovement";
-
-// export default function Page() {
-//   const { modules } = useLanguage();
-//   const [Data, SetData] = useState<any>([]);
-//   const [DataAdd, SetDataAdd] = useState<any>([]);
-
-//   const [Columns, setColumns] = useState([
-//     { field: "number" },
-//     { field: "employee" },
-//     { field: "date" },
-//     { field: "from_date", headerName: "From date" },
-//     { field: "to_date", headerName: "To date" },
-//     { field: "from_time", headerName: "From time" },
-//     { field: "to_time", headerName: "To Time" },
-//   ]);
-
-//   const [ColumnsAdd, setColumnsAdd] = useState([
-//     { field: "number" },
-//     { field: "name" },
-//     { field: "designation" },
-//     { field: "organization" },
-//     { field: "schedule_type" },
-//   ]);
-
-//   const [open, on_open_change] = useState<boolean>(false);
-//   const [filter_open, filter_on_open_change] = useState<boolean>(false);
-//   const [CurrentPage, SetCurrentPage] = useState<number>(1)
-//   const [SortField, SetSortField] = useState<string>("")
-//   const [SortDirection, SetSortDirection] = useState<string>("asc")
-//   const [CurrentPageAdd, SetCurrentPageAdd] = useState<number>(1)
-//   const [SortFieldAdd, SetSortFieldAdd] = useState<string>("")
-//   const [SortDirectionAdd, SetSortDirectionAdd] = useState<string>("asc")
-//   const [SearchValue, SetSearchValue] = useState<string>("")
-
-//    const props = {
-//     Data,
-//     SetData,
-//     Columns,
-//     filter_open,
-//     filter_on_open_change,
-//     SortField,
-//     CurrentPage,
-//     SetCurrentPage,
-//     SetSortField,
-//     SortDirection,
-//     SetSortDirection,
-//     SearchValue,
-//     SetSearchValue,
-//     open,
-//     on_open_change,
-//   };
-
-//   const propsAdd = {
-//     Data:DataAdd,
-//     SetData:SetDataAdd,
-//     Columns: ColumnsAdd,
-//     filter_open,
-//     filter_on_open_change,
-//     SortField: SortFieldAdd,
-//     CurrentPage: CurrentPageAdd,
-//     SetCurrentPage: SetCurrentPageAdd,
-//     SetSortField : SetSortFieldAdd,
-//     SortDirection: SortDirectionAdd,
-//     SetSortDirection: SetSortDirectionAdd,
-//     SearchValue,
-//     SetSearchValue,
-//     open,
-//     on_open_change,
-//   };
-
-//   return (
-//     <div className="flex flex-col gap-4">
-//       <PowerHeader
-//         props={props}
-//         items={modules?.selfServices?.items}
-//         // enableFilters
-//         // modal_title="none"
-//         modal_component={<AddManageMovements on_open_change={on_open_change} props={propsAdd} />}
-//         isLarge2={true}
-//         // filter_modal_title="none"
-//         filter_modal_component={
-//           <FilterManualMovement on_open_change={filter_on_open_change} />
-//         }
-//         isLarge={true}
-//       />
-//       <div className="bg-accent rounded-2xl">
-//         <div className="col-span-2 p-6">
-//           <h1 className="font-bold text-xl text-primary">My Punches</h1>
-//           {/* <h1 className="font-semibold text-sm text-text-secondary">
-//             Manual Movements can be viewed in this tab
-//           </h1> */}
-//         </div>
-//         <div className="px-6">
-//           <PowerTabs items={modules?.selfServices?.punches?.items} />
-//         </div>
-//         <PowerTable props={props} api={"/self-services/manage-movements/manual"} />
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
@@ -138,30 +27,62 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "permission_type_code", headerName: language === "ar" ? "الكود" : "Code" },
+      { field: "employee_name", headerName: language === "ar" ? "الموظف" : "Employee" },
       {
         field: "reason",
         headerName: language === "ar" ? "نوع المعاملة" : "Transcation Type",
       },
-      { field: "max_perm_per_day", headerName: language === "ar" ? "إذن ماكس" : "Max Permission" },
-      { field: "max_minutes_per_day", headerName: language === "ar" ? "دقائق ماكس" : "Max Minutes" },
+      { field: "transaction_date", headerName: language === "ar" ? "تاريخ التحويل" : "Transcation Date" },
+      { field: "transaction_time", headerName: language === "ar" ? "وقت التحويل" : "Transcation Time" },
     ]);
   }, [language]);
 
+const { data: employeeEventTransactionsData, isLoading } = useFetchAllEntity("employeeEventTransactions");
+  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity("employee");
 
-  const { data: employeeEventTransactionsData, isLoading } = useFetchAllEntity("employeeEventTransactions");
+  // Helper function to get employee name (following the same pattern as the first document)
+  const getEmployeeName = (employeeId: number, employeesData: any) => {
+    const employee = employeesData?.data?.find(
+      (emp: any) => emp.employee_id === employeeId
+    );
+    
+    if (!employee) {
+      return `Emp ${employeeId}`;
+    }
+    
+    // Use the same naming pattern as the first document
+    const fullName = language === "ar"
+      ? `${employee.firstname_arb || ""}`.trim()
+      : `${employee.firstname_eng || ""}`.trim();
+    
+    return fullName || `Emp ${employeeId}`;
+  };
 
   const data = useMemo(() => {
     if (Array.isArray(employeeEventTransactionsData?.data)) {
-      return employeeEventTransactionsData.data.map((permission: any) => {
+      return employeeEventTransactionsData.data.map((transaction: any) => {
         return {
-          ...permission,
-          id: permission.permission_id,
+          ...transaction,
+          id: transaction.transaction_id,
+          employee_name: getEmployeeName(transaction.employee_id, employeesData),
+          transaction_date: new Date(transaction.transaction_time).toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          }),
+          transaction_time: new Date(transaction.transaction_time).toLocaleString("en-US", {
+            // year: "numeric",
+            // month: "2-digit",
+            // day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
         };
       });
     }
     return [];
-  }, [employeeEventTransactionsData]);
+  }, [employeeEventTransactionsData, employeesData, language]);
 
   const props = {
     Data: data,
@@ -229,15 +150,15 @@ export default function Page() {
         isLarge={true}
       />
       <div className="bg-accent rounded-2xl">
-        <div className="col-span-2 p-6">
+        <div className="col-span-2 p-6 pb-0">
           <h1 className="font-bold text-xl text-primary">Manage Punches</h1>
         </div>
-        <div className="px-6">
+        {/* <div className="px-6">
           <PowerTabs items={modules?.selfServices?.punches?.items} />
-        </div>
+        </div> */}
         <PowerTable
           props={props}
-          showEdit={true}
+          showEdit={false}
           onEditClick={handleEditClick}
           onRowSelection={handleRowSelection}
           isLoading={isLoading}

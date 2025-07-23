@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
+import PowerTabs from "@/components/custom/power-comps/power-tabs";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
@@ -98,13 +99,21 @@ export default function Page() {
         entityName="leaveType"
         isAddNewPagePath="/self-services/leaves/manage/add"
       />
-      <PowerTable
-        props={props}
-        showEdit={true}
-        onEditClick={handleEditClick}
-        onRowSelection={handleRowSelection}
-        isLoading={isLoading}
-      />
+      <div className="bg-accent rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Manage Leaves</h1>
+        </div>
+        <div className="px-6">
+          <PowerTabs items={modules?.selfServices?.leaves?.items} />
+        </div>
+        <PowerTable
+          props={props}
+          showEdit={false}
+          onEditClick={handleEditClick}
+          onRowSelection={handleRowSelection}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }
