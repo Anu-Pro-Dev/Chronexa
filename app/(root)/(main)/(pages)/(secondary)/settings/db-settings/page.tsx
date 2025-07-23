@@ -1,44 +1,47 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddDBSettings from "@/forms/settings/AddDBSettings";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
-  const [SearchValue, SetSearchValue] = useState<string>("");
-  const [open, on_open_change] = useState<boolean>(false);
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  
-  const [Columns, setColumns] = useState([
-    { field: "databaseType", headerName: "Database" },
-    { field: "databaseName", headerName: "Database Name" },
-    { field: "host", headerName: "Host" },
-    { field: "port", headerName: "Port" },
-    { field: "isConnected", headerName: "Connection"},
-  ]);
+  const queryClient = useQueryClient();
 
-  const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    open,
-    on_open_change,
-    SearchValue,
-    SetSearchValue,
-  };
+  useEffect(() => {
+    setColumns([
+      { field: "db_databasetype", headerName: "Database" },
+      { field: "db_databasename", headerName: "Database Name" },
+      { field: "db_host_name", headerName: "Host" },
+      { field: "db_port_no", headerName: "Port" },
+      { field: "connect_db_flag", headerName: "Connection"},
+    ]);
+  }, [language]);
+
+  const { data: dbSettingData, isLoading } = useFetchAllEntity("chron-db-setting");
+
+  const data = useMemo(() => {
+    if (Array.isArray(dbSettingData?.data)) {
+      return dbSettingData.data.map((dbSet: any) => {
+        return {
+          ...dbSet,
+          id: dbSet.db_settings_id,
+        };
+      });
+    }
+    return [];
+  }, [dbSettingData]);
 
   useEffect(() => {
     if (!open) {
@@ -46,44 +49,62 @@ export default function Page() {
     }
   }, [open]);
 
-  const handleEditClick = (data: any) => {
-    setSelectedRowData(data);
-    on_open_change(true);
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
   };
-
-  const handleSave = (id: string | null, newData: any) => {
-    if (id) {
-      SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
-      );
-    } else {
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
-    }
-    setSelectedRowData(null);
+ 
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["chron-db-setting"] });
   };
-
-  const handleRowSelection = (rows: any[]) => {
+ 
+  const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
+    setOpen(true);
+  }, []);
+ 
+  const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
-  };
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        disableAdd
         selectedRows={selectedRows}
-        items={modules?.settings?.items}
-        entityName="dbsettings"
+        items={modules?.settings.items}
+        entityName="chron-db-setting"
         modal_title="DB Settings"
         modal_component={
-          <AddDBSettings 
-            on_open_change={on_open_change} 
+          <AddDBSettings
+            on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
         }
         isLarge
       />
-      <PowerTable props={props} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} api={"/settings/db-settings"}/>
+      <PowerTable
+        props={props}
+        showEdit={false}
+        onEditClick={handleEditClick}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

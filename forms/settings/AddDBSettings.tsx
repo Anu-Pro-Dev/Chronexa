@@ -152,164 +152,162 @@ export default function AddDBSettings({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-16 gap-y-4">
-							<FormField
-								key={form.watch("database")}
-								control={form.control}
-								name="database"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Database <Required /></FormLabel>
-										<Select
-											onValueChange={field.onChange}
-											value={field.value} // This must match an ID like "5"
-										>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue placeholder="Choose Database" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												{Object.entries(dbTypeValues).map(([value, label]) => (
-													<SelectItem key={value} value={value}>
-														{label}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<FormField
-									control={form.control}
-									name="database_name"
-									render={({ field }) => (
-											<FormItem>
-											<FormLabel>
-													Database Name <Required />
-											</FormLabel>
-											<FormControl>
-													<Input placeholder="Enter your Database name" type="text" {...field} />
-											</FormControl>
-											<FormMessage />
-											</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="host"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											Host <Required />
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter the IP or domain name"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="port"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											Port <Required />
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter your port number"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="user"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											User
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter your database user"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="password"
-									render={({ field }) => (
-											<FormItem>
-											<FormLabel>
-													Password
-											</FormLabel>
-											<FormControl>
-													<Input
-													placeholder="Enter your database user password"
-													type="password"
-													{...field}
-													/>
-											</FormControl>
-											<FormMessage />
-											</FormItem>
-									)}
-							/>
-							<FormField
-								control={form.control}
-								name="connected"
-								render={({ field }) => (
-									<FormItem className="flex items-center space-x-4">
-										<FormLabel className="mb-0">Connect DB</FormLabel>
-										<FormControl>
-											<Switch
-												checked={!!field.value}
-												onChange={(val: boolean) => field.onChange(val)}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-            </div>
-            <div className="flex justify-end gap-2 items-center py-5">
-							<div className="flex gap-4 px-5">
-									<Button
-									variant={"outline"}
-									type="button"
-									size={"lg"}
-									className="w-full"
-									onClick={() => {
-											on_open_change(false);
-									}}
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+				<div className="flex flex-col gap-4">
+					<div className="grid grid-cols-2 gap-16 gap-y-4 pl-7">
+						<FormField
+							key={form.watch("database")}
+							control={form.control}
+							name="database"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Database <Required /></FormLabel>
+									<Select
+										onValueChange={field.onChange}
+										value={field.value} // This must match an ID like "5"
 									>
-											Cancel
-									</Button>
-									<Button type="submit" size={"lg"} className="w-full">
-											{selectedRowData ? "Update" : "Save"}
-									</Button>
-							</div>
-            </div>
-        </div>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Choose Database" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											{Object.entries(dbTypeValues).map(([value, label]) => (
+												<SelectItem key={value} value={value}>
+													{label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="database_name"
+							render={({ field }) => (
+									<FormItem>
+									<FormLabel>
+											Database Name <Required />
+									</FormLabel>
+									<FormControl>
+											<Input placeholder="Enter your Database name" type="text" {...field} />
+									</FormControl>
+									<FormMessage />
+									</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="host"
+							render={({ field }) => (
+							<FormItem>
+									<FormLabel>
+									Host <Required />
+									</FormLabel>
+									<FormControl>
+									<Input
+											placeholder="Enter the IP or domain name"
+											type="text"
+											{...field}
+									/>
+									</FormControl>
+									<FormMessage />
+							</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="port"
+							render={({ field }) => (
+							<FormItem>
+									<FormLabel>
+									Port <Required />
+									</FormLabel>
+									<FormControl>
+									<Input
+											placeholder="Enter your port number"
+											type="text"
+											{...field}
+									/>
+									</FormControl>
+									<FormMessage />
+							</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="user"
+							render={({ field }) => (
+							<FormItem>
+									<FormLabel>
+									User
+									</FormLabel>
+									<FormControl>
+									<Input
+											placeholder="Enter your database user"
+											type="text"
+											{...field}
+									/>
+									</FormControl>
+									<FormMessage />
+							</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="password"
+							render={({ field }) => (
+									<FormItem>
+									<FormLabel>
+											Password
+									</FormLabel>
+									<FormControl>
+											<Input
+											placeholder="Enter your database user password"
+											type="password"
+											{...field}
+											/>
+									</FormControl>
+									<FormMessage />
+									</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="connected"
+							render={({ field }) => (
+								<FormItem className="flex items-center space-x-4">
+									<FormLabel className="mb-0">Connect DB</FormLabel>
+									<FormControl>
+										<Switch
+											checked={!!field.value}
+											onChange={(val: boolean) => field.onChange(val)}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+					<div className="flex justify-end gap-2 items-center py-5">
+						<div className="flex gap-4 px-5">
+							<Button
+								variant={"outline"}
+								type="button"
+								size={"lg"}
+								className="w-full"
+								onClick={() => on_open_change(false)}
+							>
+								Cancel
+							</Button>
+							<Button type="submit" size={"lg"} className="w-full">
+								Save
+							</Button>
+						</div>
+					</div>
+				</div>
       </form>
     </Form>
   );

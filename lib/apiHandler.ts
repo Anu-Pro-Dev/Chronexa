@@ -528,3 +528,17 @@ export const editWorkflowTypeStepRequest = async (data: {
 
   return apiRequest(`/workflowTypeStep/edit/${workflow_steps_id}`, "PUT", payload);
 };
+
+// Function to add a new role privilege
+export const addRolePrivilegeRequest = async (data: {
+  role_id?: number;
+  sub_module_id: number;
+  scope?: string;
+  access_flag?: boolean;
+  view_flag?: boolean;
+  create_flag?: boolean;
+  edit_flag?: boolean;
+  delete_flag?: boolean;
+}) => {
+  return apiRequest("/secRolePrivilege/add", "POST", data);
+}

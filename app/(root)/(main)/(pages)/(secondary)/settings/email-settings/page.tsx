@@ -1,42 +1,45 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddEmailSettings from "@/forms/settings/AddEmailSettings";
 import { useLanguage } from "@/providers/LanguageProvider";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
-  const [SearchValue, SetSearchValue] = useState<string>("");
-  const [open, on_open_change] = useState<boolean>(false);
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  
-  const [Columns, setColumns] = useState([
-    { field: "name", headerName: "Name" },
-    { field: "fromEmail", headerName: "From Email" },
-    { field: "isActive", headerName: "Active"},
-  ]);
+  const queryClient = useQueryClient();
 
-  const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    open,
-    on_open_change,
-    SearchValue,
-    SetSearchValue,
-  };
+  useEffect(() => {
+    setColumns([
+      { field: "em_smtp_name", headerName: "Name" },
+      { field: "em_from_email", headerName: "From Email" },
+      { field: "em_active_smtp_flag", headerName: "Active" },
+    ]);
+  }, [language]);
+
+  const { data: emailSettingData, isLoading } = useFetchAllEntity("email-setting");
+
+  const data = useMemo(() => {
+    if (Array.isArray(emailSettingData?.data)) {
+      return emailSettingData.data.map((emailSet: any) => {
+        return {
+          ...emailSet,
+          id: emailSet.em_id,
+        };
+      });
+    }
+    return [];
+  }, [emailSettingData]);
 
   useEffect(() => {
     if (!open) {
@@ -44,44 +47,62 @@ export default function Page() {
     }
   }, [open]);
 
-  const handleEditClick = (data: any) => {
-    setSelectedRowData(data);
-    on_open_change(true);
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
   };
-
-  const handleSave = (id: string | null, newData: any) => {
-    if (id) {
-      SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
-      );
-    } else {
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
-    }
-    setSelectedRowData(null);
+ 
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["email-setting"] });
   };
-
-  const handleRowSelection = (rows: any[]) => {
+ 
+  const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
+    setOpen(true);
+  }, []);
+ 
+  const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
-  };
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        disableAdd
         selectedRows={selectedRows}
-        items={modules?.settings?.items}
-        entityName="emailsettings"
+        items={modules?.settings.items}
+        entityName="email-setting"
         modal_title="Email Settings"
         modal_component={
-          <AddEmailSettings 
-            on_open_change={on_open_change} 
+          <AddEmailSettings
+            on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
         }
         isLarge
       />
-      <PowerTable props={props} showEdit={true} onEditClick={handleEditClick} onRowSelection={handleRowSelection} api={"/settings/email-settings"}/>
+      <PowerTable
+        props={props}
+        showEdit={false}
+        onEditClick={handleEditClick}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

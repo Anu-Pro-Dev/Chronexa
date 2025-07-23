@@ -1,44 +1,65 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddRole from "@/forms/configuration/AddRole";
 import AssignPrivileges from "@/forms/configuration/AssignPrivileges";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();
   const router = useRouter();
+  
   type Columns = {
     field: string;
     headerName?: string;
     clickable?: boolean;
     onCellClick?: (data: any) => void;
   };
-  const [Columns, setColumns] = useState<Columns[]>([]);
-  const [Data, SetData] = useState<any>([]);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1);
-  const [SortField, SetSortField] = useState<string>("");
-  const [SortDirection, SetSortDirection] = useState<string>("asc");
+  
+  const [columns, setColumns] = useState<Columns[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [open, on_open_change] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const queryClient = useQueryClient();
+
+  const { data: rolesData, isLoading } = useFetchAllEntity("secRole");
+
+  const handleCellClick = useCallback((data: any) => {
+    setSelectedRowData(data);
+    setIsModalOpen(true);
+  }, []);
   
-  const props = {
-    Data,
-    SetData,
-    Columns,
-    SortField,
-    CurrentPage,
-    SetCurrentPage,
-    SetSortField,
-    SortDirection,
-    SetSortDirection,
-    open,
-    on_open_change,
-  };
+  const handleCellClickPath = useCallback((data: any) => {
+    console.log("Navigating to assign roles for:", data.role_name);
+    if (data?.role_name) {
+      router.push(`/configuration/roles/assign-roles?role=${data.role_name}`);
+    } else {
+      console.error("Error: No code found for this row", data);
+    }
+  }, [router]);
+
+  const data = useMemo(() => {
+    if (Array.isArray(rolesData?.data)) {
+      return rolesData.data.map((role: any) => {
+        return {
+          ...role,
+          id: role.id || role.role_id,
+          privileges: "View",
+          assign_role: "Users",
+        };
+      });
+    }
+    return [];
+  }, [rolesData]);
 
   useEffect(() => {
     if (!open) {
@@ -49,75 +70,84 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: language === "ar" ? "name_ar" : "name_en",
+        field: "role_name",
         headerName: language === "ar" ? "اسم الدور" : "Role Name",
       },
       { field: "privileges", clickable: true, onCellClick: handleCellClick },
       { field: "assign_role", headerName: "Assign Role", clickable: true, onCellClick: handleCellClickPath },
-      { field: "users" },
+      { field: "_count.sec_user_roles", headerName: "Users" },
     ]);
-  }, [language]);
+  }, [language, handleCellClick, handleCellClickPath]);
 
-  const handleCellClick = (data: any) => {
-    setSelectedRowData(data);
-    setIsModalOpen(true);
-  };
-  
-  const handleCellClickPath = (data: any) => {
-    if (data?.name_en) {
-      router.push(`/configuration/roles/assign-roles?role=${data.name_en}`);    } else {
-      console.error("Error: No code found for this row", data);
-    }
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: setCurrentPage,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: setSearchValue,
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
 
-  const handleEditClick = (data: any) => {
+  const handleEditClick = useCallback((data: any) => {
     setSelectedRowData(data);
-    on_open_change(true);
+    setOpen(true);
+  }, []);
+
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["secRole"] });
   };
 
-  const handleSave = (id: string | null, newData: any) => {
-    if (id) {
-      // Update existing row
-      SetData((prevData: any) =>
-        prevData.map((row: any) => (row.id === id ? { ...row, ...newData } : row))
-      );
-    } else {
-      // Add new row
-      SetData((prevData: any) => [...prevData, { id: Date.now().toString(), ...newData }]);
-    }
-    setSelectedRowData(null);
-  };
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        disableAdd
+        selectedRows={selectedRows}
         items={modules?.configuration?.items}
+        entityName="secRole"
         modal_title="Roles"
-       //modal_description="Choose the Roles of user"
         modal_component={
           <AddRole 
-            on_open_change={on_open_change}
+            on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
-      }
+        }
       />
-      <PowerTable props={props} api={"/security/roles"} showEdit={true} onEditClick={handleEditClick}/>
+      <PowerTable 
+        props={props} 
+        showEdit={false} 
+        onEditClick={handleEditClick}
+        onRowSelection={handleRowSelection}
+        isLoading={isLoading}
+      />
       {isModalOpen && selectedRowData && (
         <AssignPrivileges
           modal_props={{
             open: isModalOpen,
             on_open_change: setIsModalOpen,
           }}
-          roleName={selectedRowData?.name_en ?? ""}
+          roleName={selectedRowData?.role_name ?? ""}
+          roleId={selectedRowData?.role_id || selectedRowData?.id}
         />
       )}
-
     </div>
   );
 }

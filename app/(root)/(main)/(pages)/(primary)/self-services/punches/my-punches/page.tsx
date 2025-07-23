@@ -37,7 +37,7 @@ export default function Page() {
     ]);
   }, [language]);
 
-const { data: employeeEventTransactionsData, isLoading } = useFetchAllEntity("employeeEventTransactions");
+  const { data: employeeEventTransactionsData, isLoading } = useFetchAllEntity("employeeEventTransaction");
   const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity("employee");
 
   // Helper function to get employee name (following the same pattern as the first document)
@@ -105,7 +105,7 @@ const { data: employeeEventTransactionsData, isLoading } = useFetchAllEntity("em
   };
 
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["employeeEventTransactions"] });
+    queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction"] });
   };
  
   const handleEditClick = (rowData: any) => {
@@ -135,7 +135,7 @@ const { data: employeeEventTransactionsData, isLoading } = useFetchAllEntity("em
         disableAdd
         selectedRows={selectedRows}
         items={modules?.selfServices.items}
-        entityName="employeeEventTransactions"
+        entityName="employeeEventTransaction"
         modal_component={
           <AddManageMovements 
             on_open_change={setOpen}
