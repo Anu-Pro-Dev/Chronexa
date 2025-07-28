@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import toast from "react-hot-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -24,7 +25,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
-import { addRolePrivilegeRequest } from "@/lib/apiHandler";
+import { addRolePrivilegeRequest, editRolePrivilegeRequest, addPrivilegeRequest, deletePrivilegeRequest } from "@/lib/apiHandler";
 
 // Privilege keys mapping to API fields
 const privilegeKeys = ["access", "view", "create", "edit", "delete"] as const;
@@ -59,11 +60,34 @@ export default function AssignPrivileges({
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
   
   // Fetch data from APIs
   const { data: modulesData, isLoading: isLoadingModules } = useFetchAllEntity("secModule");
-  const { data: subModulesData, isLoading: isLoadingSubModules } = useFetchAllEntity("sec-sub-module");
+  const { data: subModulesData, isLoading: isLoadingSubModules } = useFetchAllEntity("secSubModule");
   const { data: rolePrivilegesData, isLoading: isLoadingPrivileges } = useFetchAllEntity("secRolePrivilege");
+
+  // Add mutation for new privileges
+  const addMutation = useMutation({
+    mutationFn: addRolePrivilegeRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["secRolePrivilege"] });
+    },
+    onError: (error: any) => {
+      console.error("Add privilege error:", error);
+    },
+  });
+
+  // Edit mutation for existing privileges
+  const editMutation = useMutation({
+    mutationFn: editRolePrivilegeRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["secRolePrivilege"] });
+    },
+    onError: (error: any) => {
+      console.error("Edit privilege error:", error);
+    },
+  });
 
   // Process the API data to create section structure
   const sectionStructure = useMemo(() => {
@@ -106,7 +130,7 @@ export default function AssignPrivileges({
 
   type PrivilegeFormValues = z.infer<typeof privilegeSchema>;
 
-  // Get existing privileges for this role
+  // Get existing privileges for this role - UPDATED to include role_privilege_id
   const existingPrivileges = useMemo(() => {
     if (!rolePrivilegesData?.data || !roleId || !modulesData?.data || !subModulesData?.data) return {};
     
@@ -137,8 +161,9 @@ export default function AssignPrivileges({
             privileges[moduleName] = {};
           }
           
-          // Set privileges for this specific sub-module
+          // Set privileges for this specific sub-module - INCLUDE role_privilege_id
           privileges[moduleName][subModuleName] = {
+            role_privilege_id: privilege.role_privilege_id, // ADD THIS LINE
             access: privilege.access_flag || false,
             view: privilege.view_flag || false,
             create: privilege.create_flag || false,
@@ -177,6 +202,28 @@ export default function AssignPrivileges({
     }
   }, [getDefaultValues, form, sectionStructure]);
 
+  // Function to determine scope based on privileges
+  const getScope = (privileges: any) => {
+    const privilegeValues = Object.values(privileges);
+    const totalPrivileges = privilegeValues.length;
+    const enabledPrivileges = privilegeValues.filter(Boolean).length;
+    
+    if (enabledPrivileges === totalPrivileges) {
+      return "ALL";
+    } else {
+      return "OWN";
+    }
+  };
+
+  // Function to check if privileges have changed
+  const hasPrivilegesChanged = (currentPrivs: any, existingPrivs: any) => {
+    if (!existingPrivs) return true; // New sub-module
+    
+    return Object.keys(currentPrivs).some(key => 
+      currentPrivs[key] !== (existingPrivs[key] || false)
+    );
+  };
+  
   const onSubmit = async (data: PrivilegeFormValues) => {    
     if (!roleId) {
       toast.error("Role ID is required");
@@ -184,74 +231,136 @@ export default function AssignPrivileges({
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      const apiCalls: Promise<any>[] = [];
-      
+      const addOperations: any[] = [];
+      const editOperations: any[] = [];
+      const privilegeNameOperations: any[] = [];
+      const deleteOperations: number[] = [];
+
       // Process each module
-      Object.entries(data).forEach(([moduleName, moduleData]) => {        
+      Object.entries(data).forEach(([moduleName, moduleData]) => {
         if (moduleName === "roleName") {
           return;
         }
-        
+
         // Find the module
         const module = modulesData?.data?.find((m: any) => m.module_name === moduleName);
         if (!module) {
           return;
         }
-                
-        // Check if any sub-module has privileges enabled
-        const modulePrivileges = moduleData as Record<string, any>;        
+
+        const modulePrivileges = moduleData as Record<string, any>;
+
         // Process each sub-module individually
-        Object.entries(modulePrivileges).forEach(([subModuleName, subModulePrivs]: [string, any]) => {          
+        Object.entries(modulePrivileges).forEach(([subModuleName, subModulePrivs]: [string, any]) => {
           // Find the sub-module to get its ID
           const subModule = subModulesData?.data?.find(
             (sm: any) => sm.sub_module_name === subModuleName && sm.module_id === module.module_id
           );
-          
+
           if (!subModule) {
             return;
           }
-                    
+
+          // Get existing privileges for this sub-module
+          const existingSubModulePrivs = existingPrivileges[moduleName]?.[subModuleName];
+
+          // Check if privileges have changed
+          if (!hasPrivilegesChanged(subModulePrivs, existingSubModulePrivs)) {
+            return; // Skip if no changes
+          }
+
           // Check if this sub-module has any privileges
-          const hasPrivileges = subModulePrivs.access || subModulePrivs.view || 
-                              subModulePrivs.create || subModulePrivs.edit || subModulePrivs.delete;
-                  
+          const hasPrivileges =
+            subModulePrivs.access ||
+            subModulePrivs.view ||
+            subModulePrivs.create ||
+            subModulePrivs.edit ||
+            subModulePrivs.delete;
+
           if (hasPrivileges) {
             const privilegeData = {
               role_id: roleId,
-              sub_module_id: subModule.sub_module_id, // Use sub_module_id as required
+              scope: getScope(subModulePrivs),
+              sub_module_id: subModule.sub_module_id,
               access_flag: subModulePrivs.access || false,
               view_flag: subModulePrivs.view || false,
               create_flag: subModulePrivs.create || false,
               edit_flag: subModulePrivs.edit || false,
               delete_flag: subModulePrivs.delete || false,
             };
-            
-            apiCalls.push(addRolePrivilegeRequest(privilegeData));
+
+            // Check if this is an existing privilege (update) or new one (add)
+            if (existingSubModulePrivs && existingSubModulePrivs.role_privilege_id) {
+              editOperations.push({
+                ...privilegeData,
+                role_privilege_id: existingSubModulePrivs.role_privilege_id,
+              });
+              deleteOperations.push(existingSubModulePrivs.role_privilege_id);
+            } else {
+              addOperations.push(privilegeData);
+            }
+
+            // Generate privilege_name strings like ACCESS_MY_ATTENDANCE
+            // privilegeKeys.forEach((key) => {
+            //   const currentChecked = subModulePrivs[key];
+            //   const previouslyChecked = existingSubModulePrivs?.[key] || false;
+
+            //   if (currentChecked && !previouslyChecked) {
+            //     const privilege_name = `${key.toUpperCase()}_${subModule.sub_module_name.toUpperCase().replace(/\s+/g, "_")}`;
+            //     privilegeNameOperations.push({
+            //       privilege_name,
+            //       module_id: module.module_id,
+            //     });
+            //   }
+            // });
+
           }
         });
       });
 
-      if (apiCalls.length === 0) {
-        toast.error("No privileges selected");
+      if (addOperations.length === 0 && editOperations.length === 0 && privilegeNameOperations.length === 0) {
+        toast.error("No privileges to save");
+        setIsSubmitting(false);
         return;
       }
-      
-      // Execute all API calls
-      const results = await Promise.allSettled(apiCalls);
-      
-      const successful = results.filter(result => result.status === 'fulfilled').length;
-      const failed = results.filter(result => result.status === 'rejected').length;
-            
+
+      // Execute all mutations
+      const promises: Promise<any>[] = [];
+
+      // Add new privileges
+      addOperations.forEach((operation) => {
+        promises.push(addMutation.mutateAsync(operation));
+      });
+
+      // Edit existing privileges
+      editOperations.forEach((operation) => {
+        promises.push(editMutation.mutateAsync(operation));
+      });
+
+      // Add privilege_name entries
+      // privilegeNameOperations.forEach((operation) => {
+      //   promises.push(addPrivilegeRequest(operation));
+      // });
+
+      // Delete operations (when all privileges are unchecked)
+      // deleteOperations.forEach((id) => {
+      //   promises.push(deletePrivilegeRequest(id));
+      // });
+
+      const results = await Promise.allSettled(promises);
+
+      const successful = results.filter((result) => result.status === "fulfilled").length;
+      const failed = results.filter((result) => result.status === "rejected").length;
+
       if (failed > 0) {
-        console.error("Failed API calls:", results.filter(r => r.status === 'rejected'));
+        console.error("Failed operations:", results.filter((r) => r.status === "rejected"));
         toast.error(`Failed to save ${failed} privileges. ${successful} saved successfully.`);
       } else {
         toast.success(`Successfully saved ${successful} sub-module privileges!`);
         modal_props.on_open_change(false);
       }
-      
     } catch (error) {
       console.error("Error saving privileges:", error);
       toast.error("Failed to save privileges");
@@ -406,15 +515,13 @@ export default function AssignPrivileges({
               >
                 Cancel
               </Button>
-              {/* <Button type="button" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save"}
-              </Button> */}
               <Button 
                 type="button"
                 size="lg" 
                 disabled={isSubmitting}
                 onClick={async () => {
-                  const formValues = form.getValues();                  // Manually trigger validation
+                  const formValues = form.getValues();
+                  // Manually trigger validation
                   const isValid = await form.trigger();                  
                   if (isValid) {
                     await onSubmit(formValues);

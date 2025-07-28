@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
-import AddEmailSettings from "@/forms/settings/AddEmailSettings";
+import AddAppSettings from "@/forms/settings/AddAppSettings";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
@@ -21,17 +21,18 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "em_smtp_name", headerName: "Name" },
-      { field: "em_from_email", headerName: "From Email" },
-      { field: "em_active_smtp_flag", headerName: "Active" },
+      { field: "version_name", headerName: "Version" },
+      { field: "tab_no", headerName: "Tab" },
+      { field: "value", headerName: "Value" },
+      { field: "descr", headerName: "Description" },
     ]);
   }, [language]);
 
-  const { data: emailSettingData, isLoading } = useFetchAllEntity("emailSetting");
+  const { data: appSettingData, isLoading } = useFetchAllEntity("appSetting");
 
   const data = useMemo(() => {
-    if (Array.isArray(emailSettingData?.data)) {
-      return emailSettingData.data.map((emailSet: any) => {
+    if (Array.isArray(appSettingData?.data)) {
+      return appSettingData.data.map((emailSet: any) => {
         return {
           ...emailSet,
           id: emailSet.em_id,
@@ -39,7 +40,7 @@ export default function Page() {
       });
     }
     return [];
-  }, [emailSettingData]);
+  }, [appSettingData]);
 
   useEffect(() => {
     if (!open) {
@@ -66,7 +67,7 @@ export default function Page() {
   };
  
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["emailSetting"] });
+    queryClient.invalidateQueries({ queryKey: ["appSetting"] });
   };
  
   const handleEditClick = useCallback((row: any) => {
@@ -85,10 +86,10 @@ export default function Page() {
         disableAdd
         selectedRows={selectedRows}
         items={modules?.settings.items}
-        entityName="emailSetting"
-        modal_title="Email Settings"
+        entityName="appSetting"
+        modal_title="App Settings"
         modal_component={
-          <AddEmailSettings
+          <AddAppSettings
             on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}

@@ -542,3 +542,41 @@ export const addRolePrivilegeRequest = async (data: {
 }) => {
   return apiRequest("/secRolePrivilege/add", "POST", data);
 }
+
+// Function to update a role privilege
+export const editRolePrivilegeRequest = async (data: {
+  role_privilege_id?:number;
+  role_id?: number;
+  sub_module_id?: number;
+  scope?: string;
+  access_flag?: boolean;
+  view_flag?: boolean;
+  create_flag?: boolean;
+  edit_flag?: boolean;
+  delete_flag?: boolean;
+}) => {
+  const { role_privilege_id, ...payload } = data;
+
+  return apiRequest(`/secRolePrivilege/edit/${role_privilege_id}`, "PUT", payload);
+}
+
+// Function to add a new privilege
+export const addPrivilegeRequest = async (data: {
+  privilege_name?: string;
+  module_id: number;
+}) => {
+  return apiRequest("/secPrivilege/add", "POST", data);
+}
+
+// Function to delete a privilege
+export const deletePrivilegeRequest = async (privilege_id: number) => {
+  return apiRequest(`/secPrivilege/delete/${privilege_id}`, "DELETE");
+};
+
+// Function to add new a user to role
+export const addRoletoUser = async (data: {
+  user_id: number;
+  role_id: number;
+}) => {
+  return apiRequest("/secUserRole/add", "POST", data);
+}

@@ -35,7 +35,7 @@ export default function PowerForm({
   form,
   onSubmit,
   state_route,
-  input_width = "w-10/12",
+  input_width = "w-10/12 sm:w-[25em]",
   form_class,
   next_route,
   setPage,

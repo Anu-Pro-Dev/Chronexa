@@ -156,6 +156,7 @@ export default function Page() {
       <PowerHeader
         props={props}
         disableAdd
+        disableDelete
         selectedRows={selectedRows}
         items={modules?.configuration.items}
         entityName="privilege"

@@ -418,16 +418,16 @@ export default function LanguageProvider({
         value: "roles",
         hide: true,
       },
-      {
-        label: "Privileges",
-        path: "/configuration/privileges/",
-        value: "privileges",
-      },
-      {
-        label: "Reprocess",
-        path: "/configuration/reprocess/",
-        value: "reprocess",
-      },
+      // {
+      //   label: "Privileges",
+      //   path: "/configuration/privileges/",
+      //   value: "privileges",
+      // },
+      // {
+      //   label: "Reprocess",
+      //   path: "/configuration/reprocess/",
+      //   value: "reprocess",
+      // },
     ],
   };
 
@@ -444,6 +444,11 @@ export default function LanguageProvider({
           label: "Email Settings",
           path: "/settings/email-settings/",
           value: "email_settings",
+        },
+        {
+          label: "App Settings",
+          path: "/settings/app-settings/",
+          value: "app_settings",
         },
         // {
         //   label: "Master Upload",

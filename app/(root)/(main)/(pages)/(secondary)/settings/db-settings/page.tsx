@@ -29,7 +29,7 @@ export default function Page() {
     ]);
   }, [language]);
 
-  const { data: dbSettingData, isLoading } = useFetchAllEntity("chron-db-setting");
+  const { data: dbSettingData, isLoading } = useFetchAllEntity("dbSetting");
 
   const data = useMemo(() => {
     if (Array.isArray(dbSettingData?.data)) {
@@ -87,7 +87,7 @@ export default function Page() {
         disableAdd
         selectedRows={selectedRows}
         items={modules?.settings.items}
-        entityName="chron-db-setting"
+        entityName="dbSetting"
         modal_title="DB Settings"
         modal_component={
           <AddDBSettings
