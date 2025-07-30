@@ -323,8 +323,8 @@ export default function LanguageProvider({
           value: "punches manage",
         },
         {
-          label: "My Requests",
-          url: "/self-services/punches/my-requests/",
+          label: "Team Punches",
+          url: "/self-services/punches/team-punches/",
           value: "punches requests",
         },
       ],
@@ -339,10 +339,10 @@ export default function LanguageProvider({
         label: "Team Requests",
         path: "/manage-approvals/team-requests/",
       },
-      {
-        label: "Approvals",
-        path: "/manage-approvals/approvals/",
-      },
+      // {
+      //   label: "Approvals",
+      //   path: "/manage-approvals/approvals/",
+      // },
     ],
     teamrequests: { 
       items: [
@@ -356,11 +356,11 @@ export default function LanguageProvider({
           url: "/manage-approvals/team-requests/leaves/",
           value: "leave approval",
         },
-        {
-          label: "Punches",
-          url: "/manage-approvals/team-requests/punches/",
-          value: "punch approval",
-        },
+        // {
+        //   label: "Punches",
+        //   url: "/manage-approvals/team-requests/punches/",
+        //   value: "punch approval",
+        // },
       ],
     },
     approvals: { 

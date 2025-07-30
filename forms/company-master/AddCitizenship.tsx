@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import Required from "@/components/ui/required";
 import CountryDropdown from "@/components/custom/country-dropdown";
-import { useCountries } from "@/hooks/use-countries";
+import { useCountries } from "@/hooks/useCountries";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addCitizenshipRequest, editCitizenshipRequest } from "@/lib/apiHandler";

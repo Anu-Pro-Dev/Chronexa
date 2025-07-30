@@ -8,19 +8,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
-import { getEmployeeTransactionById } from "@/lib/apiHandler";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
-import Lottie from "lottie-react";
-import loadingAnimation from "@/animations/hourglass-blue.json";
 
 export default function Page() {
   const router = useRouter();
   const { modules, language } = useLanguage();
-  const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
-  
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  // Set default sort field and direction for descending order
   const [sortField, setSortField] = useState<string>("transaction_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchValue, setSearchValue] = useState<string>("");
@@ -35,42 +29,18 @@ export default function Page() {
       { field: "employee_name", headerName: language === "ar" ? "الموظف" : "Employee" },
       {
         field: "reason",
-        headerName: language === "ar" ? "نوع المعاملة" : "Transaction Type",
+        headerName: language === "ar" ? "نوع المعاملة" : "Transcation Type",
       },
-      { field: "transaction_date", headerName: language === "ar" ? "تاريخ التحويل" : "Transaction Date" },
-      { field: "transaction_time", headerName: language === "ar" ? "وقت التحويل" : "Transaction Time" },
+      { field: "transaction_date", headerName: language === "ar" ? "تاريخ التحويل" : "Transcation Date" },
+      { field: "transaction_time", headerName: language === "ar" ? "وقت التحويل" : "Transcation Time" },
     ]);
   }, [language]);
 
-  // Fetch employee-specific transactions using the new API
-  const { data: employeeEventTransactionsData, isLoading: isLoadingTransactions, error } = useQuery({
-    queryKey: ["employeeEventTransaction", employeeId],
-    queryFn: () => {
-      console.log("Fetching transactions for employee:", employeeId); // Debug log
-      return getEmployeeTransactionById({ employee_id: employeeId! });
-    },
-    enabled: !!employeeId && isAuthenticated && !isChecking, // Only run when authenticated and employeeId is available and not checking
-    retry: false, // Don't retry on 404
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window gains focus
-    refetchOnMount: false, // Don't refetch on component mount if data exists
-  });
-
-  // Still fetch employees data for name resolution
+  const { data: employeeEventTransactionsData, isLoading } = useFetchAllEntity("employeeEventTransaction");
   const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity("employee");
 
-  // Helper function to get employee name
+  // Helper function to get employee name (following the same pattern as the first document)
   const getEmployeeName = (employeeId: number, employeesData: any) => {
-    // First check if this is the logged-in user
-    if (userInfo && employeeId === employeeId) {
-      const name = language === "ar" 
-        ? `${userInfo.employeename?.firstarb || ""} ${userInfo.employeename?.lastarb || ""}`.trim()
-        : `${userInfo.employeename?.firsteng || ""} ${userInfo.employeename?.lasteng || ""}`.trim();
-      
-      if (name) return name;
-    }
-    
-    // If not the logged-in user or no name available, try to find in employees data
     const employee = employeesData?.data?.find(
       (emp: any) => emp.employee_id === employeeId
     );
@@ -79,6 +49,7 @@ export default function Page() {
       return `Emp ${employeeId}`;
     }
     
+    // Use the same naming pattern as the first document
     const fullName = language === "ar"
       ? `${employee.firstname_arb || ""}`.trim()
       : `${employee.firstname_eng || ""}`.trim();
@@ -103,20 +74,23 @@ export default function Page() {
             minute: "2-digit",
             hour12: true,
           }),
+          // Keep the original timestamp for sorting
           transaction_timestamp: new Date(transaction.transaction_time).getTime(),
         };
       });
 
-      // Sort the data
+      // Sort the data based on current sort settings
       if (sortField) {
         processedData.sort((a: any, b: any) => {
           let aValue = a[sortField];
           let bValue = b[sortField];
           
+          // Special handling for numeric sorting (like transaction_id)
           if (sortField === "transaction_id") {
             aValue = Number(aValue);
             bValue = Number(bValue);
           }
+          // Special handling for date/time sorting
           else if (sortField === "transaction_time" || sortField === "transaction_date") {
             aValue = a.transaction_timestamp;
             bValue = b.transaction_timestamp;
@@ -135,7 +109,7 @@ export default function Page() {
       return processedData;
     }
     return [];
-  }, [employeeEventTransactionsData, employeesData, language, sortField, sortDirection, error]);
+  }, [employeeEventTransactionsData, employeesData, language, sortField, sortDirection]);
 
   const props = {
     Data: data,
@@ -144,7 +118,7 @@ export default function Page() {
     on_open_change: setOpen,
     selectedRows,
     setSelectedRows,
-    isLoading: isLoadingTransactions || isChecking,
+    isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
     SetCurrentPage: setCurrentPage,
@@ -158,7 +132,7 @@ export default function Page() {
   };
 
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction", employeeId] });
+    queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction"] });
   };
  
   const handleEditClick = (rowData: any) => {
@@ -168,53 +142,18 @@ export default function Page() {
       };
       
       sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
+      
+      // Navigate to the add page (which will handle edit mode)
+      // router.push("/self-services/permissions/manage/add");
     } catch (error) {
       console.error("Error setting edit data:", error);
-      toast.error("Failed to load transaction data for editing");
+      toast.error("Failed to load permission data for editing");
     }
   };
  
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
-
-  // Render the PowerTable component with conditional content
-  const renderPowerTable = () => {
-    // Show loading state while checking authentication
-    if (isChecking) {
-      return (
-        <div className="flex justify-center items-center p-8">
-          <div style={{ width: 50}}>
-            <Lottie animationData={loadingAnimation} loop={true} />
-          </div>
-        </div>
-      );
-    }
-
-    // Show error state if not authenticated or no employee ID
-    if (!isAuthenticated || !employeeId) {
-      return (
-        <div className="p-8">
-          <div className="bg-backdrop rounded-md p-3">
-            <div className="text-center">
-              <p>Unable to load employee data. Please try logging in again.</p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Render the actual PowerTable
-    return (
-      <PowerTable
-        props={props}
-        showEdit={false}
-        onEditClick={handleEditClick}
-        onRowSelection={handleRowSelection}
-        isLoading={isLoadingTransactions || isChecking}
-      />
-    );
-  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -240,12 +179,18 @@ export default function Page() {
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">Manage My Punches</h1>
+          <h1 className="font-bold text-xl text-primary">Manage Team Punches</h1>
         </div>
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.punches?.items} />
         </div>
-        {renderPowerTable()}
+        <PowerTable
+          props={props}
+          showEdit={false}
+          onEditClick={handleEditClick}
+          onRowSelection={handleRowSelection}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

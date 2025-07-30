@@ -529,6 +529,45 @@ export const editWorkflowTypeStepRequest = async (data: {
   return apiRequest(`/workflowTypeStep/edit/${workflow_steps_id}`, "PUT", payload);
 };
 
+// Function to get pending permissions
+export const getPendingPermission= async () => {
+  return apiRequest('/employeeShortPermission/pending', "GET");
+};
+
+// Function to approve or reject permissions
+export const approvePermissionRequest= async (data: {
+  single_permissions_id?: number;
+  approve_reject_flag: number;
+}) => {
+  const { single_permissions_id, ...payload } = data;
+
+  return apiRequest(`/employeeShortPermission/approve/${single_permissions_id}`, "PUT", payload);
+};
+
+// Function to get pending permissions
+export const getPendingLeave= async () => {
+  return apiRequest('/employeeLeave/pending', "GET");
+};
+
+// Function to approve or reject permissions
+export const approveLeaveRequest= async (data: {
+  employee_leave_id?: number;
+  approve_reject_flag: number;
+}) => {
+  const { employee_leave_id, ...payload } = data;
+
+  return apiRequest(`/employeeLeave/approve/${employee_leave_id}`, "PUT", payload);
+};
+
+// Function to fetch event transaction of specfic employee
+export const getEmployeeTransactionById = async (data: {
+  employee_id?: number;
+}) => {
+  const { employee_id } = data;
+
+  return apiRequest(`/employeeEventTransaction/employee/${employee_id}`, "GET");
+};
+
 // Function to add a new role privilege
 export const addRolePrivilegeRequest = async (data: {
   role_id?: number;
@@ -580,3 +619,12 @@ export const addRoletoUser = async (data: {
 }) => {
   return apiRequest("/secUserRole/add", "POST", data);
 }
+
+// Function to fetch reports of specfic employee
+export const getReportByEmployeeId = async (data: {
+  employee_id?: number;
+}) => {
+  const { employee_id } = data;
+
+  return apiRequest(`/report/employee/${employee_id}`, "GET");
+};

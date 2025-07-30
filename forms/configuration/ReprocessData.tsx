@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { ActionIcon, CalendarIcon, ExclamationIcon } from "@/icons/icons";
 import { Checkbox } from "@/components/ui/checkbox";
-import ReprocessDataTakeAction from "@/forms/reports/ReprocessDataTakeAction";
+import ReprocessDataTakeAction from "@/forms/configuration/ReprocessDataTakeAction";
 
 const formSchema = z.object({
   employee: z

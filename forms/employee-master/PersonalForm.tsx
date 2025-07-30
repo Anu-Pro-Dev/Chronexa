@@ -17,7 +17,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import CountryDropdown from "@/components/custom/country-dropdown";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { useCountries, Country } from "@/hooks/use-countries";
+import { useCountries, Country } from "@/hooks/useCountries";
 
 export default function PersonalForm({
   Page, SetPage,personalFormSchema,personalForm

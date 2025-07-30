@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
 import { DropDownIcon } from "@/icons/icons";
-import { Country } from "@/hooks/use-countries";
+import { Country } from "@/hooks/useCountries";
 
 interface CountryDropdownProps {
   value: Country | null;

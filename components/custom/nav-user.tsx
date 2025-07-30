@@ -91,7 +91,7 @@ export function NavUser() {
           align="end"
           sideOffset={4}
         >
-          <DropdownMenuGroup>
+          {/* <DropdownMenuGroup>
             <DropdownMenuItem
               onClick={() => {
                 router.push("/change-password");
@@ -100,7 +100,7 @@ export function NavUser() {
               {UserPasswordIcon()}
               {translations?.changePassword}
             </DropdownMenuItem>
-          </DropdownMenuGroup>
+          </DropdownMenuGroup> */}
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => {

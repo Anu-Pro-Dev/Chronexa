@@ -131,7 +131,7 @@ export default function AddOrganizationType({
 
       const payload: any = {
         organization_type_id: selectedOrgType?.organization_type_id ?? null,
-        code: values.organization_code,
+        organization_code: values.organization_code,
         parent_id: selectedParentOrg?.organization_id ?? null,
       };
 

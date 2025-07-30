@@ -217,12 +217,12 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            <Link
+            {/* <Link
               className="text-sm text-primary font-bold"
               href={"/forgot-password"}
             >
               Forgot Password ?
-            </Link>
+            </Link> */}
           </div>
 
           <Button type="submit" size={"lg"} className="w-auto min-w-[200px] mx-auto mt-4" disabled={loginMutation.status === "pending"}>
