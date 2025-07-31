@@ -185,7 +185,6 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        disableAdd
         selectedRows={selectedRows}
         items={modules?.selfServices.items}
         entityName="employeeShortPermission"

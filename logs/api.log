@@ -1,0 +1,4 @@
+{"timestamp":"31/07/2025 10:15:11","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/main/servertime","method":"GET"}
+{"timestamp":"31/07/2025 10:15:11","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/main/servertime","status":401,"responseTime":"31ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
+{"timestamp":"31/07/2025 10:16:22","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/main/servertime","method":"GET"}
+{"timestamp":"31/07/2025 10:16:22","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/main/servertime","status":401,"responseTime":"147ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
