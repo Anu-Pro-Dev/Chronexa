@@ -13,7 +13,7 @@ export default function Page() {
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchValue, setSearchValue] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);

@@ -349,7 +349,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices.items}
         entityName="employeeLeave"
-        isAddNewPagePath="/self-services/leaves/manage/add"
+        isAddNewPagePath="/self-services/leaves/requests/add"
       />
       {/* Fillters */}
       {/* <div className="grid grid-cols-3 gap-4">

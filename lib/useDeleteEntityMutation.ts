@@ -18,29 +18,34 @@ export function useDeleteEntityMutation({
       entityName: string;
       ids: (string | number)[];
     }) => {
-      return Promise.allSettled(
-        ids.map(id =>
-          apiRequest(`/${entityName}/delete/${String(id)}`, "DELETE")
-        )
-        // ids.map(id => deleteEntityRequest(entityName, String(id)))
-      );
-    },
-    onSuccess: (results, variables) => {
-      const displayText = camelToSentence(variables.entityName);
-      const failedDeletes = results.filter(r => r.status === "rejected");
-      if (failedDeletes.length > 0) {
-        toast.error(`Failed to delete some ${displayText}(s).`);
+      // Check if it's single or multiple deletion
+      if (ids.length === 1) {
+        // Single deletion: DELETE /{entityName}/delete/{id}
+        return apiRequest(`/${entityName}/delete/${String(ids[0])}`, "DELETE");
       } else {
-        toast.success(`${displayText} deleted successfully!`);
+        // Multiple deletion: POST /{entityName}/delete with body {"ids": [...]}
+        return apiRequest(`/${entityName}/delete`, "POST", {
+          ids: ids
+        });
       }
+    },
+    onSuccess: (result, variables) => {
+      const displayText = camelToSentence(variables.entityName);
+      const count = variables.ids.length;
+      
+      toast.success(
+        `${count} ${displayText}${count > 1 ? 's' : ''} deleted successfully!`
+      );
+      
       queryClient.invalidateQueries({
-        // queryKey: [camelToSnake(variables.entityName)],
         queryKey: [variables.entityName],
       });
       onSelectionClear?.();
     },
-    onError: () => {
-      toast.error("Failed to delete.");
+    onError: (error, variables) => {
+      const displayText = camelToSentence(variables.entityName);
+      console.error('Delete operation failed:', error);
+      toast.error(`Failed to delete ${displayText}(s).`);
     },
   });
 }

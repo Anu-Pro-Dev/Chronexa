@@ -188,7 +188,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices.items}
         entityName="employeeShortPermission"
-        isAddNewPagePath="/self-services/permissions/manage/add"
+        isAddNewPagePath="/self-services/permissions/requests/add"
       />
       {/* Fillters */}
       {/* <div className="grid grid-cols-3 gap-4">
