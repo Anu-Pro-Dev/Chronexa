@@ -6,10 +6,10 @@ import AddCitizenship from "@/forms/company-master/AddCitizenship";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useDebounce } from "@/hooks/useDebounce"; 
 
 export default function Page() {
   const { modules, language } = useLanguage();
-
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState("");
@@ -19,6 +19,7 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
   useEffect(() => {
     setColumns([
@@ -33,7 +34,12 @@ export default function Page() {
     ]);
   }, [language]);
 
-  const { data: citizenshipData, isLoading } = useFetchAllEntity("citizenship");
+  const { data: citizenshipData, isLoading } = useFetchAllEntity("citizenship",{
+    searchParams: {
+      name: debouncedSearchValue,
+      code: debouncedSearchValue,
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(citizenshipData?.data)) {

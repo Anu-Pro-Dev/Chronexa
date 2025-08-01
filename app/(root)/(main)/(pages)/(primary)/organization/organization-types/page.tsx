@@ -6,6 +6,7 @@ import AddOrganizationType from "@/forms/organization/AddOrganizationType";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useDebounce } from "@/hooks/useDebounce"; 
 
 type Column = {
   field: string;
@@ -24,6 +25,7 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
   useEffect(() => {
     setColumns([
@@ -38,7 +40,11 @@ export default function Page() {
   }, [language]);
 
   // Fetch data using the generic hook
-  const { data: orgTypeData, isLoading } = useFetchAllEntity("organizationType");
+  const { data: orgTypeData, isLoading } = useFetchAllEntity("organizationType",{
+    searchParams: {
+      name: debouncedSearchValue,
+    },
+  });
 
   // Map data for the table
   const data = useMemo(() => {

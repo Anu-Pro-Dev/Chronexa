@@ -6,6 +6,7 @@ import AddLocations from "@/forms/company-master/AddLocations";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useDebounce } from "@/hooks/useDebounce"; 
 
 export default function Page() {
   const { modules, language } = useLanguage();
@@ -18,6 +19,7 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
   useEffect(() => {
     setColumns([
@@ -40,7 +42,12 @@ export default function Page() {
     ]);
   }, [language]);
 
-  const { data: locationsData, isLoading } = useFetchAllEntity("location");
+  const { data: locationsData, isLoading } = useFetchAllEntity("location", {
+    searchParams: {
+      name: debouncedSearchValue,
+      code: debouncedSearchValue,
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(locationsData?.data)) {

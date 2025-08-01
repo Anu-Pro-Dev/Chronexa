@@ -1,11 +1,12 @@
 "use client";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import AddOrganization from "@/forms/organization/AddOrganization";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useDebounce } from "@/hooks/useDebounce"; 
 
 type Column = {
   field: string;
@@ -15,65 +16,80 @@ type Column = {
 
 export default function Page() {
   const { modules, language } = useLanguage();
-  const [columns, setColumns] = useState<Column[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [sortField, setSortField] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [open, setOpen] = useState<boolean>(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [open, setOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  const { data: organizationsData } = useFetchAllEntity("organization");
-  
+  // Fetch data once
+  const { data: orgData, isLoading } = useFetchAllEntity("organization",{
+    searchParams: {
+      name: debouncedSearchValue,
+      code: debouncedSearchValue,
+    },
+  });
+
+  // Map organization ID to name
   const orgMap = useMemo(() => {
-    if (!Array.isArray(organizationsData?.data)) return {};
-    return organizationsData.data.reduce((acc: any, org: any) => {
+    if (!Array.isArray(orgData?.data)) return {};
+    return orgData.data.reduce((acc: any, org: any) => {
       acc[org.organization_id] = language === "ar" ? org.organization_arb : org.organization_eng;
       return acc;
     }, {});
-  }, [organizationsData, language]);
+  }, [orgData, language]);
 
-  useEffect(() => {
-    setColumns([
-      { 
-        field: "organization_code", 
-        headerName: "Organization Code", 
-        cellRenderer: (row: any) =>
-         (row["organization_code"] || "").toUpperCase(),
-      },
-      {
-        field: language === "ar" ? "organization_arb" : "organization_eng",
-        headerName: language === "ar" ? "نوع المنظمة" : "Organization",
-      },
-      { 
-        field: "parent_id", 
-        headerName: "Parent",
-        cellRenderer: (row: any) => orgMap[row.parent_id] || "", // <-- show name
-      },
-  ]);
-}, [language, orgMap]);
+  // Prepare table columns
+  const columns: Column[] = useMemo(() => [
+    {
+      field: "organization_code",
+      headerName: "Organization Code",
+      cellRenderer: (row: any) => (row["organization_code"] || "").toUpperCase(),
+    },
+    {
+      field: language === "ar" ? "organization_arb" : "organization_eng",
+      headerName: language === "ar" ? "نوع المنظمة" : "Organization",
+    },
+    {
+      field: "parent_id",
+      headerName: "Parent",
+      cellRenderer: (row: any) => orgMap[row.parent_id] || "",
+    },
+  ], [language, orgMap]);
 
-  // Fetch data using the generic hook
-  const { data: orgData, isLoading } = useFetchAllEntity("organization");
-
-  // Map data for the table
+  // Table data
   const data = useMemo(() => {
-    if (Array.isArray(orgData?.data)) {
-      return orgData.data.map((org: any) => ({
-        ...org,
-        id: org.organization_id,
-      }));
-    }
-    return [];
+    if (!Array.isArray(orgData?.data)) return [];
+    return orgData.data.map((org: any) => ({
+      ...org,
+      id: org.organization_id,
+    }));
   }, [orgData]);
 
+  // Clear selected row on modal close
   useEffect(() => {
     if (!open) setSelectedRowData(null);
   }, [open]);
 
-  const props = {
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["organization"] });
+  };
+
+  const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
+    setOpen(true);
+  }, []);
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  // Table + Header shared props
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -89,20 +105,7 @@ export default function Page() {
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: setSearchValue,
-  };
-
-  const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["organization"] });
-  };
-
-  const handleEditClick = useCallback((row: any) => {
-    setSelectedRowData(row);
-    setOpen(true);
-  }, []);
-
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-  }, []);
+  }), [data, columns, open, selectedRows, isLoading, sortField, currentPage, sortDirection, searchValue]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -123,7 +126,7 @@ export default function Page() {
       />
       <PowerTable
         props={props}
-        showEdit={true}
+        showEdit
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
