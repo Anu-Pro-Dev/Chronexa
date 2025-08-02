@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "./apiHandler";
+import { apiRequest } from "../lib/apiHandler";
 import { useDebounce } from "@/hooks/useDebounce";
 
 type Params = Record<string, string>;

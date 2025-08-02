@@ -24,7 +24,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { addRolePrivilegeRequest, editRolePrivilegeRequest, addPrivilegeRequest, deletePrivilegeRequest } from "@/lib/apiHandler";
 
 // Privilege keys mapping to API fields

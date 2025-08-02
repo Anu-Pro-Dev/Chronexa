@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 
 interface Schedule {
   schedule_id: number;

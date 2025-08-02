@@ -10,7 +10,7 @@ type ServerTimeResponse = {
 export async function GET() {
   try {
     const { status, body } = await fetchWithLogging(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/main/servertime`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/geofench/servertime`,
       {
         method: "GET",
         logLabel: "Server Time API",

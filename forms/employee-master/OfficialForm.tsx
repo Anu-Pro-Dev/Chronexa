@@ -10,7 +10,7 @@ import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getManagerEmployees } from "@/lib/apiHandler";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 
 export default function OfficialForm({
   Page,

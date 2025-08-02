@@ -32,7 +32,7 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import ColorPicker from "@/components/ui/color-picker";
 import { useRamadanForm } from "./hooks/useRamadanForm";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { addScheduleRequest } from "@/lib/apiHandler";
 
 export default function RamadanForm({

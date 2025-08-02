@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 

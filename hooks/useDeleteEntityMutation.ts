@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { camelToSnake, camelToSentence } from "@/utils/caseConverters";
 import toast from "react-hot-toast";
-import { apiRequest } from "./apiHandler";
+import { apiRequest } from "../lib/apiHandler";
 
 export function useDeleteEntityMutation({
   onSelectionClear,

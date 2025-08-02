@@ -5,7 +5,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 

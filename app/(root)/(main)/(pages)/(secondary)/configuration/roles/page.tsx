@@ -7,7 +7,7 @@ import AssignPrivileges from "@/forms/configuration/AssignPrivileges";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();

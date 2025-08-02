@@ -4,7 +4,7 @@ import PowerHeader from "@/components/custom/power-comps/power-header";
 import { useLanguage } from "@/providers/LanguageProvider";
 import AddWeeklySchedule from "@/forms/scheduling/AddWeeklySchedule";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 
 export default function Page() {
   const { modules } = useLanguage();

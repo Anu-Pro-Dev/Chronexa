@@ -24,7 +24,7 @@ import {
 import Required from "@/components/ui/required";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { addOrganizationRequest, editOrganizationRequest } from "@/lib/apiHandler";
 
 const formSchema = z.object({

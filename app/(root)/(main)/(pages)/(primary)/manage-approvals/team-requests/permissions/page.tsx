@@ -222,7 +222,7 @@ import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerTable from "@/components/custom/power-comps/power-table";
 import PowerTabs from "@/components/custom/power-comps/power-tabs";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { getPendingPermission, approvePermissionRequest } from "@/lib/apiHandler";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";

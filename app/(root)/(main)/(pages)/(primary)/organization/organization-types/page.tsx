@@ -5,7 +5,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import AddOrganizationType from "@/forms/organization/AddOrganizationType";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useDebounce } from "@/hooks/useDebounce"; 
 
 type Column = {

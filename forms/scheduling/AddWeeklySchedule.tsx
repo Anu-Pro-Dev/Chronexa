@@ -33,7 +33,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQuery } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addOrgScheduleRequest, editOrgScheduleRequest, getScheduleByOrganization } from "@/lib/apiHandler";
 

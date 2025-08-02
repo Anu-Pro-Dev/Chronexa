@@ -7,7 +7,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import { useLanguage } from "@/providers/LanguageProvider";
 import AddRoleToUser from "@/forms/configuration/AddRoleToUser";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/apiHandler";
 

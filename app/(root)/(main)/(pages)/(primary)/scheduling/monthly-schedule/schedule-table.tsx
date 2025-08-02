@@ -22,7 +22,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { UnlockIcon } from "@/icons/icons";
 import { StatusSelector } from "./status-selector";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { getEmployeeGroupByEmployeeId } from "@/lib/apiHandler";
 
 const columnNumbers = Array.from({ length: 31 }, (_, i) => i + 1);

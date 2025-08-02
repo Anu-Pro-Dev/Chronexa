@@ -641,7 +641,7 @@
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 
 interface OrganizationType {
   organization_type_id: number;

@@ -11,7 +11,7 @@ import PowerTakeAction from "./power-take-action";
 import PowerClear from "./power-clear";
 import ApprovalModal from "./power-approval-modal";
 import toast from "react-hot-toast";
-import { useDeleteEntityMutation } from "@/lib/useDeleteEntityMutation";
+import { useDeleteEntityMutation } from "@/hooks/useDeleteEntityMutation";
 import { camelToSnake } from "@/utils/caseConverters";
 
 export default function PowerHeader({

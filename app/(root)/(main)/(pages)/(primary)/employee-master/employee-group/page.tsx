@@ -6,7 +6,7 @@ import AddEmployeeGroup from "@/forms/employee-master/AddEmployeeGroup";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { FaUsers } from "react-icons/fa";
 
 export default function Page() {

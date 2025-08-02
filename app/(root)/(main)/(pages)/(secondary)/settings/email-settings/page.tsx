@@ -5,7 +5,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import AddEmailSettings from "@/forms/settings/AddEmailSettings";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 
 export default function Page() {
   const { modules, language } = useLanguage();

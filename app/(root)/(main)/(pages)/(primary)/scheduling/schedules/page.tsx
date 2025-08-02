@@ -5,7 +5,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useScheduleEditStore } from "@/stores/scheduleEditStore";
 
 type Column = {

@@ -5,7 +5,7 @@ import PowerTable from "@/components/custom/power-comps/power-table";
 import AddDesignations from "@/forms/company-master/AddDesignations";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useDebounce } from "@/hooks/useDebounce"; 
 
 export default function Page() {

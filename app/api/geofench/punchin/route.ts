@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
 
     const { status, body } = await fetchWithLogging(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/main/punchin`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/geofench/punchin`,
       {
         method: "POST",
         body: formData,

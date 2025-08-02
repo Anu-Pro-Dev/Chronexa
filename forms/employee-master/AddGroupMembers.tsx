@@ -10,7 +10,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addEmployeeGroupMemberRequest } from "@/lib/apiHandler";
 import { useRouter } from "next/navigation";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { AddIcon, CancelIcon2 } from "@/icons/icons";
 
 export default function AddGroupMembers({

@@ -32,7 +32,7 @@ import { differenceInMinutes, addMinutes, format } from "date-fns";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import ColorPicker from "@/components/ui/color-picker";
-import { useFetchAllEntity } from "@/lib/useFetchAllEntity";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useFormContext } from "react-hook-form";
 import { useScheduleEditStore } from "@/stores/scheduleEditStore";
 
