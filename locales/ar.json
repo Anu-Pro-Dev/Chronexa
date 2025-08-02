@@ -4,39 +4,27 @@
   "language": "عربي",
 
   "translations": {
-    "productName": "Chronexa",
-    "welcome": "Welcome",
-    "changePassword": "Change Password",
-    "logout": "Logout",
+    "product_name": "كرونكسا",
+    "records_per_page": "Records per page",
     "search": "Search",
-    "recordsPerPage": "Records per page",
+    "logout": "Logout",
+    "change_password": "Change Password",
     "primary": "Primary",
     "secondary":"Secondary",
-    "navbar": {
-      "primary": {
-        "dashboard": "Dashboard",
-        "companyMaster": "Company Master",
-        "organization": "Organization",
-        "employeeMaster": "Employee Master",
-        "scheduling": "Scheduling",
-        "selfServices": "Self Services",
-        "manageApprovals": "Manage Approvals"
-      },
-      "secondary": {
-        "devices": "Devices",
-        "reports": "Reports",
-        "configuration": "Configuration",
-        "settings": "Settings",
-        "alerts": "Alerts"
-      }
-    },
+    "this_year": "This year",
+    "this_month": "This month",
+    "no_file_choosen": "No file choosen",
+    "no_rows": "No rows to show",
+    "data_saved": "Data saved",
+    "completed": "Completed",
+    "in_progress": "In progress",
     "buttons": {
       "add": "Add",
       "delete": "Delete",
       "save": "Save",
       "cancel": "Cancel",
       "filters": "Filters",
-      "takeAction": "Take Action",
+      "take_action": "Take Action",
       "punchIn": "Punch In",
       "punchOut": "Punch Out",
       "approve": "Approve",
@@ -63,21 +51,42 @@
       "generate": "Generate",
       "continue": "Continue",
       "required": "Required",
-      "apply": "Apply"
+      "apply": "Apply",
+      "login": "تسجيل الدخول",
+      "logging_in": "جارٍ تسجيل الدخول."
+    },
+    "navbar": {
+      "primary": {
+        "dashboard": "Dashboard",
+        "company_master": "Company Master",
+        "organization": "Organization",
+        "employee_master": "Employee Master",
+        "scheduling": "Scheduling",
+        "self_services": "Self Services",
+        "manage_approvals": "Manage Approvals"
+      },
+      "secondary": {
+        "devices": "Devices",
+        "reports": "Reports",
+        "configuration": "Configuration",
+        "settings": "Settings",
+        "alerts": "Alerts"
+      }
     },
     "modules": {
       "login": {
-        "welcomeText": "Welcome Back",
-        "userName": "Username",
-        "password": "Password",
-        "captcha": "Captcha",
-        "rememberMe": "Remember Me",
-        "forgotPassword": "Forgot Password",
-        "placeUsername": "Enter Your Username",
-        "placePassword": "Enter Your Password",
-        "placeCaptcha": "Enter Captcha",
-        "createPassword": "Create Password",
-        "passwordGenerate": "Password Generate"
+        "login": "تسجيل الدخول",
+        "welcomeText": "مرحبًا بك مجددًا! يُرجى تسجيل الدخول للوصول",
+        "username": "اسم المستخدم",
+        "password": "كلمة المرور",
+        "captcha": "رمز التحقق",
+        "rememberMe": "تذكرني",
+        "forgotPassword": "نسيت كلمة المرور؟",
+        "placeUsername": "أدخل اسم المستخدم",
+        "placePassword": "أدخل كلمة المرور",
+        "placeCaptcha": "أدخل رمز التحقق",
+        "createPassword": "إنشاء كلمة مرور",
+        "passwordGenerate": "تم إنشاء كلمة المرور"
       },
       "dashboard": {
         "myAttendance": "My Attendance",
@@ -375,6 +384,25 @@
         "status": "Status",
         "ccEmail": "CC Email"
       }
+    },
+    "formLabels": {
+
+    },
+    "formErrors": {
+      "username_required": "اسم المستخدم مطلوب.",
+      "username_max": "يجب ألا يزيد اسم المستخدم عن 100 حرف.",
+      "password_required": "كلمة المرور مطلوبة.",
+      "password_max": "يجب ألا تزيد كلمة المرور عن 100 حرف.",
+      "captcha_invalid": "رمز التحقق غير صالح. يرجى المحاولة مرة أخرى.",
+      "captcha_missing": "سؤال التحقق مفقود.",
+      "captcha_wrong_result": "نتيجة رمز التحقق غير صحيحة.",
+      "invalid_credentials": "بيانات الاعتماد غير صحيحة.",
+      "login_error": "حدث خطأ. يرجى المحاولة مرة أخرى."
+    },
+    "toastNotifications": {
+      "login_success": "تم تسجيل الدخول بنجاح!",
+      "login_failed": "فشل تسجيل الدخول. يرجى التحقق من البيانات."  
     }
   }
 }
+

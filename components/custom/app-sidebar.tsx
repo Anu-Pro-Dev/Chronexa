@@ -155,7 +155,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             />
             {open && (
               <h1 className="font-bold text-xl cursor-pointer text-text-primary">
-                {translations?.productName}
+                {translations?.product_name}
               </h1>
             )}
           </div>

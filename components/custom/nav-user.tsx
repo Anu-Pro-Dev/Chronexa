@@ -98,7 +98,7 @@ export function NavUser() {
               }}
             >
               {UserPasswordIcon()}
-              {translations?.changePassword}
+              {translations?.change_password}
             </DropdownMenuItem>
           </DropdownMenuGroup> */}
           <DropdownMenuItem

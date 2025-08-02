@@ -4,39 +4,27 @@
   "language": "English",
 
   "translations": {
-    "productName": "Chronexa",
-    "welcome": "Welcome",
-    "changePassword": "Change Password",
-    "logout": "Logout",
+    "product_name": "Chronexa",
+    "records_per_page": "Records per page",
     "search": "Search",
-    "recordsPerPage": "Records per page",
+    "logout": "Logout",
+    "change_password": "Change Password",
     "primary": "Primary",
     "secondary":"Secondary",
-    "navbar": {
-      "primary": {
-        "dashboard": "Dashboard",
-        "companyMaster": "Company Master",
-        "organization": "Organization",
-        "employeeMaster": "Employee Master",
-        "scheduling": "Scheduling",
-        "selfServices": "Self Services",
-        "manageApprovals": "Manage Approvals"
-      },
-      "secondary": {
-        "devices": "Devices",
-        "reports": "Reports",
-        "configuration": "Configuration",
-        "settings": "Settings",
-        "alerts": "Alerts"
-      }
-    },
+    "this_year": "This year",
+    "this_month": "This month",
+    "no_file_choosen": "No file choosen",
+    "no_rows": "No rows to show",
+    "data_saved": "Data saved",
+    "completed": "Completed",
+    "in_progress": "In progress",
     "buttons": {
       "add": "Add",
       "delete": "Delete",
       "save": "Save",
       "cancel": "Cancel",
       "filters": "Filters",
-      "takeAction": "Take Action",
+      "take_action": "Take Action",
       "punchIn": "Punch In",
       "punchOut": "Punch Out",
       "approve": "Approve",
@@ -63,16 +51,37 @@
       "generate": "Generate",
       "continue": "Continue",
       "required": "Required",
-      "apply": "Apply"
+      "apply": "Apply",
+      "login": "Login",
+      "logging_in": "Logging in..."
+    },
+    "navbar": {
+      "primary": {
+        "dashboard": "Dashboard",
+        "company_master": "Company Master",
+        "organization": "Organization",
+        "employee_master": "Employee Master",
+        "scheduling": "Scheduling",
+        "self_services": "Self Services",
+        "manage_approvals": "Manage Approvals"
+      },
+      "secondary": {
+        "devices": "Devices",
+        "reports": "Reports",
+        "configuration": "Configuration",
+        "settings": "Settings",
+        "alerts": "Alerts"
+      }
     },
     "modules": {
       "login": {
+        "login": "Login",
         "welcomeText": "Welcome Back",
-        "userName": "Username",
+        "username": "Username",
         "password": "Password",
         "captcha": "Captcha",
         "rememberMe": "Remember Me",
-        "forgotPassword": "Forgot Password",
+        "forgotPassword": "Forgot Password ?",
         "placeUsername": "Enter Your Username",
         "placePassword": "Enter Your Password",
         "placeCaptcha": "Enter Captcha",
@@ -375,6 +384,24 @@
         "status": "Status",
         "ccEmail": "CC Email"
       }
+    },
+    "formLabels": {
+
+    },
+    "formErrors": {
+      "username_required": "Username is required.",
+      "username_max": "Username must be at most 100 characters.",
+      "password_required": "Password is required.",
+      "password_max": "Password must be at most 100 characters.",
+      "captcha_invalid": "CAPTCHA is invalid. Please try again.",
+      "captcha_missing": "CAPTCHA question is missing.",
+      "captcha_wrong_result": "Incorrect CAPTCHA result.",
+      "invalid_credentials": "Invalid credentials.",
+      "login_error": "An error occurred. Please try again."
+    },
+    "toastNotifications": {
+      "login_success": "Login successful!",
+      "login_failed": "Login failed. Please check your credentials."
     }
   }
 }

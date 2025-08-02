@@ -28,30 +28,44 @@ import toast from "react-hot-toast";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/animations/hourglass-blue.json";
 
-const formSchema = z.object({
-  username: z
-    .string()
-    .min(1, {
-      message: "Username is required.",
-    })
-    .max(100),
-  password: z
-    .string()
-    .min(1, {
-      message: "Password is required.",
-    })
-    .max(100),
-  captcha_result: z.string().min(1, {
-    message: "CAPTCHA is invalid, please try again!",
-  }),
-  captcha_1: z.number(),
-  captcha_2: z.number(),
-  remember_me: z.boolean().optional(),
-});
+export const useFormSchema = () => {
+  const { translations } = useLanguage();
+
+  const t = (key: string, fallback: string) =>
+    translations?.formErrors?.[key] || fallback;
+
+  return z.object({
+    username: z
+      .string()
+      .trim()
+      .min(1, { message: t("username_required", "Username is required.") })
+      .max(100, { message: t("username_max", "Username must be at most 100 characters.") }),
+
+    password: z
+      .string()
+      .min(1, { message: t("password_required", "Password is required.") })
+      .max(100, { message: t("password_max", "Password must be at most 100 characters.") }),
+
+    captcha_result: z
+      .string()
+      .min(1, { message: t("captcha_invalid", "CAPTCHA is invalid. Please try again.") }),
+
+    captcha_1: z.number({
+      required_error: t("captcha_missing", "CAPTCHA question is missing."),
+    }),
+
+    captcha_2: z.number({
+      required_error: t("captcha_missing", "CAPTCHA question is missing."),
+    }),
+
+    remember_me: z.boolean().optional(),
+  });
+};
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const {language } = useLanguage();
+  const { translations, language } = useLanguage();
+  const formSchema = useFormSchema();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -77,14 +91,20 @@ export default function LoginForm() {
       loginRequest(values.username, values.password, values.remember_me),
     onSuccess: (response) => {
       if (response?.token) {
-        toast.success("Login successful!");
+        toast.success(translations?.toastNotifications?.login_success || "Login successful!");
         router.push("/dashboard");
       } else {
-        form.setError("username", { type: "manual", message: "Invalid credentials" });
+        form.setError("username", {
+          type: "manual",
+          message: translations?.formErrors?.invalid_credentials || "Invalid credentials"
+        });
       }
     },
     onError: (error: any) => {
-      form.setError("username", { type: "manual", message: "An error occurred. Please try again." });
+      form.setError("username", {
+        type: "manual",
+        message: translations?.formErrors?.login_error || "An error occurred. Please try again."
+      });
     },
   });
 
@@ -93,7 +113,7 @@ export default function LoginForm() {
     if (values.captcha_1 + values.captcha_2 !== Number(values.captcha_result)) {
       form.setError("captcha_result", {
         type: "custom",
-        message: "Incorrect Captcha Result",
+        message: translations?.formErrors?.captcha_wrong_result || "Incorrect CAPTCHA result",
       });
       return;
     }
@@ -109,8 +129,8 @@ export default function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
-            <h1 className="text-center text-xl font-bold">Login</h1>
-            <p className="text-center text-sm font-semibold text-text-secondary">Welcome Back! Please Login to access</p>
+            <h1 className="text-center text-xl font-bold">{translations.modules.login.login}</h1>
+            <p className="text-center text-sm font-semibold text-text-secondary">{translations.modules.login.welcomeText}</p>
           </div>
           <FormField
             control={form.control}
@@ -118,11 +138,11 @@ export default function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Username <Required />
+                  {translations.modules.login.username} <Required />
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your username"
+                    placeholder={translations.modules.login.placeUsername}
                     type="text"
                     {...field}
                   />
@@ -138,12 +158,12 @@ export default function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Password <Required />
+                  {translations.modules.login.password} <Required />
                 </FormLabel>
                 <div className="relative">
                   <FormControl>
                     <Input
-                      placeholder="Enter your password"
+                      placeholder={translations.modules.login.placePassword}
                       type={showPassword ? "text" : "password"}
                       {...field}
                     />
@@ -169,7 +189,7 @@ export default function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Captcha <Required />
+                  {translations.modules.login.captcha} <Required />
                 </FormLabel>
 
                 <div className="flex justify-between items-center">
@@ -191,7 +211,7 @@ export default function LoginForm() {
                   />
                 </div>
                 <FormControl>
-                  <Input placeholder="Enter captcha" type="number" {...field} />
+                  <Input placeholder={translations.modules.login.placeCaptcha} type="number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -211,7 +231,7 @@ export default function LoginForm() {
                         checked={field.value}
                         onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
-                      <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">Remember me</FormLabel>
+                      <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">{translations.modules.login.rememberMe}</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>
@@ -221,12 +241,14 @@ export default function LoginForm() {
               className="text-sm text-primary font-bold"
               href={"/forgot-password"}
             >
-              Forgot Password ?
+              {translations.modules.login.forgotPassword}
             </Link> */}
           </div>
 
           <Button type="submit" size={"lg"} className="w-auto min-w-[200px] mx-auto mt-4" disabled={loginMutation.status === "pending"}>
-            {loginMutation.status === "pending" ? "Logging in..." : "Login"}
+            {loginMutation.status === "pending"
+              ? translations?.buttons?.logging_in || "Logging in..."
+              : translations?.buttons?.login || "Login"}          
           </Button>
         </div>
       </form>
