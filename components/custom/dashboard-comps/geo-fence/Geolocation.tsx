@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
 
-// Dynamically import the map component with no SSR
 const DynamicMap = dynamic(() => import('./LeafletMapWrapper'), {
   ssr: false,
   loading: () => (
@@ -20,7 +19,6 @@ const DynamicMap = dynamic(() => import('./LeafletMapWrapper'), {
   )
 });
 
-// Custom marker icon
 const markerIcon = new L.Icon({
   iconUrl: "/icons/marker-icon.png",
   shadowUrl: "/icons/marker-shadow.png",
@@ -30,7 +28,6 @@ const markerIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// Calculate distance between two coordinates in meters
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const toRad = (value: number) => (value * Math.PI) / 180;
   const R = 6371e3;
@@ -65,7 +62,6 @@ export default function Geolocation() {
 
   const handleCloseModal = () => setShowSuccessModal(false);
 
-  // Ensure component is mounted
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -134,7 +130,6 @@ export default function Geolocation() {
       },
       (error: GeolocationPositionError) => {
         if (!locationErrorShown.current) {
-          // Proper error handling instead of logging empty object
           let errorMessage = "Unknown geolocation error";
           let userMessage = "Unable to get location. Please check your browser settings.";
           
@@ -168,8 +163,8 @@ export default function Geolocation() {
       },
       { 
         enableHighAccuracy: true,
-        timeout: 10000, // 10 seconds timeout
-        maximumAge: 60000 // 1 minute cache
+        timeout: 10000,
+        maximumAge: 60000
       }
     );
 
@@ -184,10 +179,9 @@ export default function Geolocation() {
   useEffect(() => {
     if (!isMounted) return;
 
-    // Function to fetch the server time
     const fetchServerTime = async () => {
       try {
-        // Get current time from client side as fallback
+
         const now = new Date();
         const currentDate = now.toISOString().split('T')[0];
         const currentTime = now.toLocaleTimeString('en-GB', {
@@ -197,14 +191,13 @@ export default function Geolocation() {
           second: '2-digit',
         });
 
-        // Try to fetch from server, but use client time as fallback
         try {
           const res = await fetch("/api/geofench/servertime");
           if (res.ok) {
             const data = await res.json();
             const { currentDate: serverDate, currentTime: serverTime, serverTime: fullServerTime } = data;
             setTransactionDate(serverDate);
-            // Convert time to 24-hour format
+
             const time24Hour = new Date(`1970-01-01T${serverTime}Z`).toLocaleTimeString('en-GB', {
               hour12: false,
               hour: '2-digit',
@@ -212,17 +205,14 @@ export default function Geolocation() {
               second: '2-digit',
             });
             setTransactionTime(time24Hour);
-            // Set Date object for live ticking
             setLiveServerTime(new Date(fullServerTime));
           } else {
-            // Use client time if server is not available
             setTransactionDate(currentDate);
             setTransactionTime(currentTime);
             setLiveServerTime(now);
             console.warn("Server time API not available, using client time");
           }
         } catch (serverError) {
-          // Use client time if server request fails
           setTransactionDate(currentDate);
           setTransactionTime(currentTime);
           setLiveServerTime(now);
@@ -234,7 +224,6 @@ export default function Geolocation() {
       }
     };
 
-    // Fetch the server time initially
     fetchServerTime();
   }, [isMounted]);
 
@@ -291,7 +280,6 @@ export default function Geolocation() {
       if (res.ok) {
         serverTimeResponse = await res.json();
       } else {
-        // Use current time if server is not available
         const now = new Date();
         serverTimeResponse = {
           serverTime: now.toISOString(),
@@ -301,7 +289,6 @@ export default function Geolocation() {
         console.warn("Using client time for punch");
       }
     } catch (error) {
-      // Use current time if server request fails
       const now = new Date();
       serverTimeResponse = {
         serverTime: now.toISOString(),
@@ -380,7 +367,6 @@ export default function Geolocation() {
     }
   };
 
-  // Don't render until mounted
   if (!isMounted) {
     return (
       <div className="flex flex-col items-center justify-center relative">

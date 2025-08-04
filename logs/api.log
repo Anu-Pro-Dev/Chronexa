@@ -62,3 +62,9 @@
 {"timestamp":"04/08/2025 23:56:52","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"21ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
 {"timestamp":"04/08/2025 23:57:07","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/geofench/servertime","method":"GET"}
 {"timestamp":"04/08/2025 23:57:07","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"15ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
+{"timestamp":"05/08/2025 00:00:56","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/geofench/servertime","method":"GET"}
+{"timestamp":"05/08/2025 00:00:56","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"23ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
+{"timestamp":"05/08/2025 00:01:08","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/geofench/servertime","method":"GET"}
+{"timestamp":"05/08/2025 00:01:08","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"14ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
+{"timestamp":"05/08/2025 00:01:23","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/geofench/servertime","method":"GET"}
+{"timestamp":"05/08/2025 00:01:23","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"12ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
