@@ -1,17 +1,13 @@
 "use client";
 import React, { useState } from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 import Link from "next/link";
 import ProgressBarChart from "@/components/ui/ProgressBarChart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import MonthlyRosterTable from "./MonthlyRosterTable";
 
 function ScheduleCard() {
+  const { translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
 
   const months = [
@@ -25,13 +21,10 @@ function ScheduleCard() {
         <div className="flex flex-col">
           <div>
             <div className="flex items-center justify-between">
-              <h5 className="text-lg text-text-primary font-bold">Schedule</h5>   
-              {/* <Link href="/scheduling"  className="text-primary text-sm font-medium"> Show all </Link> */}
+              <h5 className="text-lg text-text-primary font-bold">{t?.schedule}</h5>   
+              <Link href="/scheduling/monthly-schedule"  className="text-primary text-sm font-medium"> {translations?.buttons?.show_all}</Link>
             </div>
           </div>
-          {/* <p className="text-sm text-text-secondary font-semibold">
-            Monthly working hours can be viewed here
-          </p> */}
         </div>
 
       </div>
@@ -45,8 +38,6 @@ function ScheduleCard() {
           barCount={50}
         />
       </div>
-
-      {/* <MonthlyRosterTable month={months[parseInt(selectedMonth)]} /> */}
     </div>
   );
 }

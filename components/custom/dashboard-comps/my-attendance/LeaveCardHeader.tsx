@@ -1,19 +1,20 @@
 "use client";
-
+import { useLanguage } from "@/providers/LanguageProvider";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation"; 
 
 export const LeaveCardHeader = ({ page, setPage }: any) => {
-  const router = useRouter(); // Get the router object
+  const router = useRouter();
+  const { dir, translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
 
-  // Determine the href based on the current path
   const getApplyLink = () => {
     if (page === "Leaves") {
-      return "/self-services/leaves/requests/add"; // Navigate to this page if the path is /leaves
+      return "/self-services/leaves/requests/add";
     } else if (page === "Permissions") {
-      return "/self-services/permissions/requests/add"; // Navigate to this page if the path is /permissions
+      return "/self-services/permissions/requests/add";
     }
-    return "/dashboard/my-attendance/"; // Default fallback
+    return "/dashboard/my-attendance/";
   }
 
   return (
@@ -27,7 +28,7 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
           }`}
           onClick={() => setPage("Leaves")}
         >
-          Leaves
+          {t?.leaves}
         </h5>
         <h5 className='cursor-pointer font-bold text-lg text-text-primary'>/</h5>
         <h5
@@ -38,14 +39,14 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
           }`}
           onClick={() => setPage("Permissions")}
         >
-          Permissions
+          {t?.permissions}
         </h5>
       </div>
       <Link
-        href={getApplyLink()} // Use the conditional href
+        href={getApplyLink()}
         className='text-primary text-sm font-medium flex items-center justify-center gap-1'
       >
-        Apply
+        {translations?.buttons?.apply}
       </Link>
     </div>
   );

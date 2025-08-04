@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 import Link from "next/link";
 import {
   EmployeesIcon,
@@ -11,18 +12,21 @@ import {
 } from "@/icons/icons";
 
 function LeaveCard() {
+  const { translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2 flex flex-col justify-between">
       <div className="flex flex-row justify-between p-4">
         <h5 className="text-lg text-text-primary font-bold">
-          Employee Overview
+          {t?.emp_overview}
         </h5>
       </div>
       <div className="flex p-4">
         <div>
           <div className="flex gap-10">
             <p className="text-text-secondary font-semibold text-sm w-[60px]">
-              Total Workforce
+              {t?.total_workforce}
             </p>
             <div className="icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]">
               {EmployeesIcon()}
@@ -34,7 +38,7 @@ function LeaveCard() {
         <div>
           <div className="flex gap-10">
             <p className="text-text-secondary font-semibold text-sm w-[60px]">
-              Total Organizations
+              {t?.total_org}
             </p>
             <div className="icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(125,63,255,0.05)]">
               {OrgIcon()}
@@ -46,7 +50,7 @@ function LeaveCard() {
         <div>
           <div className="flex gap-10">
             <p className="text-text-secondary font-semibold text-sm w-[60px]">
-              Team Managers
+              {t?.team_managers}
             </p>
             <div className="icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(255,45,107,0.15)]">
               {ManagerIcon()}
@@ -64,7 +68,7 @@ function LeaveCard() {
         <div>
           <div className="flex gap-10">
             <p className="text-text-secondary font-semibold text-sm w-[60px]">
-              Employees Count
+              {t?.emps_count}
             </p>
             <div className="icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(255,195,0,0.15)]">
               {EmployeeCountIcon()}
@@ -76,7 +80,7 @@ function LeaveCard() {
         <div>
           <div className="flex gap-10">
             <p className="text-text-secondary font-semibold text-sm w-[60px]">
-              Total Violations
+              {t?.total_violations}
             </p>
             <div className="icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(255,59,59,0.1)]">
               {VoilationIcon()}
@@ -88,7 +92,7 @@ function LeaveCard() {
         <div>
           <div className="flex gap-10">
             <p className="text-text-secondary font-semibold text-sm w-[60px]">
-              Total Leaves
+              {t?.total_leaves}
             </p>
             <div className="icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] text-[#1DAA61] shadow-[0_0_20px_15px_rgba(29,170,97,0.05)]">
               {LeaveTakenIcon()}

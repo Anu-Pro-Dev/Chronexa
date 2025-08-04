@@ -130,7 +130,7 @@ export default function LoginForm() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <h1 className="text-center text-xl font-bold">{translations.modules.login.login}</h1>
-            <p className="text-center text-sm font-semibold text-text-secondary">{translations.modules.login.welcomeText}</p>
+            <p className="text-center text-sm font-semibold text-text-secondary">{translations.modules.login.welcome_text}</p>
           </div>
           <FormField
             control={form.control}
@@ -142,7 +142,7 @@ export default function LoginForm() {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={translations.modules.login.placeUsername}
+                    placeholder={translations.modules.login.placeholder_username}
                     type="text"
                     {...field}
                   />
@@ -163,7 +163,7 @@ export default function LoginForm() {
                 <div className="relative">
                   <FormControl>
                     <Input
-                      placeholder={translations.modules.login.placePassword}
+                      placeholder={translations.modules.login.placeholder_password}
                       type={showPassword ? "text" : "password"}
                       {...field}
                     />
@@ -211,7 +211,7 @@ export default function LoginForm() {
                   />
                 </div>
                 <FormControl>
-                  <Input placeholder={translations.modules.login.placeCaptcha} type="number" {...field} />
+                  <Input placeholder={translations.modules.login.placeholder_captcha} type="number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -231,7 +231,7 @@ export default function LoginForm() {
                         checked={field.value}
                         onCheckedChange={(checked) => field.onChange(checked === true)}
                       />
-                      <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">{translations.modules.login.rememberMe}</FormLabel>
+                      <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">{translations.modules.login.remember_me}</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>
@@ -241,7 +241,7 @@ export default function LoginForm() {
               className="text-sm text-primary font-bold"
               href={"/forgot-password"}
             >
-              {translations.modules.login.forgotPassword}
+              {translations.modules.login.forgot_password}
             </Link> */}
           </div>
 

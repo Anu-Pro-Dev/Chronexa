@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { USER_TOKEN } from "@/utils/constants";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/providers/LanguageProvider";
 import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
@@ -63,6 +64,8 @@ export default function AddApplicationSettings({
 }: {
   on_open_change: any;
 }) {
+  const {language, translations } = useLanguage();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -170,10 +173,10 @@ export default function AddApplicationSettings({
                 on_open_change(false);
               }}
             >
-              Cancel
+              {translations?.buttons?.cancel}
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Save
+                {translations?.buttons?.save || "Save"} 
             </Button>
           </div>
         </div>

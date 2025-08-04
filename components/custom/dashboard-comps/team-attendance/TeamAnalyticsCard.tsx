@@ -1,6 +1,7 @@
 
 "use client"
 import { useState } from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts"
 import {
   ChartConfig,
@@ -34,48 +35,80 @@ const chartConfig = {
 } satisfies ChartConfig
 
 function TeamAnalyticsCard() {
+  const { dir, translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
   const currentMonthIndex = new Date().getMonth();
-  const [selectedMonth, setSelectedMonth] = useState("This month");
+  const [selectedMonth, setSelectedMonth] = useState("this_month");
 
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    translations?.january || "January",
+    translations?.february || "February",
+    translations?.march || "March",
+    translations?.april || "April",
+    translations?.may || "May",
+    translations?.june || "June",
+    translations?.july || "July",
+    translations?.august || "August",
+    translations?.september || "September",
+    translations?.october || "October",
+    translations?.november || "November",
+    translations?.december || "December",
   ];
 
-  const monthsWithThisMonth = months.map((month, index) => {
-    if (index === currentMonthIndex) {
-      return "This month";
-    }
-    return month;
-  })
+  const monthsWithThisMonth = months.map((month, index) =>
+    index === currentMonthIndex ? translations?.this_month || "This Month" : month
+  );
+
+  const chartData = [
+    { key: "leaves", value: 21 },
+    { key: "absent", value: 14 },
+    { key: "missed_in", value: 24 },
+    { key: "missed_out", value: 16 },
+    { key: "late_in", value: 17 },
+    { key: "early_out", value: 13 },
+  ].map(({ key, value }) => ({
+    activity: t[key] || key.replace(/_/g, " "), 
+    value,
+  }));
+
+
+  const chartDataToRender = dir === "rtl" ? [...chartData].reverse() : chartData;
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className='flex flex-row justify-between p-4'>
-        <h5 className='text-lg text-text-primary font-bold'>Team Analytics</h5>
+        <h5 className='text-lg text-text-primary font-bold'> {t?.team_analytics}</h5>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder="Select month" />
+              <SelectValue placeholder={translations?.select_month || "Select month"}>
+              {selectedMonth === "this_month"
+                ? translations?.this_month || "This Month"
+                : selectedMonth}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-accent rounded-md shadow-dropdown">
-            {monthsWithThisMonth.map((month) => (
-              <SelectItem
-                key={month}
-                value={month}
-                className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-accent"
-              >
-                {month}
-              </SelectItem>
-            ))}
+            {monthsWithThisMonth.map((month, index) => {
+              const value = index === currentMonthIndex ? "this_month" : month;
+              return (
+                <SelectItem
+                  key={value}
+                  value={value}
+                  className="text-text-primary bg-accent"
+                >
+                  {month}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
       <ChartContainer
+        dir={dir}
         config={chartConfig}
         className="mx-auto aspect-square max-h-[250px] w-full"
       >
-        <RadarChart data={chartData}>
+        <RadarChart data={chartDataToRender}>
           <ChartTooltip
             cursor={false}
             content={<ChartTooltipContent hideIndicator hideLabel/>}

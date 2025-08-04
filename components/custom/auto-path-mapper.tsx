@@ -29,33 +29,70 @@ export default function AutoPathMapper() {
   //   return translations[formatted] || formatted;
   // };
 
-  const formatSegment = (segment: string) => {
-    const lowerSegment = segment.toLowerCase();
+  // const formatSegment = (segment: string) => {
+  //   const lowerSegment = segment.toLowerCase();
   
-    if (translations.navbar?.primary?.[lowerSegment]) {
-      return translations.navbar.primary[lowerSegment];
+  //   if (translations.navbar?.primary?.[lowerSegment]) {
+  //     return translations.navbar.primary[lowerSegment];
+  //   }
+  
+  //   if (translations.navbar?.secondary?.[lowerSegment]) {
+  //     return translations.navbar.secondary[lowerSegment];
+  //   }
+  
+  //   if (translations.modules?.[lowerSegment]) {
+  //     return translations.modules[lowerSegment];
+  //   }
+  
+  //   for (const moduleKey in translations.modules) {
+  //     if (translations.modules[moduleKey]?.[lowerSegment]) {
+  //       return translations.modules[moduleKey][lowerSegment];
+  //     }
+  //   }
+  
+  //   return lowerSegment
+  //     .split("-")
+  //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  //     .join(" ");
+  // };
+  
+  const toTitleCase = (text: string) =>
+  text
+    .split("-")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+const toSnakeCase = (text: string) => text.replace(/-/g, "_");
+
+const formatSegment = (segment: string) => {
+  const lower = segment.toLowerCase();
+  const snake = toSnakeCase(lower);
+
+  if (translations.dashboard?.[snake]) {
+    return translations.dashboard[snake];
+  }
+
+  if (translations.navbar?.primary?.[snake]) {
+    return translations.navbar.primary[snake];
+  }
+
+  if (translations.navbar?.secondary?.[snake]) {
+    return translations.navbar.secondary[snake];
+  }
+
+  if (translations.modules?.[snake]) {
+    return translations.modules[snake];
+  }
+
+  for (const moduleKey in translations.modules || {}) {
+    if (translations.modules[moduleKey]?.[snake]) {
+      return translations.modules[moduleKey][snake];
     }
-  
-    if (translations.navbar?.secondary?.[lowerSegment]) {
-      return translations.navbar.secondary[lowerSegment];
-    }
-  
-    if (translations.modules?.[lowerSegment]) {
-      return translations.modules[lowerSegment];
-    }
-  
-    for (const moduleKey in translations.modules) {
-      if (translations.modules[moduleKey]?.[lowerSegment]) {
-        return translations.modules[moduleKey][lowerSegment];
-      }
-    }
-  
-    return lowerSegment
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-  
+  }
+
+  return toTitleCase(segment); // fallback: My-Attendance → My Attendance
+};
+
   return (
     <div className="select-none pt-3">
       <Breadcrumb>

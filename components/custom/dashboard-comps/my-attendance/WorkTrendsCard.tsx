@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
@@ -24,10 +25,14 @@ const colorMapping = {
 };
 
 const CustomLegend = ({ payload }: any) => {
+  
+  const { translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+
   const customLabels: { [key in 'worked' | 'leave' | 'holidays']: string } = {
-    worked: "Worked Hours",
-    leave: "Leave Hours",
-    holidays: "Holiday Hours",
+    worked: t?.worked_hrs,
+    leave: t?.leave_hrs,
+    holidays: t?.holiday_hrs,
   };
 
   return (
@@ -35,7 +40,7 @@ const CustomLegend = ({ payload }: any) => {
       {payload.map((entry: any, index: number) => (
         <div key={`legend-${index}`} className="flex items-center mx-2">
           <div className="w-3 h-3 mr-2 rounded-sm" style={{ backgroundColor: entry.color }}></div>
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-gray-700 px-1">
             {customLabels[entry.value as 'worked' | 'leave' | 'holidays'] || entry.value}
           </span>
         </div>
@@ -86,52 +91,76 @@ const processedChartData = chartData.map((entry) => ({
 }));
 
 function WorkTrendsCard() {
+  const { dir, translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
   const currentMonthIndex = new Date().getMonth();
-  const [selectedMonth, setSelectedMonth] = useState("This month");
+  const [selectedMonth, setSelectedMonth] = useState("this_month");
 
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    translations?.january,
+    translations?.february,
+    translations?.march,
+    translations?.april,
+    translations?.may,
+    translations?.june,
+    translations?.july,
+    translations?.august,
+    translations?.september,
+    translations?.october,
+    translations?.november,
+    translations?.december,
   ];
 
   const monthsWithThisMonth = months.map((month, index) =>
-    index === currentMonthIndex ? "This month" : month
+    index === currentMonthIndex ? translations?.this_month : month
   );
+
+  const chartDataToRender = dir === "rtl" ? [...processedChartData].reverse() : processedChartData;
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4">
       <div className="flex flex-row justify-between p-3">
-        <h5 className="text-lg text-text-primary font-bold">Work hour trends</h5>
+        <h5 className="text-lg text-text-primary font-bold">{t?.work_hrs_trends}</h5>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder="Select month" />
+              <SelectValue placeholder={translations?.select_month}>
+              {selectedMonth === "this_month"
+                ? translations?.this_month
+                : selectedMonth}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-accent rounded-md shadow-dropdown">
-            {monthsWithThisMonth.map((month) => (
-              <SelectItem
-                key={month}
-                value={month}
-                className="text-text-primary bg-accent"
-              >
-                {month}
-              </SelectItem>
-            ))}
+            {monthsWithThisMonth.map((month, index) => {
+              const value = index === currentMonthIndex ? "this_month" : month;
+              return (
+                <SelectItem
+                  key={value}
+                  value={value}
+                  className="text-text-primary bg-accent"
+                >
+                  {month}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
 
       <ChartContainer
-        className="relative -left-[35px] w-full flex justify-center"
+        dir={dir}
+        className={`relative w-full flex justify-center ${
+          dir === "rtl" ? "-right-[45px]" : "-left-[35px]"
+        }`}
         config={{
           type: { label: "Bar Chart", icon: undefined, color: "#0078D4" },
           options: {},
         }}
       >
-        <BarChart accessibilityLayer data={processedChartData}>
+        <BarChart accessibilityLayer data={chartDataToRender}>
           <CartesianGrid vertical={false} />
           <XAxis dataKey="date" tickLine={false} tickMargin={2} axisLine={false} interval={0}/>
-          <YAxis type="number" tickLine={false} tickMargin={2} axisLine={false} domain={[0, 10]}/>
+          <YAxis type="number" tickLine={false} tickMargin={2} axisLine={false} domain={[0, 10]} orientation={dir === "rtl" ? "right" : "left"}/>
           <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
           <ChartLegend content={<CustomLegend />} />
 

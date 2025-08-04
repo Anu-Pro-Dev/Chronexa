@@ -1,5 +1,4 @@
 "use client";
-
 import React from 'react';
 import EmployeeCard from './EmployeeCard';
 import TeamAnalyticsCard from './TeamAnalyticsCard';

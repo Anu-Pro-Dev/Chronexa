@@ -238,7 +238,7 @@ export default function PowerExport({
           className="flex items-center space-y-0.5 bg-[#21A366]"
         >
           <ExportExcelIcon />
-          <span>{translations?.buttons.exportExcel}</span>
+          <span>{translations?.buttons.export_excel}</span>
         </Button>
       )}
 
@@ -250,7 +250,7 @@ export default function PowerExport({
           className="flex items-center space-y-0.5 bg-[#DD2025]"
         >
           <ExportPDFIcon />
-          <span>{translations?.buttons.exportPdf}</span>
+          <span>{translations?.buttons.export_pdf}</span>
         </Button>
       )}
 
@@ -261,7 +261,7 @@ export default function PowerExport({
           className="flex items-center space-y-0.5 bg-[#00A2ED]"
         >
           <ExportWordIcon />
-          <span>{translations?.buttons.exportWord}</span>
+          <span>{translations?.buttons.export_word}</span>
         </Button>
       )}
     </div>

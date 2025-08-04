@@ -86,7 +86,7 @@ export default function AddDBSettings({
   onSave: (id: string | null, newData: any) => void;
 }) {
     
-	const {language } = useLanguage();
+	const {language, translations } = useLanguage();
     
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -300,10 +300,10 @@ export default function AddDBSettings({
 								className="w-full"
 								onClick={() => on_open_change(false)}
 							>
-								Cancel
+								{translations?.buttons?.cancel}
 							</Button>
 							<Button type="submit" size={"lg"} className="w-full">
-								Save
+								{selectedRowData ? translations?.buttons?.Update || "Update" : translations?.buttons?.save || "Save"} 
 							</Button>
 						</div>
 					</div>

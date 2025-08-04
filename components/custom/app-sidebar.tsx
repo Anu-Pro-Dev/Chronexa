@@ -49,7 +49,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: true,
       },
       {
-        title: translations.navbar.primary.companyMaster,
+        title: translations.navbar.primary.company_master,
         url: modules.companyMaster.items[0].path,
         path: modules.companyMaster.path,
         icon: CompanyMasterIcon,
@@ -61,7 +61,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: OrganizationIcon,
       },
       {
-        title: translations.navbar.primary.employeeMaster,
+        title: translations.navbar.primary.employee_master,
         url: modules.employeeMaster.items[0].path,
         path: modules.employeeMaster.path,
         icon: EmployeeMasterIcon,
@@ -73,13 +73,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: SchedulingIcon,
       },
       {
-        title: translations.navbar.primary.selfServices,
+        title: translations.navbar.primary.self_services,
         url: modules.selfServices.items[0].path,
         path: modules.selfServices.path,
         icon: SelfServicesIcon,
       },
       {
-        title: translations.navbar.primary.manageApprovals,
+        title: translations.navbar.primary.manage_approvals,
         url: modules.manageApprovals.items[0].path,
         path: modules.manageApprovals.path,
         icon: TAMasterIcon,

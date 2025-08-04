@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 import {
   Carousel,
   CarouselContent,
@@ -17,15 +18,18 @@ import {
 } from "@/icons/icons";
 
 function ViolationsCard() {
+  const { dir, translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+  
   return (
     <div className="relative shadow-card h-full rounded-[10px] bg-accent px-2 pt-3 pb-10 flex flex-col items-center">
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute left-[50px] top-[50px]"></div>
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute right-[50px] bottom-[50px]"></div>
       <div className="flex flex-row justify-between py-4">
-        <h5 className="text-lg text-text-primary font-bold">Violations</h5>
+        <h5 className="text-lg text-text-primary font-bold">{t?.violations}</h5>
       </div>
-      <Carousel className="w-full max-w-xs px-5">
-        <CarouselContent>
+      <Carousel className="w-full max-w-xs px-5" dir={dir}>
+        <CarouselContent className={dir === "rtl" ? "flex-row-reverse" : ""}>
           <CarouselItem className="pl-0">
             <div className="aspect-square flex flex-col items-center justify-center gap-4 px-6">
               <div className="h-auto w-full rounded-[10px] bg-gradient-to-r from-[#0078D450] to-[#DAEDFF] p-[2px]">
@@ -42,7 +46,7 @@ function ViolationsCard() {
                   <div className="text-center">
                     <p className="text-3xl text-text-primary font-bold">0</p>
                     <p className="text-text-secondary font-semibold text-sm">
-                      Missed in
+                      {t?.missed_in}
                     </p>
                   </div>
                 </div>
@@ -62,7 +66,7 @@ function ViolationsCard() {
                   <div className="text-center">
                     <p className="text-3xl text-text-primary font-bold">3</p>
                     <p className="text-text-secondary font-semibold text-sm">
-                      Missed out
+                      {t?.missed_out}
                     </p>
                   </div>
                 </div>
@@ -85,7 +89,7 @@ function ViolationsCard() {
                   <div className="text-center">
                     <p className="text-3xl text-text-primary font-bold">2</p>
                     <p className="text-text-secondary font-semibold text-sm">
-                      Late in
+                      {t?.late_in}
                     </p>
                   </div>
                 </div>
@@ -105,7 +109,7 @@ function ViolationsCard() {
                   <div className="text-center">
                     <p className="text-3xl text-text-primary font-bold">1</p>
                     <p className="text-text-secondary font-semibold text-sm">
-                      Early out
+                      {t?.early_out}
                     </p>
                   </div>
                 </div>

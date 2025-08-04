@@ -45,18 +45,18 @@ export default function LanguageProvider({
     path: "/dashboard",
     items: [
       {
-        label: currentLanguageData.translations?.modules?.dashboard?.myAttendance || "My Attendance",
+        label: currentLanguageData.translations?.modules?.dashboard?.my_attendance || "My Attendance",
         path: "/dashboard/my-attendance/",
         value: "my_attendance",
       },
       {
-        label: currentLanguageData.translations?.modules?.dashboard?.teamAttendance || "Team Attendance",
+        label: currentLanguageData.translations?.modules?.dashboard?.team_attendance || "Team Attendance",
         path: "/dashboard/team-attendance/",
         value: "team_attendance",
       },
       {
-        label: currentLanguageData.translations?.modules?.dashboard?.geoFench || "Geo Fench",
-        path: "/dashboard/geo-fench/",
+        label: currentLanguageData.translations?.modules?.dashboard?.geo_fence || "Geo Fence",
+        path: "/dashboard/geo-fence/",
         value: "geo_fench",
       },
     ],
@@ -94,7 +94,7 @@ export default function LanguageProvider({
     path: "/organization/",
     items: [
       { 
-        label: currentLanguageData.translations?.modules?.organization?.organizationTypes || "Organization Types",
+        label: currentLanguageData.translations?.modules?.organization?.organization_types || "Organization Types",
         path: "/organization/organization-types/", 
         value: "organization-types" 
       },
@@ -104,7 +104,7 @@ export default function LanguageProvider({
         value: "organization" 
       },
       {
-        label: currentLanguageData.translations?.modules?.organization?.organizationStructure || "Organization Structure",
+        label: currentLanguageData.translations?.modules?.organization?.organization_structure || "Organization Structure",
         path: "/organization/organization-structure/",
         value: "organization-structure",
       },
@@ -128,28 +128,28 @@ export default function LanguageProvider({
 
     items: [
       {
-        label: "Employee Type",
+        label: currentLanguageData.translations?.modules?.employeeMaster?.employee_type || "Employee Type",
         path: "/employee-master/employee-type/",
         value: "employee_type",
       },
       {
-        label: "Employee Group",
+        label: currentLanguageData.translations?.modules?.employeeMaster?.employee_group || "Employee Group",
         path: "/employee-master/employee-group/",
         value: "employee_group",
       },
       {
-        label: "Employee Group",
+        label: currentLanguageData.translations?.modules?.employeeMaster?.employee_group || "Employee Group",
         path: `/employee-master/employee-group/group-members/`,
         value: "employee_group",
         hide: true,
       },
       {
-        label: "Employee",
+        label: currentLanguageData.translations?.modules?.employeeMaster?.employee || "Employee",
         path: "/employee-master/employee/",
         value: "employee",
       },
       {
-        label: "Users",
+        label: currentLanguageData.translations?.modules?.employeeMaster?.employee || "Employee",
         path: "/employee-master/employee/add/",
         value: "add-employee",
         hide: true,
@@ -162,39 +162,39 @@ export default function LanguageProvider({
     path: "/scheduling/",
     items: [
       {
-        label: "Schedules",
+        label: currentLanguageData.translations?.modules?.scheduling?.schedules || "Schedules",
         path: "/scheduling/schedules/",
         value: "schedules",
       },
       {
-        label: "Schedules",
+        label: currentLanguageData.translations?.modules?.scheduling?.schedules || "Schedules",
         path: "/scheduling/schedules/add/",
         value: "add-schedules",
         hide: true,
       },
       {
-        label: "Weekly Schedule",
+        label: currentLanguageData.translations?.modules?.scheduling?.weekly_schedule || "Weekly Schedule",
         path: "/scheduling/weekly-schedule/",
         value: "weekly_schedule",
       },
       {
-        label: "Weekly Schedule",
+        label: currentLanguageData.translations?.modules?.scheduling?.weekly_schedule || "Weekly Schedule",
         path: "/scheduling/weekly-schedule/add/",
         value: "add_weekly_schedule",
         hide: true,
       },
       {
-        label: "Monthly Schedule",
+        label: currentLanguageData.translations?.modules?.scheduling?.monthly_schedule || "Monthly Schedule",
         path: "/scheduling/monthly-schedule/",
         value: "monthly_schedule",
       },
       {
-        label: "Holidays",
+        label: currentLanguageData.translations?.modules?.scheduling?.holidays || "Holidays",
         path: "/scheduling/holidays/",
         value: "holidays",
       },
       {
-        label: "Set Ramadan Dates",
+        label: currentLanguageData.translations?.modules?.scheduling?.set_ramadan_dates || "Set Ramadan Dates",
         path: "/scheduling/set-ramadan-dates/",
         value: "set_ramadan_dates",
       },
@@ -206,81 +206,81 @@ export default function LanguageProvider({
     path: "/self-services/",
     items: [
       {
-        label: "Workflow",
+        label: currentLanguageData.translations?.modules?.selfServices?.workflow || "Workflow",
         path: "/self-services/workflow/",
         value: "workflow",
       },
       {
-        label: "Workflow",
+        label: currentLanguageData.translations?.modules?.selfServices?.workflow || "Workflow",
         path: "/self-services/workflow/add/",
         value: "add_workflow",
         hide: true,
       },
       {
-        label: "Permissions",
+        label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
         path: "/self-services/permissions/",
         value: "permissions",
       },
       {
-        label: "Permissions",
+        label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
         path: "/self-services/permissions/manage/add/",
         value: "permissions",
         hide:true
       },
       {
-        label: "Permissions",
+        label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
         path: "/self-services/permissions/requests/",
         value: "permissions",
         hide:true,
       },
       {
-        label: "Permissions",
+        label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
         path: "/self-services/permissions/requests/add/",
         value: "permissions",
         hide:true
       },
       {
-        label: "Leaves",
+        label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
         path: "/self-services/leaves/manage/",
         value: "leaves",
       },
       {
-        label: "Leaves",
+        label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
         path: "/self-services/leaves/manage/add/",
         value: "leaves",
         hide:true
       },
       {
-        label: "Leaves",
+        label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
         path: "/self-services/leaves/requests/",
         value: "leaves",
         hide:true,
       },
       {
-        label: "Leaves",
+        label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
         path: "/self-services/leaves/requests/add/",
         value: "leaves",
         hide:true
       },
       {
-        label: "Punches",
+        label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
         path: "/self-services/punches/my-punches/",
         value: "punches",
       },
       {
-        label: "Punches",
+        label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
         path: "/self-services/punches/my-punches/add/",
         value: "punches",
         hide:true
       },
       {
-        label: "Punches",
+        label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
         path: "/self-services/punches/my-requests/",
         value: "punches",
         hide:true,
       },
       {
-        label: "Punches",
+        label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
         path: "/self-services/punches/my-requests/add/",
         value: "punches",
         hide:true
@@ -289,12 +289,12 @@ export default function LanguageProvider({
     permissions: { 
       items: [
         {
-          label: "Manage",
+          label: currentLanguageData.translations?.modules?.selfServices?.manage || "Manage",
           url: "/self-services/permissions/manage/",
           value: "permission manage",
         },
         {
-          label: "Requests",
+          label: currentLanguageData.translations?.modules?.selfServices?.requests || "Requests",
           url: "/self-services/permissions/requests/",
           value: "permission requests",
         },
@@ -303,12 +303,12 @@ export default function LanguageProvider({
     leaves: { 
       items: [
         {
-          label: "Manage",
+          label: currentLanguageData.translations?.modules?.selfServices?.manage || "Manage",
           url: "/self-services/leaves/manage/",
           value: "leave manage",
         },
         {
-          label: "Requests",
+          label: currentLanguageData.translations?.modules?.selfServices?.requests || "Requests",
           url: "/self-services/leaves/requests/",
           value: "leave requests",
         },
@@ -317,12 +317,12 @@ export default function LanguageProvider({
     punches: {
       items: [
         {
-          label: "My Punches",
+          label: currentLanguageData.translations?.modules?.selfServices?.my_punches || "My Punches",
           url: "/self-services/punches/my-punches/",
           value: "punches manage",
         },
         {
-          label: "Team Punches",
+          label: currentLanguageData.translations?.modules?.selfServices?.team_punches || "Team Punches",
           url: "/self-services/punches/team-punches/",
           value: "punches requests",
         },
@@ -335,47 +335,42 @@ export default function LanguageProvider({
     path: "/manage-approvals/",
     items: [
       {
-        label: "Team Requests",
+        label: currentLanguageData.translations?.modules?.manageApprovals?.my_punches || "Team Requests",
         path: "/manage-approvals/team-requests/",
       },
       // {
-      //   label: "Approvals",
+      //   label: currentLanguageData.translations?.modules?.manageApprovals?.approvals || "Approvals",
       //   path: "/manage-approvals/approvals/",
       // },
     ],
     teamrequests: { 
       items: [
         {
-          label: "Permissions",
+          label: currentLanguageData.translations?.modules?.manageApprovals?.permissions || "Permissions",
           url: "/manage-approvals/team-requests/permissions/",
           value: "permission approval",
         },
         {
-          label: "Leaves",
+          label: currentLanguageData.translations?.modules?.manageApprovals?.leaves || "Leaves",
           url: "/manage-approvals/team-requests/leaves/",
           value: "leave approval",
-        },
-        // {
-        //   label: "Punches",
-        //   url: "/manage-approvals/team-requests/punches/",
-        //   value: "punch approval",
-        // },
+        }
       ],
     },
-    approvals: { 
-      items: [
-        {
-          label: "Verification",
-          url: "/manage-approvals/approvals/verification/",
-          value: "verification approval",
-        },
-        {
-          label: "Pending",
-          url: "/manage-approvals/approvals/pending/",
-          value: "pending approval",
-        },
-      ],
-    },
+    // approvals: { 
+    //   items: [
+    //     {
+    //       label: currentLanguageData.translations?.modules?.manageApprovals?.verification || "Verification",
+    //       url: "/manage-approvals/approvals/verification/",
+    //       value: "verification approval",
+    //     },
+    //     {
+    //       label: currentLanguageData.translations?.modules?.manageApprovals?.pending || "Pending",
+    //       url: "/manage-approvals/approvals/pending/",
+    //       value: "pending approval",
+    //     },
+    //   ],
+    // },
   };
 
   // const devices = {
@@ -395,7 +390,7 @@ export default function LanguageProvider({
     path: "/reports/",
     items: [
       {
-        label: "Reports",
+        label: currentLanguageData.translations?.modules?.reports?.reports || "Reports",
         path: "/reports/reports/",
         value: "reports",
       },
@@ -407,12 +402,12 @@ export default function LanguageProvider({
     path: "/configuration/",
     items: [
       {
-        label: "Roles",
+        label: currentLanguageData.translations?.modules?.configuration?.roles || "Roles",
         path: "/configuration/roles/",
         value: "roles",
       },
       {
-        label: "Roles",
+        label: currentLanguageData.translations?.modules?.configuration?.roles || "Roles",
         path: `/configuration/roles/assign-roles/`,
         value: "roles",
         hide: true,
@@ -435,17 +430,17 @@ export default function LanguageProvider({
     path: "/settings/",
       items: [
         {
-          label: "DB Settings",
+          label: currentLanguageData.translations?.modules?.settings?.db_settings || "DB Settings",
           path: "/settings/db-settings/",
           value: "db_settings",
         },
         {
-          label: "Email Settings",
+          label: currentLanguageData.translations?.modules?.settings?.email_settings || "Email Settings",
           path: "/settings/email-settings/",
           value: "email_settings",
         },
         {
-          label: "App Settings",
+          label: currentLanguageData.translations?.modules?.settings?.app_settings || "App Settings",
           path: "/settings/app-settings/",
           value: "app_settings",
         },
@@ -462,7 +457,7 @@ export default function LanguageProvider({
     path: "/alerts/",
     items: [
       {
-        label: "Email",
+        label: currentLanguageData.translations?.modules?.alerts?.email || "Email",
         path: "/alerts/email/",
         value: "email",
       },

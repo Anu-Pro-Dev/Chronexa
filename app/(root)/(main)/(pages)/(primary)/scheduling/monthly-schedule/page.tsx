@@ -18,7 +18,7 @@ import {
 } from "@/icons/icons";
 
 export default function Page() {
-  const { modules } = useLanguage();
+  const { translations, modules } = useLanguage();
   const [SearchValue, SetSearchValue] = useState<string>("");
   
   const props = {
@@ -46,39 +46,35 @@ export default function Page() {
           />
           <div className="flex items-center gap-2">
             <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-              <ImportIcon /> Import
+              <ImportIcon /> {translations?.buttons?.import}
             </Button>
             <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-              <ExportIcon /> Export
+              <ExportIcon /> {translations?.buttons?.export}
             </Button>
             <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-              <CopyIcon /> Copy Roster
+              <CopyIcon /> {translations?.buttons?.copy_roster}
             </Button>
             <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold">
-              <CopyIcon /> Copy
+              <CopyIcon /> {translations?.buttons?.copy}
             </Button>
             <Button size={"sm"} variant={"primaryoutline"} type="button" className="text-sm font-semibold" disabled>
-              <PasteIcon /> Paste
+              <PasteIcon /> {translations?.buttons?.paste}
             </Button>
           </div>
         </div>
       </div>
       <div className="justify-end gap-4 flex">
         <Button size={"sm"} type="button">
-          <SaveIcon />
-          Save
+          <SaveIcon /> {translations?.buttons?.save}
         </Button>
         <Button size={"sm"} type="button" variant="success">
-          <LockIcon />
-          Finalize
+          <LockIcon /> {translations?.buttons?.finalize}
         </Button>
         <Button size={"sm"} type="button" className="text-[#979797] bg-[#F3F3F3] border border-[#E7E7E7]">
-          <UnlockIcon />
-          Un-finalize
+          <UnlockIcon /> {translations?.buttons?.un_finalize}
         </Button>
         <Button size={"sm"} type="button" variant="destructive">
-          <DeleteIcon />
-          Clear
+          <DeleteIcon /> {translations?.buttons?.clear}
         </Button>
       </div>
       <div className="relative">
