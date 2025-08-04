@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/legacy/image";
 import { PunchInIcon, PunchOutIcon } from "@/icons/icons";
 import { usePunch } from "@/providers/PunchProvider";
@@ -8,6 +8,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 function TimerCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
+  const [isClient, setIsClient] = useState(false);
 
   const { 
     isPunchedIn, 
@@ -19,12 +20,17 @@ function TimerCard() {
 
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
 
+  // Ensure component is hydrated before showing time-dependent content
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   useEffect(() => {
     if (timerInterval.current) {
       clearInterval(timerInterval.current);
     }
 
-    if (isPunchedIn) {
+    if (isPunchedIn && isClient) {
       timerInterval.current = setInterval(() => {
         updateElapsedSeconds(elapsedSeconds + 1);
       }, 1000);
@@ -35,7 +41,51 @@ function TimerCard() {
         clearInterval(timerInterval.current);
       }
     };
-  }, [isPunchedIn, elapsedSeconds, updateElapsedSeconds]);
+  }, [isPunchedIn, elapsedSeconds, updateElapsedSeconds, isClient]);
+
+  // Don't render time-dependent content until client-side hydration
+  if (!isClient) {
+    return (
+      <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#0078D4] to-[#003E6E] text-accent p-4 flex flex-col items-center">
+        <Image
+          src="/clock-bg.svg"
+          alt="Clock Your Hours"
+          objectFit="cover"
+          layout="fill"
+          className="blur-[2px] !absolute"
+          priority
+        />
+        <h5 className="text-base font-bold">{t?.clock_hrs}</h5>
+        <p className="text-[35px] font-bold align-center py-4">
+          00:00:00
+        </p>
+        <div className="flex gap-8">
+          <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
+            <p className="font-semibold pb-1">{t?.remaining}</p>
+            <p className="text-[13px] font-bold">08:00</p>
+          </div>
+          <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
+            <p className="font-semibold pb-1">{t?.overtime}</p>
+            <p className="text-[13px] font-bold">00:00</p>
+          </div>
+          <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
+            <p className="font-semibold pb-1">{t?.break_time}</p>
+            <p className="text-[13px] font-bold">00:30</p>
+          </div>
+        </div>
+        <div className="w-full pt-5 flex justify-between uppercase">
+          <div className="flex items-center gap-2 font-bold text-xs">
+            <PunchInIcon/>
+            <p>_ _ : _ _</p>
+          </div>
+          <div className="flex items-center gap-2 font-bold text-xs">
+            <PunchOutIcon/>
+            <p>_ _ : _ _</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const hours = Math.floor(elapsedSeconds / 3600);
   const minutes = Math.floor((elapsedSeconds % 3600) / 60);

@@ -59,7 +59,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <PowerHeader
           disableAdd
           disableDelete

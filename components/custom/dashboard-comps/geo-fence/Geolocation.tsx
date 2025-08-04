@@ -132,17 +132,52 @@ export default function Geolocation() {
           setIsOutsideGeofence(false);
         }
       },
-      (error) => {
+      (error: GeolocationPositionError) => {
         if (!locationErrorShown.current) {
-          console.error(error);
-          toast.error("User denied Geolocation. Enable it from browser settings.");
+          // Proper error handling instead of logging empty object
+          let errorMessage = "Unknown geolocation error";
+          let userMessage = "Unable to get location. Please check your browser settings.";
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = "User denied the request for Geolocation";
+              userMessage = "Location access denied. Please enable location permissions in your browser settings.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = "Location information is unavailable";
+              userMessage = "Location information is unavailable. Please check your GPS settings.";
+              break;
+            case error.TIMEOUT:
+              errorMessage = "The request to get user location timed out";
+              userMessage = "Location request timed out. Please try again.";
+              break;
+            default:
+              errorMessage = `Geolocation error: ${error.message}`;
+              userMessage = "Unable to get location. Please check your browser settings.";
+          }
+          
+          console.error("Geolocation error:", {
+            code: error.code,
+            message: error.message,
+            timestamp: new Date().toISOString()
+          });
+          
+          toast.error(userMessage);
           locationErrorShown.current = true;
         }
       },
-      { enableHighAccuracy: true }
+      { 
+        enableHighAccuracy: true,
+        timeout: 10000, // 10 seconds timeout
+        maximumAge: 60000 // 1 minute cache
+      }
     );
 
-    return () => navigator.geolocation.clearWatch(watcher);
+    return () => {
+      if (watcher) {
+        navigator.geolocation.clearWatch(watcher);
+      }
+    };
 
   }, [isMounted, tobevalidated, officeCoordinates, radius]);
 

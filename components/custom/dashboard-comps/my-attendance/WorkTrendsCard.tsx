@@ -25,7 +25,6 @@ const colorMapping = {
 };
 
 const CustomLegend = ({ payload }: any) => {
-  
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
 
@@ -37,8 +36,8 @@ const CustomLegend = ({ payload }: any) => {
 
   return (
     <div className="flex justify-center mt-4">
-      {payload.map((entry: any, index: number) => (
-        <div key={`legend-${index}`} className="flex items-center mx-2">
+      {payload?.map((entry: any, index: number) => (
+        <div key={`legend-${entry.value}-${index}`} className="flex items-center mx-2">
           <div className="w-3 h-3 mr-2 rounded-sm" style={{ backgroundColor: entry.color }}></div>
           <span className="text-sm text-gray-700 px-1">
             {customLabels[entry.value as 'worked' | 'leave' | 'holidays'] || entry.value}
@@ -135,7 +134,7 @@ function WorkTrendsCard() {
               const value = index === currentMonthIndex ? "this_month" : month;
               return (
                 <SelectItem
-                  key={value}
+                  key={`month-${index}-${value}`}
                   value={value}
                   className="text-text-primary bg-accent"
                 >

@@ -1,5 +1,66 @@
+// "use client";
+// import React, { createContext, useContext, useState } from "react";
+
+// type PunchContextType = {
+//   isPunchedIn: boolean;
+//   punchInTime: string | null;
+//   punchOutTime: string | null;
+//   elapsedSeconds: number;
+//   togglePunch: () => void;
+//   updateElapsedSeconds: (seconds: number) => void;
+// };
+
+// const PunchContext = createContext<PunchContextType | undefined>(undefined);
+
+// export function PunchProvider({ children }: { children: React.ReactNode }) {
+//   const [isPunchedIn, setIsPunchedIn] = useState(false);
+//   const [punchInTime, setPunchInTime] = useState<string | null>(null);
+//   const [punchOutTime, setPunchOutTime] = useState<string | null>(null);
+//   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+//   const togglePunch = () => {
+//     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    
+//     if (!isPunchedIn) {
+//       setPunchInTime(currentTime);
+//       setPunchOutTime(null);
+//       setElapsedSeconds(0);
+//     } else {
+//       setPunchOutTime(currentTime);
+//     }
+    
+//     setIsPunchedIn(!isPunchedIn);
+//   };
+
+//   const updateElapsedSeconds = (seconds: number) => {
+//     setElapsedSeconds(seconds);
+//   };
+
+//   return (
+//     <PunchContext.Provider 
+//       value={{ 
+//         isPunchedIn, 
+//         punchInTime, 
+//         punchOutTime, 
+//         elapsedSeconds,
+//         togglePunch,
+//         updateElapsedSeconds
+//       }}
+//     >
+//       {children}
+//     </PunchContext.Provider>
+//   );
+// }
+
+// export function usePunch() {
+//   const context = useContext(PunchContext);
+//   if (context === undefined) {
+//     throw new Error("usePunch must be used within a PunchProvider");
+//   }
+//   return context;
+// }
 "use client";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 type PunchContextType = {
   isPunchedIn: boolean;
@@ -8,6 +69,7 @@ type PunchContextType = {
   elapsedSeconds: number;
   togglePunch: () => void;
   updateElapsedSeconds: (seconds: number) => void;
+  isClient: boolean; // Add this to help components know when it's safe to render time-dependent content
 };
 
 const PunchContext = createContext<PunchContextType | undefined>(undefined);
@@ -17,9 +79,22 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
   const [punchInTime, setPunchInTime] = useState<string | null>(null);
   const [punchOutTime, setPunchOutTime] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on the client side before doing any time-related operations
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const togglePunch = () => {
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    // Only execute if we're on the client side
+    if (!isClient) return;
+    
+    const currentTime = new Date().toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true 
+    });
     
     if (!isPunchedIn) {
       setPunchInTime(currentTime);
@@ -44,7 +119,8 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         punchOutTime, 
         elapsedSeconds,
         togglePunch,
-        updateElapsedSeconds
+        updateElapsedSeconds,
+        isClient
       }}
     >
       {children}
