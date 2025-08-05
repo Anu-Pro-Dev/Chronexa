@@ -28,41 +28,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import Required from "@/components/ui/required";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
+import { useLanguage } from "@/providers/LanguageProvider";
 import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { BasicIcon, SetupIcon, RestrictIcon, PolicyIcon, CheckMark } from "@/icons/icons";
 
 const formSchemaBasic = z.object({
-  code: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  reason: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  descriptionEng: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  descriptionArb: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  permission_comments_en: z
-    .string(),
-  permission_comments_ar: z
-    .string(),
+  permission_type_code: z.string().default("").transform((val) => val.toUpperCase()),
+  permission_type_name: z.string().default(""),
+  permission_comments_eng: z.string().optional(),
+  permission_comments_arb: z.string().optional(),
 })
 
 const formSchemaSetup = z.object({
@@ -116,7 +93,6 @@ const formSchemaRestriction = z.object({
 })
 
 const formSchemaPolicy = z.object({
-
   permission_attributes: z.
   array(z.string()).optional(),
   permission_type: z
@@ -124,19 +100,17 @@ const formSchemaPolicy = z.object({
 })
 
 export default function AddPermissionTypes () {
-
+  const { language, translations } = useLanguage();
   const[pageNumber, setPageNumber] = useState(0)
   const router = useRouter()
 
   const formBasic = useForm<z.infer<typeof formSchemaBasic>>({
     resolver: zodResolver(formSchemaBasic),
     defaultValues: {
-      code: "",
-      descriptionEng: "",
-      descriptionArb: "",
-      reason: "",
-      permission_comments_en:"",
-      permission_comments_ar:"",
+      permission_type_code: "",
+      permission_type_name: "",
+      permission_comments_eng:"",
+      permission_comments_arb:"",
 
     }
   })
@@ -178,7 +152,6 @@ export default function AddPermissionTypes () {
       max_permissions_per_month: undefined,
       min_permission_time:undefined,
       max_permission_time:undefined,
-
     }
   })
 
@@ -274,41 +247,11 @@ export default function AddPermissionTypes () {
           <div className="w-11/12 mx-auto grid md:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] md:[&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px] py-10">
             <FormField
               control={formBasic.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Reason <Required />
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose reason" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">Normal In</SelectItem>
-                      <SelectItem value="2">Normal Out</SelectItem>
-                      <SelectItem value="3">Business Arrival</SelectItem>
-                      <SelectItem value="4">Business Departure</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formBasic.control}
-              name="code"
+              name="permission_type_code"
               render={({ field }) => (
                 <FormItem className=" ">
                   <FormLabel>
-                    code <Required />
+                    Permission type code <Required />
                   </FormLabel>
                   <FormControl>
                     <Input  type="text" placeholder="Personal permission" {...field} />
@@ -320,11 +263,14 @@ export default function AddPermissionTypes () {
             />
             <FormField
               control={formBasic.control}
-              name="descriptionEng"
+              name="permission_type_name"
               render={({ field }) => (
                 <FormItem className=" ">
                   <FormLabel>
-                    Description (English) <Required />
+                    {language === "ar"
+                      ? "Permission type name (العربية) "
+                      : "Permission type name (English) "}
+                    <Required />
                   </FormLabel>
                   <FormControl>
                     <Input type="text" placeholder="Enter the description" {...field} />
@@ -336,23 +282,7 @@ export default function AddPermissionTypes () {
             />
             <FormField
               control={formBasic.control}
-              name="descriptionArb"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Description (العربية) <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="Enter the description" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formBasic.control}
-              name="permission_comments_en"
+              name="permission_comments_eng"
               render={({ field }) => (
                 <FormItem className=" ">
                   <FormLabel>
@@ -367,7 +297,7 @@ export default function AddPermissionTypes () {
             />
             <FormField
               control={formBasic.control}
-              name="permission_comments_ar"
+              name="permission_comments_arb"
               render={({ field }) => (
                 <FormItem className=" ">
                   <FormLabel>
@@ -390,10 +320,10 @@ export default function AddPermissionTypes () {
                 className=" px-10 "
                 onClick={() => router.push("/self-services/permissions/manage")}
               >
-                Cancel
+                {translations?.buttons?.cancel}
               </Button>
               <Button type="submit" size={"lg"} className=" px-10 " >
-                Continue
+                {translations?.buttons?.continue}
               </Button>
             </div>
           </div>
@@ -692,10 +622,10 @@ export default function AddPermissionTypes () {
                 className=" px-10 "
                 onClick={() => setPageNumber(0)}
               >
-                Back
+                {translations?.buttons?.back}
               </Button>
               <Button type="submit" size={"lg"} className=" px-10 " >
-                Continue
+                {translations?.buttons?.continue}
               </Button>
             </div>
           </div>
@@ -910,10 +840,10 @@ export default function AddPermissionTypes () {
                 className=" px-10 "
                 onClick={() => setPageNumber(1)}
               >
-                Back
+                {translations?.buttons?.back}
               </Button>
               <Button type="submit" size={"lg"} className=" px-10 " >
-                Continue
+                {translations?.buttons?.continue}
               </Button>
             </div>
           </div>
@@ -1090,10 +1020,10 @@ export default function AddPermissionTypes () {
                   className=" px-10 "
                   onClick={() => setPageNumber(2)}
                 >
-                  Back
+                  {translations?.buttons?.back}
                 </Button>
                 <Button type="submit" size={"lg"} className=" px-10 " >
-                  Save
+                  {translations?.buttons?.save}
                 </Button>
               </div>
             </div>

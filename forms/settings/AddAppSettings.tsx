@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
 import Required from "@/components/ui/required";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   Select,
   SelectContent,

@@ -7,7 +7,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { getPendingLeave, approveLeaveRequest } from "@/lib/apiHandler";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const router = useRouter();

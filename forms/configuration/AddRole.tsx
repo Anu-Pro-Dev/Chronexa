@@ -23,7 +23,7 @@ import Required from "@/components/ui/required";
 import { RefreshIcon } from "@/icons/icons";
 import { IoMdRefresh } from "react-icons/io";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 const formSchema = z.object({
   name_en: z

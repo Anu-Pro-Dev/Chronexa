@@ -7,7 +7,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const router = useRouter();
