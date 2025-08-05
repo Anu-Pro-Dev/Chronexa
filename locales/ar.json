@@ -70,7 +70,8 @@
       "apply": "تطبيق",
       "login": "تسجيل الدخول",
       "logging_in": "Logging in...",
-      "show_all": "Show all"
+      "show_all": "Show all",
+      "back": "Back"
     },
     "navbar": {
       "primary": {
