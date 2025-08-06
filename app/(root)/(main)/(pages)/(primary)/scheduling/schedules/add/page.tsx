@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useLanguage } from "@/providers/LanguageProvider";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import PowerMultiStepForm from "@/components/custom/power-comps/power-multi-step-form";

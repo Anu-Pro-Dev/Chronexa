@@ -22,11 +22,7 @@ import {
     SelectValue,
   } from "@/components/ui/select";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, ClockIcon } from "@/icons/icons";
 import { format } from "date-fns";

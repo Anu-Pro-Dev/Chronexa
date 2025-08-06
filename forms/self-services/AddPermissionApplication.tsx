@@ -18,35 +18,30 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, ClockIcon, ExclamationIcon, RefreshIcon } from "@/icons/icons";
 import { format } from "date-fns";
 import { TimePicker } from "@/components/ui/time-picker";
 import Required from "@/components/ui/required";
+import { useLanguage } from "@/providers/LanguageProvider";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
+import { addShortPermissionRequest, editShortPermissionRequest } from "@/lib/apiHandler";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const formSchema = z.object({
   employee: z
     .string()
     .min(1, {
-      message: "Required",
+      message: "Employee is required.",
     })
     .max(100),
   permission_types: z
     .string()
     .min(1, {
-      message: "Required",
+      message: "Permission type is required.",
     })
     .max(100),
   from_date: z.date({
@@ -61,319 +56,604 @@ const formSchema = z.object({
   to_time: z.date({
     required_error: "To Time is required.",
   }),
-  justification: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(500, {
-      message: "Maximum 500 characters only allowed",
-    }),
+  remarks: z.string().optional(),
+}).refine((data) => {
+  if (data.from_date && data.to_date && data.from_time && data.to_time) {
+    const fromDateStr = format(data.from_date, "yyyy-MM-dd");
+    const toDateStr = format(data.to_date, "yyyy-MM-dd");
+    
+    if (fromDateStr === toDateStr) {
+      const fromTimeStr = format(data.from_time, "HH:mm:ss");
+      const toTimeStr = format(data.to_time, "HH:mm:ss");
+      return toTimeStr >= fromTimeStr;
+    }
+    
+    const fromDateTime = new Date(data.from_date);
+    fromDateTime.setHours(data.from_time.getHours(), data.from_time.getMinutes(), data.from_time.getSeconds());
+    
+    const toDateTime = new Date(data.to_date);
+    toDateTime.setHours(data.to_time.getHours(), data.to_time.getMinutes(), data.to_time.getSeconds());
+    
+    return toDateTime >= fromDateTime;
+  }
+  return true;
+}, {
+  message: "To time must be greater than or equal to from time",
+  path: ["to_time"],
 });
 
-export default function AddPermissionApplication() {
-  const router = useRouter()
-  const [selectedPermission, setSelectedPermission] = useState<string | null>(null)
-  const [justificationLength, setJustificationLength] = useState(0)
+export default function AddPermissionApplication({
+  selectedRowData,
+  onSave,
+}: {
+  selectedRowData?: any;
+  onSave?: (id: string | null, newData: any) => void;
+}) {
+
+  const { employeeId, userInfo, isAuthenticated, isChecking } = useAuthGuard();
+  
+  const { data: permissionTypesData, isLoading: isPermissionTypesLoading, error: permissionTypesError } = useFetchAllEntity("permissionType");
+
+  const { language } = useLanguage();
+  const router = useRouter();
+  const [selectedPermission, setSelectedPermission] = useState<string | null>(null);
+  const [remarksLength, setRemarksLength] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       employee: "",
       permission_types: "",
-      justification: "",
+      remarks: "",
     },
   });
 
-  const { watch, setValue } = form
-  const justificationValue = watch("justification")
+  const { watch, setValue } = form;
+
+  const addMutation = useMutation({
+    mutationFn: addShortPermissionRequest,
+    onSuccess: (data) => {
+      toast.success("Permission application submitted successfully!");
+      if (onSave) {
+        onSave(null, data.data);
+      }
+      queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      router.push("/self-services/permissions/requests");
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate permission request detected. Please use different values.");
+      } else {
+        toast.error("Failed to submit permission application. Please try again.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editShortPermissionRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Permission application updated successfully!");
+      if (onSave) {
+        onSave(variables.single_permission_id?.toString() ?? null, variables);
+      }
+      queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      router.push("/self-services/permissions/requests");
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate permission request detected. Please use different values.");
+      } else {
+        toast.error("Failed to update permission application. Please try again.");
+      }
+    },
+  });
 
   useEffect(() => {
-    setJustificationLength(justificationValue.length)
-  }, [justificationValue])
+    if (selectedRowData && permissionTypesData?.data) {
+      const permissionTypeId = selectedRowData.permission_type_id?.toString() || "";
+      
+      form.setValue("permission_types", permissionTypeId);
+      form.setValue("from_date", selectedRowData.from_date ? new Date(selectedRowData.from_date) : new Date());
+      form.setValue("to_date", selectedRowData.to_date ? new Date(selectedRowData.to_date) : new Date());
+      form.setValue("from_time", selectedRowData.from_time ? new Date(selectedRowData.from_time) : new Date());
+      form.setValue("to_time", selectedRowData.to_time ? new Date(selectedRowData.to_time) : new Date());
+      form.setValue("remarks", selectedRowData.remarks || "");
+      
+      setRemarksLength(selectedRowData.remarks?.length || 0);
+      setSelectedPermission(permissionTypeId);
+    }
+  }, [selectedRowData, permissionTypesData?.data, form]);
+
+  useEffect(() => {
+    if (userInfo && employeeId) {
+      const employeeDisplayInfo = getEmployeeDisplayInfoWithLanguage(); 
+      form.setValue("employee", employeeDisplayInfo.displayName);
+    } else if (employeeId) {
+      const fallbackName = `Employee ${employeeId}`;
+      form.setValue("employee", fallbackName);
+    }
+  }, [userInfo, employeeId, form, language]);
+
+  if (isChecking) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated || !employeeId) {
+    return <div>Unauthorized access</div>;
+  }
+
+  const getEmployeeDisplayInfo = () => {
+    if (userInfo) {
+      let employeeName = "Unknown Employee";
+      let employeeCode = employeeId?.toString() || "Unknown Code";
+      
+      if (userInfo.employeename) {
+        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
+          employeeName = `${userInfo.employeename.firsteng}`.trim();
+        }
+        else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
+          employeeName = `${userInfo.employeename.firstarb}`.trim();
+        }
+        else if (userInfo.employeename.firsteng) {
+          employeeName = userInfo.employeename.firsteng;
+        }
+        else if (userInfo.employeename.firstarb) {
+          employeeName = userInfo.employeename.firstarb;
+        }
+      }
+      
+      if (userInfo.employeenumber) {
+        employeeCode = userInfo.employeenumber.toString();
+      }
+      
+      const result = {
+        displayName: `${employeeName} (${employeeCode})`,
+        name: employeeName,
+        code: employeeCode
+      };
+      
+      return result;
+    }
+    
+    const fallbackResult = {
+      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
+      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee", 
+      code: employeeId ? employeeId.toString() : "Unknown"
+    };
+    
+    return fallbackResult;
+  };
+
+  const getEmployeeDisplayInfoWithLanguage = () => {
+    if (userInfo && userInfo.employeename) {
+      let employeeName = "Unknown Employee";
+      let employeeCode = userInfo.employeenumber?.toString() || employeeId?.toString() || "Unknown Code";
+      
+      if (language === "ar") {
+        if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
+          employeeName = `${userInfo.employeename.firstarb}`.trim();
+        } else if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
+          employeeName = `${userInfo.employeename.firsteng}`.trim();
+        } else if (userInfo.employeename.firstarb) {
+          employeeName = userInfo.employeename.firstarb;
+        } else if (userInfo.employeename.firsteng) {
+          employeeName = userInfo.employeename.firsteng;
+        }
+      } else {
+        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
+          employeeName = `${userInfo.employeename.firsteng}`.trim();
+        } else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
+          employeeName = `${userInfo.employeename.firstarb}`.trim();
+        } else if (userInfo.employeename.firsteng) {
+          employeeName = userInfo.employeename.firsteng;
+        } else if (userInfo.employeename.firstarb) {
+          employeeName = userInfo.employeename.firstarb;
+        }
+      }
+            
+      return {
+        displayName: `${employeeName} (${employeeCode})`,
+        name: employeeName,
+        code: employeeCode
+      };
+    }
+    
+    return {
+      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
+      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee", 
+      code: employeeId ? employeeId.toString() : "Unknown"
+    };
+  };
+
+  const employeeDisplayInfo = getEmployeeDisplayInfo();
+
+  const calculatePermissionMinutes = (fromTime: Date, toTime: Date) => {
+    const diffMs = toTime.getTime() - fromTime.getTime();
+    return Math.round(diffMs / (1000 * 60));
+  };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
     try {
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
-        </pre>
+      const selectedPermissionType = permissionTypesData?.data?.find(
+        (permType: any) => permType.permission_type_id.toString() === values.permission_types
       );
+
+      const fromDate = new Date(values.from_date);
+      fromDate.setHours(0, 0, 0, 0);
+      const fromDateISO = fromDate.toISOString();
+
+      const toDate = new Date(values.to_date);
+      toDate.setHours(23, 59, 59, 999);
+      const toDateISO = toDate.toISOString();
+
+      const fromTime = new Date(values.from_date);
+      fromTime.setHours(values.from_time.getHours(), values.from_time.getMinutes(), values.from_time.getSeconds(), 0);
+      const fromTimeISO = fromTime.toISOString();
+
+      const toTime = new Date(values.to_date);
+      toTime.setHours(values.to_time.getHours(), values.to_time.getMinutes(), values.to_time.getSeconds(), 0);
+      const toTimeISO = toTime.toISOString();
+
+      const actualFromDateTime = new Date(values.from_date);
+      actualFromDateTime.setHours(values.from_time.getHours(), values.from_time.getMinutes(), values.from_time.getSeconds());
+      
+      const actualToDateTime = new Date(values.to_date);
+      actualToDateTime.setHours(values.to_time.getHours(), values.to_time.getMinutes(), values.to_time.getSeconds());
+      
+      const permMinutes = calculatePermissionMinutes(actualFromDateTime, actualToDateTime);
+
+      const payload: any = {
+        permission_type_id: selectedPermissionType?.permission_type_id || null,
+        employee_id: employeeId,
+        from_date: fromDateISO,
+        to_date: toDateISO,
+        from_time: fromTimeISO,
+        to_time: toTimeISO,
+        perm_minutes: permMinutes,
+        remarks: values.remarks || "",
+      };
+
+      if (selectedRowData) {
+        editMutation.mutate({
+          single_permission_id: selectedRowData.single_permission_id,
+          ...payload,
+        });
+      } else {
+        addMutation.mutate(payload);
+      }
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <div className="flex justify-between">
-          <div className="pb-6">
-            <h1 className="font-bold text-xl text-primary">My Permission Request</h1>
-            {/* <h1 className="font-semibold text-sm text-text-secondary">
-              Fill the permission application form
-            </h1> */}
-          </div>
+    <div className="flex flex-col gap-6">
+      <div className="bg-accent transition-all duration-300 rounded-xl p-6">
+        <div className="flex justify-between items-center">
+          <h1 className="font-bold text-xl text-primary flex items-center justify-between">
+            My Permission Request
+          </h1>
           <div>
-            {selectedPermission === "personal permission" && (
-            <p className="text-sm text-primary mt-2 border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 ">
-                Note: Personal permission is allowed for a maximum of 8 Hours per month
-            </p>
+            {selectedPermission === "Personal" && ( 
+              <p className="text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 ">
+                Note: Personal permission is allowed for a maximum of 8 hours per month.
+              </p>
             )}
-            {justificationLength > 500 && (
-            <p className="text-sm text-primary mt-2 border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 flex items-center ">
-                <ExclamationIcon className="mr-2" /> Maximum 500 characters only allowed
-            </p>
+            {remarksLength > 500 && (
+              <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center ">
+                <ExclamationIcon className="mr-2" width="14" height="14"/> Maximum 500 characters only allowed.
+              </p>
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-3">
-          <div className="grid sm:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] [&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px]">
-            <FormField
-              control={form.control}
-              name="employee"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Employee <Required />
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pt-8">
+              <FormField
+                control={form.control}
+                name="employee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Employee <Required />
+                    </FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose employee" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">Emp 109</SelectItem>
-                      <SelectItem value="2">OG123</SelectItem>
-                      <SelectItem value="3">Emp 213</SelectItem>
-                      <SelectItem value="4">Employee 02</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="permission_types"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Permission types <Required /></FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value)
-                      setSelectedPermission(value)
-                    }}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose permission types" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="personal permission">Personal permission</SelectItem>
-                      <SelectItem value="mission permission">Mission Permission</SelectItem>
-                      <SelectItem value="remote permission">Remote working</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="from_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    From Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
-                        >
-                          {field.value ? (
-                            format(field.value, "dd/MM/yy")
-                          ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                          )}
-                          <CalendarIcon />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
+                      <Input
+                        {...field}
+                        value={employeeDisplayInfo.displayName}
+                        readOnly
+                        className="bg-gray-50 cursor-not-allowed"
                       />
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="to_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    To Date <Required />
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
-                        >
-                          {field.value ? (
-                            format(field.value, "dd/MM/yy")
-                          ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                          )}
-                          <CalendarIcon />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="from_time"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>From time <Required/></FormLabel>
-                  <Popover>
-                    <FormControl>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "flex justify-between h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "HH:mm")
-                          ) : (
-                            <span className="text-text-secondary">Choose time</span>
-                          )}
-                          <ClockIcon />
-                        </Button>
-                      </PopoverTrigger>
                     </FormControl>
-                    <PopoverContent className="w-auto p-0">
-                        <TimePicker
-                          setDate={field.onChange}
-                          date={field.value}
-                        />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="to_time"
-              render={({ field }) => (
-                <FormItem className="">
-                <FormLabel>To time <Required/></FormLabel>
-                  <Popover>
-                    <FormControl>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "flex justify-between h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "HH:mm")
-                          ) : (
-                            <span className="text-text-secondary">Choose time</span>
-                          )}
-                          <ClockIcon />
-                        </Button>
-                      </PopoverTrigger>
-                    </FormControl>
-                    <PopoverContent className="w-auto p-0">
-                        <TimePicker
-                          setDate={field.onChange}
-                          date={field.value}
-                        />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="px-5">
-            <FormField
-              control={form.control}
-              name="justification"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Justification </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter the justification"
-                      {...field}
-                      rows={6}
-                      onChange={(e) => {
-                        field.onChange(e)
-                        setJustificationLength(e.target.value.length)
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Permission Types Dropdown */}
+              <FormField
+                control={form.control}
+                name="permission_types"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Permission types <Required /></FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        const selectedPermissionType = permissionTypesData?.data?.find(
+                          (permType: any) => permType.permission_type_id.toString() === value
+                        );
+                        if (selectedPermissionType) {
+                          const permissionName = language === "ar" && selectedPermissionType.permission_type_arb 
+                            ? selectedPermissionType.permission_type_arb 
+                            : selectedPermissionType.permission_type_eng || selectedPermissionType.permission_type_name;
+                          setSelectedPermission(permissionName);
+                        } else {
+                          setSelectedPermission(null);
+                        }
                       }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="flex justify-end gap-2 items-center py-5">
-            <div className="flex gap-4 px-5">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className="w-full"
-                onClick={() => router.push("/self-services/permissions/requests")}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                Apply
-              </Button>
+                      disabled={isPermissionTypesLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue 
+                            placeholder={
+                              isPermissionTypesLoading 
+                                ? "Loading permission types..." 
+                                : permissionTypesError 
+                                ? "Error loading permission types" 
+                                : "Choose permission types"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {permissionTypesData?.data?.map((permissionType: any) => (
+                          <SelectItem
+                            key={permissionType.permission_type_id}
+                            value={permissionType.permission_type_id.toString()}
+                          >
+                            {language === "ar" && permissionType.permission_type_arb 
+                              ? permissionType.permission_type_arb 
+                              : permissionType.permission_type_eng || permissionType.permission_type_name
+                            }
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="from_date"
+                render={({ field }) => (
+                  <FormItem className="">
+                    <FormLabel>
+                      From Date <Required />
+                    </FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button size={"lg"} variant={"outline"}
+                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                          >
+                            {field.value ? (
+                              format(field.value, "dd/MM/yy")
+                            ) : (
+                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            )}
+                            <CalendarIcon />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? field.value : undefined}
+                          onSelect={field.onChange}
+                          disabled={(date) => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            return date < today;
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="to_date"
+                render={({ field }) => (
+                  <FormItem className="">
+                    <FormLabel>
+                      To Date <Required />
+                    </FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button size={"lg"} variant={"outline"}
+                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                          >
+                            {field.value ? (
+                              format(field.value, "dd/MM/yy")
+                            ) : (
+                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            )}
+                            <CalendarIcon />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? field.value : undefined}
+                          onSelect={field.onChange}
+                          disabled={(date) => {
+                            const fromDate = form.getValues("from_date");
+                            
+                            if (!fromDate) {
+                              return true;
+                            }
+                            
+                            const startDate = new Date(fromDate);
+                            startDate.setHours(0, 0, 0, 0);
+                            
+                            const compareDate = new Date(date);
+                            compareDate.setHours(0, 0, 0, 0);
+                            return compareDate < startDate;
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="from_time"
+                render={({ field }) => (
+                  <FormItem className="">
+                    <FormLabel>From time <Required/></FormLabel>
+                    <Popover>
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "flex justify-between h-10 w-full max-w-[350px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? format(field.value, "HH:mm")
+                              : <span className="text-text-secondary">Choose time</span>
+                            }
+                            <ClockIcon />
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0">
+                        <TimePicker
+                          setDate={field.onChange}
+                          date={field.value}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="to_time"
+                render={({ field }) => (
+                  <FormItem className="">
+                  <FormLabel>To time <Required/></FormLabel>
+                    <Popover>
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "flex justify-between h-10 w-full max-w-[350px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? format(field.value, "HH:mm")
+                              : <span className="text-text-secondary">Choose time</span>
+                            }
+                            <ClockIcon />
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0">
+                        <TimePicker
+                          setDate={field.onChange}
+                          date={field.value}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          </div>
-        </div>
-      </form>
-    </Form>
+            <div className="px-8 pt-5 md:pr-24">
+              <FormField
+                control={form.control}
+                name="remarks"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Remarks </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="w-full"
+                        placeholder="Enter the remarks"
+                        {...field}
+                        rows={4}
+                        onChange={(e) => {
+                          field.onChange(e)
+                          setRemarksLength(e.target.value.length)
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex justify-end gap-2 items-center py-5 pt-8">
+              <div className="flex gap-4 px-5">
+                <Button
+                  variant={"outline"}
+                  type="button"
+                  size={"lg"}
+                  className="w-full"
+                  onClick={() => router.push("/self-services/permissions/requests")}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  size={"lg"} 
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? selectedRowData
+                      ? "Updating..."
+                      : "Applying..."
+                    : selectedRowData
+                      ? "Update"
+                      : "Apply"
+                  }
+                </Button>
+              </div>
+            </div>
+          </form>
+        </Form>
+      </div>
+    </div>
   );
 }

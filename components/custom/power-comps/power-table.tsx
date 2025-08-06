@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AgGridReact } from "ag-grid-react";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { PowerTablePagination } from "./power-table-pagination";

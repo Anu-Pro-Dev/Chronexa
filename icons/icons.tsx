@@ -1578,7 +1578,7 @@ export const ClockIcon2: React.FC<IconProps> = ({ className, color }) => (
   </svg>
 );
 
-export const ExclamationIcon : React.FC<IconProps> = ({ className, color }) => (
+export const ExclamationIcon : React.FC<IconProps> = ({ className, width, height, color }) => (
   <svg
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 24 24"
@@ -1587,8 +1587,8 @@ export const ExclamationIcon : React.FC<IconProps> = ({ className, color }) => (
   strokeWidth="1.7"
   strokeLinecap="round"
   strokeLinejoin="round"
-  width="17"
-  height="17"
+  width={width || "17"}
+  height={height || "17"}
   className={className}
   >
   <circle cx="12" cy="12" r="10"/> 

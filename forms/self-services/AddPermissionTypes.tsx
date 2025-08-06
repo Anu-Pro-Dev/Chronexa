@@ -3,30 +3,15 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import toast from "react-hot-toast";
 import { cn, getRandomInt } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Required from "@/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/providers/LanguageProvider";
@@ -34,1005 +19,704 @@ import { CalendarIcon } from "@/icons/icons";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { BasicIcon, SetupIcon, RestrictIcon, PolicyIcon, CheckMark } from "@/icons/icons";
+import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addPermissionTypeRequest, editPermissionTypeRequest } from "@/lib/apiHandler";
 
-const formSchemaBasic = z.object({
-  permission_type_code: z.string().default("").transform((val) => val.toUpperCase()),
-  permission_type_name: z.string().default(""),
-  permission_comments_eng: z.string().optional(),
-  permission_comments_arb: z.string().optional(),
-})
-
-const formSchemaSetup = z.object({
-  workflows: z.string().min(1, { message: "Required" }).max(100),
-  organization: z.string().optional(),
-  group: z.string().optional(),
-  employee: z.string().optional(),
-  gender: z.string().optional(),
-  citizenship: z.string().optional(),
-  valid_from_date:  z.date().optional(),
-  valid_till_date: z.date().optional(),
-})
-
-const formSchemaRestriction = z.object({
+const formSchemaBasciSetup = z.object({
+  permission_type_code: z
+    .string({ required_error: "Permission type code is required" })
+    .min(1, { message: "Permission type code is required" })
+    .transform((val) => val.toUpperCase()),
+  permission_type_name: z
+    .string({ required_error: "Permission type name is required" })
+    .min(1, { message: "Permission type name is required" }),
+  workflows: z.string().min(1, { message: "Workflow is required." }).max(100),
+  specific_gender:z.string().optional(),
   max_minutes_per_day: z
-    .number()
-    .min(1, {
-      message: "Required",
+    .number({
+      required_error: "Max minutes per day is required",
+      invalid_type_error: "Max minutes per day must be a number",
     })
-    .max(1000),
+    .min(1, {
+      message: "Max minutes per day must be at least 1",
+    })
+    .max(1000, {
+      message: "Max minutes per day cannot exceed 1000",
+    }),
   max_permissions_per_day: z
-    .number()
-    .min(1, {
-      message: "Required",
+    .number({
+      required_error: "Max permissions per day is required",
+      invalid_type_error: "Max permissions per day must be a number",
     })
-    .max(1000),
+    .min(1, {
+      message: "Max permissions per day must be at least 1",
+    })
+    .max(1000, {
+      message: "Max permissions per day cannot exceed 1000",
+    }),
   max_minutes_per_month: z
-    .number()
-    .min(1, {
-      message: "Required",
+    .number({
+      required_error: "Max minutes per month is required",
+      invalid_type_error: "Max minutes per month must be a number",
     })
-    .max(1000),
+    .min(1, {
+      message: "Max minutes per month must be at least 1",
+    })
+    .max(1000, {
+      message: "Max minutes per month cannot exceed 1000",
+    }),
   max_permissions_per_month: z
-    .number()
-    .min(1, {
-      message: "Required",
+    .number({
+      required_error: "Max permissions per month is required",
+      invalid_type_error: "Max permissions per month must be a number",
     })
-    .max(1000),
-  min_permission_time: z
-    .number()
     .min(1, {
-      message: "Required",
+      message: "Max permissions per month must be at least 1",
     })
-    .max(1000),
-  max_permission_time: z
-    .number()
-    .min(1, {
-      message: "Required",
-    })
-    .max(1000),
+    .max(1000, {
+      message: "Max permissions per month cannot exceed 1000",
+    }),
 })
 
 const formSchemaPolicy = z.object({
-  permission_attributes: z.
-  array(z.string()).optional(),
-  permission_type: z
-  .string().optional(),
+  permission_attributes: z.array(z.string()).optional(),
+  permission_type: z.string().optional(),
 })
 
-export default function AddPermissionTypes () {
+export default function AddPermissionTypes({
+  on_open_change,
+  selectedRowData,
+  onSave,
+}: {
+  on_open_change?: any;
+  selectedRowData?: any;
+  onSave?: (id: string | null, newData: any) => void;
+}) {
   const { language, translations } = useLanguage();
-  const[pageNumber, setPageNumber] = useState(0)
-  const router = useRouter()
+  const [pageNumber, setPageNumber] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [basicFormData, setBasicFormData] = useState<any>(null);
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const formBasic = useForm<z.infer<typeof formSchemaBasic>>({
-    resolver: zodResolver(formSchemaBasic),
+  const { data: workflowData, isLoading: isWorkflowLoading, error: workflowError } = useFetchAllEntity("workflowType");
+
+  const addMutation = useMutation({
+    mutationFn: addPermissionTypeRequest,
+    onSuccess: (data) => {
+      toast.success("Permission type added successfully!");
+      if (onSave) {
+        onSave(null, data.data);
+      }
+      if (on_open_change) {
+        on_open_change(false);
+      } else {
+        router.push("/self-services/permissions/manage");
+      }
+      queryClient.invalidateQueries({ queryKey: ["permissionType"] });
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editPermissionTypeRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Permission type updated successfully!");
+      if (onSave) {
+        onSave(variables.permission_type_id?.toString() ?? null, variables);
+      }
+      queryClient.invalidateQueries({ queryKey: ["permissionType"] });
+      if (on_open_change) {
+        on_open_change(false);
+      } else {
+        router.push("/self-services/permissions/manage");
+      }
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const formBasciSetup = useForm<z.infer<typeof formSchemaBasciSetup>>({
+    resolver: zodResolver(formSchemaBasciSetup),
     defaultValues: {
       permission_type_code: "",
       permission_type_name: "",
-      permission_comments_eng:"",
-      permission_comments_arb:"",
-
-    }
-  })
-
-  function onSubmitBasic(values: z.infer<typeof formSchemaBasic>) {
-    try {
-      setPageNumber(1)
-    } catch (error) {
-      console.error("Form submission error", error)
-    }
-  }
-
-  const formSetup = useForm<z.infer<typeof formSchemaSetup>>({
-    resolver: zodResolver(formSchemaSetup),
-    defaultValues: {
       workflows: "",
-      organization: "",
-      group: "",
-      employee: "",
-      gender:"",
-      citizenship:"",
-    }
-  })
-
-  function onSubmitSetup(values: z.infer<typeof formSchemaSetup>) {
-    try {
-      setPageNumber(2)
-    } catch (error) {
-      console.error("Form submission error", error)
-    }
-  }
-
-  const formRestriction = useForm<z.infer<typeof formSchemaRestriction>>({
-    resolver: zodResolver(formSchemaRestriction),
-    defaultValues: {
+      specific_gender: "",
       max_minutes_per_day: undefined,
       max_minutes_per_month: undefined,
       max_permissions_per_day: undefined,
       max_permissions_per_month: undefined,
-      min_permission_time:undefined,
-      max_permission_time:undefined,
     }
   })
 
-  function onSubmitRestriction(values: z.infer<typeof formSchemaRestriction>) {
+  function onSubmitBasic(values: z.infer<typeof formSchemaBasciSetup>) {
     try {
-      setPageNumber(3)
+      const selectedWorkflow = workflowData?.data?.find(
+        (workflow: any) => workflow.workflow_id.toString() === values.workflows
+      );
+
+      const basicData = {
+        permission_type_code: values.permission_type_code,
+        permission_type_name: values.permission_type_name,
+        workflow_id: selectedWorkflow?.workflow_id || null,
+        specific_gender: values?.specific_gender || "",
+        max_minutes_per_day: values.max_minutes_per_day,
+        max_permissions_per_day: values.max_permissions_per_day,
+        max_minutes_per_month: values.max_minutes_per_month,
+        max_permissions_per_month: values.max_permissions_per_month,
+      };
+
+      setBasicFormData(basicData);
+      
+      setPageNumber(1);
     } catch (error) {
-      console.error("Form submission error", error)
+      console.error("Form submission error", error);
     }
   }
 
   const formPolicy = useForm<z.infer<typeof formSchemaPolicy>>({
     resolver: zodResolver(formSchemaPolicy),
     defaultValues: {
-      permission_attributes:[],
-      permission_type:''
-
+      permission_attributes: [],
+      permission_type: ''
     }
   })
 
-  function onSubmitPolicy(values: z.infer<typeof formSchemaPolicy>) {
+  async function onSubmitPolicy(values: z.infer<typeof formSchemaPolicy>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
     try {
-      setPageNumber(3)
+      const permissionAttributes = values.permission_attributes || [];
+      const permissionType = values.permission_type;
+
+      const combinedPayload: any = {
+        permission_type_code: basicFormData.permission_type_code,
+        workflow_id: basicFormData.workflow_id,
+        specific_gender: basicFormData.specific_gender,
+        max_minutes_per_day: basicFormData.max_minutes_per_day,
+        max_permissions_per_day: basicFormData.max_permissions_per_day,
+        max_minutes_per_month: basicFormData.max_minutes_per_month,
+        max_permissions_per_month: basicFormData.max_permissions_per_month,
+        
+        group_apply_flag: permissionAttributes.includes("Group Apply"),
+        status_flag: permissionAttributes.includes("Status"),
+        official_flag: permissionAttributes.includes("Official"),
+        medical_pass_flag: permissionAttributes.includes("Medical Pass Attachment"),
+        mandatory_comments_flag: permissionAttributes.includes("Mandatory Comments"),
+        mandatory_attachment_flag: permissionAttributes.includes("Mandatory Attachment"),
+        apply_ramadan_restriction_flag: permissionAttributes.includes("Apply Ramadan Restriction"),
+        
+        minutes_permission_flag: permissionType === "by_minutes_permission",
+        from_to_time_permission_flag: permissionType === "by_from_to_time_permission",
+        weekdays_permission_flag: permissionType === "by_weekdays_permission",
+        full_day_permission_flag: permissionType === "by_fulldays_permission",
+      };
+
+      if (language === "en") {
+        combinedPayload.permission_type_eng = basicFormData.permission_type_name;
+      } else {
+        combinedPayload.permission_type_arb = basicFormData.permission_type_name;
+      }
+
+      if (selectedRowData) {
+        editMutation.mutate({
+          permission_type_id: selectedRowData.id,
+          ...combinedPayload,
+        });
+      } else {
+        addMutation.mutate(combinedPayload);
+      }
     } catch (error) {
-      console.error("Form submission error", error)
+      console.error("Form submission error", error);
+      toast.error("An error occurred while saving.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
+  useEffect(() => {
+    if (selectedRowData && workflowData?.data) {
+      formBasciSetup.setValue("permission_type_code", selectedRowData.permission_type_code || "");
+      formBasciSetup.setValue("permission_type_name", 
+        language === "en"
+          ? selectedRowData.permission_type_eng || ""
+          : selectedRowData.permission_type_arb || ""
+      );
+      formBasciSetup.setValue("workflows", selectedRowData.workflow_id?.toString() || "");
+      formBasciSetup.setValue("specific_gender", selectedRowData.specific_gender?.toString() || "");
+      formBasciSetup.setValue("max_minutes_per_day", selectedRowData.max_minutes_per_day || undefined);
+      formBasciSetup.setValue("max_permissions_per_day", selectedRowData.max_permissions_per_day || undefined);
+      formBasciSetup.setValue("max_minutes_per_month", selectedRowData.max_minutes_per_month || undefined);
+      formBasciSetup.setValue("max_permissions_per_month", selectedRowData.max_permissions_per_month || undefined);
+
+      const permissionAttributes: string[] = [];
+      if (selectedRowData.group_apply_flag) permissionAttributes.push("Group Apply");
+      if (selectedRowData.status_flag) permissionAttributes.push("Status");
+      if (selectedRowData.official_flag) permissionAttributes.push("Official");
+      if (selectedRowData.medical_pass_flag) permissionAttributes.push("Medical Pass Attachment");
+      if (selectedRowData.mandatory_comments_flag) permissionAttributes.push("Mandatory Comments");
+      if (selectedRowData.mandatory_attachment_flag) permissionAttributes.push("Mandatory Attachment");
+      if (selectedRowData.apply_ramadan_restriction_flag) permissionAttributes.push("Apply Ramadan Restriction");
+
+      let permissionType = "";
+      if (selectedRowData.minutes_permission_flag) permissionType = "by_minutes_permission";
+      else if (selectedRowData.from_to_time_permission_flag) permissionType = "by_from_to_time_permission";
+      else if (selectedRowData.weekdays_permission_flag) permissionType = "by_weekdays_permission";
+      else if (selectedRowData.full_day_permission_flag) permissionType = "by_fulldays_permission";
+
+      formPolicy.setValue("permission_attributes", permissionAttributes);
+      formPolicy.setValue("permission_type", permissionType);
+
+      setBasicFormData({
+        permission_type_code: selectedRowData.permission_type_code || "",
+        permission_type_name: language === "en"
+          ? selectedRowData.permission_type_eng || ""
+          : selectedRowData.permission_type_arb || "",
+        workflow_id: selectedRowData.workflow_id || null,
+        specific_gender: selectedRowData.specific_gender,
+        max_minutes_per_day: selectedRowData.max_minutes_per_day || undefined,
+        max_permissions_per_day: selectedRowData.max_permissions_per_day || undefined,
+        max_minutes_per_month: selectedRowData.max_minutes_per_month || undefined,
+        max_permissions_per_month: selectedRowData.max_permissions_per_month || undefined,
+      });
+    }
+  }, [selectedRowData, workflowData?.data, language, formBasciSetup, formPolicy]);
+
   return (
-
-    <> 
-
-    {pageNumber === 0 && (
-      <Form {...formBasic}>
-        <form onSubmit={formBasic.handleSubmit(onSubmitBasic)} className="bg-accent rounded-2xl p-6">
-          <div className="flex justify-between">
-            {/* <div>
-              <h2 className="font-bold text-xl text-primary">Manage Permission</h2>
-            </div> */}
-            
-            <div className="flex justify-between items-center gap-2">
-              
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-primary w-9 h-9 text-primary">
-                  <BasicIcon/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                  <span className="font-semibold text-base text-text-primary">Basic</span>
-                  <span className="text-primary text-[13px]">In progress</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-secondary w-9 h-9 text-secondary">
-                  <SetupIcon/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                  <span className="font-semibold text-base text-text-primary">Setup</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-secondary w-9 h-9 text-secondary">
-                  <RestrictIcon/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 3 </span>
-                  <span className="font-semibold text-base text-text-primary">Restrictions</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-secondary w-9 h-9 text-secondary">
-                  <PolicyIcon/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 4 </span>
-                  <span className="font-semibold text-base text-text-primary">Policy</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="w-11/12 mx-auto grid md:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] md:[&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px] py-10">
-            <FormField
-              control={formBasic.control}
-              name="permission_type_code"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Permission type code <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input  type="text" placeholder="Personal permission" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formBasic.control}
-              name="permission_type_name"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    {language === "ar"
-                      ? "Permission type name (العربية) "
-                      : "Permission type name (English) "}
-                    <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="Enter the description" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formBasic.control}
-              name="permission_comments_eng"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Permission Comments (English)
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter the comments" {...field} rows={5} />
-                  </FormControl>
-
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formBasic.control}
-              name="permission_comments_arb"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Permission Comments (العربية)
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter the comments" {...field} rows={5} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 items-center pb-5">
-            <div className="flex gap-4 px-5">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className=" px-10 "
-                onClick={() => router.push("/self-services/permissions/manage")}
-              >
-                {translations?.buttons?.cancel}
-              </Button>
-              <Button type="submit" size={"lg"} className=" px-10 " >
-                {translations?.buttons?.continue}
-              </Button>
-            </div>
-          </div>
-        </form>
-      </Form>
-    )}
-
-    {pageNumber === 1 && (
-      <Form {...formSetup}>
-        <form onSubmit={formSetup.handleSubmit(onSubmitSetup)} className="bg-accent rounded-2xl p-6">
-          <div className="flex justify-between">
-            {/* <div>
-              <h2 className="font-bold text-xl text-primary">Manage Permission</h2>
-            </div> */}
-            
-            <div className="flex justify-between items-center gap-2">
-              
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-success bg-success w-9 h-9">
-                  <CheckMark/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                  <span className="font-semibold text-base text-text-primary">Basic</span>
-                  <span className="text-success text-[13px]">Completed</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-primary w-9 h-9 text-primary">
-                  <SetupIcon/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                  <span className="font-semibold text-base text-text-primary">Setup</span>
-                  <span className="text-primary text-[13px]">In progress</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-secondary w-9 h-9 text-secondary">
-                  <RestrictIcon />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 3 </span>
-                  <span className="font-semibold text-base text-text-primary">Restrictions</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-secondary w-9 h-9 text-secondary">
-                  <PolicyIcon />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 4 </span>
-                  <span className="font-semibold text-base text-text-primary">Policy</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="w-11/12 mx-auto grid md:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] md:[&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px] py-10">
-            <FormField
-              control={formSetup.control}
-              name="workflows"
-              render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Workflows <Required />
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose workflows" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Employee leaves</SelectItem>
-                    <SelectItem value="2">Missing movements</SelectItem>
-                    <SelectItem value="3">Manual movements</SelectItem>
-                    <SelectItem value="4">PermLine manager</SelectItem>
-                    <SelectItem value="5">Nursing permission</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-              )}
-            />
-
-            <FormField
-              control={formSetup.control}
-              name="organization"
-              render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                Organization
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose organization" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-              )}
-            />
-
-            <FormField
-              control={formSetup.control}
-              name="group"
-              render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Group 
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose group" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-              )}
-            />
-
-            <FormField
-              control={formSetup.control}
-              name="employee"
-              render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Employee 
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose employee" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-              )}
-            />
-
-            <FormField
-              control={formSetup.control}
-              name="gender"
-              render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Gender 
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose gender" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Male </SelectItem>
-                    <SelectItem value="2">Female </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-              )}
-            />
-
-            <FormField
-              control={formSetup.control}
-              name="citizenship"
-              render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                Citizenship 
-                </FormLabel>
-                <Select onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose citizenship" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1">Time Groups </SelectItem>
-                    <SelectItem value="2">WorK Groups</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-              )}
-            />
-            <FormField
-              control={formSetup.control}
-              name="valid_from_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    Valid From
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
-                        >
-                          {field.value ? (
-                            format(field.value, "dd/MM/yy")
-                          ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                          )}
-                          <CalendarIcon className="text-primary"/>
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formSetup.control}
-              name="valid_till_date"
-              render={({ field }) => (
-                <FormItem className="">
-                  <FormLabel>
-                    Valid Till
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-accent px-3 flex justify-between text-text-primary"
-                        >
-                          {field.value ? (
-                            format(field.value, "dd/MM/yy")
-                          ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                          )}
-                          <CalendarIcon />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="flex justify-end gap-2 items-center pb-5">
-            <div className="flex gap-4 px-5">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className=" px-10 "
-                onClick={() => setPageNumber(0)}
-              >
-                {translations?.buttons?.back}
-              </Button>
-              <Button type="submit" size={"lg"} className=" px-10 " >
-                {translations?.buttons?.continue}
-              </Button>
-            </div>
-          </div>
-
-        </form>
-      </Form>
-    )}
-
-    {pageNumber === 2 && (
-      <Form {...formRestriction}>
-        <form onSubmit={formRestriction.handleSubmit(onSubmitRestriction)} className="bg-accent rounded-2xl p-6">
-          <div className="flex justify-between">
-            {/* <div>
-              <h2 className="font-bold text-xl text-primary">Manage Permission</h2>
-            </div> */}
-            
-            <div className="flex justify-between items-center gap-2">
-              
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-success bg-success w-9 h-9">
-                  <CheckMark/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                  <span className="font-semibold text-base text-text-primary">Basic</span>
-                  <span className="text-success text-[13px]">Completed</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-success bg-success w-9 h-9">
-                  <CheckMark/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                  <span className="font-semibold text-base text-text-primary">Setup</span>
-                  <span className="text-success text-[13px]">Completed</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-              <div className="flex justify-center items-center rounded-full border border-primary w-9 h-9 text-primary">
-                  <RestrictIcon />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 3 </span>
-                  <span className="font-semibold text-base text-text-primary">Restrictions</span>
-                  <span className="text-primary text-[13px]">In progress</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-secondary w-9 h-9 text-secondary">
-                  <PolicyIcon />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 4 </span>
-                  <span className="font-semibold text-base text-text-primary">Policy</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="w-11/12 mx-auto grid md:grid-cols-2 gap-y-3 gap-x-16 md:px-5 [&>*]:max-w-[350px] md:[&>*:nth-child(2n)]:justify-self-end md:[&>*:nth-child(2n)]:min-w-[350px] py-10">
-            <FormField
-              control={formRestriction.control}
-              name="max_minutes_per_day"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Max. Minutes Per Day <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter the minutes"
-                      type="number"
-                      min="0"
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formRestriction.control}
-              name="max_permissions_per_day"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Max. No. Of Permissions Per Day <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input  
-                      type="number" 
-                      min="0" 
-                      placeholder="Enter the count" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
-                      value={field.value ?? ""} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formRestriction.control}
-              name="max_minutes_per_month"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Max. Minutes Per Month <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min="0"
-                      placeholder="Enter the minutes" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formRestriction.control}
-              name="max_permissions_per_month"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Max. No. Of Permissions Per Month <Required />  
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min="0"
-                      placeholder="Enter the count" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formRestriction.control}
-              name="min_permission_time"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Min. Permission Time <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min="0"
-                      placeholder="Enter the time" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={formRestriction.control}
-              name="max_permission_time"
-              render={({ field }) => (
-                <FormItem className=" ">
-                  <FormLabel>
-                    Max. Permission Time <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number"
-                      min="0"
-                      placeholder="Enter the time" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
-                      value={field.value ?? ""} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 items-center pb-5">
-            <div className="flex gap-4 px-5">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className=" px-10 "
-                onClick={() => setPageNumber(1)}
-              >
-                {translations?.buttons?.back}
-              </Button>
-              <Button type="submit" size={"lg"} className=" px-10 " >
-                {translations?.buttons?.continue}
-              </Button>
-            </div>
-          </div>
-
-        </form>
-      </Form>
-    )}
-
-    {pageNumber === 3 && (
-      <Form {...formPolicy}>
-        <form onSubmit={formPolicy.handleSubmit(onSubmitPolicy)} className="bg-accent rounded-2xl p-6">
-          <div className="flex justify-between p-6">
-            {/* <div>
-              <h2 className="font-bold text-xl text-primary">Manage Permission</h2>
-            </div> */}
-            
-            <div className="flex justify-between items-center gap-2">
-              
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-success bg-success w-9 h-9">
-                  <CheckMark/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                  <span className="font-semibold text-base text-text-primary">Basic</span>
-                  <span className="text-success text-[13px]">Completed</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-success bg-success w-9 h-9">
-                  <CheckMark/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                  <span className="font-semibold text-base text-text-primary">Setup</span>
-                  <span className="text-success text-[13px]">Completed</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-success bg-success w-9 h-9">
-                  <CheckMark/>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 3 </span>
-                  <span className="font-semibold text-base text-text-primary">Restrictions</span>
-                  <span className="text-success text-[13px]">Completed</span>
-                </div>
-              </div>
-
-              <div className="w-8 h-[2px] bg-secondary"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex justify-center items-center rounded-full border border-primary w-9 h-9 text-primary">
-                  <PolicyIcon />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-text-secondary">Step 4 </span>
-                  <span className="font-semibold text-base text-text-primary">Policy</span>
-                  <span className="text-primary text-[13px]">In progress</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-10  w-11/12 mx-auto bg-accent p-4 rounded-md ">
-          
-          <FormField
-            control={formPolicy.control}
-            name="permission_attributes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel><div className="mb-6 font-bold text-[15px]">Permission Attributes:</div></FormLabel>
-                <FormControl>
-                  <div className="grid grid-cols-2 gap-y-5 text-sm">
-                    {["Group Apply", "Medical Pass Attachment", "Official", "Mandatory Comments", "Mandatory Attachment", "Apply Ramadan Restriction"].map((option) => (
-                      <label key={option} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={field.value?.includes(option)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            field.onChange(
-                              checked
-                                ? [...(field.value || []), option] // Add to array
-                                : field?.value?.filter((item: string) => item !== option) // Remove from array
-                            );
-                          }}
-                        />
-                        <span>{option}</span>
-                      </label>
-                    ))}
+    <>
+      {pageNumber === 0 && (
+        <Form {...formBasciSetup}>
+          <form onSubmit={formBasciSetup.handleSubmit(onSubmitBasic)} className="bg-accent rounded-2xl p-6">
+            <div className="flex justify-between">
+              <div className="flex justify-between items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex justify-center items-center rounded-full border border-primary w-9 h-9 text-primary">
+                    <SetupIcon />
                   </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="flex justify-center">
-          <FormField
-            control={formPolicy.control}
-            name="permission_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel><div className="mb-6 font-bold text-[15px]">Permission Types:</div></FormLabel>
-                <FormControl>
-                  <div className="flex flex-col gap-5 text-sm">
-                    <div>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="by_minutes_permission"
-                          checked={field.value === "by_minutes_permission"}
-                          onChange={() => field.onChange("by_minutes_permission")}
-                        />
-                        <span>By Minutes Permission</span>
-                      </label>
-                    </div>
-                    <div>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="by_from_to_time_permission"
-                          checked={field.value === "by_from_to_time_permission"}
-                          onChange={() => field.onChange("by_from_to_time_permission")}
-                        />
-                        <span> By From Time / To Time Permisisons </span>
-                      </label>
-                    </div>
-                    <div>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="by_weekdays_permission"
-                          checked={field.value === "by_weekdays_permission"}
-                          onChange={() => field.onChange("by_weekdays_permission")}
-                        />
-                        <span> By Weekdays Permisisons </span>
-                      </label>
-                    </div>
-                    <div>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="by_fulldays_permission"
-                          checked={field.value === "by_fulldays_permission"}
-                          onChange={() => field.onChange("by_fulldays_permission")}
-                        />
-                        <span> By Full Day Permisisons </span>
-                      </label>
-                    </div>
-                    
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
+                    <span className="font-semibold text-base text-text-primary">Basic Setup</span>
+                    <span className="text-primary text-[13px]">In progress</span>
                   </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          </div>
+                </div>
 
-            <div className=" col-span-2 flex justify-end">
-              <div className="flex  gap-2 ">
+                <div className="w-8 h-[2px] bg-secondary"></div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex justify-center items-center rounded-full border border-secondary w-9 h-9 text-secondary">
+                    <PolicyIcon />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
+                    <span className="font-semibold text-base text-text-primary">Policy</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pt-8">
+              <FormField
+                control={formBasciSetup.control}
+                name="permission_type_code"
+                render={({ field }) => (
+                  <FormItem className=" ">
+                    <FormLabel>
+                      Permission type code <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Enter the code" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formBasciSetup.control}
+                name="permission_type_name"
+                render={({ field }) => (
+                  <FormItem className=" ">
+                    <FormLabel>
+                      {language === "ar"
+                        ? "Permission type (العربية) "
+                        : "Permission type (English) "}
+                      <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Enter the name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formBasciSetup.control}
+                name="workflows"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Workflows <Required />
+                    </FormLabel>
+                    <Select 
+                      value={field.value} 
+                      onValueChange={field.onChange}
+                      disabled={isWorkflowLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue 
+                            placeholder={
+                              isWorkflowLoading 
+                                ? "Loading workflows..." 
+                                : workflowError 
+                                ? "Error loading workflows" 
+                                : "Choose workflows"
+                            } 
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {workflowData?.data?.map((workflow: any) => (
+                          <SelectItem
+                            key={workflow.workflow_id}
+                            value={workflow.workflow_id.toString()}
+                          >
+                            {language === "ar" && workflow.workflow_name_arb 
+                              ? workflow.workflow_name_arb 
+                              : workflow.workflow_name_eng
+                            }
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formBasciSetup.control}
+                name="specific_gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Gender
+                    </FormLabel>
+                    <Select 
+                      value={field.value} 
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue 
+                            placeholder="Choose Gender"
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ALL">All</SelectItem>
+                        <SelectItem value="F">Female</SelectItem>
+                        <SelectItem value="M">Male</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formBasciSetup.control}
+                name="max_minutes_per_day"
+                render={({ field }) => (
+                  <FormItem className=" ">
+                    <FormLabel>
+                      Max. Minutes Per Day <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter the minutes"
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={formBasciSetup.control}
+                name="max_permissions_per_day"
+                render={({ field }) => (
+                  <FormItem className=" ">
+                    <FormLabel>
+                      Max. No. Of Permissions Per Day <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="Enter the count"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={formBasciSetup.control}
+                name="max_minutes_per_month"
+                render={({ field }) => (
+                  <FormItem className=" ">
+                    <FormLabel>
+                      Max. Minutes Per Month <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="Enter the minutes"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={formBasciSetup.control}
+                name="max_permissions_per_month"
+                render={({ field }) => (
+                  <FormItem className=" ">
+                    <FormLabel>
+                      Max. No. Of Permissions Per Month <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="Enter the count"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 items-center pb-5 pt-8">
+              <div className="flex gap-4 px-5">
                 <Button
                   variant={"outline"}
                   type="button"
                   size={"lg"}
                   className=" px-10 "
-                  onClick={() => setPageNumber(2)}
+                  onClick={() => {
+                    if (on_open_change) {
+                      on_open_change(false);
+                    } else {
+                      router.push("/self-services/permissions/manage");
+                    }
+                  }}
                 >
-                  {translations?.buttons?.back}
+                  {translations?.buttons?.cancel}
                 </Button>
                 <Button type="submit" size={"lg"} className=" px-10 " >
-                  {translations?.buttons?.save}
+                  {translations?.buttons?.continue}
                 </Button>
               </div>
             </div>
-          </div>
-        </form>
-      </Form>
-    )}
+          </form>
+        </Form>
+      )}
 
+      {pageNumber === 1 && (
+        <Form {...formPolicy}>
+          <form onSubmit={formPolicy.handleSubmit(onSubmitPolicy)} className="bg-accent rounded-2xl p-6">
+            <div className="flex justify-between px-5 py-6">
+              <div className="flex justify-between items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex justify-center items-center rounded-full border border-success bg-success w-9 h-9">
+                    <CheckMark />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
+                    <span className="font-semibold text-base text-text-primary">Basic Setup</span>
+                    <span className="text-success text-[13px]">Completed</span>
+                  </div>
+                </div>
+
+                <div className="w-8 h-[2px] bg-secondary"></div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex justify-center items-center rounded-full border border-primary w-9 h-9 text-primary">
+                    <PolicyIcon />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
+                    <span className="font-semibold text-base text-text-primary">Policy</span>
+                    <span className="text-primary text-[13px]">In progress</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-8 w-full mx-auto bg-accent p-5 rounded-md ">
+              <FormField
+                control={formPolicy.control}
+                name="permission_attributes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel><div className="mb-6 font-bold text-[15px]">Permission Attributes:</div></FormLabel>
+                    <FormControl>
+                      <div className="grid grid-cols-2 gap-y-5 text-sm">
+                        {["Group Apply", "Medical Pass Attachment", "Status", "Mandatory Comments", "Official", "Mandatory Attachment", "Apply Ramadan Restriction"].map((option) => (
+                          <FormField
+                            key={option}
+                            control={formPolicy.control}
+                            name="permission_attributes"
+                            render={({ field }) => (
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <Checkbox
+                                    id={option}
+                                    checked={field.value?.includes(option)}
+                                    onCheckedChange={(checked) => {
+                                      const updated = checked
+                                        ? [...(field.value || []), option]
+                                        : field.value?.filter((item: string) => item !== option);
+                                      field.onChange(updated);
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel
+                                  htmlFor={option}
+                                  className="text-sm text-text-primary font-semibold !mt-0"
+                                >
+                                  {option}
+                                </FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-center">
+                <FormField
+                  control={formPolicy.control}
+                  name="permission_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel><div className="mb-6 font-bold text-[15px]">Permission Types:</div></FormLabel>
+                      <FormControl>
+                        <div className="flex flex-col gap-5 text-sm">
+                          <div>
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                value="by_minutes_permission"
+                                checked={field.value === "by_minutes_permission"}
+                                onChange={() => field.onChange("by_minutes_permission")}
+                              />
+                              <span>By Minutes Permission</span>
+                            </label>
+                          </div>
+                          <div>
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                value="by_from_to_time_permission"
+                                checked={field.value === "by_from_to_time_permission"}
+                                onChange={() => field.onChange("by_from_to_time_permission")}
+                              />
+                              <span> By From Time / To Time Permisisons </span>
+                            </label>
+                          </div>
+                          <div>
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                value="by_weekdays_permission"
+                                checked={field.value === "by_weekdays_permission"}
+                                onChange={() => field.onChange("by_weekdays_permission")}
+                              />
+                              <span> By Weekdays Permisisons </span>
+                            </label>
+                          </div>
+                          <div>
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                value="by_fulldays_permission"
+                                checked={field.value === "by_fulldays_permission"}
+                                onChange={() => field.onChange("by_fulldays_permission")}
+                              />
+                              <span> By Full Day Permisisons </span>
+                            </label>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className=" col-span-2 flex justify-end">
+                <div className="flex gap-2 ">
+                  <Button
+                    variant={"outline"}
+                    type="button"
+                    size={"lg"}
+                    className=" px-10 "
+                    onClick={() => setPageNumber(0)}
+                  >
+                    {translations?.buttons?.back}
+                  </Button>
+                  <Button type="submit" size={"lg"} className=" px-10 " disabled={isSubmitting}>
+                    {isSubmitting
+                      ? selectedRowData
+                        ? "Updating..."
+                        : "Saving..."
+                      : translations?.buttons?.save
+                    }
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </Form>
+      )}
     </>
   );
 }
-

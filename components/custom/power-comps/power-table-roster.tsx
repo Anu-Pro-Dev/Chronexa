@@ -1,12 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AgGridReact } from "ag-grid-react";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/lib/dynamicapi";

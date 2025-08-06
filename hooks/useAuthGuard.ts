@@ -1,10 +1,8 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { USER_TOKEN } from "@/utils/constants";
 
-// Utility function to decode JWT token (if your token is JWT)
 const decodeJWT = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
@@ -28,98 +26,108 @@ export function useAuthGuard() {
   const [isGeofenceEnabled, setIsGeofenceEnabled] = useState(false);
 
   useEffect(() => {
+    console.log("🔐 useAuthGuard: Starting authentication check...");
+    
     const checkAuth = () => {
-      const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);
+      const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);      
       
       if (!token) {
-        router.replace("/");  // redirect to login if not authenticated
+        router.replace("/");
         setIsChecking(false);
         return;
       }
 
       try {
-        // Method 1: Get employee ID from JWT token (contains "id" field)
-        const decodedToken = decodeJWT(token);
-        if (decodedToken && decodedToken.id) {
-          setEmployeeId(Number(decodedToken.id));
-        }
-
-        // Check for geofence status from various storage locations
+        let finalEmployeeId: number | null = null;
+        let finalUserInfo: any = null;
         let geofenceStatus = false;
+
+        const decodedToken = decodeJWT(token);
         
-        // Method 2: Get user data from stored login response
-        const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-        if (userData) {
-          const parsedUserData = JSON.parse(userData);
-          setUserInfo(parsedUserData);
+        if (decodedToken && decodedToken.id) {
+          finalEmployeeId = Number(decodedToken.id);
+        }
+
+        const storageKeys = [
+          'loginResponse',
+          'userData', 
+          'user',
+          'currentUser',
+          'authUser',
+          'employee',
+          'userProfile'
+        ];
+
+        for (const key of storageKeys) {
+          const localData = localStorage.getItem(key);
+          const sessionData = sessionStorage.getItem(key);
+          const data = localData || sessionData;
           
-          // Check if it's the full login response structure
-          if (parsedUserData.user && parsedUserData.user.employeenumber) {
-            setEmployeeId(Number(parsedUserData.user.employeenumber));
-            setUserInfo(parsedUserData.user);
-          }
-          // Or if just the user object is stored
-          else if (parsedUserData.employeenumber) {
-            setEmployeeId(Number(parsedUserData.employeenumber));
-            setUserInfo(parsedUserData);
-          }
-          
-          // Check for geofence in userData
-          if (parsedUserData.isGeofence !== undefined) {
-            geofenceStatus = parsedUserData.isGeofence;
+          if (data) {
+            
+            try {
+              const parsedData = JSON.parse(data);
+              
+              let userData = parsedData;
+              if (parsedData.user) {
+                userData = parsedData.user;
+              }
+              
+              if (userData.employeenumber && !finalEmployeeId) {
+                finalEmployeeId = Number(userData.employeenumber);
+              }
+              
+              if (!finalUserInfo || (userData.employeename && Object.keys(userData).length >= Object.keys(finalUserInfo).length)) {
+                finalUserInfo = userData;
+              }
+              
+              if (userData.isGeofence !== undefined) {
+                geofenceStatus = userData.isGeofence;
+              } else if (parsedData.isGeofence !== undefined) {
+                geofenceStatus = parsedData.isGeofence;
+              }
+              
+            } catch (parseError) {
+              console.error(`useAuthGuard: Error parsing ${key}:`, parseError);
+            }
           }
         }
 
-        // Method 3: Check if login response is stored under 'loginResponse' key
-        const loginResponse = localStorage.getItem('loginResponse') || sessionStorage.getItem('loginResponse');
-        if (loginResponse) {
-          const parsedLoginResponse = JSON.parse(loginResponse);
-          if (parsedLoginResponse.user && parsedLoginResponse.user.employeenumber) {
-            setEmployeeId(Number(parsedLoginResponse.user.employeenumber));
-            setUserInfo(parsedLoginResponse.user);
-          }
-          
-          // Check for geofence in loginResponse
-          if (parsedLoginResponse.isGeofence !== undefined) {
-            geofenceStatus = parsedLoginResponse.isGeofence;
-          }
-        }
-
-        // Method 4: If only user object is stored separately
-        const userObject = localStorage.getItem('user') || sessionStorage.getItem('user');
-        if (userObject) {
-          const parsedUser = JSON.parse(userObject);
-          if (parsedUser.employeenumber) {
-            setEmployeeId(Number(parsedUser.employeenumber));
-            setUserInfo(parsedUser);
-          }
-        }
-
-        // Method 5: Check if geofence status is stored separately
         const geofenceData = localStorage.getItem('isGeofence') || sessionStorage.getItem('isGeofence');
-        if (geofenceData) {
+        if (geofenceData && geofenceStatus === false) {
           try {
             geofenceStatus = JSON.parse(geofenceData);
           } catch {
-            // If it's stored as string 'true'/'false'
             geofenceStatus = geofenceData === 'true';
           }
         }
 
+        console.log("📊 useAuthGuard: Final results:");
+        console.log("  - Employee ID:", finalEmployeeId);
+        console.log("  - User Info:", finalUserInfo);
+        console.log("  - User Info structure:", finalUserInfo ? {
+          employeenumber: finalUserInfo.employeenumber,
+          employeename: finalUserInfo.employeename,
+          email: finalUserInfo.email,
+          isGeofence: finalUserInfo.isGeofence
+        } : 'null');
+        console.log("  - Geofence Enabled:", geofenceStatus);
+
+        setEmployeeId(finalEmployeeId);
+        setUserInfo(finalUserInfo);
         setIsGeofenceEnabled(geofenceStatus);
         setIsAuthenticated(true);
+        
       } catch (error) {
-        console.error('Error parsing user data:', error);
-        // If there's an error parsing user data, redirect to login
+        console.error('useAuthGuard: Error during auth check:', error);
         router.replace("/");
       }
       
       setIsChecking(false);
     };
 
-    // Only run once
     checkAuth();
-  }, []); // Empty dependency array to prevent re-execution
+  }, []);
 
   return { 
     isAuthenticated, 

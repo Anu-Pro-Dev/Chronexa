@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 const apiInstance = axios.create({
   baseURL: API_URL,
   headers: {
-    "Content-Type": "application/json",
+    // "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
   },
 });
@@ -19,11 +19,19 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
   try {
     const token = getAuthToken();
 
+    const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+
     const config = {
       method,
       url: endpoint,
       data,
+      // headers: {
+      //   Authorization: token ? `Bearer ${token}` : undefined,
+      // },
       headers: {
+        ...(isFormData
+          ? {}
+          : { "Content-Type": "application/json" }),
         Authorization: token ? `Bearer ${token}` : undefined,
       },
     };
@@ -529,6 +537,66 @@ export const editWorkflowTypeStepRequest = async (data: {
   return apiRequest(`/workflowTypeStep/edit/${workflow_steps_id}`, "PUT", payload);
 };
 
+// Function to add a new permission type
+export const addPermissionTypeRequest = async (data: {
+  permission_type_id?: number;
+  permission_type_code: string;
+  permission_type_eng: string;
+  permission_type_arb: string;
+  group_apply_flag: boolean;
+  status_flag: boolean;
+  [key: string]: any;
+}) => {
+  return apiRequest("/permissionType/add", "POST", data);
+};
+
+// Function to edit a permission type
+export const editPermissionTypeRequest = async (data: {
+  permission_type_id: number;
+  permission_type_code?: string;
+  permission_type_eng?: string;
+  permission_type_arb?: string;
+  group_apply_flag?: boolean;
+  status_flag?: boolean;
+  [key: string]: any;
+}) => {
+  const { permission_type_id, ...payload } = data;
+
+  return apiRequest(`/permissionType/edit/${permission_type_id}`, "PUT", payload);
+};
+
+// Function to add a new permission application
+export const addShortPermissionRequest = async (data: {
+  single_permission_id?: number;
+  permission_type_id: number;
+  employee_id: number;
+  remarks?: string;
+  from_date?: string;
+  to_date?: string;
+  from_time?: string;
+  to_time?: string;
+  perm_minutes?: number;
+}) => {
+  return apiRequest("/employeeShortPermission/add", "POST", data);
+};
+
+// Function to edit a permission application
+export const editShortPermissionRequest = async (data: {
+  single_permission_id: number;
+  permission_type_id?: number;
+  employee_id?: number;
+  remarks?: string;
+  from_date?: string;
+  to_date?: string;
+  from_time?: string;
+  to_time?: string;
+  perm_minutes?: number;
+}) => {
+  const { single_permission_id, ...payload } = data;
+
+  return apiRequest(`/employeeShortPermission/edit/${single_permission_id}`, "PUT", payload);
+};
+
 // Function to get pending permissions
 export const getPendingPermission= async () => {
   return apiRequest('/employeeShortPermission/pending', "GET");
@@ -543,6 +611,60 @@ export const approvePermissionRequest= async (data: {
 
   return apiRequest(`/employeeShortPermission/approve/${single_permissions_id}`, "PUT", payload);
 };
+
+// Function to add a new leave type
+export const addLeaveTypeRequest = async (data: {
+  leave_type_id?: number;
+  leave_type_code: string;
+  leave_type_eng: string;
+  leave_type_arb: string;
+  status_flag: boolean;
+  [key: string]: any;
+}) => {
+  return apiRequest("/leaveType/add", "POST", data);
+};
+
+// Function to edit a leave type
+export const editLeaveTypeRequest = async (data: {
+  leave_type_id: number;
+  leave_type_code?: string;
+  leave_type_eng?: string;
+  leave_type_arb?: string;
+  status_flag?: boolean;
+  [key: string]: any;
+}) => {
+  const { leave_type_id, ...payload } = data;
+
+  return apiRequest(`/leaveType/edit/${leave_type_id}`, "PUT", payload);
+};
+
+// Function to add a new leave
+export const addLeaveRequest = async (form: {
+  employee_leave_id?: number;
+  leave_type_id: number;
+  employee_id: number;
+  from_date: string;
+  to_date: string;
+  [key: string]: any;
+}) => {
+  const formData = new FormData();
+
+  for (const key in form) {
+    const value = form[key];
+
+    if (value !== undefined && value !== null) {
+      // Handle files safely if needed
+      if (value instanceof File || value instanceof Blob) {
+        formData.append(key, value);
+      } else {
+        formData.append(key, String(value));
+      }
+    }
+  }
+
+  return apiRequest("/employeeLeave/add", "POST", formData);
+};
+
 
 // Function to get pending permissions
 export const getPendingLeave= async () => {

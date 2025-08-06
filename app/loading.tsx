@@ -10,7 +10,7 @@ interface LoadingProps {
 
 const LoadingAnimation: React.FC<LoadingProps> = ({ 
   message = "Loading...", 
-  size = 50 
+  size = 30 
 }) => (
   <>
     <div style={{ width: size }}>
@@ -27,7 +27,7 @@ const LoadingAnimation: React.FC<LoadingProps> = ({
 const Loading: React.FC<LoadingProps> = (props) => {
   return (
     <div className="flex flex-col justify-center h-dvh items-center">
-      <LoadingAnimation {...props} />
+      <LoadingAnimation size={30} {...props} />
     </div>
   );
 };
@@ -35,7 +35,7 @@ const Loading: React.FC<LoadingProps> = (props) => {
 export const LoadingOverlay: React.FC<LoadingProps> = (props) => {
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col justify-center items-center">
-      <LoadingAnimation size={80} {...props} />
+      <LoadingAnimation size={30} {...props} />
     </div>
   );
 };
@@ -43,7 +43,7 @@ export const LoadingOverlay: React.FC<LoadingProps> = (props) => {
 export const InlineLoading: React.FC<LoadingProps> = (props) => {
   return (
     <div className="flex flex-col justify-center items-center py-8">
-      <LoadingAnimation size={40} {...props} />
+      <LoadingAnimation size={30} {...props} />
     </div>
   );
 };
@@ -53,7 +53,7 @@ export const ButtonLoading: React.FC<{ message?: string }> = ({
 }) => {
   return (
     <div className="flex items-center gap-2">
-      <div style={{ width: 20 }}>
+      <div style={{ width: 30 }}>
         <Lottie animationData={loadingAnimation} loop={true} />
       </div>
       <span>{message}</span>
