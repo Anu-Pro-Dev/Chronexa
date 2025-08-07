@@ -469,7 +469,8 @@ export default function AddLeaveApplication({
                     <FormLabel>Remarks </FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Add your remarks here" 
+                        placeholder="Add your remarks here"
+                        className="max-w-[350px]" 
                         {...field} 
                         rows={4}
                         onChange={(e) => {

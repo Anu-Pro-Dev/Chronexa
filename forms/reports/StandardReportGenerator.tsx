@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { debounce } from "lodash";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn, getRandomInt } from "@/lib/utils";
@@ -29,6 +30,7 @@ import { useLanguage } from "@/providers/LanguageProvider";
 import * as XLSX from 'exceljs';
 import { saveAs } from 'file-saver';
 import html2pdf from 'html2pdf.js';
+import { searchEmployees } from "@/lib/apiHandler";
 
 const formSchema = z.object({
   reports: z.string().optional(),
@@ -52,6 +54,8 @@ export default function StandardReportGenerator() {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showReportData, setShowReportData] = useState(false);
+  const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
+  const [showEmployeeSearch, setShowEmployeeSearch] = useState(false);
 
   // Dynamic fetches
   const { data: organizations } = useFetchAllEntity("organization");
@@ -64,6 +68,26 @@ export default function StandardReportGenerator() {
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
   });
+
+  // Add debounced search function
+  const debouncedEmployeeSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setEmployeeSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  // Add search query for employees
+  const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
+    queryKey: ["employeeSearch", employeeSearchTerm],
+    queryFn: () => searchEmployees(employeeSearchTerm),
+    enabled: employeeSearchTerm.length > 0,
+  });
+
+  // Determine which employee data to use
+  const employeeData = employeeSearchTerm.length > 0 
+    ? searchedEmployees?.data || []
+    : employees?.data || [];
 
   // Function to fetch all reports
   const fetchAllReports = async () => {
@@ -503,6 +527,12 @@ export default function StandardReportGenerator() {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      debouncedEmployeeSearch.cancel();
+    };
+  }, [debouncedEmployeeSearch]);
+
   // Function to handle showing report in PDF viewer
   const handleShowReport = async () => {
     const data = await fetchReportData();
@@ -904,6 +934,52 @@ export default function StandardReportGenerator() {
                   name="employee"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel className="flex gap-1">Employee </FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(Number(val))}
+                        value={field.value !== undefined ? String(field.value) : ""}
+                        onOpenChange={(open) => setShowEmployeeSearch(open)}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose employee" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder="Search employees..."
+                          onSearchChange={debouncedEmployeeSearch}
+                          className="mt-5"
+                        >
+                          {isSearchingEmployees && employeeSearchTerm.length > 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              Searching...
+                            </div>
+                          )}
+                          {employeeData.length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No employees found
+                            </div>
+                          )}
+                          {employeeData.map((item: any) => {
+                            if (!item.employee_id || item.employee_id.toString().trim() === '') return null;
+                            return (
+                              <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
+                                {item.firstname_eng} {item.emp_no ? `(${item.emp_no})` : ''}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* <FormField
+                  control={form.control}
+                  name="employee"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel className="flex gap-1">Employee <Required/></FormLabel>
                       <Select
                         onValueChange={(val) => field.onChange(Number(val))}
@@ -928,7 +1004,7 @@ export default function StandardReportGenerator() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
                 <FormField
                   control={form.control}
                   name="from_date"

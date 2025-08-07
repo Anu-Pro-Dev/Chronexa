@@ -376,6 +376,10 @@ export const getSecUserByEmployeeId = async (employee_id: number) => {
   return apiRequest(`/secuser/get-by-emp-id/${employee_id}`, "GET");
 };
 
+export const searchEmployees = async (searchTerm: string) => {
+  return apiRequest(`/employee/search?search=${encodeURIComponent(searchTerm)}`, "GET");
+};
+
 // Function to add a new ramadan schedule
 export const addRamadanScheduleRequest = async (data: {
   ramadan_id?: number;
