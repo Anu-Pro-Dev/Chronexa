@@ -56,29 +56,33 @@ export default function Page() {
     
     return fullName || `Emp ${employeeId}`;
   };
-
+  
   const data = useMemo(() => {
     if (Array.isArray(employeeEventTransactionsData?.data)) {
       const processedData = employeeEventTransactionsData.data.map((transaction: any) => {
+        // Parse the datetime string directly
+        const datetime = new Date(transaction.transaction_time);
+        
         return {
           ...transaction,
           id: transaction.transaction_id,
           employee_name: getEmployeeName(transaction.employee_id, employeesData),
-          transaction_date: new Date(transaction.transaction_time).toLocaleString("en-US", {
+          transaction_date: datetime.toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
             day: "numeric",
           }),
-          transaction_time: new Date(transaction.transaction_time).toLocaleString("en-US", {
+          // Use toLocaleTimeString to avoid timezone conversion issues
+          transaction_time: datetime.toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",
             hour12: true,
+            timeZone: "UTC" // This treats the time as UTC, preventing timezone conversion
           }),
-          // Keep the original timestamp for sorting
-          transaction_timestamp: new Date(transaction.transaction_time).getTime(),
+          transaction_timestamp: datetime.getTime(),
         };
       });
-
+      
       // Sort the data based on current sort settings
       if (sortField) {
         processedData.sort((a: any, b: any) => {

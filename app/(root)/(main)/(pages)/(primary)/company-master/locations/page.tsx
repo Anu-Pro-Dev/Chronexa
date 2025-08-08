@@ -9,7 +9,7 @@ import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useDebounce } from "@/hooks/useDebounce"; 
 
 export default function Page() {
-  const { modules, language } = useLanguage();
+  const { modules, language, translations } = useLanguage();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
@@ -20,27 +20,28 @@ export default function Page() {
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.companyMaster || {};
 
   useEffect(() => {
     setColumns([
       {
         field: "location_code",
-        headerName: language === "ar" ? "رمز الموقع" : "Location Code",
+        headerName: t.location_code,
       },
       {
         field: language === "ar" ? "location_arb" : "location_eng",
-        headerName: language === "ar" ? "اسم الموقع" : "Location Name",
+        headerName: t.location_name,
       },
       {
         field: "geolocation",
-        headerName: language === "ar" ? "الإحداثيات الجغرافية" : "Geo Coordinates",
+        headerName: t.geo_cords,
       },
       {
         field: "radius",
-        headerName: language === "ar" ? "نصف القطر" : "Radius",
+        headerName: t.radius,
       },
     ]);
-  }, [language]);
+  }, [t]);
 
   const { data: locationsData, isLoading } = useFetchAllEntity("location", {
     searchParams: {
@@ -51,19 +52,13 @@ export default function Page() {
 
   const data = useMemo(() => {
     if (Array.isArray(locationsData?.data)) {
+      console.log('Complete Raw API Response:', locationsData.data);
+      
       return locationsData.data.map((loc: any) => {
-        let geo = "";
-        if (loc.geolocation) {
-          const match = loc.geolocation.match(/\(([^)]+)\)/);
-          if (match) {
-            const [lng, lat] = match[1].split(" ");
-            geo = `${lat}, ${lng}`;
-          }
-        }
         return {
           ...loc,
           id: loc.location_id,
-          geolocation: geo,
+          geolocation: loc.geolocation ? loc.geolocation.toString() : "",
         };
       });
     }

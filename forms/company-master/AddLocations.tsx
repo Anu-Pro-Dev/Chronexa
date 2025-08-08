@@ -17,44 +17,42 @@ import { addLocationRequest, editLocationRequest } from "@/lib/apiHandler";
 const formSchema = z.object({
   location_code: z.string().default("").transform((val) => val.toUpperCase()),
   location_name: z.string().default(""),
-  radius: z.coerce.number().max(5000, "Too large").optional(),
+  radius: z.string().default("").optional(),
   country_code: z.any().optional(),
+  city: z.string().optional(),
   geolocation: z
-    .string()
-    .default("")
-    .refine((val) => {
-      if (!val?.trim()) return true;
-      const match = val.match(/^(-?\d{1,2}(\.\d+)?)\s*,\s*(-?\d{1,3}(\.\d+)?)$/);
-      if (!match) return false;
-      const [lat, lon] = val.split(",").map((n) => Number(n.trim()));
-      return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
-    }, {
-      message: "Enter valid latitude,longitude",
-    }),
+  .string()
+  .default("")
+  .refine((val) => {
+    if (!val?.trim()) return true;
+    
+    // Split and validate each part
+    const parts = val.split(',');
+    if (parts.length !== 2) return false;
+    
+    const latStr = parts[0].trim();
+    const lonStr = parts[1].trim();
+    
+    // Check if they're valid number strings
+    if (!/^-?\d+\.?\d*$/.test(latStr) || !/^-?\d+\.?\d*$/.test(lonStr)) {
+      return false;
+    }
+    
+    // Validate ranges
+    const lat = parseFloat(latStr);
+    const lon = parseFloat(lonStr);
+    
+    return !isNaN(lat) && !isNaN(lon) && 
+           lat >= -90 && lat <= 90 && 
+           lon >= -180 && lon <= 180;
+  }, {
+    message: "Enter valid coordinates: latitude (-90 to 90), longitude (-180 to 180)",
+  }),
 });
 
-function pointToLatLon(point: string | null): string {
-  if (!point || point.trim() === "") return "";
-
-  const match = point.match(/POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i);
-  if (match) {
-    const [, lon, lat] = match;
-    return `${lat},${lon}`;
-  }
-
-  if (point.includes(",")) {
-    // Remove spaces and any leading/trailing commas
-    const sanitized = point.replace(/\s+/g, "");
-    return sanitized.replace(/^,|,$/g, "");
-  }
-
-  return "";
-}
-
-function latLonToPoint(value: string): string {
-  const [lat, lon] = value.split(",").map((s) => s.trim());
-  if (!lat || !lon) return "";
-  return `POINT(${lon} ${lat})`;
+function getGeolocationString(geolocation: string | null): string {
+  if (!geolocation || geolocation.trim() === "") return "";
+  return geolocation.trim();
 }
 
 export default function AddLocations({
@@ -68,39 +66,49 @@ export default function AddLocations({
 }) {
   const { language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { countries, getCountryByCode } = useCountries();
   const queryClient = useQueryClient();
-
+  const { countries } = useCountries();
+  function getCountryByCode(code: string) {
+    return countries.find((c) => c.country_code === code);
+  }
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       location_code: "",
       location_name: "",
-      radius: undefined,
+      radius: "",
       country_code: "",
+      city: "",
       geolocation: "",
     },
   });
 
   useEffect(() => {
     if (selectedRowData) {
-      const geolocationStr = pointToLatLon(selectedRowData.geolocation ?? "");
+      const geolocationStr = getGeolocationString(selectedRowData.geolocation ?? "");
       form.reset({
         location_code: selectedRowData.location_code ?? "",
         location_name:
           language === "en"
             ? selectedRowData.location_eng ?? ""
             : selectedRowData.location_arb ?? "",
-        radius: selectedRowData.radius,
+        radius: selectedRowData.radius ?? "",
         country_code: selectedRowData.country_code ?? "",
+        city: selectedRowData.city ?? "",
         geolocation: geolocationStr,
       });
     } else {
-      form.reset();
+      form.reset({
+        location_code: "",
+        location_name: "",
+        radius: "",
+        country_code: "",
+        city: "",
+        geolocation: "",
+      });
     }
   }, [selectedRowData, language]);
 
-  // Use TanStack Query mutation for add/edit
   const addMutation = useMutation({
     mutationFn: addLocationRequest,
     onSuccess: (data) => {
@@ -122,7 +130,7 @@ export default function AddLocations({
     onSuccess: (_data, variables) => {
       toast.success("Location updated successfully!");
       onSave(
-        variables.location_id?.toString() ?? null, // ensure string|null
+        variables.location_id?.toString() ?? null,
         variables
       );
       queryClient.invalidateQueries({ queryKey: ["location"] });
@@ -160,16 +168,14 @@ export default function AddLocations({
           setIsSubmitting(false);
           return;
         }
-        values.geolocation = latLonToPoint(values.geolocation);
-      } else {
-        values.geolocation = "";
       }
 
       const payload: any = {
         location_code: values.location_code,
         country_code: values.country_code,
-        radius: values.radius,
+        radius: values.radius ? Number(values.radius) : undefined,
         geolocation: values.geolocation,
+        city: values.city,
       };
 
       if (language === "en") {
@@ -203,23 +209,9 @@ export default function AddLocations({
                 <FormItem>
                   <FormLabel>Location code<Required /></FormLabel>
                   <FormControl>
-                    {/* <div className="relative" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                      <span className={`absolute top-1/2 -translate-y-1/2 text-sm text-text-primary pointer-events-none ${language === 'ar' ? 'right-3' : 'left-3'}`}>
-                        CODE_
-                      </span>
-                      <Input
-                        type="text"
-                        placeholder="Enter location code"
-                        value={field.value?.replace(/^CODE_/, '') || ''}
-                        onChange={(e) =>
-                          field.onChange(`CODE_${e.target.value.replace(/^CODE_/, '')}`)
-                        }
-                        className={`uppercase placeholder:lowercase ${language === 'ar' ? 'pr-14 text-right' : 'pl-14 text-left'}`}
-                      />
-                    </div> */}
                     <Input
                       type="text"
-                      placeholder="Enter location code"
+                      placeholder="Enter the location code"
                       {...field}
                     />
                   </FormControl>
@@ -240,7 +232,7 @@ export default function AddLocations({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter location name"
+                      placeholder="Enter the location name"
                       type="text"
                       {...field}
                       className={language === "ar" ? "text-right" : "text-left"}
@@ -258,30 +250,12 @@ export default function AddLocations({
                   <FormLabel>Geo Coordinates (lat, long)</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="25.123456,55.654321"
+                      placeholder="Example: 25.123456,55.654321"
                       inputMode="decimal"
-                      maxLength={30}
                       value={field.value}
                       onChange={(e) => {
-                        const input = e.target.value;
-                        const sanitized = input.replace(/[^0-9.,\-]/g, "");
-                        
-                        // Prevent setting value if only comma or empty or no digits
-                        if (sanitized === "," || sanitized === "" || !sanitized.match(/[0-9]/)) {
-                          field.onChange("");
-                          return;
-                        }
-                        
-                        const parts = sanitized.split(",");
-                        if (parts.length > 2) return;
-
-                        const [lat, lon] = parts;
-                        const isValidLat = !lat || /^-?\d{0,2}(\.\d{0,8})?$/.test(lat.trim());
-                        const isValidLon = !lon || /^-?\d{0,3}(\.\d{0,8})?$/.test(lon.trim());
-
-                        if (isValidLat && isValidLon) {
-                          field.onChange(sanitized);
-                        }
+                        const cleaned = e.target.value;
+                        field.onChange(cleaned);
                       }}
                     />
                   </FormControl>
@@ -298,9 +272,10 @@ export default function AddLocations({
                   <FormControl>
                     <Input
                       placeholder="Enter the radius"
-                      type="number"
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
+                      type="string"
+                      maxLength={5}
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -311,13 +286,12 @@ export default function AddLocations({
               control={form.control}
               name="country_code"
               render={({ field }) => {
-                const selectedCountry = getCountryByCode(field.value);
                 return (
                   <FormItem>
-                    <FormLabel className="flex gap-1">Country Code</FormLabel>
+                    <FormLabel className="flex gap-1 mt-2.5">Country Code</FormLabel>
                     <CountryDropdown
                       countries={countries}
-                      value={selectedCountry}
+                      value={getCountryByCode(field.value) ?? null}
                       displayMode="code"
                       onChange={(country) => field.onChange(country?.country_code ?? "")}
                     />
@@ -325,6 +299,23 @@ export default function AddLocations({
                   </FormItem>
                 );
               }}
+            />
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Enter the city"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </div>
           <div className="flex justify-end gap-2 items-center py-5">

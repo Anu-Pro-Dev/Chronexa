@@ -754,3 +754,15 @@ export const getReportByEmployeeId = async (data: {
 
   return apiRequest(`/report/employee/${employee_id}`, "GET");
 };
+
+// Function to add new a transaction
+export const addEventTransaction = async (data: {
+  transaction_id?: number;
+  employee_id: number;
+  transaction_time: string;
+  reason: string;
+  user_entry_flag: boolean;
+  [key: string]: any;
+}) => {
+  return apiRequest("/employeeEventTransaction/add", "POST", data);
+}

@@ -68,3 +68,5 @@
 {"timestamp":"05/08/2025 00:01:08","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"14ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
 {"timestamp":"05/08/2025 00:01:23","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/geofench/servertime","method":"GET"}
 {"timestamp":"05/08/2025 00:01:23","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"12ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
+{"timestamp":"08/08/2025 09:16:29","level":"info","message":"Request - Server Time API","url":"http://localhost:8000/api/geofench/servertime","method":"GET"}
+{"timestamp":"08/08/2025 09:16:29","level":"info","message":"Response - Server Time API","url":"http://localhost:8000/api/geofench/servertime","status":401,"responseTime":"136ms","responseBody":{"message":"Authorization header is missing or invalid","auth":"invalid"}}
