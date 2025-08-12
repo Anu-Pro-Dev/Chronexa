@@ -25,9 +25,7 @@ export function useAuthGuard() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isGeofenceEnabled, setIsGeofenceEnabled] = useState(false);
 
-  useEffect(() => {
-    console.log("🔐 useAuthGuard: Starting authentication check...");
-    
+  useEffect(() => {    
     const checkAuth = () => {
       const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);      
       
@@ -101,18 +99,6 @@ export function useAuthGuard() {
             geofenceStatus = geofenceData === 'true';
           }
         }
-
-        console.log("📊 useAuthGuard: Final results:");
-        console.log("  - Employee ID:", finalEmployeeId);
-        console.log("  - User Info:", finalUserInfo);
-        console.log("  - User Info structure:", finalUserInfo ? {
-          employeenumber: finalUserInfo.employeenumber,
-          employeename: finalUserInfo.employeename,
-          email: finalUserInfo.email,
-          isGeofence: finalUserInfo.isGeofence
-        } : 'null');
-        console.log("  - Geofence Enabled:", geofenceStatus);
-
         setEmployeeId(finalEmployeeId);
         setUserInfo(finalUserInfo);
         setIsGeofenceEnabled(geofenceStatus);

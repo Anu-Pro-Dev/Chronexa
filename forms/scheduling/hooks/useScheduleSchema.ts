@@ -2,12 +2,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import * as z from "zod";
-
 import { normalFormSchema } from "./useNormalForm";
 import { policyFormSchema } from "./usePolicyForm";
 import { useScheduleEditStore } from "@/stores/scheduleEditStore";
 
-// Merge schemas
 export const scheduleFormSchema = normalFormSchema.merge(policyFormSchema);
 
 export const useScheduleForm = () => {
@@ -16,7 +14,6 @@ export const useScheduleForm = () => {
   const form = useForm<z.infer<typeof scheduleFormSchema>>({
     resolver: zodResolver(scheduleFormSchema),
     defaultValues: {
-      // fallback default values for Add mode
       schedule_code: "",
       schedule_location: undefined,
       organization_id: undefined,
@@ -55,10 +52,8 @@ export const useScheduleForm = () => {
     return date;
   }
 
-  // 🔁 Reset form with selected row data when editing
   useEffect(() => {
     if (selectedRowData) {
-      console.log("Resetting form with selectedRowData:", selectedRowData);
       form.reset({
         ...selectedRowData,
         organization_id: Number(selectedRowData.organization_id),
@@ -72,7 +67,7 @@ export const useScheduleForm = () => {
 
   useEffect(() => {
     if (!selectedRowData?.schedule_id) {
-      form.reset(); // reset to default values
+      form.reset();
     }
   }, []);
 

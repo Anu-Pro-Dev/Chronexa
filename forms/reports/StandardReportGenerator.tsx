@@ -31,6 +31,7 @@ import * as XLSX from 'exceljs';
 import { saveAs } from 'file-saver';
 import html2pdf from 'html2pdf.js';
 import { searchEmployees } from "@/lib/apiHandler";
+import { toast } from "react-hot-toast";
 
 const formSchema = z.object({
   reports: z.string().optional(),
@@ -57,13 +58,11 @@ export default function StandardReportGenerator() {
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [showEmployeeSearch, setShowEmployeeSearch] = useState(false);
 
-  // Dynamic fetches
   const { data: organizations } = useFetchAllEntity("organization");
   const { data: employeeTypes } = useFetchAllEntity("employeeType");
   const { data: employeeGroups } = useFetchAllEntity("employeeGroup");
   const { data: employees } = useFetchAllEntity("employee");
 
-  // Manager list
   const { data: managerEmployees } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
@@ -123,8 +122,7 @@ export default function StandardReportGenerator() {
       setReportData(data);
       return data;
     } catch (error) {
-      console.error("Error fetching report data:", error);
-      alert("Error fetching report data. Please try again.");
+      toast.error("Error fetching report data. Please try again.");
       return null;
     } finally {
       setLoading(false);
@@ -185,7 +183,6 @@ export default function StandardReportGenerator() {
   // Function to handle Excel export with PDF-like formatting
   const handleExportExcel = async () => {
     const data = await fetchReportData();
-    console.log("Excel export data:", data);
     
     const dataArray = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
     
@@ -518,12 +515,10 @@ export default function StandardReportGenerator() {
         const filename = `report_${formValues.employee ? 'employee_' + formValues.employee : 'all'}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
         saveAs(blob, filename);
       } catch (error) {
-        console.error("Error generating Excel:", error);
-        alert("Error generating Excel file. Please try again.");
+        toast.error("Error generating Excel file. Please try again.");
       }
     } else {
-      console.log("No data available. Raw data:", data);
-      alert("No data available to export.");
+      toast.error("No data available to export.");
     }
   };
 
@@ -536,7 +531,6 @@ export default function StandardReportGenerator() {
   // Function to handle showing report in PDF viewer
   const handleShowReport = async () => {
     const data = await fetchReportData();
-    console.log("Show report data:", data);
     
     const dataArray = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
     
@@ -763,11 +757,10 @@ export default function StandardReportGenerator() {
 
       } catch (error) {
         console.error("Error generating PDF:", error);
-        alert("Error generating PDF. Please try again.");
+        toast.error("Error generating PDF. Please try again.");
       }
     } else {
-      console.log("No data available. Raw data:", data);
-      alert("No data available to export.");
+      toast.error("No data available to export.");
     }
   };
 

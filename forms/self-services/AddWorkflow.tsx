@@ -53,7 +53,6 @@ export default function AddWorkflow() {
     defaultValues: { workflow_code: "", workflow_category: "", workflow_name: "" },
   });
 
-  // Check if we're in edit mode by looking for selectedRow data
   useEffect(() => {
     const editData = sessionStorage.getItem('editWorkflowData');
     if (editData) {
@@ -61,31 +60,19 @@ export default function AddWorkflow() {
       setSelectedRow(workflowData);
       setExistingWorkflowData(workflowData);
       setWorkflowId(workflowData.workflow_id?.toString());
-      
-      // Debug log
-      console.log('Edit Data:', workflowData);
-      console.log('Category values:', {
-        eng: workflowData.workflow_category_eng,
-        arb: workflowData.workflow_category_arb
-      });
-
-      // Get the category value - prioritize the one that matches our dropdown options
       let categoryValue = '';
       const engCategory = workflowData.workflow_category_eng;
       const arbCategory = workflowData.workflow_category_arb;
       
-      // Check which one matches our dropdown options
       const validCategories = ['Permissions', 'Leaves', 'Punches'];
       if (validCategories.includes(engCategory)) {
         categoryValue = engCategory;
       } else if (validCategories.includes(arbCategory)) {
         categoryValue = arbCategory;
       } else {
-        // Fallback to language preference
         categoryValue = language === 'ar' ? (arbCategory || engCategory || '') : (engCategory || arbCategory || '');
       }
 
-      // Set form values with a delay to ensure component is ready
       setTimeout(() => {
         form.setValue('workflow_code', workflowData.workflow_code || '');
         form.setValue('workflow_category', categoryValue);
@@ -94,12 +81,8 @@ export default function AddWorkflow() {
             ? workflowData.workflow_name_arb || workflowData.workflow_name_eng || ''
             : workflowData.workflow_name_eng || workflowData.workflow_name_arb || ''
         );
-
-        console.log('Set category value:', categoryValue);
-        console.log('Form values after set:', form.getValues());
       }, 100);
 
-      // If there are existing steps, show table and populate step data
       if (workflowData.workflow_type_steps && workflowData.workflow_type_steps.length > 0) {
         setShowTable(true);
         const stepRows = workflowData.workflow_type_steps.map((_: any, index: number) => index + 1);
@@ -120,12 +103,10 @@ export default function AddWorkflow() {
         setStepData(stepDataMap);
       }
 
-      // Clear the session storage
       sessionStorage.removeItem('editWorkflowData');
     }
   }, [form, language]);
 
-  // Update form values when language changes for existing data
   useEffect(() => {
     if (selectedRow && existingWorkflowData) {
       const nameValue = language === 'ar' 
@@ -165,7 +146,6 @@ export default function AddWorkflow() {
     onSuccess: (response) => {
       toast.success("Workflow updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["workflowType"] });
-      // Show table for editing steps
       if (!showTable) {
         setShowTable(true);
         if (rows.length === 0) {
@@ -219,7 +199,7 @@ export default function AddWorkflow() {
   const addStepMutation = useMutation({
     mutationFn: addWorkflowTypeStepRequest,
     onSuccess: () => {
-      // This will be called for each individual step
+      toast.success("Step saved successfully!");
     },
     onError: (error: any) => {
       toast.error("Error saving step.");
@@ -229,8 +209,7 @@ export default function AddWorkflow() {
   const editStepMutation = useMutation({
     mutationFn: editWorkflowTypeStepRequest,
     onSuccess: () => {
-      // This will be called for each individual step update
-    },
+      toast.success("Step updated successfully!");},
     onError: (error: any) => {
       toast.error("Error updating step.");
     },
@@ -251,11 +230,9 @@ export default function AddWorkflow() {
       }
 
       if (selectedRow && workflowId) {
-        // Update existing workflow
         payload.workflow_id = parseInt(workflowId);
         editWorkflowMutation.mutate(payload);
       } else {
-        // Create new workflow
         addWorkflowMutation.mutate(payload);
       }
     } catch (error) {
@@ -265,7 +242,6 @@ export default function AddWorkflow() {
 
   const handleSaveSteps = async () => {
     try {
-      // Validate all steps have required data
       const incompleteSteps = rows.filter(rowId => {
         const step = stepData[rowId];
         return !step?.stepName || !step?.roleId || !step?.onSuccess;
@@ -276,7 +252,6 @@ export default function AddWorkflow() {
         return;
       }
 
-      // Process each step individually
       const stepPromises = rows.map(async (rowId, index) => {
         const step = stepData[rowId];
         const stepOrder = index + 1;
@@ -288,25 +263,20 @@ export default function AddWorkflow() {
           is_final_step: step.onSuccess === "approved",
         };
 
-        // Add step name based on language
         if (language === "en") {
           stepPayload.step_eng = step.stepName;
         } else {
           stepPayload.step_arb = step.stepName;
         }
 
-        // Check if this is an existing step (has workflow_steps_id)
         if (step.workflow_steps_id) {
-          // Update existing step
           stepPayload.workflow_steps_id = step.workflow_steps_id;
           return editStepMutation.mutateAsync(stepPayload);
         } else {
-          // Create new step
           return addStepMutation.mutateAsync(stepPayload);
         }
       });
 
-      // Wait for all steps to be processed
       await Promise.all(stepPromises);
       
       toast.success(`All workflow steps ${selectedRow ? 'updated' : 'saved'} successfully!`);
@@ -323,7 +293,6 @@ export default function AddWorkflow() {
   const getOnSuccessOptions = (currentIndex: number) => {
     const options = [];
 
-    // Add next steps as options (only steps that come after current step)
     for (let i = currentIndex + 2; i <= rows.length; i++) {
       options.push({ value: `step${i}`, label: `Step ${i}` });
     }

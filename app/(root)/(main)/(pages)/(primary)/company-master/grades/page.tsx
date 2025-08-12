@@ -9,7 +9,7 @@ import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useDebounce } from "@/hooks/useDebounce"; 
 
 export default function Page() {
-  const { modules, language } = useLanguage();
+  const { modules, language, translations } = useLanguage();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
@@ -18,23 +18,33 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.companyMaster || {};
+
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "grade_code", headerName: language === "ar" ? "تعيين الموقع" : "Grade Code" },
+      { field: "grade_code", headerName: t.grade_code },
       {
         field: language === "ar" ? "grade_arb" : "grade_eng",
-        headerName: language === "ar" ? "تعيين" : "Grade",
+        headerName: t.grade_name,
       },
     ]);
   }, [language]);
 
-  const { data: gradeData, isLoading } = useFetchAllEntity("grade",{
+  const { data: gradeData, isLoading, refetch } = useFetchAllEntity("grade", {
     searchParams: {
-      name: debouncedSearchValue,
-      code: debouncedSearchValue,
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && {
+        name: debouncedSearchValue,
+        code: debouncedSearchValue,
+      }),
     },
   });
 
@@ -53,6 +63,26 @@ export default function Page() {
       setSelectedRowData(null);
     }
   }, [open]);
+  
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
 
   const props = {
     Data: data,
@@ -64,12 +94,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: gradeData?.total || 0,
+    hasNext: gradeData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
 
   const handleSave = () => {

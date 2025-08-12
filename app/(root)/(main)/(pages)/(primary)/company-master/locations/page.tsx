@@ -18,9 +18,14 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.companyMaster || {};
+
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   useEffect(() => {
     setColumns([
@@ -43,17 +48,18 @@ export default function Page() {
     ]);
   }, [t]);
 
-  const { data: locationsData, isLoading } = useFetchAllEntity("location", {
+  const { data: locationsData, isLoading, refetch } = useFetchAllEntity("location", {
     searchParams: {
-      name: debouncedSearchValue,
-      code: debouncedSearchValue,
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && {
+        name: debouncedSearchValue,
+        code: debouncedSearchValue,
+      }),
     },
   });
-
   const data = useMemo(() => {
-    if (Array.isArray(locationsData?.data)) {
-      console.log('Complete Raw API Response:', locationsData.data);
-      
+    if (Array.isArray(locationsData?.data)) {      
       return locationsData.data.map((loc: any) => {
         return {
           ...loc,
@@ -71,6 +77,26 @@ export default function Page() {
     }
   }, [open]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -81,12 +107,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: locationsData?.total || 0,
+    hasNext: locationsData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
 
   const handleSave = () => {

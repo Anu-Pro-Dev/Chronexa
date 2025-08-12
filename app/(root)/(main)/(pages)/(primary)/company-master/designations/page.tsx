@@ -9,7 +9,7 @@ import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useDebounce } from "@/hooks/useDebounce"; 
 
 export default function Page() {
-  const { modules, language } = useLanguage();
+  const { modules, language, translations } = useLanguage();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
@@ -18,25 +18,36 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+    const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.companyMaster || {};
+  
+    const offset = useMemo(() => {
+      return currentPage;
+    }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "designation_code", headerName: language === "ar" ? "تعيين الموقع" : "Designation Code" },
+      { field: "designation_code", headerName: t.designation_code },
       {
         field: language === "ar" ? "designation_arb" : "designation_eng",
-        headerName: language === "ar" ? "تعيين" : "Designation",
+        headerName: t.designation_name || "Designation Name",
       },
     ]);
-  }, [language]);
+  }, [t, language]);
 
-  const { data: designationData, isLoading } = useFetchAllEntity("designation",{
-    searchParams: {
-      name: debouncedSearchValue,
-      code: debouncedSearchValue,
-    },
-  });
+    const { data: designationData, isLoading, refetch } = useFetchAllEntity("designation", {
+      searchParams: {
+        limit: String(rowsPerPage),
+        offset: String(offset),
+        ...(debouncedSearchValue && {
+          name: debouncedSearchValue,
+          code: debouncedSearchValue,
+        }),
+      },
+    });
+
 
   const data = useMemo(() => {
     if (Array.isArray(designationData?.data)) {
@@ -56,6 +67,28 @@ export default function Page() {
     }
   }, [open]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -66,12 +99,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: designationData?.total || 0,
+    hasNext: designationData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
  
   const handleSave = () => {

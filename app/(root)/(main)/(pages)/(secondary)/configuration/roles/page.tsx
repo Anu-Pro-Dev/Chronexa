@@ -39,7 +39,6 @@ export default function Page() {
   }, []);
   
   const handleCellClickPath = useCallback((data: any) => {
-    console.log("Navigating to assign roles for:", data.role_name);
     if (data?.role_name) {
       router.push(`/configuration/roles/assign-roles?role=${data.role_name}`);
     } else {

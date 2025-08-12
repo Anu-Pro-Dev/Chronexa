@@ -9,18 +9,24 @@ import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
 import { useDebounce } from "@/hooks/useDebounce"; 
 
 export default function Page() {
-  const { modules, language } = useLanguage();
+  const { modules, language, translations } = useLanguage();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [searchValue, setSearchValue] = useState("");
-  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-
+  const t = translations?.modules?.companyMaster || {};
+  // Calculate offset for pagination
+    const offset = useMemo(() => {
+      return currentPage;
+    }, [currentPage]);
+  
   useEffect(() => {
     setColumns([
       {
@@ -34,12 +40,17 @@ export default function Page() {
     ]);
   }, [language]);
 
-  const { data: citizenshipData, isLoading } = useFetchAllEntity("citizenship",{
-    searchParams: {
-      name: debouncedSearchValue,
-      code: debouncedSearchValue,
-    },
-  });
+  // Add pagination parameters to the API call
+    const { data: citizenshipData, isLoading, refetch } = useFetchAllEntity("citizenship", {
+      searchParams: {
+        limit: String(rowsPerPage),
+        offset: String(offset),
+        ...(debouncedSearchValue && {
+          name: debouncedSearchValue,
+          code: debouncedSearchValue,
+        }),
+      },
+    });
 
   const data = useMemo(() => {
     if (Array.isArray(citizenshipData?.data)) {
@@ -52,8 +63,36 @@ export default function Page() {
   }, [citizenshipData]);
 
   useEffect(() => {
-    if (!open) setSelectedRowData(null);
+    if (!open) {
+      setSelectedRowData(null);
+    }
   }, [open]);
+
+  // Add pagination handlers like in employee page
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    // Force refetch if available
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1); // Reset to first page when changing page size
+    
+    // Force refetch if available
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  // Update search handler to reset page like employee page
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1); // Reset to first page when searching
+  }, []);
 
   const props = {
     Data: data,
@@ -65,12 +104,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange, // Use pagination handler
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange, // Use search handler that resets page
+    total: citizenshipData?.total || 0, // Add pagination props
+    hasNext: citizenshipData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
 
   const handleSave = () => {

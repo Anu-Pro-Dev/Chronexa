@@ -14,7 +14,7 @@ import { apiRequest } from "@/lib/apiHandler";
 export default function MembersTable() {
   const { modules } = useLanguage();
   const searchParams = useSearchParams();
-  const role = searchParams.get("role"); // Get role name from URL (e.g., "ADMIN")
+  const role = searchParams.get("role");
   
   const [columns, setColumns] = useState([
     { field: "user_id", headerName: "User ID" },
@@ -33,10 +33,8 @@ export default function MembersTable() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const queryClient = useQueryClient();
 
-  // Fetch all roles to get role_id from role name
   const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
 
-  // Find the role_id for the given role name
   const roleId = useMemo(() => {
     if (!role || !rolesData?.data) return null;
     
@@ -54,19 +52,16 @@ export default function MembersTable() {
       if (!roleId) return { data: [] };
       
       try {
-        // This API call fetches ONLY users assigned to the specific role_id
         const response = await apiRequest(`/secUserRole/all?role_id=${roleId}`, "GET");
-        console.log(`Fetching users for role_id: ${roleId}`, response);
         return response;
       } catch (error) {
         console.error("Error fetching user roles:", error);
         return { data: [] };
       }
     },
-    enabled: !!roleId, // Only fetch when we have a role_id
+    enabled: !!roleId,
   });
 
-  // Get unique user IDs from the user roles data
   const userIds = useMemo(() => {
     if (!userRolesData?.data || !Array.isArray(userRolesData.data)) {
       return [];
@@ -74,16 +69,13 @@ export default function MembersTable() {
     return userRolesData.data.map((ur: any) => ur.user_id).filter(Boolean);
   }, [userRolesData]);
 
-  // Fetch employee details for all user IDs from employee API
   const { data: employeesData, isLoading: isLoadingEmployees } = useQuery({
     queryKey: ["employees", "byIds", userIds],
     queryFn: async () => {
       if (userIds.length === 0) return {};
       
       try {
-        // Fetch all employees from employee API
         const response = await apiRequest(`/employee/all`, "GET");
-        console.log("Employee API response:", response);
         
         let employees = [];
         if (response?.data && Array.isArray(response.data)) {
@@ -94,18 +86,14 @@ export default function MembersTable() {
           employees = response;
         }
 
-        // Create a map of user_id to employee data
-        // Assuming employees have user_id field that matches with userRoles user_id
         const employeeMap: any = {};
         employees.forEach((employee: any) => {
-          // Try different possible user ID field names in employee data
           const empUserId = employee.user_id || employee.userId || employee.id || employee.employee_id;
           if (empUserId && userIds.includes(empUserId)) {
             employeeMap[empUserId] = employee;
           }
         });
 
-        console.log("Employee map created:", employeeMap);
         return employeeMap;
       } catch (error) {
         console.error("Error fetching employees:", error);
@@ -115,7 +103,6 @@ export default function MembersTable() {
     enabled: userIds.length > 0,
   });
 
-  // Process and merge the data
   const filteredData = useMemo(() => {
     if (!userRolesData?.data || !Array.isArray(userRolesData.data) || !employeesData) {
       return [];

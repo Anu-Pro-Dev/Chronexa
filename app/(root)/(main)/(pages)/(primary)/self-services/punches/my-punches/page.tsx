@@ -42,26 +42,21 @@ export default function Page() {
     ]);
   }, [language]);
 
-  // Fetch employee-specific transactions using the new API
   const { data: employeeEventTransactionsData, isLoading: isLoadingTransactions, error } = useQuery({
     queryKey: ["employeeEventTransaction", employeeId],
     queryFn: () => {
-      console.log("Fetching transactions for employee:", employeeId); // Debug log
       return getEmployeeTransactionById({ employee_id: employeeId! });
     },
-    enabled: !!employeeId && isAuthenticated && !isChecking, // Only run when authenticated and employeeId is available and not checking
-    retry: false, // Don't retry on 404
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window gains focus
-    refetchOnMount: false, // Don't refetch on component mount if data exists
+    enabled: !!employeeId && isAuthenticated && !isChecking,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
-  // Still fetch employees data for name resolution
   const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity("employee");
 
-  // Helper function to get employee name
   const getEmployeeName = (employeeId: number, employeesData: any) => {
-    // First check if this is the logged-in user
     if (userInfo && employeeId === employeeId) {
       const name = language === "ar" 
         ? `${userInfo.employeename?.firstarb || ""} ${userInfo.employeename?.lastarb || ""}`.trim()
@@ -70,7 +65,6 @@ export default function Page() {
       if (name) return name;
     }
     
-    // If not the logged-in user or no name available, try to find in employees data
     const employee = employeesData?.data?.find(
       (emp: any) => emp.employee_id === employeeId
     );
@@ -107,7 +101,6 @@ export default function Page() {
         };
       });
 
-      // Sort the data
       if (sortField) {
         processedData.sort((a: any, b: any) => {
           let aValue = a[sortField];
@@ -178,9 +171,7 @@ export default function Page() {
     setSelectedRows(rows);
   }, []);
 
-  // Render the PowerTable component with conditional content
   const renderPowerTable = () => {
-    // Show loading state while checking authentication
     if (isChecking) {
       return (
         <div className="flex justify-center items-center p-8">
@@ -191,7 +182,6 @@ export default function Page() {
       );
     }
 
-    // Show error state if not authenticated or no employee ID
     if (!isAuthenticated || !employeeId) {
       return (
         <div className="p-8">
@@ -204,7 +194,6 @@ export default function Page() {
       );
     }
 
-    // Render the actual PowerTable
     return (
       <PowerTable
         props={props}

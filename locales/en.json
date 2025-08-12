@@ -157,6 +157,7 @@
         "country_code": "Country Code",
         "citizenship_code": "Citizenship Code",
         "designation_code": "Designation Code",
+        "designation_name": "Designation Code",
         "grade_code": "Grade Code",
         "grade_name": "Grade Name",
         "overtime_eligible": "Overtime Eligbile"

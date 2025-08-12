@@ -144,7 +144,6 @@ export default function Page() {
     }));
   }, [organizationScheduleData, scheduleMap]);
 
-  console.log("Data:", data);
   const props = {
     Data: data,
     Columns: columns,
