@@ -9,15 +9,25 @@ interface OrganizationType {
   organization_type_eng: string;
   organization_type_arb: string;
   org_type_level: number;
-  parent_id?: string;
+  created_id: number;
+  created_date: string;
+  last_updated_id: number;
+  last_updated_date: string;
 }
 
 interface Organization {
   organization_id: number;
   organization_eng: string;
   organization_code: string;
+  organization_arb: string;
   parent_id?: number | null;
   organization_type_id: number;
+  position_in_grid?: number | null;
+  location_id?: number | null;
+  created_id: number;
+  created_date: string;
+  last_updated_id: number;
+  last_updated_date: string;
 }
 
 interface TreeNode {
@@ -38,13 +48,13 @@ export default function Page() {
     data: orgTypesRes,
     isLoading: loadingTypes,
     error: orgTypesError,
-  } = useFetchAllEntity("organizationType");
+  } = useFetchAllEntity("organizationType/");
 
   const {
     data: orgsRes,
     isLoading: loadingOrgs,
     error: orgsError,
-  } = useFetchAllEntity("organization");
+  } = useFetchAllEntity("organization/");
 
   const treeData = useMemo(() => {
     if (loadingTypes || loadingOrgs) return null;
@@ -58,32 +68,30 @@ export default function Page() {
     const orgTypes: OrganizationType[] = orgTypesData;
     const organizations: Organization[] = orgsData;
 
+    // Debug logging
+    console.log("Organization Types:", orgTypes);
+    console.log("Organizations:", organizations);
+
     const nodeMap: Record<string, TreeNode> = {};
 
-    orgTypes.forEach((orgType) => {
-      nodeMap[`type_${orgType.organization_type_id}`] = {
-        id: `type_${orgType.organization_type_id}`,
-        title: orgType.organization_type_eng,
-        org_type_level: orgType.org_type_level,
-        parent_id: orgType.parent_id ? `type_${orgType.parent_id}` : undefined,
-        children: [],
-        isOrgType: true,
-      };
-    });
+    // For your data structure, we don't create organization type nodes in the tree
+    // Instead, we only create organization nodes and use org types for labeling
 
+    // Create organization nodes
     organizations.forEach((org) => {
       nodeMap[`org_${org.organization_id}`] = {
         id: `org_${org.organization_id}`,
-        title: org.organization_eng,
+        title: org.organization_eng.trim(), // Trim whitespace
         organization_code: org.organization_code,
-        org_type_level: -1,
-        parent_id: org.parent_id !== null ? `org_${org.parent_id}` : `type_${org.organization_type_id}`,
+        org_type_level: -1, // Will be set below
+        parent_id: org.parent_id ? `org_${org.parent_id}` : undefined,
         children: [],
         isOrgType: false,
         organization_type_id: org.organization_type_id,
       };
     });
 
+    // Set org_type_level for organizations based on their type
     organizations.forEach((org) => {
       const orgNode = nodeMap[`org_${org.organization_id}`];
       const orgType = orgTypes.find(t => t.organization_type_id === org.organization_type_id);
@@ -92,17 +100,21 @@ export default function Page() {
       }
     });
 
+    // Build parent-child relationships
     Object.values(nodeMap).forEach((node) => {
-      if (node.parent_id) {
-        const parent = nodeMap[node.parent_id];
-        if (parent) {
-          parent.children.push(node);
-        }
+      if (node.parent_id && nodeMap[node.parent_id]) {
+        nodeMap[node.parent_id].children.push(node);
       }
     });
 
-    const rootOrgNode = nodeMap["org_0"];
-    const roots: TreeNode[] = rootOrgNode?.children || [];
+    console.log("Node Map:", nodeMap);
+
+    // Find root nodes (organizations with no parent_id)
+    const roots: TreeNode[] = Object.values(nodeMap).filter(node => 
+      !node.parent_id
+    );
+
+    console.log("Root nodes:", roots);
 
     return roots;
   }, [orgTypesRes, orgsRes, loadingTypes, loadingOrgs]);
@@ -158,9 +170,11 @@ export default function Page() {
                 <span className="text-sm opacity-75">({node.organization_code})</span>
               )}
               {!node.isOrgType && (() => {
-                const orgType = orgTypesRes?.data?.find(
+                const orgTypesData = orgTypesRes?.data || orgTypesRes;
+                const orgType = Array.isArray(orgTypesData) ? orgTypesData.find(
                   (t: any) => t.organization_type_id === node.organization_type_id
-                );
+                ) : null;
+                
                 if (orgType) {
                   return (
                     <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded uppercase">
@@ -256,7 +270,11 @@ export default function Page() {
     );
   }
 
+  // Enhanced debug information
   if (!treeData || treeData.length === 0) {
+    const orgTypesData = orgTypesRes?.data || orgTypesRes;
+    const orgsData = orgsRes?.data || orgsRes;
+    
     return (
       <div className="flex flex-col gap-4">
         <PowerHeader
@@ -265,11 +283,27 @@ export default function Page() {
           disableDelete
           disableSearch
         />
-        <div className="flex justify-center items-center p-8">
-          <div className="text-lg">No organization data available</div>
-          <div className="text-sm text-gray-600 mt-2">
-            Debug: Check console for API response details
+        <div className="flex flex-col justify-center items-center p-8 gap-4">
+          <div className="text-lg text-red-600">No organization structure could be built</div>
+          <div className="text-sm text-gray-600 bg-gray-100 p-4 rounded max-w-2xl">
+            <div className="mb-2"><strong>Debug Information:</strong></div>
+            <div>Organization Types Count: {Array.isArray(orgTypesData) ? orgTypesData.length : 'Not an array'}</div>
+            <div>Organizations Count: {Array.isArray(orgsData) ? orgsData.length : 'Not an array'}</div>
+            <div className="mt-2">Check browser console for detailed data structure</div>
           </div>
+          {/* Temporary data display for debugging */}
+          {Array.isArray(orgTypesData) && orgTypesData.length > 0 && (
+            <div className="text-xs bg-blue-50 p-4 rounded max-w-4xl overflow-auto">
+              <strong>Sample Organization Types:</strong>
+              <pre>{JSON.stringify(orgTypesData.slice(0, 3), null, 2)}</pre>
+            </div>
+          )}
+          {Array.isArray(orgsData) && orgsData.length > 0 && (
+            <div className="text-xs bg-green-50 p-4 rounded max-w-4xl overflow-auto">
+              <strong>Sample Organizations:</strong>
+              <pre>{JSON.stringify(orgsData.slice(0, 3), null, 2)}</pre>
+            </div>
+          )}
         </div>
       </div>
     );
