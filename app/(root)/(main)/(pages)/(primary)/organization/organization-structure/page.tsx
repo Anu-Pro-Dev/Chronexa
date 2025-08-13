@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import PowerHeader from "@/components/custom/power-comps/power-header";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { useFetchAllEntity } from "@/hooks/useFetchAllEntity";
+import { ExclamationIcon } from "@/icons/icons";
 
 interface OrganizationType {
   organization_type_id: number;
@@ -284,14 +285,9 @@ export default function Page() {
           disableSearch
         />
         <div className="flex flex-col justify-center items-center p-8 gap-4">
-          <div className="text-lg text-red-600">No organization structure could be built</div>
-          <div className="text-sm text-gray-600 bg-gray-100 p-4 rounded max-w-2xl">
-            <div className="mb-2"><strong>Debug Information:</strong></div>
-            <div>Organization Types Count: {Array.isArray(orgTypesData) ? orgTypesData.length : 'Not an array'}</div>
-            <div>Organizations Count: {Array.isArray(orgsData) ? orgsData.length : 'Not an array'}</div>
-            <div className="mt-2">Check browser console for detailed data structure</div>
-          </div>
-          {/* Temporary data display for debugging */}
+          <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center ">
+            <ExclamationIcon className="mr-2" width="14" height="14"/>No organization structure could be built.
+          </p>
           {Array.isArray(orgTypesData) && orgTypesData.length > 0 && (
             <div className="text-xs bg-blue-50 p-4 rounded max-w-4xl overflow-auto">
               <strong>Sample Organization Types:</strong>

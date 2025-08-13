@@ -455,9 +455,13 @@ export default function StandardReportGenerator() {
         });
 
         const buffer = await Packer.toBuffer(doc);
-        const blob = new Blob([buffer], { 
-          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+
+        const uint8Array = new Uint8Array(buffer);
+
+        const blob = new Blob([uint8Array], {
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         });
+
         
         const filename = `report_${form.getValues().employee ? 'employee_' + form.getValues().employee : 'all'}_${format(new Date(), 'yyyy-MM-dd')}.docx`;
         saveAs(blob, filename);
