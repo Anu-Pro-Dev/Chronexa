@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  trailingSlash: true,
+  trailingSlash: false,
   
   // Additional helpful configurations for hydration issues
   experimental: {

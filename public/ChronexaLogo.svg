@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 841.89 595.28">
+  <!-- Generator: Adobe Illustrator 29.7.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 8)  -->
+  <defs>
+    <style>
+      .st0, .st1 {
+        isolation: isolate;
+      }
+
+      .st2 {
+        font-size: 41.82px;
+      }
+
+      .st2, .st1 {
+        fill: #010101;
+        font-family: Avenir-Black, Avenir;
+        font-weight: 800;
+      }
+
+      .st1 {
+        font-size: 59.68px;
+      }
+
+      .st3 {
+        fill: #e71e25;
+      }
+    </style>
+  </defs>
+  <g id="Group_153">
+    <g id="hronexa" class="st0">
+      <text class="st1" transform="translate(325.86 316.54)"><tspan x="0" y="0">hronexa</tspan></text>
+    </g>
+    <g id="Group_87">
+      <g id="Group_83">
+        <path id="Path_79" class="st3" d="M322.59,334.29c-5.01.04-9.99-.86-14.66-2.67-10.57-4.15-18.11-12.9-20.74-24.4-.72-3.08-1.07-6.23-1.05-9.4,0-21.45,15.13-36.43,36.46-36.43,9.43,0,17.64,3.13,24.54,9.2,2.53,2.22,6.37,2.05,8.84-.24h0c7.43-6.87,5.84-18.93-3.02-23.83-9-4.97-19.73-7.6-31.67-7.6-35.5,0-61.85,24.59-61.85,58.91-.01,3.32.25,6.64.78,9.92,3.72,23.9,20.99,41.64,44.71,47.19,5.32,1.24,10.76,1.85,16.22,1.83,12.43,0,23.52-2.81,32.71-8.16,8.42-4.9,9.39-16.75,2.24-23.36l-.07-.06c-2.48-2.3-6.36-2.46-8.88-.2-6.9,6.17-15.11,9.3-24.55,9.3Z"/>
+      </g>
+      <circle id="Ellipse_4" class="st3" cx="380.05" cy="260.27" r="12.3"/>
+      <circle id="Ellipse_5" class="st3" cx="380.05" cy="335.42" r="12.3"/>
+    </g>
+  </g>
+  <text class="st2" transform="translate(410.93 350) scale(.94 1)"><tspan x="0" y="0">OnTime</tspan></text>
+</svg>

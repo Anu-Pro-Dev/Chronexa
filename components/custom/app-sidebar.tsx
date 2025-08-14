@@ -145,19 +145,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         >
           <div className="flex items-center gap-2">
             <Image
-              width={25}
+              width={open ? 125 : 25}
               height={100}
               alt="logo"
-              src={"/logo.svg"}
+              src={open ? "/ChronexaLogo.png" : "/ChronexaMonoLogo.png"}
               onClick={() => {
                 toggleSidebar();
               }}
             />
-            {open && (
+            {/* {open && (
               <h1 className="font-bold text-xl cursor-pointer text-text-primary">
                 {translations?.product_name}
               </h1>
-            )}
+            )} */}
           </div>
           {open && <SidebarTrigger />}
         </div>
