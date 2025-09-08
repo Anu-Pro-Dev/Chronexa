@@ -1,0 +1,127 @@
+"use client";
+import React from "react";
+import { useLanguage } from "@/src/providers/LanguageProvider";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/src/components/ui/Carousel";
+import {
+  MissedInIcon,
+  MissedOutIcon,
+  EarlyOutIcon,
+  LateInIcon,
+  TrendingUpIcon,
+  TrendingDownIcon,
+} from "@/src/icons/icons";
+
+function ViolationsCard() {
+  const { dir, translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+  
+  return (
+    <div className="relative shadow-card h-full rounded-[10px] bg-accent px-2 pt-3 pb-10 flex flex-col items-center">
+      <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute left-[50px] top-[50px]"></div>
+      <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute right-[50px] bottom-[50px]"></div>
+      <div className="flex flex-row justify-between py-4">
+        <h5 className="text-lg text-text-primary font-bold">{t?.violations}</h5>
+      </div>
+      <Carousel className="w-full max-w-xs px-5" dir={dir}>
+        <CarouselContent className={dir === "rtl" ? "flex-row-reverse" : ""}>
+          <CarouselItem className="pl-0">
+            <div className="aspect-square flex flex-col items-center justify-center gap-4 px-6">
+              <div className="h-auto w-full rounded-[10px] bg-gradient-to-r from-[#0078D450] to-[#DAEDFF] p-[2px]">
+                <div className="flex flex-col h-full w-full items-center justify-center bg-background rounded-[8px] px-3 py-6">
+                  <div className="flex justify-between w-full">
+                    <div className="icon-group text-primary bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]">
+                      {MissedInIcon()}
+                    </div>
+                    <div className="text-success text-xs font-extrabold flex gap-1 items-baseline">
+                      <span>8.5%</span>
+                      <span>{TrendingUpIcon()}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl text-text-primary font-bold">0</p>
+                    <p className="text-text-secondary font-semibold text-sm">
+                      {t?.missed_in}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="h-[1px] w-[60px] bg-background flex self-center"></div>
+              <div className="h-auto w-full rounded-[10px] bg-gradient-to-l from-[#0078D450] to-[#DAEDFF] p-[2px]">
+                <div className="flex flex-col h-full w-full items-center justify-center bg-background rounded-[8px] px-3 py-6">
+                  <div className="flex justify-between w-full">
+                    <div className="icon-group text-[#1E9090] bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(30,144,144,0.15)]">
+                      {MissedOutIcon()}
+                    </div>
+                    <div className="text-danger text-xs font-extrabold flex gap-1 items-baseline">
+                      <span>4.5%</span>
+                      <span>{TrendingDownIcon()}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl text-text-primary font-bold">3</p>
+                    <p className="text-text-secondary font-semibold text-sm">
+                      {t?.missed_out}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CarouselItem>
+          <CarouselItem className="pl-0">
+            <div className="aspect-square flex flex-col items-center justify-center gap-4 px-6">
+              <div className="h-auto w-full rounded-[10px] bg-gradient-to-r from-[#0078D450] to-[#DAEDFF] p-[2px]">
+                <div className="flex flex-col h-full w-full items-center justify-center bg-background rounded-[8px] px-3 py-6">
+                  <div className="flex justify-between w-full">
+                    <div className="icon-group text-[#4318FF] bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(67,24,255,0.15)]">
+                      {LateInIcon()}
+                    </div>
+                    <div className="text-danger text-xs font-extrabold flex gap-1 items-baseline">
+                      <span>3.0%</span>
+                      <span>{TrendingDownIcon()}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl text-text-primary font-bold">2</p>
+                    <p className="text-text-secondary font-semibold text-sm">
+                      {t?.late_in}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="h-[1px] w-[60px] bg-background flex self-center"></div>
+              <div className="h-auto w-full rounded-[10px] bg-gradient-to-l from-[#0078D450] to-[#DAEDFF] p-[2px]">
+                <div className="flex flex-col h-full w-full items-center justify-center bg-background rounded-[8px] px-3 py-6">
+                  <div className="flex justify-between w-full">
+                    <div className="icon-group text-[#D2691E] bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] shadow-[0_0_20px_15px_rgba(210,105,30,0.15)]">
+                      {EarlyOutIcon()}
+                    </div>
+                    <div className="text-success text-xs font-extrabold flex gap-1 items-baseline">
+                      <span>1.5%</span>
+                      <span>{TrendingUpIcon()}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl text-text-primary font-bold">1</p>
+                    <p className="text-text-secondary font-semibold text-sm">
+                      {t?.early_out}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CarouselItem>
+        </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
+      </Carousel>
+    </div>
+  );
+}
+
+export default ViolationsCard;

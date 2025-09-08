@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 296.31 130.19">
+  <defs>
+    <style>
+      .cls-1, .cls-2, .cls-3 {
+        isolation: isolate;
+      }
+
+      .cls-2 {
+        font-size: 41.82px;
+      }
+
+      .cls-2, .cls-3 {
+        fill: #fff;
+        font-family: Avenir-Black, Avenir;
+        font-weight: 800;
+      }
+
+      .cls-4 {
+        fill: #e71e25;
+      }
+
+      .cls-3 {
+        font-size: 59.68px;
+      }
+
+      .cls-5 {
+        letter-spacing: -.02em;
+      }
+    </style>
+  </defs>
+  <g id="Group_153" data-name="Group 153">
+    <g id="hronexa" class="cls-1">
+      <g class="cls-1">
+        <text class="cls-3" transform="translate(66.42 77.62)"><tspan x="0" y="0">h</tspan><tspan class="cls-5" x="34.26" y="0">r</tspan><tspan x="57.47" y="0">onexa</tspan></text>
+      </g>
+    </g>
+    <g id="Group_87" data-name="Group 87">
+      <g id="Group_83" data-name="Group 83">
+        <path id="Path_79" data-name="Path 79" class="cls-4" d="M63.15,95.37c-5.01.04-9.99-.86-14.66-2.67-10.57-4.15-18.11-12.9-20.74-24.4-.72-3.08-1.07-6.23-1.05-9.4,0-21.45,15.13-36.43,36.46-36.43,9.43,0,17.64,3.13,24.54,9.2,2.53,2.22,6.37,2.05,8.84-.24h0c7.43-6.87,5.84-18.93-3.02-23.83C84.52,2.63,73.79,0,61.85,0,26.35,0,0,24.59,0,58.91c-.01,3.32.25,6.64.78,9.92,3.72,23.9,20.99,41.64,44.71,47.19,5.32,1.24,10.76,1.85,16.22,1.83,12.43,0,23.52-2.81,32.71-8.16,8.42-4.9,9.39-16.75,2.24-23.36l-.07-.06c-2.48-2.3-6.36-2.46-8.88-.2-6.9,6.17-15.11,9.3-24.55,9.3h0Z"/>
+      </g>
+      <circle id="Ellipse_4" data-name="Ellipse 4" class="cls-4" cx="120.61" cy="21.35" r="12.3"/>
+      <circle id="Ellipse_5" data-name="Ellipse 5" class="cls-4" cx="120.61" cy="96.5" r="12.3"/>
+    </g>
+  </g>
+  <g class="cls-1">
+    <text class="cls-2" transform="translate(151.49 111.08) scale(.94 1)"><tspan x="0" y="0">OnTime</tspan></text>
+  </g>
+</svg>

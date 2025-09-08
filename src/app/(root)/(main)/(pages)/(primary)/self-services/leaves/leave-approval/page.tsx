@@ -1,0 +1,152 @@
+"use client";
+import React, { useState } from "react";
+import PowerHeader from "@/src/components/custom/power-comps/power-header";
+import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
+import PowerTable from "@/src/components/custom/power-comps/power-table";
+import ApprovalModal from "@/src/components/custom/power-comps/power-approval-modal";
+import { Label } from "@/src/components/ui/label";
+import { Button } from "@/src/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
+import { CalendarIcon } from "@/src/icons/icons";
+import { Calendar } from "@/src/components/ui/calendar";
+import { format } from "date-fns";
+import { useLanguage } from "@/src/providers/LanguageProvider";
+
+export default function Page() {
+  const { modules } = useLanguage();
+  const [Data, SetData] = useState<any>([]);
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [approve_open, approve_on_open_change] = useState<boolean>(false);
+  const [reject_open, reject_on_open_change] = useState<boolean>(false);
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const options = [
+    { value: "option1", label: "All" },
+    { value: "option2", label: "Pending manger" },
+    { value: "option3", label: "Pending HR" },
+    { value: "option4", label: "Approved" },
+    { value: "option5", label: "Rejected" },
+    { value: "option6", label: "Cancelled" },
+  ];
+  const [Columns, setColumns] = useState([
+    { field: "number" },
+    { field: "name" },
+    { field: "leave_type", headerName: "Leave type" },
+    { field: "from_date", headerName: "From date" },
+    { field: "to_date", headerName: "To date" },
+    { field: "comments", headerName: "Justification" },
+    { field: "status", headerName: "Status" },
+  ]);
+  const props = {
+    Data,
+    SetData,
+    Columns,
+  };
+
+  const handleApprove = () => {
+    setApproveModalOpen(false); // Close modal after action
+  };
+
+  const handleReject = () => {
+    setRejectModalOpen(false); // Close modal after action
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <PowerHeader 
+        props={{
+          ...props,
+          approve_open: approveModalOpen,
+          approve_on_open_change: setApproveModalOpen,
+          onApprove: handleApprove,
+          reject_open: rejectModalOpen,
+          reject_on_open_change: setRejectModalOpen,
+          onReject: handleReject,
+        }} 
+        items={modules?.selfServices?.items} 
+        disableAdd
+        disableDelete
+        enableApprove
+        enableReject
+      />
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Select onValueChange={setSelectedOption} value={selectedOption}>
+            <SelectTrigger className="bg-accent border-grey">
+              <Label className="font-normal text-secondary">
+                Status :
+              </Label>
+              <SelectValue placeholder="Choose status"/>
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    From Date :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary"> {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}</span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={fromDate}
+                onSelect={setFromDate}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div>
+          <Popover>
+          <PopoverTrigger asChild>
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    To Date :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary"> {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}</span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={toDate} onSelect={setToDate} />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+      <div className="bg-accent rounded-2xl">
+        <div className="col-span-2 p-6">
+          <h1 className="font-bold text-xl text-primary">Leave Approval</h1>
+          {/* <h1 className="font-semibold text-sm text-text-secondary">
+            Leave approval can be viewed in this tab
+          </h1> */}
+        </div>
+        <div className="px-6">
+          <PowerTabs items={modules?.selfServices?.leaves?.items} />
+        </div>
+        <PowerTable props={props} api={"/self-services/leaves/leave-approval"} />
+      </div>
+    </div>
+  );
+}
