@@ -68,7 +68,7 @@ export default function PersonalForm({
                       <Button size={"lg"} variant={"outline"}
                         className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
                       >
-                        {field.value ? (
+                        {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
                           <span className="font-normal text-sm text-text-secondary">Choose date</span>
@@ -166,7 +166,7 @@ export default function PersonalForm({
                       <Button size={"lg"} variant={"outline"}
                         className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
                       >
-                        {field.value ? (
+                        {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
                           <span className="font-normal text-sm text-text-secondary">Choose date</span>
@@ -204,7 +204,7 @@ export default function PersonalForm({
                       <Button size={"lg"} variant={"outline"}
                         className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
                       >
-                        {field.value ? (
+                        {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
                           <span className="font-normal text-sm text-text-secondary">Choose date</span>
@@ -281,7 +281,7 @@ export default function PersonalForm({
                       <Button size={"lg"} variant={"outline"}
                         className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
                       >
-                        {field.value ? (
+                        {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
                           <span className="font-normal text-sm text-text-secondary">Choose date</span>
@@ -328,7 +328,7 @@ export default function PersonalForm({
                       <Button size={"lg"} variant={"outline"}
                         className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
                       >
-                        {field.value ? (
+                        {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
                           <span className="font-normal text-sm text-text-secondary">Choose date</span>

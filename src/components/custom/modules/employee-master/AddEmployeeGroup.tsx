@@ -62,7 +62,7 @@ export default function AddEmployeeGroups({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
   });
-  
+
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
@@ -71,10 +71,11 @@ export default function AddEmployeeGroups({
           language === "en"
             ? selectedRowData.group_name_eng ?? ""
             : selectedRowData.group_name_arb ?? "",
-        group_start_date: selectedRowData.group_start_date
-          ? new Date(selectedRowData.group_start_date): null,
-        group_end_date: selectedRowData.group_end_date
-          ? new Date(selectedRowData.group_end_date)  : null,
+        // Use original dates instead of formatted ones
+        group_start_date: selectedRowData.original_group_start_date
+          ? new Date(selectedRowData.original_group_start_date) : null,
+        group_end_date: selectedRowData.original_group_end_date
+          ? new Date(selectedRowData.original_group_end_date) : null,
         schedule_flag: selectedRowData.schedule_flag ?? false,
         reporting_group_flag: selectedRowData.reporting_group_flag ?? false,
         reporting_person_id: selectedRowData.reporting_person_id ?? undefined,
@@ -83,6 +84,27 @@ export default function AddEmployeeGroups({
       form.reset(); // clears on add
     }
   }, [selectedRowData, language]);
+  
+  // useEffect(() => {
+  //   if (selectedRowData) {
+  //     form.reset({
+  //       group_code: selectedRowData.group_code ?? "",
+  //       group_name:
+  //         language === "en"
+  //           ? selectedRowData.group_name_eng ?? ""
+  //           : selectedRowData.group_name_arb ?? "",
+  //       group_start_date: selectedRowData.group_start_date
+  //         ? new Date(selectedRowData.group_start_date): null,
+  //       group_end_date: selectedRowData.group_end_date
+  //         ? new Date(selectedRowData.group_end_date)  : null,
+  //       schedule_flag: selectedRowData.schedule_flag ?? false,
+  //       reporting_group_flag: selectedRowData.reporting_group_flag ?? false,
+  //       reporting_person_id: selectedRowData.reporting_person_id ?? undefined,
+  //     });
+  //   } else {
+  //     form.reset(); // clears on add
+  //   }
+  // }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addEmployeeGroupRequest,

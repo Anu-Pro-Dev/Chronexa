@@ -20,7 +20,7 @@ const ResponsiveModalOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-[1001] bg-accent/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-accent/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -31,7 +31,7 @@ ResponsiveModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const ResponsiveModalVariants = cva(
   cn(
-    "fixed z-[1001] bg-accent p-6 shadow-popup rounded-[20px] transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 overflow-y-auto scrollbar-hide",
+    "fixed z-50 bg-accent p-6 shadow-popup rounded-[20px] transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 overflow-y-auto scrollbar-hide",
     "flex flex-col gap-5",
     "md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
     "md:w-full mx-auto md:mx-0 md:border md:duration-200 md:data-[state=open]:animate-in md:data-[state=closed]:animate-out md:data-[state=closed]:fade-out-0 md:data-[state=open]:fade-in-0 md:data-[state=closed]:zoom-out-95 md:data-[state=open]:zoom-in-95 md:rounded-[20px]"

@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { FaUsers } from "react-icons/fa";
+import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 export default function Page() {
+  const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const [columns, setColumns] = useState<{ field: string; headerName: string; clickable?: boolean; onCellClick?: (data: any) => void }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -19,32 +20,47 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.employeeMaster || {};
+
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "group_code", headerName: language === "ar" ? "رمز المجموعة" : "Group Code" },
+      { field: "group_code", headerName: t.group_code },
       {
         field: language === "ar" ? "group_name_arb" : "group_name_eng",
-        headerName: language === "ar" ? "اسم المجموعة" : "Group Name",
+        headerName: t.group_name,
       },
       { 
         field: "employee_group_members", 
-        headerName: language === "ar" ? "التجميع" : "Grouping",
+        headerName: t.grouping,
         clickable: true, 
         onCellClick: handleCellClickPath,
       },
-      { field: "group_start_date", headerName: "Group Start Date" },
-      { field: "group_end_date", headerName: "Group End Date" },
+      { field: "group_start_date", headerName: t.group_start_date },
+      { field: "group_end_date", headerName: t.group_end_date },
       {
         field: "reporting_group_flag",
-        headerName: "Reporting"
+        headerName: t.reporting
       },
     ]);
   }, [language]);
 
-  const { data: employeeGroupData, isLoading } = useFetchAllEntity("employeeGroup");
+  const { data: employeeGroupData, isLoading, refetch } = useFetchAllEntity("employeeGroup", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && {
+        name: debouncedSearchValue,
+        code: debouncedSearchValue,
+      }),
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(employeeGroupData?.data)) {
@@ -52,6 +68,10 @@ export default function Page() {
         ...empGroup,
         id: empGroup.employee_group_id,
         employee_group_members: "Members",
+        // Keep original dates for editing
+        original_group_start_date: empGroup.group_start_date,
+        original_group_end_date: empGroup.group_end_date,
+        // Format dates for display only
         group_start_date: new Date(empGroup.group_start_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
@@ -66,14 +86,36 @@ export default function Page() {
     }
     return [];
   }, [employeeGroupData, language]);
-
+  
   useEffect(() => {
     if (!open) {
       setSelectedRowData(null);
     }
   }, [open]);
 
-   const handleCellClickPath = useCallback((data: any) => {
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
+  const handleCellClickPath = useCallback((data: any) => {
     if (data?.group_code) {
       router.push(`/employee-master/employee-group/group-members?group=${data.group_code}`);
     } else {
@@ -91,12 +133,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: employeeGroupData?.total || 0,
+    hasNext: employeeGroupData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
  
   const handleSave = () => {
@@ -119,7 +165,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.employeeMaster.items}
         entityName="employeeGroup"
-        modal_title="Employee Group"
+        modal_title={t.employee_group}
         modal_component={
           <AddEmployeeGroup
             on_open_change={setOpen}

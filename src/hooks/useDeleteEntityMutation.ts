@@ -21,7 +21,7 @@ export function useDeleteEntityMutation({
       if (ids.length === 1) {
         return apiRequest(`/${entityName}/delete/${String(ids[0])}`, "DELETE");
       } else {
-        return apiRequest(`/${entityName}/delete`, "POST", {
+        return apiRequest(`/${entityName}/delete`, "DELETE", {
           ids: ids
         });
       }

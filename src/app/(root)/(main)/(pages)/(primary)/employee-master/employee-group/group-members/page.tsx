@@ -1,6 +1,5 @@
 "use client";
-
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
@@ -10,33 +9,71 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/src/lib/apiHandler";
+import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 export default function MembersTable() {
-  const { modules } = useLanguage();
   const searchParams = useSearchParams();
   const group = searchParams.get("group");
-  
-  const [columns, setColumns] = useState([
-    { field: "employee_no", headerName: "Employee No" },
-    { field: "employee_name", headerName: "Employee Name" },
-    { field: "designation", headerName: "Designation" },
-    { field: "organization", headerName: "Organization" },
-  ]);
-  
-  const [open, setOpen] = useState(false);
-  const [selectedRowData, setSelectedRowData] = useState<any>(null);
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const { modules, language, translations } = useLanguage();
+  const [columns, setColumns] = useState<{ field: string; headerName: string; clickable?: boolean; onCellClick?: (data: any) => void }[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [open, setOpen] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.employeeMaster || {};
 
-  // Fetch group members and groups
-  const { data: groupMembersData, isLoading: isLoadingGroupMembers } = useFetchAllEntity("employeeGroupMember");
+  // Function to preserve URL parameters
+  const preserveUrlParams = useCallback(() => {
+    if (group && !searchParams.get("group")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("group", group);
+      router.replace(`${pathname}?${params.toString()}`);
+    }
+  }, [group, searchParams, pathname, router]);
+
+  // Ensure URL parameters are preserved on component mount and updates
+  useEffect(() => {
+    preserveUrlParams();
+  }, [preserveUrlParams]);
+
+  // Calculate offset for pagination
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
+
+  // Set up columns
+  useEffect(() => {
+    setColumns([
+      { field: "employee_no", headerName: t.emp_no },
+      { field: "employee_name", headerName: t.employee },
+      { field: "designation", headerName: "Designation" },
+      { field: "organization", headerName: "Organization" },
+    ]);
+  }, [language, t]);
+
+  const { data: groupMembersData, isLoading: isLoadingGroupMembers, refetch: refetchGroupMembers } = useFetchAllEntity("employeeGroupMember", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(group && { group_code: group }),
+      ...(debouncedSearchValue && {
+        employee_name: debouncedSearchValue,
+        employee_no: debouncedSearchValue,
+      }),
+    },
+  });
+
+  // Fetch groups data
   const { data: groupsData, isLoading: isLoadingGroups } = useFetchAllEntity("employeeGroup");
 
-  // Filter group members by group if specified
   const filteredGroupMembers = useMemo(() => {
     if (!groupMembersData?.data || !Array.isArray(groupMembersData.data)) {
       return [];
@@ -67,85 +104,46 @@ export default function MembersTable() {
     return filtered;
   }, [groupMembersData, groupsData, group]);
 
-  // Get unique employee IDs
-  const employeeIds = useMemo(() => {
-    const ids = filteredGroupMembers.map((member: any) => member.employee_id).filter(Boolean);
-    return ids;
-  }, [filteredGroupMembers]);
-  // Replace the existing employee fetching query with this optimized version
-
-  // Fetch all employees once and filter by needed IDs
-  const { data: allEmployeesData, isLoading: isLoadingEmployees } = useQuery({
-    queryKey: ["employees", "all"],
-    queryFn: async () => {
-      try {
-        const data = await apiRequest(`/employee/all`, "GET");
-        
-        // Handle different response structures
-        let employees = [];
-        if (data?.data && Array.isArray(data.data)) {
-          employees = data.data;
-        } else if (data?.success && data?.result && Array.isArray(data.result)) {
-          employees = data.result;
-        } else if (Array.isArray(data)) {
-          employees = data;
-        } else {
-          console.error("Unexpected employee data structure:", data);
-          return {};
-        }
-                
-        // Create a map of employee_id to employee data for quick lookup
-        const employeeMap: any = {};
-        employees.forEach((emp: any) => {
-          // Try different possible ID field names
-          const empId = emp.id || emp.employee_id || emp.emp_id;
-          if (empId) {
-            employeeMap[empId] = emp;
-          }
-        });
-        
-        return employeeMap;
-      } catch (error) {
-        console.error("Error fetching all employees:", error);
-        return {};
-      }
-    },
-    // Remove the enabled condition since we want to fetch all employees regardless
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
-
-  // Update the filteredData useMemo to better handle the employee lookup
+  // Process and merge data - Updated to use the nested employee_master data
   const filteredData = useMemo(() => {
-
-    if (!allEmployeesData || Object.keys(allEmployeesData).length === 0) {
+    if (!filteredGroupMembers || filteredGroupMembers.length === 0) {
       return [];
     }
     
     const mergedData = filteredGroupMembers.map((member: any) => {
-      const employeeId = member.employee_id;
-      const emp = allEmployeesData[employeeId];
+      const emp = member.employee_master; // Get employee data from nested object
       
       if (!emp) {
-        console.warn(`No employee data found for ID: ${employeeId}`);
+        console.warn(`No employee_master data found for group member ID: ${member.group_member_id}`);
       }
 
       return {
         ...member,
         id: member.group_member_id || member.id,
-        employee_no: emp?.emp_no || emp?.employee_no || emp?.empNo || "N/A",
-        employee_name: emp?.firstname_eng,
-        designation: emp?.designation_name || emp?.designation || emp?.position || "N/A",
-        organization: emp?.organization_name || emp?.organization || emp?.company || "N/A",
+        employee_no: emp?.emp_no || "N/A",
+        employee_name: language === "ar" 
+          ? (emp?.firstname_arb || emp?.firstname_eng || "N/A")
+          : (emp?.firstname_eng || emp?.firstname_arb || "N/A"),
+        designation: emp?.designation 
+          ? (language === "ar" 
+              ? (emp.designation.designation_arb || emp.designation.designation_eng || "N/A")
+              : (emp.designation.designation_eng || emp.designation.designation_arb || "N/A"))
+          : "N/A",
+        organization: emp?.organization 
+          ? (language === "ar" 
+              ? (emp.organization.organization_arb || emp.organization.organization_eng || "N/A")
+              : (emp.organization.organization_eng || emp.organization.organization_arb || "N/A"))
+          : "N/A",
         effective_from_date: member.effective_from_date,
         effective_to_date: member.effective_to_date,
       };
     });
 
     return mergedData;
-  }, [filteredGroupMembers, allEmployeesData, employeeIds]);
+  }, [filteredGroupMembers, language]);
 
-  // Also update the loading state calculation
-  const isLoading = isLoadingGroupMembers || isLoadingGroups || isLoadingEmployees;
+  // Loading state
+  const isLoading = isLoadingGroupMembers || isLoadingGroups;
 
   useEffect(() => {
     if (!open) {
@@ -153,10 +151,59 @@ export default function MembersTable() {
     }
   }, [open]);
 
+  // Pagination handlers - matching employee-group structure
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetchGroupMembers) {
+      setTimeout(() => refetchGroupMembers(), 100);
+    }
+  }, [refetchGroupMembers]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    
+    if (refetchGroupMembers) {
+      setTimeout(() => refetchGroupMembers(), 100);
+    }
+  }, [refetchGroupMembers]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
+  // Modified handleSave to preserve URL parameters
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["employeeGroupMember"] });
     setOpen(false);
-  }, [queryClient]);
+    
+    // Ensure URL parameters are preserved after save
+    setTimeout(() => {
+      if (group) {
+        const params = new URLSearchParams(searchParams.toString());
+        if (!params.get("group")) {
+          params.set("group", group);
+          router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+      }
+    }, 100);
+  }, [queryClient, group, searchParams, pathname, router]);
+
+  // Modified handleOpenChange to preserve URL parameters
+  const handleOpenChange = useCallback((isOpen: boolean) => {
+    setOpen(isOpen);
+    
+    // Preserve URL parameters when modal state changes
+    if (group) {
+      const params = new URLSearchParams(searchParams.toString());
+      if (!params.get("group")) {
+        params.set("group", group);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      }
+    }
+  }, [group, searchParams, pathname, router]);
 
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
@@ -167,28 +214,35 @@ export default function MembersTable() {
     setSelectedRows(rows);
   }, []);
 
+  // Props object with pagination data - matching employee-group structure
   const props = {
     Data: filteredData,
     Columns: columns,
     open,
-    on_open_change: setOpen,
+    on_open_change: handleOpenChange,
     selectedRows,
     setSelectedRows,
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: groupMembersData?.total || 0,
+    hasNext: groupMembersData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
+    groupCode: group,
   };
 
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        selectedRows={selectedRows}
         items={modules?.employeeMaster?.items}
         entityName="employeeGroupMember"
         modal_title="Group Members"
@@ -198,13 +252,16 @@ export default function MembersTable() {
             selectedRowData={selectedRowData}
             onSave={handleSave}
             props={props}
+            groupCode={group}
           />
         }
         size="large"
       />
       <PowerTable
         props={props}
+        onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
+        isLoading={isLoading}
       />
     </div>
   );

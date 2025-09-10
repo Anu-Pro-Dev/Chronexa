@@ -244,7 +244,7 @@ export default function OfficialForm({
             name="grade_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Grade <Required /></FormLabel>
+                <FormLabel className="flex gap-1">Grade</FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}

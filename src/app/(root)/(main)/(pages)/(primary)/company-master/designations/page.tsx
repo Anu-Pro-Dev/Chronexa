@@ -37,17 +37,16 @@ export default function Page() {
     ]);
   }, [t, language]);
 
-    const { data: designationData, isLoading, refetch } = useFetchAllEntity("designation", {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(debouncedSearchValue && {
-          name: debouncedSearchValue,
-          code: debouncedSearchValue,
-        }),
-      },
-    });
-
+  const { data: designationData, isLoading, refetch } = useFetchAllEntity("designation", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && {
+        name: debouncedSearchValue,
+        code: debouncedSearchValue,
+      }),
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(designationData?.data)) {

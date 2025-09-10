@@ -6,6 +6,7 @@ import AddEmployeeType from "@/src/components/custom/modules/employee-master/Add
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -17,19 +18,35 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.employeeMaster || {};
+  
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "employee_type_code", headerName: language === "ar" ? "كود الموظف" : "Employee Code" },
+      { field: "employee_type_code", headerName: t.emp_code },
       {
         field: language === "ar" ? "employee_type_arb" : "employee_type_eng",
-        headerName: language === "ar" ? "نوع الموظف" : "Employee Type",
+        headerName: t.employee_type,
       },
     ]);
   }, [language]);
 
-  const { data: employeeTypeData, isLoading } = useFetchAllEntity("employeeType");
+  const { data: employeeTypeData, isLoading, refetch } = useFetchAllEntity("employeeType", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && {
+        name: debouncedSearchValue,
+        code: debouncedSearchValue,
+      }),
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(employeeTypeData?.data)) {
@@ -49,6 +66,28 @@ export default function Page() {
     }
   }, [open]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -59,12 +98,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: employeeTypeData?.total || 0,
+    hasNext: employeeTypeData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
  
   const handleSave = () => {
@@ -87,7 +130,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.employeeMaster.items}
         entityName="employeeType"
-        modal_title="Employee Type"
+        modal_title={t.employee_type}
         modal_component={
           <AddEmployeeType
             on_open_change={setOpen}
