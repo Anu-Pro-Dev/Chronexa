@@ -1,280 +1,198 @@
 "use client";
-import { useState } from "react";
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import * as z from "zod";
-import { cn } from "@/src/utils/utils";
-import { Button } from "@/src/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
-import { Checkbox } from "@/src/components/ui/checkbox";
+import { Button } from "@/src/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addDeviceRequest, editDeviceRequest } from "@/src/lib/apiHandler";
+import Switch from "@/src/components/ui/switch";
 
 const formSchema = z.object({
-  code: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  name_eng: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  name_arb: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  ip_address: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  port: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  building: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  location: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
-  enable: z.boolean(),
+  device_no: z.string().default(""),
+  device_name: z.string().default(""),
+  device_status: z.boolean().default(false).optional(),
 });
 
-export default function AddDevicesStatus({
+export default function AddDevices({
   on_open_change,
+  selectedRowData,
+  onSave,
 }: {
-  on_open_change?: any;
+  on_open_change: any;
+  selectedRowData?: any;
+  onSave: (id: string | null, newData: any) => void;
 }) {
-  const { translations } = useLanguage();
-  
+
+  const { language, translations } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const t = translations?.modules?.devices || {};
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      code: "",
-      name_eng: "",
-      name_arb: "",
-      ip_address: "",
-      port: "",
-      building: "",
-      location: "",
-      enable: false,
+      device_no: "",
+      device_name:"",
+      device_status: false,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  useEffect(() => {
+    if (selectedRowData) {
+      form.reset({
+        device_no: selectedRowData.device_no ?? "",
+        device_name: selectedRowData.device_name ?? "",
+        device_status: selectedRowData.device_status ?? false,
+      });
+    } else {
+      form.reset();
+    }
+  }, [selectedRowData, language]);
+
+  const addMutation = useMutation({
+    mutationFn: addDeviceRequest,
+    onSuccess: (data) => {
+      toast.success("Device added successfully!");
+      onSave(null, data.data);
+      on_open_change(false);
+      queryClient.invalidateQueries({ queryKey: ["device"] });
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editDeviceRequest,
+    onSuccess: (_data, variables) => {
+      toast.success("Device updated successfully!");
+      onSave(variables.device_id?.toString() ?? null, variables);
+      queryClient.invalidateQueries({ queryKey: ["device"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        toast.error("Duplicate data detected. Please use different values.");
+      } else {
+        toast.error("Form submission error.");
+      }
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    
     try {
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-accent">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      const payload: any = {
+        device_no: values.device_no,
+        device_name: values.device_name,
+        device_status: values.device_status,
+      };
+
+      if (selectedRowData) {
+        editMutation.mutate({
+          device_id: selectedRowData.id,
+          ...payload,
+        });
+      } else {
+        addMutation.mutate(payload);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
-  const router = useRouter();
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        {/* <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Readers</h1>
-          <h1 className="font-semibold text-sm text-text-secondary">
-            Choose the choices for readers devices status
-          </h1>
-        </div> */}
-        <div className="flex flex-col gap-6">
-          <div className="p-5 flex flex-col">
-            <div className="flex justify-between items-start gap-10">
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Code <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the code" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="name_eng"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Name(English) <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the name" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="ip_address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        IP Address <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter IP address" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Location <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the location" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="enable"
-                  render={({ field }) => (
-                    <FormItem className=" ">
-                      <FormControl>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="enable"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                          <FormLabel htmlFor="enable" className="text-sm font-semibold">Enable</FormLabel>
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
-                <FormField
-                  control={form.control}
-                  name="building"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Buildings <Required/> </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose building" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">building 1</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="name_arb"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Name(العربي) <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the name" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="port"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Port <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter the port" type="text" {...field} />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col gap-4">
+          <div className="grid gap-16 gap-y-4">
+            <FormField
+              control={form.control}
+              name="device_no"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t.device_no}<Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_device_no}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="device_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t.device_name}<Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_device_name}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+							control={form.control}
+							name="device_status"
+							render={({ field }) => (
+								<FormItem className="flex items-center space-x-4">
+									<FormLabel className="mb-0">{t.device_status}</FormLabel>
+									<FormControl>
+										<Switch
+											checked={!!field.value}
+											onChange={(val: boolean) => field.onChange(val)}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
           </div>
-          <div className="flex justify-end gap-2 items-center pb-5">
-            <div className="flex gap-4 px-5">
-              <Button
-                variant={"outline"}
-                type="button"
-                size={"lg"}
-                className="w-full"
-                onClick={() => router.push("/devices/devices-status")}
-              >
-                {translations.buttons.cancel}
-              </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                Save
-              </Button>
-            </div>
+          <div className="w-full flex gap-2 items-center py-3">
+            <Button
+              variant={"outline"}
+              type="button"
+              size={"lg"}
+              className="w-full"
+              onClick={() => on_open_change(false)}
+            >
+              {translations.buttons.cancel}
+            </Button>
+            <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
+              {isSubmitting
+              ? selectedRowData
+                ? translations.buttons.updating
+                : translations.buttons.saving
+              : selectedRowData
+                ? translations.buttons.update
+                : translations.buttons.save}
+            </Button>
           </div>
         </div>
       </form>

@@ -12,12 +12,14 @@ export const flagsFormSchema = z.object({
   calculate_monthly_missed_hrs_flag: z.boolean(),
   exclude_from_integration_flag: z.boolean(),
   shift_flag: z.boolean(),
-  on_report_flag: z.boolean(),
+  on_reports_flag: z.boolean(),
   share_roster_flag: z.boolean(),
   include_email_flag: z.boolean(),
   web_punch_flag: z.boolean(),
   check_inout_selfie_flag: z.boolean(),
   geofench_flag: z.boolean(),
+  SAP_user_flag: z.boolean(),
+  local_user_flag: z.boolean(),
 });
 
 export const useFlagsForm = () => {
@@ -25,7 +27,7 @@ export const useFlagsForm = () => {
     resolver: zodResolver(flagsFormSchema),
     defaultValues: {
       active_flag: true,
-      punch_flag: false,
+      punch_flag: true,
       overtime_flag: false,
       inpayroll_flag: false,
       email_notification_flag: false,
@@ -33,12 +35,14 @@ export const useFlagsForm = () => {
       calculate_monthly_missed_hrs_flag: false,
       exclude_from_integration_flag: false,
       shift_flag: false,
-      on_report_flag: false,
+      on_reports_flag: true,
       share_roster_flag: false,
       include_email_flag: false,
       web_punch_flag: false,
       check_inout_selfie_flag: false,
       geofench_flag: false,
+      SAP_user_flag: false,
+      local_user_flag: false,
     },
   });
 

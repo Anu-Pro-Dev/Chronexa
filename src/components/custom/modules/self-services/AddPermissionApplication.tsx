@@ -120,7 +120,7 @@ export default function AddPermissionApplication({
         onSave(null, data.data);
       }
       queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
-      router.push("/self-services/permissions/requests");
+      router.push("/self-services/permissions/my-requests");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -139,7 +139,7 @@ export default function AddPermissionApplication({
         onSave(variables.single_permission_id?.toString() ?? null, variables);
       }
       queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
-      router.push("/self-services/permissions/requests");
+      router.push("/self-services/permissions/my-requests");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -284,22 +284,15 @@ export default function AddPermissionApplication({
         (permType: any) => permType.permission_type_id.toString() === values.permission_types
       );
 
-      const fromDate = new Date(values.from_date);
-      fromDate.setHours(0, 0, 0, 0);
-      const fromDateISO = fromDate.toISOString();
+      // For dates - send just the date part in YYYY-MM-DD format
+      const fromDateString = `${values.from_date.getFullYear()}-${(values.from_date.getMonth() + 1).toString().padStart(2, '0')}-${values.from_date.getDate().toString().padStart(2, '0')}`;
 
-      const toDate = new Date(values.to_date);
-      toDate.setHours(23, 59, 59, 999);
-      const toDateISO = toDate.toISOString();
+      const toDateString = `${values.to_date.getFullYear()}-${(values.to_date.getMonth() + 1).toString().padStart(2, '0')}-${values.to_date.getDate().toString().padStart(2, '0')}`;
 
-      const fromTime = new Date(values.from_date);
-      fromTime.setHours(values.from_time.getHours(), values.from_time.getMinutes(), values.from_time.getSeconds(), 0);
-      const fromTimeISO = fromTime.toISOString();
+      // For times - send just the time part in HH:mm:ss format
+      const fromTimeString = `${values.from_time.getHours().toString().padStart(2, '0')}:${values.from_time.getMinutes().toString().padStart(2, '0')}:${values.from_time.getSeconds().toString().padStart(2, '0')}`;
 
-      const toTime = new Date(values.to_date);
-      toTime.setHours(values.to_time.getHours(), values.to_time.getMinutes(), values.to_time.getSeconds(), 0);
-      const toTimeISO = toTime.toISOString();
-
+      const toTimeString = `${values.to_time.getHours().toString().padStart(2, '0')}:${values.to_time.getMinutes().toString().padStart(2, '0')}:${values.to_time.getSeconds().toString().padStart(2, '0')}`;
       const actualFromDateTime = new Date(values.from_date);
       actualFromDateTime.setHours(values.from_time.getHours(), values.from_time.getMinutes(), values.from_time.getSeconds());
       
@@ -311,10 +304,10 @@ export default function AddPermissionApplication({
       const payload: any = {
         permission_type_id: selectedPermissionType?.permission_type_id || null,
         employee_id: employeeId,
-        from_date: fromDateISO,
-        to_date: toDateISO,
-        from_time: fromTimeISO,
-        to_time: toTimeISO,
+        from_date: fromDateString,
+        to_date: toDateString,
+        from_time: fromTimeString,
+        to_time: toTimeString,  
         perm_minutes: permMinutes,
         remarks: values.remarks || "",
       };
@@ -630,7 +623,7 @@ export default function AddPermissionApplication({
                   type="button"
                   size={"lg"}
                   className="w-full"
-                  onClick={() => router.push("/self-services/permissions/requests")}
+                  onClick={() => router.push("/self-services/permissions/my-requests")}
                 >
                   {translations.buttons.cancel}
                 </Button>

@@ -144,15 +144,17 @@ export class ExcelExporter {
     }
 
     try {
-      const [{ default: XLSX }, { saveAs }] = await Promise.all([
-        import('exceljs'),
-        import('file-saver')
+      const [{ default: ExcelJS }, fileSaver] = await Promise.all([
+        import("exceljs"),
+        import("file-saver"),
       ]);
 
-      const workbook = new XLSX.Workbook();
-      const worksheet = workbook.addWorksheet('Report');
+      const { saveAs } = fileSaver;
 
-      workbook.creator = 'Report Generator';
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Report");
+
+      workbook.creator = "Report Generator";
       workbook.created = new Date();
 
       const filteredHeaders = this.getFilteredHeaders();
@@ -161,20 +163,39 @@ export class ExcelExporter {
       const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails();
       let currentRow = 1;
 
-      // Report Title (always "EMPLOYEE DAILY MOVEMENT REPORT")
       worksheet.mergeCells(`A${currentRow}:M${currentRow}`);
-      const titleCell = worksheet.getCell(`A${currentRow}`);
-      titleCell.value = 'EMPLOYEE DAILY MOVEMENT REPORT';
-      titleCell.font = { name: "Nunito Sans", bold: true, size: 16, color: { argb: "FF000000" } };
-      titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-      worksheet.getRow(currentRow).height = 30; 
+      const dailyReportsCell = worksheet.getCell(`A${currentRow}`);
+      dailyReportsCell.value = "NULL";
+      dailyReportsCell.font = {
+        name: "Nunito Sans",
+        bold: true,
+        size: 18,
+        color: { argb: "FFFFFFFF" },
+      };
+      dailyReportsCell.alignment = { vertical: "middle", horizontal: "center" };
+      worksheet.getRow(currentRow).height = 35;
       currentRow += 2;
 
-      // 2. GENERATED ON and EMPLOYEE ID row
+      worksheet.mergeCells(`A${currentRow}:M${currentRow}`);
+      const titleCell = worksheet.getCell(`A${currentRow}`);
+      titleCell.value = "EMPLOYEE DAILY MOVEMENT REPORT";
+      titleCell.font = {
+        name: "Nunito Sans",
+        bold: true,
+        size: 14,
+        color: { argb: "FF0078D4" },
+      };
+      titleCell.alignment = { vertical: "middle", horizontal: "center" };
+      worksheet.getRow(currentRow).height = 30;
+      currentRow += 2;
+
       worksheet.getCell(`A${currentRow}`).value = `Employee ID: ${employeeId}`;
       worksheet.getCell(`A${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-      
-      worksheet.getCell(`M${currentRow}`).value = `Generated On: ${format(new Date(), 'dd/MM/yyyy')}`;
+
+      worksheet.getCell(`M${currentRow}`).value = `Generated On: ${format(
+        new Date(),
+        "dd/MM/yyyy"
+      )}`;
       worksheet.getCell(`M${currentRow}`).font = { name: "Nunito Sans", size: 10 };
       worksheet.getCell(`M${currentRow}`).alignment = { horizontal: "right" };
       currentRow += 2;
@@ -237,7 +258,14 @@ export class ExcelExporter {
           const cellValue = this.formatCellValue(header, row[header]);
           cell.value = cellValue;
           this.applyCellStyle(cell, 'data');
-          if (header === 'DailyMissedHrs' && cellValue && parseFloat(cellValue) > 0) {
+          // if (header === 'DailyMissedHrs' && cellValue && parseFloat(cellValue) > 0) {
+          //   cell.font = { ...cell.font, color: { argb: 'FFFF0000' } };
+          // }
+          if (
+            (header === 'DailyMissedHrs' || header === 'late') &&
+            cellValue &&
+            parseFloat(cellValue) > 0
+          ) {
             cell.font = { ...cell.font, color: { argb: 'FFFF0000' } };
           }
         });
@@ -326,15 +354,18 @@ export class ExcelExporter {
         }
       }
 
-      // Generate and save Excel file
       const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-      
-      const filename = `report_${this.formValues.employee ? 'employee_' + this.formValues.employee : 'all'}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
-      saveAs(blob, filename);
 
+      const filename = `report_${
+        this.formValues.employee
+          ? "employee_" + this.formValues.employee
+          : "all"
+      }_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+
+      saveAs(blob, filename);
     } catch (error) {
       console.error("Excel export error:", error);
       toast.error("Error generating Excel file. Please try again.");

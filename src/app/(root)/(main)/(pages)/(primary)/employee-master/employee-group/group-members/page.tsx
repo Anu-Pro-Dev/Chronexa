@@ -64,10 +64,7 @@ export default function MembersTable() {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(group && { group_code: group }),
-      ...(debouncedSearchValue && {
-        employee_name: debouncedSearchValue,
-        employee_no: debouncedSearchValue,
-      }),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
     },
   });
 

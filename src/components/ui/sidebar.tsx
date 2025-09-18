@@ -4,6 +4,7 @@ import * as React from "react";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; 
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useIsMobile } from "@/src/hooks/useMobile";
 import { cn } from "@/src/utils/utils";
@@ -25,8 +26,8 @@ import {
 import { Button } from "@/src/components/ui/button";
 
 export default function Sidebar() {
-  const { translations, modules } = useLanguage()
-  const isMobile = useIsMobile()
+  const { translations, modules } = useLanguage();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(true)
   const [isDarkMode, setIsDarkMode] = React.useState(false)
 
@@ -166,7 +167,12 @@ export default function Sidebar() {
               {section.items
                 .filter((item) => !!item.url)
                 .map((item) => {
-                  const Icon = item.icon
+                  const Icon = item.icon;
+                  const normalizePath = (path: string) => path.replace(/\/+$/, '');
+                  const isActive =
+                    normalizePath(pathname) === normalizePath(item.url) ||
+                    normalizePath(pathname).startsWith(normalizePath(item.url) + '/');
+                  console.log({ pathname, itemUrl: item.url, isActive });
                   return (
                     <li key={item.title}>
                       <Tooltip.Root delayDuration={100}>
@@ -175,11 +181,19 @@ export default function Sidebar() {
                             href={item.url}
                             className={cn(
                               "group flex items-center w-full  hover:bg-backdrop transition",
-                              isOpen ? "justify-start gap-3 p-2 rounded-full" : "justify-center px-1 py-2 rounded-md"
+                              isOpen ? "justify-start gap-3 p-2 rounded-full" : "justify-center px-1 py-2 rounded-md",
+                              isActive
+                                ? "bg-backdrop !text-primary font-semibold"
+                                : "hover:bg-backdrop text-text-secondary"
                             )}
                             aria-label={item.title}
                           >
-                            <span className="h-5 w-5 transition">
+                            <span
+                              className={cn(
+                                "h-5 w-5 transition hover:text-primary",
+                                isActive ? "text-primary hover:text-primary" : ""
+                              )}
+                            >
                               {Icon("currentColor")}
                             </span>
                             {isOpen && (

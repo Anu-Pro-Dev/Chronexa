@@ -1,61 +1,3 @@
-// import { useQuery } from "@tanstack/react-query";
-// import { apiRequest } from "../lib/apiHandler";
-// import { useDebounce } from "@/src/hooks/useDebounce";
-// import { useMemo } from "react";
-
-// type Params = Record<string, string>;
-
-// interface Options {
-//   searchParams?: Params;
-//   enabled?: boolean;
-// }
-
-// export function useFetchAllEntity(entity: string, options?: Options) {
-//   const { searchParams = {}, enabled = true } = options || {};
-
-//   const immediateParams = ['limit', 'offset'];
-  
-//   const { immediate, searchable } = useMemo(() => {
-//     const immediate: Params = {};
-//     const searchable: Params = {};
-    
-//     Object.entries(searchParams).forEach(([key, value]) => {
-//       if (immediateParams.includes(key)) {
-//         immediate[key] = value;
-//       } else {
-//         searchable[key] = value;
-//       }
-//     });
-    
-//     return { immediate, searchable };
-//   }, [searchParams]);
-
-//   const debouncedSearchParams = useDebounce(searchable, 500);
-
-//   const finalParams = useMemo(() => {
-//     const combined = { ...debouncedSearchParams, ...immediate };
-//     return combined;
-//   }, [debouncedSearchParams, immediate]);
-
-//   const fetchFn = async () => {
-//     const queryString = Object.entries(finalParams)
-//       .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-//       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-//       .join('&');
-    
-//     const url = `/${entity}/all${queryString ? `?${queryString}` : ''}`;
-//     const response = await apiRequest(url, "GET");
-//     return response;
-//   };
-
-//   return useQuery({
-//     queryKey: [entity, finalParams],
-//     queryFn: fetchFn,
-//     enabled: !!entity && enabled,
-//     staleTime: 0,
-//     refetchOnWindowFocus: false,
-//   });
-// }
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "../lib/apiHandler";
 import { useDebounce } from "@/src/hooks/useDebounce";
@@ -66,8 +8,8 @@ type Params = Record<string, string>;
 interface Options {
   searchParams?: Params;
   enabled?: boolean;
-  endpoint?: string; // Full custom endpoint override
-  removeAll?: boolean; // Just remove '/all' from default pattern
+  endpoint?: string;
+  removeAll?: boolean;
 }
 
 export function useFetchAllEntity(entity: string, options?: Options) {

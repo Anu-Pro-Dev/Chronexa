@@ -638,6 +638,14 @@ export const approvePermissionRequest= async (data: {
   return apiRequest(`/employeeShortPermission/approve/${single_permissions_id}`, "PUT", payload);
 };
 
+// Function to fetch permission for a specific employee
+export const getPermissionByEmployeeId = async (data: {
+  employee_id?: number;
+}) => {
+  const { employee_id } = data;
+  return apiRequest(`/employeeShortPermission/byemployee/${employee_id}`, "GET");
+}
+
 // Function to add a new leave type
 export const addLeaveTypeRequest = async (data: {
   leave_type_id?: number;
@@ -787,4 +795,26 @@ export const getReportByEmployeeId = async (data: {
   const { employee_id } = data;
 
   return apiRequest(`/report/employee/${employee_id}`, "GET");
+};
+
+// Function to add a new device
+export const addDeviceRequest = async (data: {
+  device_id?: number;
+  device_no: string;
+  device_name: string;
+  device_status?: boolean;
+}) => {
+  return apiRequest("/device/add", "POST", data);
+};
+
+// Function to edit a device by ID
+export const editDeviceRequest = async (data: {
+  device_id: number;
+  device_no: string;
+  device_name: string;
+  device_status?: boolean;
+}) => {
+  const { device_id, ...payload } = data;
+
+  return apiRequest(`/device/edit/${device_id}`, "PUT", payload);
 };

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
@@ -6,36 +7,64 @@ import AddHoliday from "@/src/components/custom/modules/scheduling/AddHoliday";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDebounce } from "@/src/hooks/useDebounce";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
+import { Label } from "@/src/components/ui/label";
+import { Input } from "@/src/components/ui/input";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
-  const [columns, setColumns] = useState<{ field: string; headerName: string; clickable?: boolean; onCellClick?: (data: any) => void }[]>([]);
+  const t = translations?.modules?.scheduling || {};
+  const queryClient = useQueryClient();
+
+  // Table state
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
+  // Filters state
+  const [year, setYear] = useState<string>(""); // keep string for text input
+  const [month, setMonth] = useState<string | null>(null);
+
+  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  // Columns setup
   useEffect(() => {
     setColumns([
       {
         field: language === "ar" ? "holiday_arb" : "holiday_eng",
-        headerName: language === "ar" ? "اسم العطلة" : "Holiday Name",
+        headerName: t.holiday_name,
       },
-      { field: "from_date", headerName: "From Date" },
-      { field: "to_date", headerName: "To Date" },
+      { field: "from_date", headerName: t.from_date },
+      { field: "to_date", headerName: t.to_date },
       {
         field: "public_holiday_flag",
-        headerName: "Public Holiday"
+        headerName: t.public_holiday,
       },
     ]);
-  }, [language]);
+  }, [t, language]);
 
-  const { data: holidaysData, isLoading } = useFetchAllEntity("holiday");
+  const offset = useMemo(() => currentPage, [currentPage]);
 
+  // Fetch holidays with filters
+  const { data: holidaysData, isLoading, refetch } = useFetchAllEntity("holiday", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(year && { year }),
+      ...(month && { month }),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+    },
+  });
+
+  // Prepare table data
   const data = useMemo(() => {
     if (Array.isArray(holidaysData?.data)) {
       return holidaysData.data.map((holiday: any) => ({
@@ -54,14 +83,47 @@ export default function Page() {
       }));
     }
     return [];
-  }, [holidaysData, language]);
+  }, [holidaysData]);
 
   useEffect(() => {
-    if (!open) {
-      setSelectedRowData(null);
-    }
+    if (!open) setSelectedRowData(null);
   }, [open]);
 
+  // Common handler for filters
+  const handleFilterChange = useCallback(() => {
+    setCurrentPage(1);
+    if (refetch) setTimeout(() => refetch(), 100);
+  }, [refetch]);
+
+  // Filter change handlers
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setYear(e.target.value);
+    handleFilterChange();
+  };
+
+  const handleMonthChange = (val: string) => {
+    setMonth(val);
+    handleFilterChange();
+  };
+
+  // Table pagination and search handlers
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) setTimeout(() => refetch(), 100);
+  }, [refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) setTimeout(() => refetch(), 100);
+  }, [refetch]);
+
+  const handleSearchChange = useCallback((val: string) => {
+    setSearchValue(val);
+    setCurrentPage(1);
+  }, []);
+
+  // Table props
   const props = {
     Data: data,
     Columns: columns,
@@ -72,23 +134,27 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: holidaysData?.total || 0,
+    hasNext: holidaysData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
- 
+
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["holiday"] });
   };
- 
+
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
     setOpen(true);
   }, []);
- 
+
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -100,7 +166,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.scheduling.items}
         entityName="holiday"
-        modal_title="Holiday"
+        modal_title={t.holidays}
         modal_component={
           <AddHoliday
             on_open_change={setOpen}
@@ -108,8 +174,41 @@ export default function Page() {
             onSave={handleSave}
           />
         }
-        isLarge
+        size="large"
       />
+
+      {/* Filters */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-accent border-grey border-[1px] rounded-full flex items-center max-w-[350px]">
+          <Label className="font-normal text-secondary w-auto px-3 min-w-[100px]">
+            {language === "ar" ? "السنة :" : "Year :"}
+          </Label>
+          <Input
+            placeholder="Enter year"
+            value={year}
+            onChange={handleYearChange}
+            className="bg-accent border-none"
+          />
+        </div>
+        <div>
+          <Select onValueChange={handleMonthChange} value={month || ""}>
+            <SelectTrigger className="bg-accent border-grey">
+              <Label className="font-normal text-secondary">
+                {language === "ar" ? "الشهر :" : "Month :"}
+              </Label>
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map((m) => (
+                <SelectItem key={m} value={String(m)}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <PowerTable
         props={props}
         showEdit={true}

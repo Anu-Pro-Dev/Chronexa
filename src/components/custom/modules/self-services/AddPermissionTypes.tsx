@@ -44,7 +44,7 @@ const formSchemaBasciSetup = z.object({
     .max(1000, {
       message: "Max minutes per day cannot exceed 1000",
     }),
-  max_permissions_per_day: z
+  max_perm_per_day: z
     .number({
       required_error: "Max permissions per day is required",
       invalid_type_error: "Max permissions per day must be a number",
@@ -66,7 +66,7 @@ const formSchemaBasciSetup = z.object({
     .max(1000, {
       message: "Max minutes per month cannot exceed 1000",
     }),
-  max_permissions_per_month: z
+  max_perm_per_month: z
     .number({
       required_error: "Max permissions per month is required",
       invalid_type_error: "Max permissions per month must be a number",
@@ -106,14 +106,14 @@ export default function AddPermissionTypes({
     mutationFn: addPermissionTypeRequest,
     onSuccess: (data) => {
       toast.success("Permission type added successfully!");
-      if (onSave) {
-        onSave(null, data.data);
-      }
-      if (on_open_change) {
-        on_open_change(false);
-      } else {
-        router.push("/self-services/permissions/manage");
-      }
+      formBasciSetup.reset();
+      formPolicy.reset();
+      setBasicFormData(null);
+      setPageNumber(0);
+
+      if (onSave) onSave(null, data.data);
+      if (on_open_change) on_open_change(false);
+      else router.push("/self-services/permissions/manage");
       queryClient.invalidateQueries({ queryKey: ["permissionType"] });
     },
     onError: (error: any) => {
@@ -157,8 +157,8 @@ export default function AddPermissionTypes({
       specific_gender: "",
       max_minutes_per_day: undefined,
       max_minutes_per_month: undefined,
-      max_permissions_per_day: undefined,
-      max_permissions_per_month: undefined,
+      max_perm_per_day: undefined,
+      max_perm_per_month: undefined,
     }
   })
 
@@ -168,15 +168,22 @@ export default function AddPermissionTypes({
         (workflow: any) => workflow.workflow_id.toString() === values.workflows
       );
 
+      // Convert gender values to single character codes
+      let genderCode = "";
+      if (values.specific_gender === "ALL") genderCode = "A";
+      else if (values.specific_gender === "Female") genderCode = "F";
+      else if (values.specific_gender === "Male") genderCode = "M";
+      else genderCode = values.specific_gender || "";
+
       const basicData = {
         permission_type_code: values.permission_type_code,
         permission_type_name: values.permission_type_name,
         workflow_id: selectedWorkflow?.workflow_id || null,
-        specific_gender: values?.specific_gender || "",
+        specific_gender: genderCode,
         max_minutes_per_day: values.max_minutes_per_day,
-        max_permissions_per_day: values.max_permissions_per_day,
+        max_perm_per_day: values.max_perm_per_day,
         max_minutes_per_month: values.max_minutes_per_month,
-        max_permissions_per_month: values.max_permissions_per_month,
+        max_perm_per_month: values.max_perm_per_month,
       };
 
       setBasicFormData(basicData);
@@ -195,6 +202,27 @@ export default function AddPermissionTypes({
     }
   })
 
+  useEffect(() => {
+    if (!selectedRowData) {
+      formBasciSetup.reset({
+        permission_type_code: "",
+        permission_type_name: "",
+        workflows: "",
+        specific_gender: "",
+        max_minutes_per_day: undefined,
+        max_minutes_per_month: undefined,
+        max_perm_per_day: undefined,
+        max_perm_per_month: undefined,
+      });
+      formPolicy.reset({
+        permission_attributes: [],
+        permission_type: "",
+      });
+      setBasicFormData(null);
+      setPageNumber(0); // go back to step 1
+    }
+  }, [selectedRowData, formBasciSetup, formPolicy]);
+
   async function onSubmitPolicy(values: z.infer<typeof formSchemaPolicy>) {
     if (isSubmitting) return;
 
@@ -209,9 +237,9 @@ export default function AddPermissionTypes({
         workflow_id: basicFormData.workflow_id,
         specific_gender: basicFormData.specific_gender,
         max_minutes_per_day: basicFormData.max_minutes_per_day,
-        max_permissions_per_day: basicFormData.max_permissions_per_day,
+        max_perm_per_day: basicFormData.max_perm_per_day,
         max_minutes_per_month: basicFormData.max_minutes_per_month,
-        max_permissions_per_month: basicFormData.max_permissions_per_month,
+        max_perm_per_month: basicFormData.max_perm_per_month,
         
         group_apply_flag: permissionAttributes.includes("Group Apply"),
         status_flag: permissionAttributes.includes("Status"),
@@ -260,9 +288,9 @@ export default function AddPermissionTypes({
       formBasciSetup.setValue("workflows", selectedRowData.workflow_id?.toString() || "");
       formBasciSetup.setValue("specific_gender", selectedRowData.specific_gender?.toString() || "");
       formBasciSetup.setValue("max_minutes_per_day", selectedRowData.max_minutes_per_day || undefined);
-      formBasciSetup.setValue("max_permissions_per_day", selectedRowData.max_permissions_per_day || undefined);
+      formBasciSetup.setValue("max_perm_per_day", selectedRowData.max_perm_per_day || undefined);
       formBasciSetup.setValue("max_minutes_per_month", selectedRowData.max_minutes_per_month || undefined);
-      formBasciSetup.setValue("max_permissions_per_month", selectedRowData.max_permissions_per_month || undefined);
+      formBasciSetup.setValue("max_perm_per_month", selectedRowData.max_perm_per_month || undefined);
 
       const permissionAttributes: string[] = [];
       if (selectedRowData.group_apply_flag) permissionAttributes.push("Group Apply");
@@ -290,9 +318,9 @@ export default function AddPermissionTypes({
         workflow_id: selectedRowData.workflow_id || null,
         specific_gender: selectedRowData.specific_gender,
         max_minutes_per_day: selectedRowData.max_minutes_per_day || undefined,
-        max_permissions_per_day: selectedRowData.max_permissions_per_day || undefined,
+        max_perm_per_day: selectedRowData.max_perm_per_day || undefined,
         max_minutes_per_month: selectedRowData.max_minutes_per_month || undefined,
-        max_permissions_per_month: selectedRowData.max_permissions_per_month || undefined,
+        max_perm_per_month: selectedRowData.max_perm_per_month || undefined,
       });
     }
   }, [selectedRowData, workflowData?.data, language, formBasciSetup, formPolicy]);
@@ -461,7 +489,7 @@ export default function AddPermissionTypes({
               
               <FormField
                 control={formBasciSetup.control}
-                name="max_permissions_per_day"
+                name="max_perm_per_day"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
@@ -507,7 +535,7 @@ export default function AddPermissionTypes({
               
               <FormField
                 control={formBasciSetup.control}
-                name="max_permissions_per_month"
+                name="max_perm_per_month"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
@@ -585,6 +613,11 @@ export default function AddPermissionTypes({
                 </div>
               </div>
             </div>
+            <div className="mb-3 relative">
+              <p className="text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[75px] right-0">
+                Note: Status flag should be enabled.
+              </p>
+            </div>
 
             <div className="grid lg:grid-cols-2 gap-8 w-full mx-auto bg-accent p-5 rounded-md ">
               <FormField
@@ -644,6 +677,7 @@ export default function AddPermissionTypes({
                             <label className="flex items-center space-x-2">
                               <input
                                 type="radio"
+                                className="custom-radio"
                                 value="by_minutes_permission"
                                 checked={field.value === "by_minutes_permission"}
                                 onChange={() => field.onChange("by_minutes_permission")}
@@ -655,6 +689,7 @@ export default function AddPermissionTypes({
                             <label className="flex items-center space-x-2">
                               <input
                                 type="radio"
+                                className="custom-radio"
                                 value="by_from_to_time_permission"
                                 checked={field.value === "by_from_to_time_permission"}
                                 onChange={() => field.onChange("by_from_to_time_permission")}
@@ -666,6 +701,7 @@ export default function AddPermissionTypes({
                             <label className="flex items-center space-x-2">
                               <input
                                 type="radio"
+                                className="custom-radio"
                                 value="by_weekdays_permission"
                                 checked={field.value === "by_weekdays_permission"}
                                 onChange={() => field.onChange("by_weekdays_permission")}
@@ -677,6 +713,7 @@ export default function AddPermissionTypes({
                             <label className="flex items-center space-x-2">
                               <input
                                 type="radio"
+                                className="custom-radio"
                                 value="by_fulldays_permission"
                                 checked={field.value === "by_fulldays_permission"}
                                 onChange={() => field.onChange("by_fulldays_permission")}

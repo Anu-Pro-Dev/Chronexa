@@ -2,52 +2,55 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
 import CountryDropdown from "@/src/components/custom/common/country-dropdown";
 import { useCountries } from "@/src/hooks/useCountries";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addLocationRequest, editLocationRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  location_code: z.string().default("").transform((val) => val.toUpperCase()),
-  location_name: z.string().default(""),
-  radius: z.string().default("").optional(),
-  country_code: z.any().optional(),
+  location_code: z
+    .string()
+    .min(1, { message: "location_code_required" })
+    .transform((val) => val.toUpperCase()),
+  location_name: z.string().min(1, { message: "location_name_required" }),
+  radius: z.string().optional(),
+  country_code: z.string().min(1, { message: "country_code_required" }),
   city: z.string().optional(),
   geolocation: z
-  .string()
-  .default("")
-  .refine((val) => {
-    if (!val?.trim()) return true;
-    
-    // Split and validate each part
-    const parts = val.split(',');
-    if (parts.length !== 2) return false;
-    
-    const latStr = parts[0].trim();
-    const lonStr = parts[1].trim();
-    
-    // Check if they're valid number strings
-    if (!/^-?\d+\.?\d*$/.test(latStr) || !/^-?\d+\.?\d*$/.test(lonStr)) {
-      return false;
-    }
-    
-    // Validate ranges
-    const lat = parseFloat(latStr);
-    const lon = parseFloat(lonStr);
-    
-    return !isNaN(lat) && !isNaN(lon) && 
-           lat >= -90 && lat <= 90 && 
-           lon >= -180 && lon <= 180;
-  }, {
-    message: "Enter valid coordinates: latitude (-90 to 90), longitude (-180 to 180)",
-  }),
+    .string()
+    .min(1, { message: "geolocation_required" })
+    .refine(
+      (val) => {
+        const parts = val.split(",");
+        if (parts.length !== 2) return false;
+        const lat = parseFloat(parts[0].trim());
+        const lon = parseFloat(parts[1].trim());
+        return (
+          !isNaN(lat) &&
+          !isNaN(lon) &&
+          lat >= -90 &&
+          lat <= 90 &&
+          lon >= -180 &&
+          lon <= 180
+        );
+      },
+      { message: "geolocation_invalid" }
+    ),
 });
 
 function getGeolocationString(geolocation: string | null): string {
@@ -68,11 +71,14 @@ export default function AddLocations({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const { countries } = useCountries();
+  const showToast = useShowToast();
   const t = translations?.modules?.companyMaster || {};
+  const errT = translations?.formErrors || {};
 
   function getCountryByCode(code: string) {
     return countries.find((c) => c.country_code === code);
   }
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -87,7 +93,9 @@ export default function AddLocations({
 
   useEffect(() => {
     if (selectedRowData) {
-      const geolocationStr = getGeolocationString(selectedRowData.geolocation ?? "");
+      const geolocationStr = getGeolocationString(
+        selectedRowData.geolocation ?? ""
+      );
       form.reset({
         location_code: selectedRowData.location_code ?? "",
         location_name:
@@ -114,15 +122,15 @@ export default function AddLocations({
   const addMutation = useMutation({
     mutationFn: addLocationRequest,
     onSuccess: (data) => {
-      toast.success("Location added successfully!");
+      showToast("success", "addlocation_success");
       onSave(null, data.data);
       on_open_change(false);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -130,19 +138,16 @@ export default function AddLocations({
   const editMutation = useMutation({
     mutationFn: editLocationRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Location updated successfully!");
-      onSave(
-        variables.location_id?.toString() ?? null,
-        variables
-      );
+      showToast("success", "updatelocation_success");
+      onSave(variables.location_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["location"] });
       on_open_change(false);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -152,26 +157,6 @@ export default function AddLocations({
     setIsSubmitting(true);
 
     try {
-      if (values.geolocation.trim() !== "") {
-        const [latStr, lonStr] = values.geolocation.split(",").map((s) => s.trim());
-        const latitude = parseFloat(latStr);
-        const longitude = parseFloat(lonStr);
-        if (
-          isNaN(latitude) ||
-          isNaN(longitude) ||
-          latitude < -90 ||
-          latitude > 90 ||
-          longitude < -180 ||
-          longitude > 180
-        ) {
-          alert(
-            "Invalid coordinates. Latitude must be between -90 and 90. Longitude must be between -180 and 180."
-          );
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
       const payload: any = {
         location_code: values.location_code,
         country_code: values.country_code,
@@ -187,10 +172,7 @@ export default function AddLocations({
       }
 
       if (selectedRowData) {
-        editMutation.mutate({
-          location_id: selectedRowData.id,
-          ...payload,
-        });
+        editMutation.mutate({ location_id: selectedRowData.id, ...payload });
       } else {
         addMutation.mutate(payload);
       }
@@ -198,6 +180,12 @@ export default function AddLocations({
       setIsSubmitting(false);
     }
   }
+
+  const translatedError = (field: keyof typeof form.formState.errors) => {
+    const key = form.formState.errors[field]?.message as string;
+    return key ? errT[key] || key : null;
+  };
+
 
   return (
     <Form {...form}>
@@ -209,15 +197,21 @@ export default function AddLocations({
               name="location_code"
               render={({ field }) => (
                 <FormItem className="min-w-0">
-                  <FormLabel>{t.location_code}<Required /></FormLabel>
+                  <FormLabel>
+                    {t.location_code}
+                    <Required />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder="Enter the location code"
+                      placeholder={t.placeholder_location_code}
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.location_code}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -234,13 +228,16 @@ export default function AddLocations({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter the location name"
                       type="text"
+                      placeholder={t.placeholder_location_name}
                       {...field}
                       className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.location_name}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -249,19 +246,22 @@ export default function AddLocations({
               name="geolocation"
               render={({ field }) => (
                 <FormItem className="min-w-0">
-                  <FormLabel>{t.geo_cords} (lat, long)<Required /></FormLabel>
+                  <FormLabel>
+                    {t.geo_cords} (lat, long)
+                    <Required />
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Example: 25.123456,55.654321"
+                      type="text"
+                      placeholder={t.placeholder_geoloc}
                       inputMode="decimal"
-                      value={field.value}
-                      onChange={(e) => {
-                        const cleaned = e.target.value;
-                        field.onChange(cleaned);
-                      }}
+                      {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.geolocation}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -273,49 +273,54 @@ export default function AddLocations({
                   <FormLabel>{t.radius}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter the radius"
                       type="string"
                       maxLength={5}
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      placeholder={t.placeholder_radius}
+                      {...field}
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="country_code"
-              render={({ field }) => {
-                return (
-                  <FormItem className="min-w-0">
-                    <FormLabel className="flex gap-1 mt-2.5">{t.country_code}</FormLabel>
-                    <CountryDropdown
-                      countries={countries}
-                      value={getCountryByCode(field.value) ?? null}
-                      displayMode="code"
-                      onChange={(country) => field.onChange(country?.country_code ?? "")}
-                    />
-                    <FormMessage className="mt-1" />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel className="flex gap-1 mt-2.5">
+                    {t.country_code}
+                    <Required />
+                  </FormLabel>
+                  <CountryDropdown
+                    countries={countries}
+                    value={getCountryByCode(field.value) ?? null}
+                    displayMode="code"
+                    onChange={(c) => field.onChange(c?.country_code ?? "")}
+                  />
+                  <TranslatedError
+                    fieldError={form.formState.errors.country_code}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
             />
             <FormField
               control={form.control}
               name="city"
               render={({ field }) => (
                 <FormItem className="min-w-0">
-                  <FormLabel>City</FormLabel>
+                  <FormLabel>{t.city}</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder="Enter the city"
+                      placeholder={t.placeholder_city}
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.country_code}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -331,14 +336,19 @@ export default function AddLocations({
               >
                 {translations.buttons.cancel}
               </Button>
-              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={isSubmitting}
+              >
                 {isSubmitting
                   ? selectedRowData
                     ? translations.buttons.updating
                     : translations.buttons.saving
                   : selectedRowData
-                    ? translations.buttons.update
-                    : translations.buttons.save}
+                  ? translations.buttons.update
+                  : translations.buttons.save}
               </Button>
             </div>
           </div>

@@ -199,7 +199,7 @@ export default function MembersTable() {
             props={props}
           />
         }
-        isLarge
+        size="large"
       />
       <PowerTable
         props={props}

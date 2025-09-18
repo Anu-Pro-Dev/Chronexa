@@ -95,7 +95,7 @@ export default function Page() {
             onSave={handleSave}
           />
         }
-        isLarge
+        size="large"
       />
       <PowerTable
         props={props}

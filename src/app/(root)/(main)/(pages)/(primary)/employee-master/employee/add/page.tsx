@@ -120,8 +120,8 @@ export default function EmployeeOnboardingPage() {
       });
 
       flagsForm.reset({
-        active_flag: selectedRowData.active_flag ?? false,
-        punch_flag: selectedRowData.punch_flag ?? false,
+        active_flag: selectedRowData.active_flag ?? true,
+        punch_flag: selectedRowData.punch_flag ?? true,
         overtime_flag: selectedRowData.overtime_flag ?? false,
         inpayroll_flag: selectedRowData.inpayroll_flag ?? false,
         email_notification_flag: selectedRowData.email_notification_flag ?? false,
@@ -129,12 +129,14 @@ export default function EmployeeOnboardingPage() {
         calculate_monthly_missed_hrs_flag: selectedRowData.calculate_monthly_missed_hrs_flag ?? false,
         exclude_from_integration_flag: selectedRowData.exclude_from_integration_flag ?? false,
         shift_flag: selectedRowData.shift_flag ?? false,
-        on_report_flag: selectedRowData.on_report_flag ?? false,
+        on_reports_flag: selectedRowData.on_reports_flag ?? true,
         share_roster_flag: selectedRowData.share_roster_flag ?? false,
         include_email_flag: selectedRowData.include_email_flag ?? false,
         web_punch_flag: selectedRowData.web_punch_flag ?? false,
         check_inout_selfie_flag: selectedRowData.check_inout_selfie_flag ?? false,
         geofench_flag: selectedRowData.geofench_flag ?? false,
+        SAP_user_flag: selectedRowData.SAP_user_flag ?? false,
+        local_user_flag: selectedRowData.local_user_flag ?? false,
       });
 
       if (selectedRowData.employee_id) {
@@ -213,52 +215,101 @@ export default function EmployeeOnboardingPage() {
     },
   });
 
+  // Helper to extract error messages from a react-hook-form instance.
+  // Returns an array of strings like "Personal: email — Invalid email"
+  const extractErrorsFromForm = (form: any, formLabel: string) => {
+    const errs = form.formState?.errors || {};
+    const messages: string[] = [];
+
+    const traverse = (obj: any, path = "") => {
+      for (const key in obj) {
+        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+        const val = obj[key];
+        const newPath = path ? `${path}.${key}` : key;
+        if (val?.message) {
+          messages.push(`${formLabel}: ${newPath} — ${String(val.message)}`);
+        } else if (typeof val === "object") {
+          traverse(val, newPath);
+        }
+      }
+    };
+
+    traverse(errs);
+    return messages;
+  };
+
   const validateCurrentForm = async () => {
+    const isEdit = !!selectedRowData?.employee_id;
     let isValid = false;
-    
+
     switch (activeStep) {
       case "personal-form":
         isValid = await personalForm.trigger();
         if (!isValid) {
-          toast.error("Please fix validation errors in Personal form.");
+          const msgs = extractErrorsFromForm(personalForm, "Personal");
+          toast.error(msgs.slice(0, 3).join(" | ") || "Please fix validation errors in Personal form.");
         }
         break;
+
       case "credentials-form":
-        isValid = await credentialsForm.trigger();
-        if (!isValid) {
-          toast.error("Please fix validation errors in Credentials form.");
+        // skip credentials validation when editing an existing employee
+        if (isEdit) {
+          isValid = true;
+        } else {
+          isValid = await credentialsForm.trigger();
+          if (!isValid) {
+            const msgs = extractErrorsFromForm(credentialsForm, "Credentials");
+            toast.error(msgs.slice(0, 3).join(" | ") || "Please fix validation errors in Credentials form.");
+          }
         }
         break;
+
       case "official-form":
         isValid = await officialForm.trigger();
         if (!isValid) {
-          toast.error("Please fix validation errors in Official form.");
+          const msgs = extractErrorsFromForm(officialForm, "Official");
+          toast.error(msgs.slice(0, 3).join(" | ") || "Please fix validation errors in Official form.");
         }
         break;
+
       case "flags-form":
         isValid = await flagsForm.trigger();
         if (!isValid) {
-          toast.error("Please fix validation errors in Flags form.");
+          const msgs = extractErrorsFromForm(flagsForm, "Flags");
+          toast.error(msgs.slice(0, 3).join(" | ") || "Please fix validation errors in Flags form.");
         }
         break;
+
       default:
         isValid = true;
     }
-    
+
     return isValid;
   };
 
   const handleFinalSubmit = async () => {
     setLoading(true);
+    const isEdit = !!selectedRowData?.employee_id;
 
-    const isValid =
-      (await personalForm.trigger()) &&
-      (await credentialsForm.trigger()) &&
-      (await officialForm.trigger()) &&
-      (await flagsForm.trigger());
+    // Trigger forms conditionally: skip credentials when editing
+    const personalValid = await personalForm.trigger();
+    const officialValid = await officialForm.trigger();
+    const flagsValid = await flagsForm.trigger();
+    const credentialsValid = isEdit ? true : await credentialsForm.trigger();
+
+    const isValid = personalValid && officialValid && flagsValid && credentialsValid;
 
     if (!isValid) {
-      toast.error("Please fix the validation errors.");
+      // gather messages from all failing forms (skip credentials if edit)
+      const messages: string[] = [];
+      if (!personalValid) messages.push(...extractErrorsFromForm(personalForm, "Personal"));
+      if (!officialValid) messages.push(...extractErrorsFromForm(officialForm, "Official"));
+      if (!flagsValid) messages.push(...extractErrorsFromForm(flagsForm, "Flags"));
+      if (!isEdit && !credentialsValid) messages.push(...extractErrorsFromForm(credentialsForm, "Credentials"));
+
+      // show up to 5 error messages in a single toast
+      const toShow = messages.length ? messages.slice(0, 5).join(" | ") : "Please fix the validation errors.";
+      toast.error(toShow);
       setLoading(false);
       return;
     }
@@ -278,6 +329,7 @@ export default function EmployeeOnboardingPage() {
     combined = transformDatesForAPI(combined, language);
 
     if (selectedRowData?.employee_id) {
+      // On edit: remove credentials from payload if present (no need to update secusers here)
       const { username, password, ...rest } = combined;
 
       editMutation.mutate({
@@ -285,6 +337,7 @@ export default function EmployeeOnboardingPage() {
         ...rest,
       });
     } else {
+      // On create: credentials are required (we already validated them above for non-edit)
       addMutation.mutate(combined);
     }
   };

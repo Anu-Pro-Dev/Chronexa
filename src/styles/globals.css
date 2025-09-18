@@ -150,3 +150,22 @@ body {
   cursor: pointer !important;
   z-index: 10000;
 }
+
+.custom-radio {
+  @apply w-4 h-4 border-2 border-gray-300 rounded-full bg-white relative cursor-pointer transition-all duration-200;
+  appearance: none;
+}
+
+.custom-radio:checked {
+  @apply border-primary bg-primary;
+}
+
+.custom-radio:checked::after {
+  content: '';
+  @apply absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-white rounded-full;
+  transform: translate(-50%, -50%);
+}
+
+.custom-radio:hover {
+  @apply border-primary;
+}

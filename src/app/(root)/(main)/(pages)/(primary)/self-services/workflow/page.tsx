@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 export default function Page() {
   const router = useRouter();
@@ -17,25 +18,37 @@ export default function Page() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.selfServices || {};
 
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
+  
   useEffect(() => {
     setColumns([
-      { field: "workflow_code", headerName: language === "ar" ? "الكود" : "Code" },
+      { field: "workflow_code", headerName: t.code },
       {
         field: language === "ar" ? "workflow_name_arb" : "workflow_name_eng",
-        headerName: language === "ar" ? "اسم سير العمل" : "Workflow Name",
+        headerName: t.workflow_name,
       },
       {
         field: language === "ar" ? "workflow_category_arb" : "workflow_category_eng",
-        headerName: language === "ar" ? "فئة" : "Category",
+        headerName: t.category,
       },
-      { field: "steps", headerName: language === "ar" ? "خطوات" : "Steps" },
+      { field: "steps", headerName: t.steps },
     ]);
   }, [language]);
 
-
-  const { data: workflowTypeData, isLoading } = useFetchAllEntity("workflowType");
+  const { data: workflowTypeData, isLoading, refetch } = useFetchAllEntity("workflowType", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(workflowTypeData?.data)) {
@@ -50,6 +63,26 @@ export default function Page() {
     return [];
   }, [workflowTypeData]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -58,12 +91,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: workflowTypeData?.total || 0,
+    hasNext: workflowTypeData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
  
   const handleSave = () => {

@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 export default function Page() {
   const router = useRouter();
@@ -18,22 +19,34 @@ export default function Page() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
-
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.selfServices || {};
+  
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
+  
   useEffect(() => {
     setColumns([
-      { field: "permission_type_code", headerName: language === "ar" ? "الكود" : "Code" },
+      { field: "permission_type_code", headerName: t.code },
       {
         field: language === "ar" ? "permission_type_arb" : "permission_type_eng",
-        headerName: language === "ar" ? "اسم سير العمل" : "Permission Name",
+        headerName: t.perm_name,
       },
-      { field: "max_perm_per_day", headerName: language === "ar" ? "إذن ماكس" : "Max Permission" },
-      { field: "max_minutes_per_day", headerName: language === "ar" ? "دقائق ماكس" : "Max Minutes" },
+      { field: "max_minutes_per_day", headerName: t.max_mins },
+      { field: "max_perm_per_day", headerName: t.max_perm },
     ]);
   }, [language]);
 
-
-  const { data: permissionTypeData, isLoading } = useFetchAllEntity("permissionType");
+  const { data: permissionTypeData, isLoading, refetch } = useFetchAllEntity("permissionType", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(permissionTypeData?.data)) {
@@ -47,6 +60,26 @@ export default function Page() {
     return [];
   }, [permissionTypeData]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -55,12 +88,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: permissionTypeData?.total || 0,
+    hasNext: permissionTypeData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
  
   const handleSave = () => {
@@ -98,14 +135,14 @@ export default function Page() {
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">Manage Permissions</h1>
+          <h1 className="font-bold text-xl text-primary">{t.manage_perms}</h1>
         </div>
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.permissions?.items} />
         </div>
         <PowerTable
           props={props}
-          showEdit={false}
+          showEdit={true}
           onEditClick={handleEditClick}
           onRowSelection={handleRowSelection}
           isLoading={isLoading}

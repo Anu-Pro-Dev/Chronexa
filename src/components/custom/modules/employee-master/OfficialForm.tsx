@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import * as z from "zod";
+import { debounce } from "lodash";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
@@ -27,19 +28,191 @@ export default function OfficialForm({
   const managerFlagChecked = officialForm.watch("manager_flag");
   const [step, setStep] = useState(1);
 
+  // Search state for all dropdowns
+  const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
+  const [locationSearchTerm, setLocationSearchTerm] = useState("");
+  const [citizenshipSearchTerm, setCitizenshipSearchTerm] = useState("");
+  const [designationSearchTerm, setDesignationSearchTerm] = useState("");
+  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
+  const [gradeSearchTerm, setGradeSearchTerm] = useState("");
+  const [managerSearchTerm, setManagerSearchTerm] = useState("");
+
+  // Dropdown open states
+  const [showEmployeeTypeSearch, setShowEmployeeTypeSearch] = useState(false);
+  const [showLocationSearch, setShowLocationSearch] = useState(false);
+  const [showCitizenshipSearch, setShowCitizenshipSearch] = useState(false);
+  const [showDesignationSearch, setShowDesignationSearch] = useState(false);
+  const [showOrganizationSearch, setShowOrganizationSearch] = useState(false);
+  const [showGradeSearch, setShowGradeSearch] = useState(false);
+  const [showManagerSearch, setShowManagerSearch] = useState(false);
+
   // Dynamic fetches
-  const { data: employeeTypes } = useFetchAllEntity("employeeType");
-  const { data: locations } = useFetchAllEntity("location");
-  const { data: citizenships } = useFetchAllEntity("citizenship");
-  const { data: designations } = useFetchAllEntity("designation");
-  const { data: organizations } = useFetchAllEntity("organization");
-  const { data: grades } = useFetchAllEntity("grade");
+  const { data: employeeTypes } = useFetchAllEntity("employeeType",{ removeAll: true });
+  const { data: locations } = useFetchAllEntity("location",{ removeAll: true });
+  const { data: citizenships } = useFetchAllEntity("citizenship",{ removeAll: true });
+  const { data: designations } = useFetchAllEntity("designation",{ removeAll: true });
+  const { data: organizations } = useFetchAllEntity("organization",{ removeAll: true });
+  const { data: grades } = useFetchAllEntity("grade",{ removeAll: true });
 
   // Manager list
   const { data: managerEmployees } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
   });
+
+  // Debounced search functions for each dropdown
+  const debouncedEmployeeTypeSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setEmployeeTypeSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedLocationSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setLocationSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedCitizenshipSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setCitizenshipSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedDesignationSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setDesignationSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedOrganizationSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setOrganizationSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedGradeSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setGradeSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedManagerSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setManagerSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  // Filter functions for each dropdown
+  const getFilteredEmployeeTypes = () => {
+    const baseData = employeeTypes?.data || [];
+    
+    if (employeeTypeSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.employee_type_id && 
+      item.employee_type_id.toString().trim() !== '' &&
+      item.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredLocations = () => {
+    const baseData = locations?.data || [];
+    
+    if (locationSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.location_id && 
+      item.location_id.toString().trim() !== '' &&
+      item.location_eng?.toLowerCase().includes(locationSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredCitizenships = () => {
+    const baseData = citizenships?.data || [];
+    
+    if (citizenshipSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.citizenship_id && 
+      item.citizenship_id.toString().trim() !== '' &&
+      item.citizenship_eng?.toLowerCase().includes(citizenshipSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredDesignations = () => {
+    const baseData = designations?.data || [];
+    
+    if (designationSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.designation_id && 
+      item.designation_id.toString().trim() !== '' &&
+      item.designation_eng?.toLowerCase().includes(designationSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredOrganizations = () => {
+    const baseData = organizations?.data || [];
+    
+    if (organizationSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.organization_id && 
+      item.organization_id.toString().trim() !== '' &&
+      item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredGrades = () => {
+    const baseData = grades?.data || [];
+    
+    if (gradeSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.grade_id && 
+      item.grade_id.toString().trim() !== '' &&
+      (item.grade_eng || item.grade_name)?.toLowerCase().includes(gradeSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredManagers = () => {
+    const baseData = managerEmployees?.data || [];
+    
+    if (managerSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((emp: any) => 
+      emp.employee_id != null &&
+      emp.firstname_eng?.toLowerCase().includes(managerSearchTerm.toLowerCase())
+    );
+  };
+
+  useEffect(() => {
+    return () => {
+      debouncedEmployeeTypeSearch.cancel();
+      debouncedLocationSearch.cancel();
+      debouncedCitizenshipSearch.cancel();
+      debouncedDesignationSearch.cancel();
+      debouncedOrganizationSearch.cancel();
+      debouncedGradeSearch.cancel();
+      debouncedManagerSearch.cancel();
+    };
+  }, [
+    debouncedEmployeeTypeSearch,
+    debouncedLocationSearch,
+    debouncedCitizenshipSearch,
+    debouncedDesignationSearch,
+    debouncedOrganizationSearch,
+    debouncedGradeSearch,
+    debouncedManagerSearch
+  ]);
 
   function onSubmit(values: z.infer<typeof officialFormSchema>) {
     try {
@@ -88,14 +261,25 @@ export default function OfficialForm({
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowEmployeeTypeSearch(open)}
                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose employee type" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {(employeeTypes?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder="Search employee types..."
+                    onSearchChange={debouncedEmployeeTypeSearch}
+                    className="mt-1"
+                  >
+                    {getFilteredEmployeeTypes().length === 0 && employeeTypeSearchTerm.length > 0 && (
+                      <div className="p-3 text-sm text-text-secondary">
+                        No employee types found
+                      </div>
+                    )}
+                    {getFilteredEmployeeTypes().map((item: any) => {
                       if (!item.employee_type_id || item.employee_type_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.employee_type_id} value={item.employee_type_id.toString()}>
@@ -120,14 +304,25 @@ export default function OfficialForm({
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowLocationSearch(open)}
                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose location" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {(locations?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder="Search locations..."
+                    onSearchChange={debouncedLocationSearch}
+                    className="mt-1 max-w-[350px]"
+                  >
+                    {getFilteredLocations().length === 0 && locationSearchTerm.length > 0 && (
+                      <div className="p-3 text-sm text-text-secondary">
+                        No locations found
+                      </div>
+                    )}
+                    {getFilteredLocations().map((item: any) => {
                       if (!item.location_id || item.location_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.location_id} value={item.location_id.toString()}>
@@ -152,14 +347,25 @@ export default function OfficialForm({
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowCitizenshipSearch(open)}
                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose citizenship" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                     {(citizenships?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder="Search citizenships..."
+                    onSearchChange={debouncedCitizenshipSearch}
+                    className="mt-1"
+                  >
+                    {getFilteredCitizenships().length === 0 && citizenshipSearchTerm.length > 0 && (
+                      <div className="p-3 text-sm text-text-secondary">
+                        No citizenships found
+                      </div>
+                    )}
+                    {getFilteredCitizenships().map((item: any) => {
                       if (!item.citizenship_id || item.citizenship_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.citizenship_id} value={item.citizenship_id.toString()}>
@@ -184,14 +390,25 @@ export default function OfficialForm({
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowDesignationSearch(open)}
                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose designation" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                     {(designations?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder="Search designations..."
+                    onSearchChange={debouncedDesignationSearch}
+                    className="mt-1"
+                  >
+                    {getFilteredDesignations().length === 0 && designationSearchTerm.length > 0 && (
+                      <div className="p-3 text-sm text-text-secondary">
+                        No designations found
+                      </div>
+                    )}
+                    {getFilteredDesignations().map((item: any) => {
                       if (!item.designation_id || item.designation_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.designation_id} value={item.designation_id.toString()}>
@@ -216,14 +433,25 @@ export default function OfficialForm({
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowOrganizationSearch(open)}
                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose organization" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                     {(organizations?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder="Search organizations..."
+                    onSearchChange={debouncedOrganizationSearch}
+                    className="mt-1"
+                  >
+                    {getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 && (
+                      <div className="p-3 text-sm text-text-secondary">
+                        No organizations found
+                      </div>
+                    )}
+                    {getFilteredOrganizations().map((item: any) => {
                       if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
@@ -248,14 +476,25 @@ export default function OfficialForm({
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowGradeSearch(open)}
                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose grade" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {(grades?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder="Search grades..."
+                    onSearchChange={debouncedGradeSearch}
+                    className="mt-1"
+                  >
+                    {getFilteredGrades().length === 0 && gradeSearchTerm.length > 0 && (
+                      <div className="p-3 text-sm text-text-secondary">
+                        No grades found
+                      </div>
+                    )}
+                    {getFilteredGrades().map((item: any) => {
                       if (!item.grade_id || item.grade_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.grade_id} value={item.grade_id.toString()}>
@@ -281,21 +520,31 @@ export default function OfficialForm({
                   <Select
                     onValueChange={(val) => field.onChange(Number(val))}
                     value={field.value !== undefined ? String(field.value) : ""}
+                    onOpenChange={(open) => setShowManagerSearch(open)}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose manager" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {managerEmployees?.data?.length > 0 &&
-                        managerEmployees.data
-                          .filter((emp: any) => emp.employee_id != null)
-                          .map((emp: any) => (
-                            <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
-                              {emp.firstname_eng}
-                            </SelectItem>
-                          ))}
+                    <SelectContent
+                      showSearch={true}
+                      searchPlaceholder="Search managers..."
+                      onSearchChange={debouncedManagerSearch}
+                      className="mt-1"
+                    >
+                      {getFilteredManagers().length === 0 && managerSearchTerm.length > 0 && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          No managers found
+                        </div>
+                      )}
+                      {getFilteredManagers()
+                        .filter((emp: any) => emp.employee_id != null)
+                        .map((emp: any) => (
+                          <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
+                            {emp.firstname_eng}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

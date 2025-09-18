@@ -1,4 +1,5 @@
 "use client";
+import React, { useState } from "react";
 import * as z from "zod";
 import toast from "react-hot-toast";
 import { Button } from "@/src/components/ui/button";
@@ -26,6 +27,18 @@ export default function PersonalForm({
  
   const { language, translations } = useLanguage();
   const { countries } = useCountries();
+  
+  const [popoverStates, setPopoverStates] = useState({
+    joinDate: false,
+    activeDate: false,
+    inactiveDate: false,
+    nationalIdExpiryDate: false,
+    passportExpiryDate: false,
+  })
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }))
+  }
 
   function onSubmit(values: z.infer<typeof personalFormSchema>) {
     try {
@@ -62,7 +75,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1">Join date <Required /></FormLabel>
-                <Popover>
+                <Popover open={popoverStates.joinDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, joinDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
@@ -81,8 +94,11 @@ export default function PersonalForm({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      onSelect={(date) => {
+                        field.onChange(date)
+                        closePopover('joinDate')
+                      }}
+                      // disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                     />
                   </PopoverContent>
                 </Popover>
@@ -160,7 +176,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1">Employee system activation </FormLabel>
-                <Popover>
+                <Popover open={popoverStates.activeDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, activeDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
@@ -179,7 +195,10 @@ export default function PersonalForm({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date)
+                        closePopover('activeDate')
+                      }}
                       disabled={(date) =>
                         personalForm.watch("join_date")
                           ? date < personalForm.watch("join_date")
@@ -198,7 +217,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1 text-right">Inactive date</FormLabel>
-                <Popover>
+                <Popover open={popoverStates.inactiveDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inactiveDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
@@ -217,7 +236,10 @@ export default function PersonalForm({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date)
+                        closePopover('inactiveDate')
+                      }}
                       disabled={(date) =>
                         personalForm.watch("active_date")
                           ? date < personalForm.watch("active_date")
@@ -275,7 +297,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1 text-right">National ID expiry date</FormLabel>
-                <Popover>
+                <Popover open={popoverStates.nationalIdExpiryDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, nationalIdExpiryDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
@@ -294,8 +316,11 @@ export default function PersonalForm({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => date < new Date()}
+                      onSelect={(date) => {
+                        field.onChange(date)
+                        closePopover('nationalIdExpiryDate')
+                      }}
+                      // disabled={(date) => date < new Date()}
                     />
                   </PopoverContent>
                 </Popover>
@@ -322,7 +347,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1 text-right">Passport expiry date</FormLabel>
-                <Popover>
+                <Popover open={popoverStates.passportExpiryDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, passportExpiryDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
@@ -341,8 +366,11 @@ export default function PersonalForm({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => date < new Date()}
+                      onSelect={(date) => {
+                        field.onChange(date)
+                        closePopover('passportExpiryDate')
+                      }}
+                      // disabled={(date) => date < new Date()}
                     />
                   </PopoverContent>
                 </Popover>

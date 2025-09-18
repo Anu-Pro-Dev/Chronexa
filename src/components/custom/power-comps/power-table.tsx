@@ -352,10 +352,11 @@ export default function PowerTable({
         />
         <span className="text-sm text-secondary">
           {totalRecords === 0
-            ? "No records"
-            : `Showing ${(currentPage - 1) * pageSize + 1}-${
-                Math.min(currentPage * pageSize, totalRecords)
-              } of ${totalRecords}`}
+            ? translations?.no_records
+            : `${translations?.showing} ${(currentPage - 1) * pageSize + 1}-${Math.min(
+                currentPage * pageSize,
+                totalRecords
+              )} ${translations?.of || "of"} ${totalRecords}`}
         </span>
         
       </div>

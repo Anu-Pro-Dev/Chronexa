@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { debounce } from "lodash";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
@@ -19,6 +20,7 @@ import {
   addWorkflowTypeStepRequest,
   editWorkflowTypeStepRequest,
 } from "@/src/lib/apiHandler";
+import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 
 const formSchema = z.object({
   workflow_code: z.string().min(1, { message: "Required" }).max(100),
@@ -47,11 +49,40 @@ export default function AddWorkflow() {
   const [stepData, setStepData] = useState<Record<number, StepData>>({});
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [existingWorkflowData, setExistingWorkflowData] = useState<any>(null);
+  const [isGenerateMode, setIsGenerateMode] = useState(false);
+  
+  // Search state for role dropdowns
+  const [roleSearchTerm, setRoleSearchTerm] = useState("");
+  const [showRoleSearch, setShowRoleSearch] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { workflow_code: "", workflow_category: "", workflow_name: "" },
   });
+
+  // Fetch roles from API
+  const { data: rolesData, isLoading: rolesLoading } = useFetchAllEntity("secRole");
+
+  // Debounced search function for roles
+  const debouncedRoleSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setRoleSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  // Filter roles based on search term for specific row
+  const getFilteredRoles = () => {
+    const baseData = rolesData?.data || [];
+    
+    if (roleSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.role_id && 
+      item.role_id.toString().trim() !== '' &&
+      item.role_name?.toLowerCase().includes(roleSearchTerm.toLowerCase())
+    );
+  };
 
   useEffect(() => {
     const editData = sessionStorage.getItem('editWorkflowData');
@@ -117,6 +148,12 @@ export default function AddWorkflow() {
     }
   }, [language, selectedRow, existingWorkflowData, form]);
 
+  useEffect(() => {
+    return () => {
+      debouncedRoleSearch.cancel();
+    };
+  }, [debouncedRoleSearch]);
+
   const addWorkflowMutation = useMutation({
     mutationFn: addWorkflowTypeRequest,
     onSuccess: (response) => {
@@ -124,17 +161,6 @@ export default function AddWorkflow() {
       queryClient.invalidateQueries({ queryKey: ["workflowType"] });
       const workflowId = response.data?.workflow_id || response.workflow_id;
       setWorkflowId(workflowId?.toString());
-      setRows([1]);
-      setShowTable(true);
-      setStepData({
-        1: {
-          id: 1,
-          stepName: "",
-          roleId: "",
-          onSuccess: "",
-          onFailure: "Rejected"
-        }
-      });
     },
     onError: (error: any) => {
       toast.error("Failed to add workflow.");
@@ -146,21 +172,6 @@ export default function AddWorkflow() {
     onSuccess: (response) => {
       toast.success("Workflow updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["workflowType"] });
-      if (!showTable) {
-        setShowTable(true);
-        if (rows.length === 0) {
-          setRows([1]);
-          setStepData({
-            1: {
-              id: 1,
-              stepName: "",
-              roleId: "",
-              onSuccess: "",
-              onFailure: "Rejected"
-            }
-          });
-        }
-      }
     },
     onError: (error: any) => {
       toast.error("Failed to update workflow.");
@@ -199,22 +210,53 @@ export default function AddWorkflow() {
   const addStepMutation = useMutation({
     mutationFn: addWorkflowTypeStepRequest,
     onSuccess: () => {
-      toast.success("Step saved successfully!");
+      // Don't show individual step success messages here
     },
     onError: (error: any) => {
-      toast.error("Error saving step.");
+      console.error("Error adding step:", error);
     },
   });
 
   const editStepMutation = useMutation({
     mutationFn: editWorkflowTypeStepRequest,
     onSuccess: () => {
-      toast.success("Step updated successfully!");},
+      // Don't show individual step success messages here
+    },
     onError: (error: any) => {
-      toast.error("Error updating step.");
+      console.error("Error updating step:", error);
     },
   });
 
+  // Handle Generate button - just show steps table without creating workflow
+  const handleGenerate = async () => {
+    try {
+      // Validate form first - trigger() returns a Promise
+      const isValid = await form.trigger();
+      if (!isValid) {
+        // Form has validation errors, don't proceed
+        return;
+      }
+
+      // Form is valid, proceed to show steps
+      setIsGenerateMode(true);
+      setShowTable(true);
+      setRows([1]);
+      setStepData({
+        1: {
+          id: 1,
+          stepName: "",
+          roleId: "",
+          onSuccess: "",
+          onFailure: "Rejected"
+        }
+      });
+    } catch (error) {
+      console.error("Form validation error:", error);
+      // Don't show steps if validation fails
+    }
+  };
+
+  // Handle form submission for edit mode
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const payload: any = {
@@ -232,8 +274,6 @@ export default function AddWorkflow() {
       if (selectedRow && workflowId) {
         payload.workflow_id = parseInt(workflowId);
         editWorkflowMutation.mutate(payload);
-      } else {
-        addWorkflowMutation.mutate(payload);
       }
     } catch (error) {
       console.error("Form submission error", error);
@@ -242,6 +282,7 @@ export default function AddWorkflow() {
 
   const handleSaveSteps = async () => {
     try {
+      // Validate all steps are complete
       const incompleteSteps = rows.filter(rowId => {
         const step = stepData[rowId];
         return !step?.stepName || !step?.roleId || !step?.onSuccess;
@@ -252,12 +293,35 @@ export default function AddWorkflow() {
         return;
       }
 
+      let currentWorkflowId = workflowId;
+
+      // If in generate mode (new workflow), create the workflow first
+      if (isGenerateMode && !selectedRow) {
+        const formValues = form.getValues();
+        const workflowPayload: any = {
+          workflow_code: formValues.workflow_code,
+        };
+
+        if (language === "en") {
+          workflowPayload.workflow_name_eng = formValues.workflow_name;
+          workflowPayload.workflow_category_eng = formValues.workflow_category;
+        } else {
+          workflowPayload.workflow_name_arb = formValues.workflow_name;
+          workflowPayload.workflow_category_arb = formValues.workflow_category;
+        }
+
+        const workflowResponse = await addWorkflowMutation.mutateAsync(workflowPayload);
+        currentWorkflowId = (workflowResponse.data?.workflow_id || workflowResponse.workflow_id)?.toString();
+        setWorkflowId(currentWorkflowId);
+      }
+
+      // Now save/update all steps
       const stepPromises = rows.map(async (rowId, index) => {
         const step = stepData[rowId];
         const stepOrder = index + 1;
         
         const stepPayload: any = {
-          workflow_id: workflowId ? parseInt(workflowId) : undefined,
+          workflow_id: currentWorkflowId ? parseInt(currentWorkflowId) : undefined,
           step_order: stepOrder,
           role_id: parseInt(step.roleId),
           is_final_step: step.onSuccess === "approved",
@@ -279,14 +343,14 @@ export default function AddWorkflow() {
 
       await Promise.all(stepPromises);
       
-      toast.success(`All workflow steps ${selectedRow ? 'updated' : 'saved'} successfully!`);
+      toast.success(`Workflow and steps ${selectedRow ? 'updated' : 'created'} successfully!`);
       queryClient.invalidateQueries({ queryKey: ["workflowType"] });
       queryClient.invalidateQueries({ queryKey: ["workflowSteps"] });
       router.push("/self-services/workflow");
       
     } catch (error) {
-      console.error("Error processing steps:", error);
-      toast.error(`Failed to ${selectedRow ? 'update' : 'save'} some workflow steps.`);
+      console.error("Error processing workflow and steps:", error);
+      toast.error(`Failed to ${selectedRow ? 'update' : 'create'} workflow and steps.`);
     }
   };
 
@@ -366,25 +430,26 @@ export default function AddWorkflow() {
             />
           </div>
           <div className="w-full flex pt-8 gap-2 items-center justify-end">
-            <Button
-              type="submit"
-              variant="success"
-              size="sm"
-              disabled={
-                selectedRow
-                  ? editWorkflowMutation.isPending
-                  : addWorkflowMutation.isPending
-              }
-            >
-              {selectedRow ? (
-                editWorkflowMutation.isPending ? "Updating..." : "Update"
-              ) : (
-                <>
-                  <GenerateIcon />
-                  {addWorkflowMutation.isPending ? "Generating..." : "Generate"}
-                </>
-              )}
-            </Button>
+            {selectedRow ? (
+              <Button
+                type="submit"
+                variant="success"
+                size="sm"
+                disabled={editWorkflowMutation.isPending}
+              >
+                {editWorkflowMutation.isPending ? "Updating..." : "Update"}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="success"
+                size="sm"
+                onClick={handleGenerate}
+              >
+                <GenerateIcon />
+                Generate
+              </Button>
+            )}
           </div>
         </div>
 
@@ -427,21 +492,37 @@ export default function AddWorkflow() {
                     value={stepData[rowId]?.stepName || ""}
                     onChange={(e) => updateStepData(rowId, 'stepName', e.target.value)}
                   />
-
-                  <Select 
+                  
+                  <Select
                     value={stepData[rowId]?.roleId || ""}
                     onValueChange={(value) => updateStepData(rowId, 'roleId', value)}
+                    onOpenChange={(open) => setShowRoleSearch(open)}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose Role" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose role" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Role 1</SelectItem>
-                      <SelectItem value="2">Role 2</SelectItem>
-                      <SelectItem value="3">Role 3</SelectItem>
+                    <SelectContent
+                      showSearch={true}
+                      searchPlaceholder="Search roles..."
+                      onSearchChange={debouncedRoleSearch}
+                      className="mt-2"
+                    >
+                      {getFilteredRoles().length === 0 && roleSearchTerm.length > 0 && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          No roles found
+                        </div>
+                      )}
+                      {getFilteredRoles().map((item: any) => {
+                        if (!item.role_id || item.role_id.toString().trim() === '') return null;
+                        return (
+                          <SelectItem key={item.role_id} value={item.role_id.toString()}>
+                            {item.role_name}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
-
+                  
                   <Select
                     value={stepData[rowId]?.onSuccess || ""}
                     onValueChange={(value) => updateStepData(rowId, 'onSuccess', value)}
@@ -479,6 +560,7 @@ export default function AddWorkflow() {
                   setShowTable(false);
                   setRows([]);
                   setStepData({});
+                  setIsGenerateMode(false);
                   router.push("/self-services/workflow");
                 }}
               >
@@ -488,11 +570,9 @@ export default function AddWorkflow() {
                 type="button" 
                 size="lg"
                 onClick={handleSaveSteps}
-                disabled={addStepMutation.isPending || editStepMutation.isPending}
+                disabled={addWorkflowMutation.isPending || addStepMutation.isPending || editStepMutation.isPending}
               >
-                {editStepMutation.isPending
-                  ? "Updating..."
-                  : addStepMutation.isPending
+                {addWorkflowMutation.isPending || addStepMutation.isPending || editStepMutation.isPending
                   ? "Saving..."
                   : selectedRow
                   ? "Update"

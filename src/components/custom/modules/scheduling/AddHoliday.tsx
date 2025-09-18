@@ -146,8 +146,8 @@ export default function AddHoliday({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
-          <div className="py-5 flex flex-col">
-            <div className="flex gap-10 items-center p-7 pt-0">
+          <div className="flex flex-col">
+            <div className="flex gap-10 items-center mb-5">
               <FormField
                 control={form.control}
                 name="recurring_flag"
@@ -301,21 +301,21 @@ export default function AddHoliday({
               </div>
             </div>
           </div>
-        </div>
-        <div className="flex justify-end gap-2 items-center py-5">
-          <div className="flex gap-4 px-5">
-            <Button
-              variant={"outline"}
-              type="button"
-              size={"lg"}
-              className="w-full"
-              onClick={() => on_open_change(false)}
-            >
-              {translations.buttons.cancel}
-            </Button>
-            <Button type="submit" size={"lg"} className="w-full">
-              Save
-            </Button>
+          <div className="flex justify-end gap-2 items-center">
+            <div className="flex gap-4">
+              <Button
+                variant={"outline"}
+                type="button"
+                size={"lg"}
+                className="w-full"
+                onClick={() => on_open_change(false)}
+              >
+                {translations.buttons.cancel}
+              </Button>
+              <Button type="submit" size={"lg"} className="w-full">
+                Save
+              </Button>
+            </div>
           </div>
         </div>
       </form>

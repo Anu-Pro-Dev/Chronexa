@@ -47,7 +47,7 @@ export default function Page() {
       <PowerHeader 
         props={props} 
         items={modules?.selfServices?.items} 
-        isLarge
+        size="large"
         modal_title="Leave Report"
        //modal_description="Choose the report details"
         modal_component={

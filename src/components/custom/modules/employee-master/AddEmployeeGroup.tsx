@@ -42,6 +42,15 @@ export default function AddEmployeeGroups({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  })
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }))
+  }
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -84,27 +93,6 @@ export default function AddEmployeeGroups({
       form.reset(); // clears on add
     }
   }, [selectedRowData, language]);
-  
-  // useEffect(() => {
-  //   if (selectedRowData) {
-  //     form.reset({
-  //       group_code: selectedRowData.group_code ?? "",
-  //       group_name:
-  //         language === "en"
-  //           ? selectedRowData.group_name_eng ?? ""
-  //           : selectedRowData.group_name_arb ?? "",
-  //       group_start_date: selectedRowData.group_start_date
-  //         ? new Date(selectedRowData.group_start_date): null,
-  //       group_end_date: selectedRowData.group_end_date
-  //         ? new Date(selectedRowData.group_end_date)  : null,
-  //       schedule_flag: selectedRowData.schedule_flag ?? false,
-  //       reporting_group_flag: selectedRowData.reporting_group_flag ?? false,
-  //       reporting_person_id: selectedRowData.reporting_person_id ?? undefined,
-  //     });
-  //   } else {
-  //     form.reset(); // clears on add
-  //   }
-  // }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addEmployeeGroupRequest,
@@ -181,7 +169,7 @@ export default function AddEmployeeGroups({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="flex flex-col">
-            <div className="flex gap-10 items-center mb-3">
+            <div className="flex gap-10 items-center mb-5">
               <FormField
                 control={form.control}
                 name="schedule_flag"
@@ -266,7 +254,7 @@ export default function AddEmployeeGroups({
                       <FormLabel>
                         From Date <Required />
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
@@ -285,15 +273,18 @@ export default function AddEmployeeGroups({
                           <Calendar
                             mode="single"
                             selected={field.value ? field.value : undefined}
-                            onSelect={field.onChange}
-                            disabled={(date) => {
-                              // Get today's date at start of day for comparison
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              
-                              // Disable dates before today
-                              return date < today;
+                            onSelect={(date) => {
+                              field.onChange(date)
+                              closePopover('fromDate')
                             }}
+                            // disabled={(date) => {
+                            //   // Get today's date at start of day for comparison
+                            //   const today = new Date();
+                            //   today.setHours(0, 0, 0, 0);
+                              
+                            //   // Disable dates before today
+                            //   return date < today;
+                            // }}
                           />
                         </PopoverContent>
                       </Popover>
@@ -310,7 +301,7 @@ export default function AddEmployeeGroups({
                       <FormLabel>
                         To Date <Required />
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
@@ -329,7 +320,10 @@ export default function AddEmployeeGroups({
                           <Calendar
                             mode="single"
                             selected={field.value ? field.value : undefined}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              field.onChange(date)
+                              closePopover('toDate')
+                            }}
                             disabled={(date) => {
                               const groupStartDate = form.getValues("group_start_date");
                               
@@ -407,7 +401,6 @@ export default function AddEmployeeGroups({
             </div>
           </div>
         </div>
-        
       </form>
     </Form>
   );

@@ -21,6 +21,7 @@ export default function Page() {
   const { modules, language, translations } = useLanguage();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
@@ -44,111 +45,151 @@ export default function Page() {
       { field: "employee_name", headerName: language === "ar" ? "الموظف" : "Employee" },
       { field: "from_time", headerName: language === "ar" ? "من الوقت" : "From Time" },
       { field: "to_time", headerName: language === "ar" ? "إلى الوقت" : "To Time" },
-      // { field: "remarks", headerName: language === "ar" ? "المبرر" : "Justification" },
       { field: "perm_minutes", headerName: language === "ar" ? "دقائق الإذن" : "Permission Minutes" },
+      { field: "status", headerName: language === "ar" ? "المبرر" : "Status" },
     ]);
   }, [language]);
 
-  // Fetch related data for displaying names
-  const { data: employeeShortPermissionData, isLoading } = useFetchAllEntity("employeeShortPermission");
-  const { data: permissionTypesData, isLoading: isLoadingPermissionTypes } = useFetchAllEntity("permissionType");
-  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity("employee");
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
+
+  // Single API call with filters and pagination applied on the backend
+  const { data: employeeShortPermissionData, isLoading, refetch } = useFetchAllEntity(
+    "employeeShortPermission", 
+    {
+      searchParams: {
+        limit: String(rowsPerPage),
+        offset: String(offset),
+        ...(selectedOption && selectedOption !== "all" && { status: selectedOption }),
+        ...(fromDate && { from_date: fromDate.toISOString() }),
+        ...(toDate && { to_date: toDate.toISOString() }),
+        ...(searchValue && { search: searchValue }),
+      },
+    }
+  );
 
   // Helper function to get permission type name based on language
-  const getPermissionTypeName = (permissionTypeId: number, permissionTypesData: any) => {
-    const permissionType = permissionTypesData?.data?.find(
-      (pt: any) => pt.permission_type_id === permissionTypeId
-    );
-    
-    if (!permissionType) {
-      return `ID: ${permissionTypeId}`;
+  const getPermissionTypeName = (permissionTypes: any) => {
+    if (!permissionTypes) {
+      return language === "ar" ? "غير معروف" : "Unknown";
     }
     
     // Return name based on selected language
     return language === "ar" 
-      ? permissionType.permission_type_arb || permissionType.permission_type_eng || `ID: ${permissionTypeId}`
-      : permissionType.permission_type_eng || permissionType.permission_type_arb || `ID: ${permissionTypeId}`;
+      ? permissionTypes.permission_type_arb || permissionTypes.permission_type_eng || "غير معروف"
+      : permissionTypes.permission_type_eng || permissionTypes.permission_type_arb || "Unknown";
   };
 
-  // Helper function to get employee name (following ScheduleGrid pattern)
-  const getEmployeeName = (employeeId: number, employeesData: any) => {
-    const employee = employeesData?.data?.find(
-      (emp: any) => emp.employee_id === employeeId
-    );
-    
-    if (!employee) {
-      return `Emp ${employeeId}`;
+  // Helper function to get employee name
+  const getEmployeeName = (employeeMaster: any) => {
+    if (!employeeMaster) {
+      return language === "ar" ? "غير معروف" : "Unknown";
     }
     
     // Use the same naming pattern as ScheduleGrid
     const fullName = language === "ar"
-      ? `${employee.firstname_arb || ""}`.trim()
-      : `${employee.firstname_eng || ""}`.trim();
+      ? `${employeeMaster.firstname_arb || ""} ${employeeMaster.lastname_arb || ""}`.trim()
+      : `${employeeMaster.firstname_eng || ""} ${employeeMaster.lastname_eng || ""}`.trim();
     
-    return fullName || `Emp ${employeeId}`;
+    return fullName || (language === "ar" ? "غير معروف" : "Unknown");
   };
 
   const data = useMemo(() => {
     if (Array.isArray(employeeShortPermissionData?.data)) {
-      return employeeShortPermissionData.data
-        .filter((permReqs: any) => {
-          // Filter by status if selected
-          if (selectedOption && selectedOption !== "all") {
-            return permReqs.approve_reject_flag?.toString() === selectedOption;
+      return employeeShortPermissionData.data.map((permReqs: any) => {
+        const getStatusLabel = (flag: number) => {
+          switch (flag) {
+            case 0: return language === "ar" ? "في الانتظار" : "Pending";
+            case 1: return language === "ar" ? "معتمد" : "Approved";
+            case 2: return language === "ar" ? "مرفوض" : "Rejected";
+            default: return language === "ar" ? "غير معروف" : "Unknown";
           }
-          return true;
-        })
-        .filter((permReqs: any) => {
-          // Filter by date range if selected
-          if (fromDate || toDate) {
-            const permDate = new Date(permReqs.from_time);
-            if (fromDate && permDate < fromDate) return false;
-            if (toDate && permDate > toDate) return false;
-          }
-          return true;
-        })
-        .map((permReqs: any) => {
-          return {
-            ...permReqs,
-            id: permReqs.single_permissions_id,
-            permission_type_name: getPermissionTypeName(permReqs.permission_type_id, permissionTypesData),
-            employee_name: getEmployeeName(permReqs.employee_id, employeesData),
-            from_time: new Date(permReqs.from_time).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
-            to_time: new Date(permReqs.to_time).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
-          };
-        });
+        };
+
+        return {
+          ...permReqs,
+          id: permReqs.single_permissions_id,
+          permission_type_name: getPermissionTypeName(permReqs.permission_types),
+          employee_name: getEmployeeName(
+            permReqs.employee_master
+          ),
+          // Extract time portion from the datetime
+          from_time: permReqs.from_time ? permReqs.from_time.substring(11, 19) : permReqs.from_time,
+          to_time: permReqs.to_time ? permReqs.to_time.substring(11, 19) : permReqs.to_time,
+          status: getStatusLabel(permReqs.approve_reject_flag),
+        };
+      });
     }
     return [];
-  }, [employeeShortPermissionData, permissionTypesData, employeesData, selectedOption, fromDate, toDate, language]);
+  }, [employeeShortPermissionData, language]);
+
+   const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
+  const handleFilterChange = useCallback(() => {
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  // Update filter handlers
+  const handleStatusChange = (value: string) => {
+    setSelectedOption(value);
+    handleFilterChange();
+  };
+
+  const handleFromDateChange = (date: Date | undefined) => {
+    setFromDate(date);
+    handleFilterChange();
+  };
+
+  const handleToDateChange = (date: Date | undefined) => {
+    setToDate(date);
+    handleFilterChange();
+  };
 
   const props = {
     Data: data,
     Columns: columns,
     selectedRows,
     setSelectedRows,
-    isLoading: isLoading || isLoadingPermissionTypes || isLoadingEmployees,
+    isLoading: isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: employeeShortPermissionData?.total || 0,
+    hasNext: employeeShortPermissionData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
  
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
-    queryClient.invalidateQueries({ queryKey: ["permissionType"] });
-    queryClient.invalidateQueries({ queryKey: ["employee"] });
   };
  
   const handleEditClick = (rowData: any) => {
@@ -174,18 +215,17 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
+        disableAdd
+        disableDelete
         props={props}
         selectedRows={selectedRows}
         items={modules?.selfServices.items}
         entityName="employeeShortPermission"
-        isAddNewPagePath="/self-services/permissions/my-requests/add"
-        disableAdd
-        disableDelete
       />
-      {/* Fillters */}
-      {/* <div className="grid grid-cols-3 gap-4">
+      {/* Filters */}
+      <div className="grid grid-cols-3 gap-4">
         <div>
-          <Select onValueChange={setSelectedOption} value={selectedOption}>
+          <Select onValueChange={handleStatusChange} value={selectedOption}>
             <SelectTrigger className="bg-accent border-grey">
               <Label className="font-normal text-secondary">
                 {language === "ar" ? "الحالة :" : "Status :"}
@@ -222,14 +262,14 @@ export default function Page() {
               <Calendar
                 mode="single"
                 selected={fromDate}
-                onSelect={setFromDate}
+                onSelect={handleFromDateChange}
               />
             </PopoverContent>
           </Popover>
         </div>
         <div>
           <Popover>
-          <PopoverTrigger asChild>
+            <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
@@ -245,15 +285,15 @@ export default function Page() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={toDate} onSelect={setToDate} />
+              <Calendar mode="single" selected={toDate} onSelect={handleToDateChange} />
             </PopoverContent>
           </Popover>
         </div>
-      </div> */}
+      </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">
-            {language === "ar" ? "إدارة الأذونات" : "Manage Permissions"}
+            Permission Requests
           </h1>
         </div>
         <div className="px-6">
@@ -261,10 +301,8 @@ export default function Page() {
         </div>
         <PowerTable
           props={props}
-          showEdit={false}
-          onEditClick={handleEditClick}
-          onRowSelection={handleRowSelection}
-          isLoading={isLoading || isLoadingPermissionTypes || isLoadingEmployees}
+          showCheckbox={false}
+          isLoading={isLoading}
         />
       </div>
     </div>

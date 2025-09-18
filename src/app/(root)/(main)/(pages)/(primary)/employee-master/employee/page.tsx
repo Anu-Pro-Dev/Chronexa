@@ -32,21 +32,18 @@ export default function Page() {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
-      ...(debouncedSearchValue && {
-        name: debouncedSearchValue,
-        emp_no: debouncedSearchValue,
-      }),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
     },
   });
 
   // Fetch organization data
   const { data: organizationData } = useFetchAllEntity("organization", {
-    removeAll: true, // This will use /organization/ endpoint
+    removeAll: true,
   });
 
   // Fetch designation data
   const { data: designationData } = useFetchAllEntity("designation", {
-    removeAll: true, // This will use /designation/ endpoint
+    removeAll: true,
   });
 
   // Create lookup maps for efficient data mapping
@@ -98,10 +95,6 @@ export default function Page() {
         field: "organization_name",
         headerName: "Organization",
       },
-      // {
-      //   field: "manager_name",
-      //   headerName: "Manager Name",
-      // },
       { field: "manager_flag", headerName: "Manager" },
     ]);
   }, [language]);
@@ -113,7 +106,6 @@ export default function Page() {
         id: emp.employee_id,
         designation_name: designationMap[emp.designation_id] || "-",
         organization_name: organizationMap[emp.organization_id] || "-",
-        // manager_name: emp.manager_id ? employeeMap[emp.manager_id] || "-" : "-",
         join_date: emp.join_date ? new Date(emp.join_date).toLocaleDateString('en-GB', {
           day: '2-digit',
           month: '2-digit',
@@ -187,6 +179,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        disableDelete
         selectedRows={selectedRows}
         items={modules?.employeeMaster.items}
         entityName="employee"
@@ -194,7 +187,8 @@ export default function Page() {
       />
       <PowerTable
         props={props}
-        // showEdit={true}
+        showCheckbox={false} 
+        showEdit={true}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}

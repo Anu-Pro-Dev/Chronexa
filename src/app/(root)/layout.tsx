@@ -38,9 +38,9 @@ export default function ModulesLayout({ children }: { children: React.ReactNode 
       <main style={{ flex: 1 }}>
         {children}
       </main>
-      <footer>
+      {/* <footer>
         <ChatBotWidget/>
-      </footer>
+      </footer> */}
     </div>
   )
 }

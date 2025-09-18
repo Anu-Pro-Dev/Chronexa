@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import FilterWeeklyScheduling from "@/src/components/custom/modules/scheduling/FilterWeeklyScheduling";
-
+import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 type Column = {
   field: string;
@@ -16,17 +16,23 @@ type Column = {
 };
 
 export default function Page() {
-  const { modules, language, translations } = useLanguage();
   const router = useRouter();
   const [columns, setColumns] = useState<Column[]>([]);
-  // const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const { modules, language, translations } = useLanguage();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.scheduling || {};
+
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   useEffect(() => {
     setColumns([
@@ -89,7 +95,14 @@ export default function Page() {
     ]);
   }, [language]);
 
-  const { data: organizationScheduleData, isLoading } = useFetchAllEntity("organizationSchedule");
+  const { data: organizationScheduleData, isLoading, refetch } = useFetchAllEntity("organizationSchedule",{
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+    },
+  });
+
   const { data: scheduleData } = useFetchAllEntity("schedule");
 
   const scheduleMap = useMemo(() => {
@@ -144,6 +157,26 @@ export default function Page() {
     }));
   }, [organizationScheduleData, scheduleMap]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [currentPage, refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [rowsPerPage, refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -152,18 +185,21 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: organizationScheduleData?.total || 0,
+    hasNext: organizationScheduleData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,  
   };
  
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
   };
- 
 
   const handleEditClick = useCallback(
     (row: any) => {
@@ -187,7 +223,7 @@ export default function Page() {
         isAddNewPagePath="/scheduling/weekly-schedule/add"
       />
       <div className="">
-        <FilterWeeklyScheduling/>
+        {/* <FilterWeeklyScheduling/> */}
         <PowerTable
           props={props}
           showEdit={false}

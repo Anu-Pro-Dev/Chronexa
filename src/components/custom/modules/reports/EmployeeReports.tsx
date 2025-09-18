@@ -61,13 +61,22 @@ export default function EmployeeReports() {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showReportData, setShowReportData] = useState(false);
+  
+  // Search state for all dropdowns
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
+  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
+  const [managerSearchTerm, setManagerSearchTerm] = useState("");
+  const [reportsSearchTerm, setReportsSearchTerm] = useState("");
+  
+  // Dropdown open states
   const [showEmployeeSearch, setShowEmployeeSearch] = useState(false);
+  const [showOrganizationSearch, setShowOrganizationSearch] = useState(false);
+  const [showManagerSearch, setShowManagerSearch] = useState(false);
+  const [showReportsSearch, setShowReportsSearch] = useState(false);
 
   // Watch form values for real-time query parameters
   const watchedValues = form.watch();
 
-  // const { data: organizations } = useFetchAllEntity("organization");
   const { data: organizations } = useFetchAllEntity("organization", { removeAll: true });
   const { data: employees } = useFetchAllEntity("employee");
 
@@ -76,7 +85,7 @@ export default function EmployeeReports() {
     queryFn: getManagerEmployees,
   });
 
-  // Add debounced search function
+  // Debounced search functions for each dropdown
   const debouncedEmployeeSearch = useCallback(
     debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
@@ -84,17 +93,79 @@ export default function EmployeeReports() {
     []
   );
 
-  // Add search query for employees
+  const debouncedOrganizationSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setOrganizationSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedManagerSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setManagerSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedReportsSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setReportsSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  // Search query for employees
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
     queryKey: ["employeeSearch", employeeSearchTerm],
     queryFn: () => searchEmployees(employeeSearchTerm),
     enabled: employeeSearchTerm.length > 0,
   });
 
-  // Determine which employee data to use
-  const employeeData = employeeSearchTerm.length > 0 
-    ? searchedEmployees?.data || []
-    : employees?.data || [];
+  // Filter functions for each dropdown
+  const getFilteredEmployees = () => {
+    const baseData = employeeSearchTerm.length > 0 
+      ? searchedEmployees?.data || []
+      : employees?.data || [];
+    
+    return baseData.filter((item: any) => 
+      item.employee_id && item.employee_id.toString().trim() !== ''
+    );
+  };
+
+  const getFilteredOrganizations = () => {
+    const baseData = organizations?.data || [];
+    
+    if (organizationSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.organization_id && 
+      item.organization_id.toString().trim() !== '' &&
+      item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredManagers = () => {
+    const baseData = managerEmployees?.data || [];
+    
+    if (managerSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((emp: any) => 
+      emp.employee_id != null &&
+      emp.firstname_eng?.toLowerCase().includes(managerSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredReports = () => {
+    const reportsData = [
+      { value: "1", label: "Daily Movement Report" }
+    ];
+    
+    if (reportsSearchTerm.length === 0) return reportsData;
+    
+    return reportsData.filter((item: any) => 
+      item.label.toLowerCase().includes(reportsSearchTerm.toLowerCase())
+    );
+  };
 
   // Function to build query parameters from form values
   const buildQueryParams = (values: any) => {
@@ -266,8 +337,11 @@ export default function EmployeeReports() {
   useEffect(() => {
     return () => {
       debouncedEmployeeSearch.cancel();
+      debouncedOrganizationSearch.cancel();
+      debouncedManagerSearch.cancel();
+      debouncedReportsSearch.cancel();
     };
-  }, [debouncedEmployeeSearch]);
+  }, [debouncedEmployeeSearch, debouncedOrganizationSearch, debouncedManagerSearch, debouncedReportsSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -293,14 +367,29 @@ export default function EmployeeReports() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        onOpenChange={(open) => setShowReportsSearch(open)}
                       >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose report" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">Daily Movement Report</SelectItem>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder="Search reports..."
+                          onSearchChange={debouncedReportsSearch}
+                          className="mt-5"
+                        >
+                          {getFilteredReports().length === 0 && reportsSearchTerm.length > 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No reports found
+                            </div>
+                          )}
+                          {getFilteredReports().map((item: any) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -316,14 +405,25 @@ export default function EmployeeReports() {
                       <Select
                         onValueChange={(val) => field.onChange(Number(val))}
                         value={field.value !== undefined ? String(field.value) : ""}
+                        onOpenChange={(open) => setShowOrganizationSearch(open)}
                       >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose organization" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                            {(organizations?.data || []).map((item: any) => {
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder="Search organizations..."
+                          onSearchChange={debouncedOrganizationSearch}
+                          className="mt-5"
+                        >
+                          {getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No organizations found
+                            </div>
+                          )}
+                          {getFilteredOrganizations().map((item: any) => {
                             if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
                             return (
                               <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
@@ -364,12 +464,12 @@ export default function EmployeeReports() {
                               Searching...
                             </div>
                           )}
-                          {employeeData.length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
+                          {getFilteredEmployees().length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
                             <div className="p-3 text-sm text-text-secondary">
                               No employees found
                             </div>
                           )}
-                          {employeeData.map((item: any) => {
+                          {getFilteredEmployees().map((item: any) => {
                             if (!item.employee_id || item.employee_id.toString().trim() === '') return null;
                             return (
                               <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
@@ -393,21 +493,29 @@ export default function EmployeeReports() {
                       <Select
                         onValueChange={(val) => field.onChange(Number(val))}
                         value={field.value !== undefined ? String(field.value) : ""}
+                        onOpenChange={(open) => setShowManagerSearch(open)}
                       >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose manager" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          {managerEmployees?.data?.length > 0 &&
-                            managerEmployees.data
-                              .filter((emp: any) => emp.employee_id != null)
-                              .map((emp: any) => (
-                                <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
-                                  {emp.firstname_eng}
-                                </SelectItem>
-                              ))}
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder="Search managers..."
+                          onSearchChange={debouncedManagerSearch}
+                          className="mt-5"
+                        >
+                          {getFilteredManagers().length === 0 && managerSearchTerm.length > 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No managers found
+                            </div>
+                          )}
+                          {getFilteredManagers().map((emp: any) => (
+                            <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
+                              {emp.firstname_eng}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -477,6 +585,7 @@ export default function EmployeeReports() {
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
+                            disabled={(date) => date > new Date()}
                           />
                         </PopoverContent>
                       </Popover>
@@ -486,7 +595,7 @@ export default function EmployeeReports() {
                 />
                 
                 {/* Add Limit field */}
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="limit"
                   render={({ field }) => (
@@ -502,10 +611,10 @@ export default function EmployeeReports() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
                 
                 {/* Add Offset field */}
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="offset"
                   render={({ field }) => (
@@ -521,7 +630,7 @@ export default function EmployeeReports() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
               </div>
             </div>
             <div className="flex justify-center gap-2 items-center pb-5">

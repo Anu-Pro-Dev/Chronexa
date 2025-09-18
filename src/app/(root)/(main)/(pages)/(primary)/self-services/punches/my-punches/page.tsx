@@ -106,10 +106,7 @@ export default function Page() {
       searchParams: {
         limit: String(rowsPerPage),
         offset: String(offset),
-        ...(debouncedSearchValue && {
-          name: debouncedSearchValue,
-          code: debouncedSearchValue,
-        }),
+        ...(debouncedSearchValue && { search: debouncedSearchValue }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
       endpoint: `/employeeEventTransaction/employee/${employeeId}`,

@@ -62,7 +62,7 @@ export default function Page() {
         filter_modal_component={
           <FilterPendingApproval on_open_change={filter_on_open_change} />
         }
-        isLarge={true}
+        size="large"
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">

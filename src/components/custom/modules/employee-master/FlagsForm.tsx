@@ -27,110 +27,115 @@ export default function FlagsForm({
   
   return (
     <Form {...flagForm} className="w-11/12 mx-auto">
-      {/* <form> */}
-        <div className="flex flex-col gap-6">
-          <div className="p-5 flex flex-col">
-            <div className="flex justify-between items-start gap-20">
-              {/* LEFT COLUMN FLAGS */}
-              <div className="flex flex-col flex-1 gap-5">
-                {[
-                  ["active_flag", "Active"],
-                  ["punch_flag", "Punch"],
-                  ["overtime_flag", "Overtime"],
-                  ["inpayroll_flag", "Inpayroll"],
-                  ["email_notification_flag", "Email notification"],
-                  ["open_shift_flag", "Open shift"],
-                  ["geofench_flag", "Geo Fench"],
-                  ["calculate_monthly_missed_hrs_flag", "Calculate monthly missed hours"],
-                ].map(([name, label]) => (
-                  <FormField
-                    key={name}
-                    control={flagForm.control}
-                    name={name}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={name}
-                              checked={!!field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                            <FormLabel htmlFor={name} className="text-sm font-semibold">
-                              {label}
-                            </FormLabel>
-                          </div>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
-
-              {/* RIGHT COLUMN FLAGS */}
-              <div className="flex flex-col flex-1 gap-5">
-                {[
-                  ["exclude_from_integration_flag", "Exclude from integration"],
-                  ["on_report_flag", "On report"],
-                  ["share_roster_flag", "Share roster"],
-                  ["include_email_flag", "Include in email"],
-                  ["web_punch_flag", "Web punch"],
-                  ["shift_flag", "Shift"],
-                  ["check_inout_selfie_flag", "Check In/Out selfie"],
-                ].map(([name, label]) => (
-                  <FormField
-                    key={name}
-                    control={flagForm.control}
-                    name={name}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={name}
-                              checked={!!field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                            <FormLabel htmlFor={name} className="text-sm font-semibold">
-                              {label}
-                            </FormLabel>
-                          </div>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
+      <div className="mb-3 relative">
+        <p className="text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[25px] right-0">
+          Note: Active, Punch & On report flags should be enabled.
+        </p>
+      </div>
+      <div className="flex flex-col gap-6">
+        <div className="p-5 flex flex-col">
+          <div className="flex justify-between items-start gap-20">
+            {/* LEFT COLUMN FLAGS */}
+            <div className="flex flex-col flex-1 gap-5">
+              {[
+                ["active_flag", "Active"],
+                ["punch_flag", "Punch"],
+                ["overtime_flag", "Overtime"],
+                ["inpayroll_flag", "Inpayroll"],
+                ["email_notification_flag", "Email notification"],
+                ["open_shift_flag", "Open shift"],
+                ["geofench_flag", "Geo Fench"],
+                ["SAP_user_flag", "SAP user"],
+                ["calculate_monthly_missed_hrs_flag", "Calculate monthly missed hours"],
+              ].map(([name, label]) => (
+                <FormField
+                  key={name}
+                  control={flagForm.control}
+                  name={name}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={name}
+                            checked={!!field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <FormLabel htmlFor={name} className="text-sm font-semibold">
+                            {label}
+                          </FormLabel>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              ))}
             </div>
-          </div>
 
-          <div className="flex justify-end gap-2 items-center py-5">
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                type="button"
-                size="lg"
-                className="w-full"
-                onClick={() => {
-                  clearSelectedRowData();
-                  router.push("/employee-master/employee");
-                }}
-              >
-                {translations.buttons.cancel}
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                className="w-full"
-                disabled={loading}
-                onClick={() => handleFinalSubmit()}
-              >
-                {loading ? (isEditing ? "Updating..." : "Saving...") : (isEditing ? "Update" : "Save")}
-              </Button>
+            {/* RIGHT COLUMN FLAGS */}
+            <div className="flex flex-col flex-1 gap-5">
+              {[
+                ["exclude_from_integration_flag", "Exclude from integration"],
+                ["on_reports_flag", "On report"],
+                ["share_roster_flag", "Share roster"],
+                ["include_email_flag", "Include in email"],
+                ["web_punch_flag", "Web punch"],
+                ["shift_flag", "Shift"],
+                ["check_inout_selfie_flag", "Check In/Out selfie"],
+                ["local_user_flag", "Local user"],
+              ].map(([name, label]) => (
+                <FormField
+                  key={name}
+                  control={flagForm.control}
+                  name={name}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={name}
+                            checked={!!field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <FormLabel htmlFor={name} className="text-sm font-semibold">
+                            {label}
+                          </FormLabel>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              ))}
             </div>
           </div>
         </div>
-      {/* </form> */}
+
+        <div className="flex justify-end gap-2 items-center py-5">
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              type="button"
+              size="lg"
+              className="w-full"
+              onClick={() => {
+                clearSelectedRowData();
+                router.push("/employee-master/employee");
+              }}
+            >
+              {translations.buttons.cancel}
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              className="w-full"
+              disabled={loading}
+              onClick={() => handleFinalSubmit()}
+            >
+              {loading ? (isEditing ? "Updating..." : "Saving...") : (isEditing ? "Update" : "Save")}
+            </Button>
+          </div>
+        </div>
+      </div>
     </Form>
   );
 }

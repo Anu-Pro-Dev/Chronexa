@@ -142,17 +142,17 @@ export default function LanguageProvider({
           path: "/organization/organization-structure/",
           value: "organization-structure",
         },
-        {
-          label: "Departments",
-          path: "/organization/departments/",
-          value: "departments",
-        },
-        {
-          label: "Departments",
-          path: "/organization/departments/add/",
-          value: "add-departments",
-          hide: true,
-        },
+        // {
+        //   label: "Departments",
+        //   path: "/organization/departments/",
+        //   value: "departments",
+        // },
+        // {
+        //   label: "Departments",
+        //   path: "/organization/departments/add/",
+        //   value: "add-departments",
+        //   hide: true,
+        // },
       ],
     };
 
@@ -262,7 +262,7 @@ export default function LanguageProvider({
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
-          path: "/self-services/permissions/requests/",
+          path: "/self-services/permissions/my-requests/",
           value: "permissions",
           hide:true,
         },
@@ -398,6 +398,18 @@ export default function LanguageProvider({
       },
     };
 
+    const devices = {
+      route_name: "Devices",
+      path: "/devices/",
+      items: [
+        {
+          label: "Device Status",
+          path: "/devices/device-status/",
+          value: "devices",
+        },
+      ],
+    };
+
     const reports = {
       route_name: "Reports",
       path: "/reports/",
@@ -470,6 +482,7 @@ export default function LanguageProvider({
       scheduling,
       selfServices,
       manageApprovals,
+      devices,
       reports,
       configuration,
       settings,
