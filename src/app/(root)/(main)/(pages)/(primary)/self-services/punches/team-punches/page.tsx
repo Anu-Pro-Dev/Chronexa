@@ -622,7 +622,6 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
-      {/* Date and Employee Filters */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">

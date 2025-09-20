@@ -285,7 +285,7 @@ export default function LanguageProvider({
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
-          path: "/self-services/leaves/requests/",
+          path: "/self-services/leaves/my-requests/",
           value: "leaves",
           hide:true,
         },
@@ -343,17 +343,17 @@ export default function LanguageProvider({
           {
             label: currentLanguageData.translations?.modules?.selfServices?.manage || "Manage",
             url: "/self-services/leaves/manage/",
-            value: "leave manage",
+            value: "leaves manage",
           },
           {
-            label: "My Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.my_requests || "My Requests",
             url: "/self-services/leaves/my-requests/",
-            value: "leave requests",
+            value: "leaves requests",
           },
           {
-            label: "Team Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.team_requests || "Team Requests",
             url: "/self-services/leaves/team-requests/",
-            value: "leave requests",
+            value: "leaves requests",
           },
         ],
       },

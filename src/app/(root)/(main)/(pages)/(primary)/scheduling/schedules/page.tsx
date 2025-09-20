@@ -79,22 +79,34 @@ export default function Page() {
 
   const data = useMemo(() => {
     if (Array.isArray(scheduleData?.data)) {
-      return scheduleData.data.map((schedule: any) => ({
-        ...schedule,
-        id: schedule.schedule_id,
-        in_time: new Date(schedule.in_time).toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          // second: "2-digit",
-          hour12: false,
-        }),
-        out_time: new Date(schedule.out_time).toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          // second: "2-digit",
-          hour12: false,
-        }),
-      }));
+      return scheduleData.data.map((schedule: any) => {
+        const formatTimeString = (timeString: string | null | undefined): string => {
+          if (!timeString) return '';
+          return timeString.includes('.') ? timeString.split('.')[0] : timeString;
+        };
+
+        const formatDateTime = (dateTime: string | null | undefined): string => {
+          if (!dateTime) return '';
+          try {
+            return new Date(dateTime).toLocaleTimeString("en-GB", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+          } catch (error) {
+            console.error('Error formatting time:', dateTime, error);
+            return '';
+          }
+        };
+
+        return {
+          ...schedule,
+          id: schedule.schedule_id,
+          in_time: formatDateTime(schedule.in_time),
+          out_time: formatDateTime(schedule.out_time),
+          required_work_hours: formatTimeString(schedule.required_work_hours),
+        };
+      });
     }
     return [];
   }, [scheduleData, language]);

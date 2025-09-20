@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,12 +57,6 @@ const formSchema = z.object({
         return false;
       }
 
-      // Validate file type (e.g., allow only documents)
-      // const allowedTypes = [
-      //   "application/pdf", 
-      //   "application/msword", 
-      //   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      // ];
       // Validate file type - match server requirements
       const allowedTypes = [
         "application/pdf",
@@ -77,7 +71,6 @@ const formSchema = z.object({
       return true;
     },
     {
-      // message: "Invalid file. Ensure it's a document (PDF/DOC/DOCX) and less than 5MB.",
       message: "Invalid file. Ensure it's a document/image (PDF/JPG/JPEG/PNG) and less than 5MB.",
     }
   ).optional(),
@@ -95,6 +88,7 @@ export default function AddLeaveApplication({
   const router = useRouter();
   const [remarksLength, setRemarksLength] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [calculatedDays, setCalculatedDays] = useState<number>(0);
   const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -107,12 +101,45 @@ export default function AddLeaveApplication({
     },
   });
 
+  // Function to calculate number of days between dates
+  const calculateLeaveDays = useCallback((fromDate: Date, toDate: Date) => {
+    if (!fromDate || !toDate) return 0;
+    
+    // Ensure dates are at start of day for accurate calculation
+    const startDate = new Date(fromDate);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(toDate);
+    endDate.setHours(0, 0, 0, 0);
+    
+    // Calculate the difference in time
+    const timeDifference = endDate.getTime() - startDate.getTime();
+    
+    // Calculate the difference in days and add 1 to include both start and end dates
+    const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
+    
+    return Math.max(0, dayDifference); // Ensure non-negative result
+  }, []);
+
+  // Watch for date changes and calculate days
+  const watchFromDate = form.watch("from_date");
+  const watchToDate = form.watch("to_date");
+
+  useEffect(() => {
+    if (watchFromDate && watchToDate) {
+      const days = calculateLeaveDays(watchFromDate, watchToDate);
+      setCalculatedDays(days);
+    } else {
+      setCalculatedDays(0);
+    }
+  }, [watchFromDate, watchToDate, calculateLeaveDays]);
+
   const addMutation = useMutation({
     mutationFn: addLeaveRequest,
     onSuccess: (data) => {
       toast.success("Leave application submitted successfully!");
       queryClient.invalidateQueries({ queryKey: ["employeeLeave"] });
-      router.push("/self-services/leaves/requests");
+      router.push("/self-services/leaves/my-requests");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -244,11 +271,15 @@ export default function AddLeaveApplication({
       toDate.setHours(23, 59, 59, 999);
       const toDateISO = toDate.toISOString();
 
+      // Calculate number of leave days
+      const numberOfLeaveDays = calculateLeaveDays(values.from_date, values.to_date);
+
       const payload: any = {
         leave_type_id: selectedLeaveType?.leave_type_id || null,
         employee_id: employeeId,
         from_date: fromDateISO,
         to_date: toDateISO,
+        number_of_leaves: numberOfLeaveDays,
         employee_remarks: values.employee_remarks,
       };
 
@@ -257,6 +288,7 @@ export default function AddLeaveApplication({
         payload.leave_doc_filename_path = values.leave_doc_filename_path;
       }
 
+      console.log("Payload with calculated days:", payload);
       addMutation.mutate(payload);
     } catch (error) {
       console.error("Form submission error", error);
@@ -273,7 +305,7 @@ export default function AddLeaveApplication({
           <h1 className="font-bold text-xl text-primary flex items-center justify-between">
             My Leave Request
           </h1>
-          <div>
+          <div className="flex items-center gap-4">
             {remarksLength > 500 && (
               <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center ">
                 <ExclamationIcon className="mr-2" width="14" height="14"/> Maximum 500 characters only allowed.
@@ -449,7 +481,6 @@ export default function AddLeaveApplication({
                         {...fieldProps}
                         className="border-0 p-0 rounded-none h-auto text-text-secondary"
                         type="file"
-                        // accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/jpg,image/png"
                         onChange={(event) => {
                           const file = event.target.files?.[0];
@@ -491,7 +522,7 @@ export default function AddLeaveApplication({
                   type="button"
                   size={"lg"}
                   className="w-full"
-                  onClick={() => router.push("/self-services/leaves/requests")}
+                  onClick={() => router.push("/self-services/leaves/my-requests")}
                 >
                   {translations.buttons.cancel}
                 </Button>
