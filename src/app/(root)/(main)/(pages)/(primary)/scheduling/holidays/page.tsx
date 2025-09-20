@@ -14,10 +14,7 @@ import { Input } from "@/src/components/ui/input";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
-  const t = translations?.modules?.scheduling || {};
   const queryClient = useQueryClient();
-
-  // Table state
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -28,14 +25,15 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.scheduling || {};
 
-  // Filters state
-  const [year, setYear] = useState<string>(""); // keep string for text input
+  const [year, setYear] = useState<string>("");
   const [month, setMonth] = useState<string | null>(null);
 
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
 
-  // Columns setup
+  const offset = useMemo(() => currentPage, [currentPage]);
+
   useEffect(() => {
     setColumns([
       {
@@ -51,9 +49,6 @@ export default function Page() {
     ]);
   }, [t, language]);
 
-  const offset = useMemo(() => currentPage, [currentPage]);
-
-  // Fetch holidays with filters
   const { data: holidaysData, isLoading, refetch } = useFetchAllEntity("holiday", {
     searchParams: {
       limit: String(rowsPerPage),
@@ -64,7 +59,6 @@ export default function Page() {
     },
   });
 
-  // Prepare table data
   const data = useMemo(() => {
     if (Array.isArray(holidaysData?.data)) {
       return holidaysData.data.map((holiday: any) => ({
@@ -89,13 +83,11 @@ export default function Page() {
     if (!open) setSelectedRowData(null);
   }, [open]);
 
-  // Common handler for filters
   const handleFilterChange = useCallback(() => {
     setCurrentPage(1);
     if (refetch) setTimeout(() => refetch(), 100);
   }, [refetch]);
 
-  // Filter change handlers
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setYear(e.target.value);
     handleFilterChange();
@@ -106,7 +98,6 @@ export default function Page() {
     handleFilterChange();
   };
 
-  // Table pagination and search handlers
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
     if (refetch) setTimeout(() => refetch(), 100);
@@ -123,7 +114,6 @@ export default function Page() {
     setCurrentPage(1);
   }, []);
 
-  // Table props
   const props = {
     Data: data,
     Columns: columns,
@@ -177,11 +167,10 @@ export default function Page() {
         size="large"
       />
 
-      {/* Filters */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-accent border-grey border-[1px] rounded-full flex items-center max-w-[350px]">
           <Label className="font-normal text-secondary w-auto px-3 min-w-[100px]">
-            {language === "ar" ? "السنة :" : "Year :"}
+            {t.year} :
           </Label>
           <Input
             placeholder="Enter year"
@@ -194,7 +183,7 @@ export default function Page() {
           <Select onValueChange={handleMonthChange} value={month || ""}>
             <SelectTrigger className="bg-accent border-grey">
               <Label className="font-normal text-secondary">
-                {language === "ar" ? "الشهر :" : "Month :"}
+                {t.month} :
               </Label>
               <SelectValue placeholder="Select month" />
             </SelectTrigger>
