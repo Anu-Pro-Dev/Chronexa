@@ -3,6 +3,12 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
+import { CalendarIcon } from "@/src/icons/icons";
+import { Calendar } from "@/src/components/ui/calendar";
+import { format } from "date-fns";
+import { Label } from "@/src/components/ui/label";
+import { Button } from "@/src/components/ui/button";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -14,7 +20,6 @@ import Lottie from "lottie-react";
 import loadingAnimation from "@/src/animations/hourglass-blue.json";
 
 export default function Page() {
-  const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
@@ -28,6 +33,8 @@ export default function Page() {
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.selfServices || {};
 
@@ -35,13 +42,10 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
-  // Helper function to get employee name from transaction data
   const getEmployeeDisplayInfo = useCallback((transaction: any, language: string = 'en') => {
-    // Check if employee_master exists in the transaction
     const employeeMaster = transaction.employee_master;
     
     if (!employeeMaster) {
-      // Fallback if no employee_master data
       return {
         emp_no: `EMP${transaction.employee_id}`,
         employee_name: `Employee ${transaction.employee_id}`,
@@ -51,7 +55,6 @@ export default function Page() {
       };
     }
 
-    // Extract names based on language preference
     const firstNameEn = employeeMaster.firstname_eng || '';
     const lastNameEn = employeeMaster.lastname_eng || '';
     const firstNameAr = employeeMaster.firstname_arb || '';
@@ -60,10 +63,9 @@ export default function Page() {
     const firstName = language === 'ar' ? firstNameAr : firstNameEn;
     const lastName = language === 'ar' ? lastNameAr : lastNameEn;
     
-    // Create full name
     const fullName = language === 'ar' 
-      ? `${firstNameAr} ${lastNameAr}`.trim()
-      : `${firstNameEn} ${lastNameEn}`.trim();
+      ? `${firstNameAr}`.trim()
+      : `${firstNameEn}`.trim();
 
     return {
       emp_no: employeeMaster.emp_no || `EMP${transaction.employee_id}`,
@@ -79,11 +81,11 @@ export default function Page() {
     setColumns([
       { 
         field: "emp_no", 
-        headerName: "Emp No",
+        headerName: t.employee_no || "Employee No",
       },
       { 
         field: "employee_name", 
-        headerName: "Employee Name",
+        headerName: t.employee_name || "Employee Name",
       },
       {
         field: "reason",
@@ -91,14 +93,25 @@ export default function Page() {
       },
       { 
         field: "transaction_date", 
-        headerName: t.trans_date || "Transaction Date"
+        headerName: t.trans_date || "Transaction Date",
       },
       { 
         field: "transaction_time", 
         headerName: t.trans_time || "Transaction Time"
       },
+      {
+        field: "remarks",
+        headerName: "Remarks"
+      }
     ]);
   }, [language, t]);
+
+  const formatDateForAPI = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const { data: punchesData, isLoading: isLoadingTransactions, error, refetch } = useFetchAllEntity(
     "employeeEventTransaction", 
@@ -107,55 +120,36 @@ export default function Page() {
         limit: String(rowsPerPage),
         offset: String(offset),
         ...(debouncedSearchValue && { search: debouncedSearchValue }),
+        ...(fromDate && { startDate: formatDateForAPI(fromDate) }),
+        ...(toDate && { endDate: formatDateForAPI(toDate) }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
       endpoint: `/employeeEventTransaction/employee/${employeeId}`,
     }
   );
 
-  // Process transaction data using employee_master from the same response
   const data = useMemo(() => {
     if (!Array.isArray(punchesData?.data)) {
       return [];
     }
 
     const processedData = punchesData.data.map((transaction: any) => {
-      // Get employee info directly from transaction.employee_master
       const employeeInfo = getEmployeeDisplayInfo(transaction, language);
       
-      // Process time formatting - Convert UTC to UAE time
       const transactionTimeStr = transaction.transaction_time || '';
       
       let formattedTime = '';
       let formattedDate = '';
       
       if (transactionTimeStr) {
-        // Parse the UTC time
-        const utcDate = new Date(transactionTimeStr);
-        
-        // Convert to UAE timezone (Asia/Dubai)
-        const uaeDate = new Date(utcDate.toLocaleString("en-US", {timeZone: "Asia/Dubai"}));
-        
-        // Format time as HH:MM:SS for display
-        formattedTime = uaeDate.toLocaleTimeString("en-GB", { 
-          hour12: false, 
-          hour: "2-digit", 
-          minute: "2-digit", 
-          second: "2-digit" 
-        });
-        
-        // Format date as DD/MM/YYYY
-        formattedDate = uaeDate.toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "2-digit", 
-          year: "numeric"
-        });
+        const date = new Date(transactionTimeStr);
+        formattedTime = date.toISOString().substr(11, 8);
+        formattedDate = date.toISOString().substr(0, 10);
       }
       
       return {
         ...transaction,
         id: transaction.transaction_id,
-        // Use employee info from transaction.employee_master
         emp_no: employeeInfo.emp_no,
         employee_name: employeeInfo.employee_name,
         firstName: employeeInfo.firstName,
@@ -163,57 +157,13 @@ export default function Page() {
         fullName: employeeInfo.fullName,
         transaction_date: formattedDate,
         transaction_time: formattedTime,
-        // Keep original data for reference
         raw_employee_id: transaction.employee_id,
         employee_master: transaction.employee_master,
-        // Add UAE time for debugging
-        uae_datetime: transactionTimeStr ? new Date(transactionTimeStr).toLocaleString("en-US", {timeZone: "Asia/Dubai"}) : '',
       };
     });
 
     return processedData;
   }, [punchesData, language, getEmployeeDisplayInfo]);
-
-  // // Process transaction data using employee_master from the same response
-  // const data = useMemo(() => {
-  //   if (!Array.isArray(punchesData?.data)) {
-  //     return [];
-  //   }
-
-  //   const processedData = punchesData.data.map((transaction: any) => {
-  //     // Get employee info directly from transaction.employee_master
-  //     const employeeInfo = getEmployeeDisplayInfo(transaction, language);
-      
-  //     // Process time formatting
-  //     const transactionTimeStr = transaction.transaction_time || '';
-  //     const [datePart, timePart] = transactionTimeStr.split('T');
-  //     const formattedTime = timePart ? timePart.substring(0, 5) : '';
-      
-  //     let formattedDate = '';
-  //     if (datePart) {
-  //       const [year, month, day] = datePart.split('-');
-  //       formattedDate = `${day}/${month}/${year}`;
-  //     }
-      
-  //     return {
-  //       ...transaction,
-  //       id: transaction.transaction_id,
-  //       // Use employee info from transaction.employee_master
-  //       emp_no: employeeInfo.emp_no,
-  //       employee_name: employeeInfo.employee_name,
-  //       firstName: employeeInfo.firstName,
-  //       lastName: employeeInfo.lastName,
-  //       fullName: employeeInfo.fullName,
-  //       transaction_date: formattedDate,
-  //       transaction_time: formattedTime,
-  //       // Keep original data for reference
-  //       raw_employee_id: transaction.employee_id,
-  //       employee_master: transaction.employee_master,
-  //     };
-  //   });
-
-  //   return processedData;
-  // }, [punchesData, language, getEmployeeDisplayInfo]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -234,6 +184,23 @@ export default function Page() {
     setSearchValue(newSearchValue);
     setCurrentPage(1);
   }, []);
+
+  const handleFilterChange = useCallback(() => {
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleFromDateChange = (date: Date | undefined) => {
+    setFromDate(date);
+    handleFilterChange();
+  };
+
+  const handleToDateChange = (date: Date | undefined) => {
+    setToDate(date);
+    handleFilterChange();
+  };
   
   const props = {
     Data: data,
@@ -258,16 +225,11 @@ export default function Page() {
     filter_open,
     filter_on_open_change,
   };
-
-  const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction", employeeId] });
-  };
  
   const handleEditClick = (rowData: any) => {
     try {
       const editData = {
         ...rowData,
-        // Include employee info for editing
         employeeInfo: {
           emp_no: rowData.emp_no,
           firstName: rowData.firstName,
@@ -279,7 +241,6 @@ export default function Page() {
       
       sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
       
-      // Optional: Log employee details for debugging
       if (process.env.NODE_ENV === 'development') {
         console.log('Employee Info for editing:', {
           emp_no: rowData.emp_no,
@@ -298,7 +259,6 @@ export default function Page() {
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
     
-    // Optional: Log selected employee details
     if (process.env.NODE_ENV === 'development' && rows.length > 0) {
       console.log('Selected employees:', rows.map(row => ({
         emp_no: row.emp_no,
@@ -308,11 +268,6 @@ export default function Page() {
       })));
     }
   }, []);
-
-  // Helper function to get employee details by transaction (for external use)
-  const getEmployeeDetailsByTransaction = useCallback((transaction: any) => {
-    return getEmployeeDisplayInfo(transaction, language);
-  }, [getEmployeeDisplayInfo, language]);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -341,25 +296,13 @@ export default function Page() {
       <PowerTable
         props={props}
         showEdit={false}
+        showCheckbox={false}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoadingTransactions || isChecking}
       />
     );
   };
-
-  // Optional: Add some debugging info (remove in production)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Transaction data status:', {
-        punchesDataLoaded: !!punchesData?.data,
-        punchesCount: punchesData?.data?.length || 0,
-        currentLanguage: language,
-        currentUser: userInfo?.employee_id,
-        sampleEmployeeMaster: punchesData?.data?.[0]?.employee_master
-      });
-    }
-  }, [punchesData, language, userInfo]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -371,9 +314,60 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
+      {/* Date Filters */}
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.from_date || "From Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary"> 
+                    {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={fromDate}
+                onSelect={handleFromDateChange}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size={"lg"} variant={"outline"}
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.to_date || "To Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary"> 
+                    {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={toDate} onSelect={handleToDateChange} />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">Manage My Punches</h1>
+          <h1 className="font-bold text-xl text-primary">{t.manage_my_punches || "Manage My Punches"}</h1>
         </div>
         <div className="px-6">
           <PowerTabs items={modules?.selfServices?.punches?.items} />

@@ -327,12 +327,12 @@ export default function LanguageProvider({
             value: "permission manage",
           },
           {
-            label: "My Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.my_requests || "My Requests",
             url: "/self-services/permissions/my-requests/",
             value: "permission requests",
           },
           {
-            label: "Team Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.team_requests || "Team Requests",
             url: "/self-services/permissions/team-requests/",
             value: "permission requests",
           },

@@ -54,7 +54,7 @@ export function PunchButton() {
         reason: isPunchedIn ? "OUT" : "IN",
         user_entry_flag: true,
         transaction_type: isPunchedIn ? "OUT" : "IN",
-        remarks: "Punch through web app",
+        remarks: "Web Punch",
         device_id: getDeviceId(),
       };
 
