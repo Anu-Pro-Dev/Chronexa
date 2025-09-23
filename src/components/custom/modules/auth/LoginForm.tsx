@@ -61,23 +61,23 @@ export default function LoginForm() {
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
       loginRequest(values.username, values.password, values.remember_me),
-    onSuccess: (response) => {
-      if (response?.token) {
-        toast.success(translations?.toastNotifications?.login_success || "Login successful!");
-        router.push("/dashboard");
-      } else {
+      onSuccess: (response) => {
+        if (response?.token) {
+          toast.success(translations?.toastNotifications?.login_success || "Login successful!");
+          router.push("/dashboard");
+        } else {
+          form.setError("username", {
+            type: "manual",
+            message: t.error_login
+          });
+        }
+      },
+      onError: (error: any) => {
         form.setError("username", {
           type: "manual",
           message: t.error_login
         });
-      }
-    },
-    onError: (error: any) => {
-      form.setError("username", {
-        type: "manual",
-        message: t.error_login
-      });
-    },
+      },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {

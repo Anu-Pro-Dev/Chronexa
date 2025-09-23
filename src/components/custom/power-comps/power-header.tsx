@@ -13,6 +13,15 @@ import ApprovalModal from "../power-comps/power-approval-modal";
 import toast from "react-hot-toast";
 import { useDeleteEntityMutation } from "@/src/hooks/useDeleteEntityMutation";
 import { camelToSnake } from "@/src/utils/caseConverters";
+import { usePrivileges } from "@/src/providers/PrivilegeProvider";
+import { usePathname } from "next/navigation";
+import { useRBAC } from "@/src/hooks/useRBAC";
+
+type SubModule = {
+  sub_module_id: number;
+  sub_module_name: string;
+  module_id: number;
+};
 
 export default function PowerHeader({
   items,
@@ -82,6 +91,8 @@ export default function PowerHeader({
   size?: "small" | "medium" | "large" | "extraLarge";
 }) {
 
+  const { privilegeMap } = usePrivileges();
+  const pathname = usePathname();
   const deleteMutation = useDeleteEntityMutation({
     onSelectionClear: () => props.setSelectedRows?.([]),
   });
@@ -136,10 +147,43 @@ export default function PowerHeader({
   // Check if any rows are selected for approve/reject buttons
   const hasSelectedRows = (selectedRows ?? []).length > 0;
 
+  console.log("privilegeMap:", privilegeMap);
+  console.log("pathname:", pathname);
+
+  const normalizeModulePath = (moduleName: string) =>
+  moduleName.replace(/\s+/g, "-").toLowerCase();
+
+// Extract the first path segment from pathname
+const firstPathSegment = pathname.split("/")[1]; // e.g., "dashboard"
+
+// Find the active module based on the first segment
+const activeModuleKey = Object.keys(privilegeMap || {}).find(
+  moduleKey => normalizeModulePath(moduleKey) === firstPathSegment
+);
+
+  const normalizePath = (path: string) => path.replace(/\/+$/, '');
+  // inside PowerHeader
+const { allowedModules, allowedSubModules } = useRBAC();
+
+// active module key from privilegeMap
+const activeSubmodules =
+  activeModuleKey && allowedSubModules.length
+    ? allowedSubModules
+        .filter((sub: SubModule) => {
+          // match submodules belonging to this module
+          return allowedModules.find((mod: any) => mod.module_id === sub.module_id && mod.module_name === activeModuleKey);
+        })
+        .map((sub: SubModule) => ({
+          path: `/${normalizeModulePath(activeModuleKey)}/${sub.sub_module_name.replace(/\s+/g, "-").toLowerCase()}`, 
+          label: sub.sub_module_name,
+        }))
+    : [];
+
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center">
-        <PowerShifterTab items={items} />
+        {/* <PowerShifterTab items={items} /> */}
+        <PowerShifterTab items={activeSubmodules} />
         {
           <div className="flex gap-2 items-center">
             {!disableFeatures && !disableSearch && (

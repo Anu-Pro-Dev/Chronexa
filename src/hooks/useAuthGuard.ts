@@ -7,9 +7,12 @@ const decodeJWT = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
     return JSON.parse(jsonPayload);
   } catch (error) {
     console.error('Error decoding JWT:', error);
@@ -23,6 +26,7 @@ export function useAuthGuard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [employeeId, setEmployeeId] = useState<number | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string>(''); // <-- added
   const [isGeofenceEnabled, setIsGeofenceEnabled] = useState(false);
 
   useEffect(() => {    
@@ -38,20 +42,14 @@ export function useAuthGuard() {
       try {
         let finalEmployeeId: number | null = null;
         let finalUserInfo: any = null;
+        let finalUserRole = ''; // <-- added
         let geofenceStatus = false;
 
         const decodedToken = decodeJWT(token);
         
-        if (decodedToken && decodedToken.id) {
-          finalEmployeeId = Number(decodedToken.id);
-        }
-
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-        }
-
-        for (let i = 0; i < sessionStorage.length; i++) {
-          const key = sessionStorage.key(i);
+        if (decodedToken) {
+          if (decodedToken.id) finalEmployeeId = Number(decodedToken.id);
+          if (decodedToken.role) finalUserRole = String(decodedToken.role); // <-- from token
         }
 
         const storageKeys = [
@@ -72,27 +70,14 @@ export function useAuthGuard() {
           if (data) {
             try {
               const parsedData = JSON.parse(data);
+              let userData = parsedData.user && typeof parsedData.user === 'object' ? parsedData.user : parsedData;
               
-              let userData = parsedData;
-              
-              if (parsedData.user && typeof parsedData.user === 'object') {
-                userData = parsedData.user;
-              }
-              
-              if (userData.employeenumber && !finalEmployeeId) {
-                finalEmployeeId = Number(userData.employeenumber);
-              }
-              
+              if (userData.employeenumber && !finalEmployeeId) finalEmployeeId = Number(userData.employeenumber);
+              if (userData.role && !finalUserRole) finalUserRole = String(userData.role); // <-- from storage
               if (!finalUserInfo || (userData.employeename && Object.keys(userData).length >= Object.keys(finalUserInfo).length)) {
                 finalUserInfo = userData;
               }
-              
-              if (userData.hasOwnProperty('isGeofence')) {
-                geofenceStatus = Boolean(userData.isGeofence);
-              } else if (parsedData.hasOwnProperty('isGeofence')) {
-                geofenceStatus = Boolean(parsedData.isGeofence);
-              }
-              
+              if (userData.hasOwnProperty('isGeofence')) geofenceStatus = Boolean(userData.isGeofence);
             } catch (parseError) {
               console.error(`Error parsing ${key}:`, parseError);
             }
@@ -100,21 +85,17 @@ export function useAuthGuard() {
         }
 
         const geofenceData = localStorage.getItem('isGeofence') || sessionStorage.getItem('isGeofence');
-        if (geofenceData) {
+        if (geofenceData && geofenceStatus === false) {
           try {
-            const standaloneGeofence = JSON.parse(geofenceData);
-            if (geofenceStatus === false) {
-              geofenceStatus = Boolean(standaloneGeofence);
-            }
+            geofenceStatus = Boolean(JSON.parse(geofenceData));
           } catch {
-            if (geofenceStatus === false) {
-              geofenceStatus = geofenceData === 'true';
-            }
+            geofenceStatus = geofenceData === 'true';
           }
         }
 
         setEmployeeId(finalEmployeeId);
         setUserInfo(finalUserInfo);
+        setUserRole(finalUserRole); // <-- set state
         setIsGeofenceEnabled(geofenceStatus);
         setIsAuthenticated(true);
         
@@ -134,6 +115,7 @@ export function useAuthGuard() {
     isChecking, 
     employeeId, 
     userInfo,
+    userRole, // <-- return it
     isGeofenceEnabled
   };
 }

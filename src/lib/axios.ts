@@ -1,10 +1,7 @@
 import axios from "axios";
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://192.168.2.111:8000";
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://192.168.2.114:8000";
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://213.42.218.92:5000";
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://wfm.khidmah.com/api";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://wfm.khidmah.com:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://kspkml3z-8000.inc1.devtunnels.ms";
 
 export const USER_TOKEN = "userToken";
 

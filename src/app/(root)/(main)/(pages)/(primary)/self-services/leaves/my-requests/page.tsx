@@ -135,7 +135,7 @@ export default function Page() {
       searchParams: {
         limit: String(rowsPerPage),
         offset: String(offset),
-        ...(selectedOption && selectedOption !== "all" && { status: selectedOption }),
+        ...(selectedOption && selectedOption !== "all" && { leave_status: selectedOption }),
         ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
         ...(toDate && { to_date: formatDateForAPI(toDate) }),
         ...(debouncedSearchValue && { search: debouncedSearchValue }),

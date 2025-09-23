@@ -1,27 +1,3 @@
-// import { NextResponse } from "next/server";
-// import type { NextRequest } from "next/server";
-
-// export function middleware(req: NextRequest) {
-//   const res = NextResponse.next();
-//   const languageCookie = req.cookies.get("language")?.value;
-
-//   if (!languageCookie) {
-//     const acceptLang = req.headers.get("accept-language")?.split(",")[0] || "en";
-//     const lang = acceptLang.startsWith("ar") ? "ar" : "en";
-
-//     res.cookies.set("language", lang, {
-//       path: "/",
-//       maxAge: 60 * 60 * 24 * 365, // 1 year
-//     });
-//   }
-
-//   return res;
-// }
-
-// export const config = {
-//   // matcher: "/:path*", // run middleware on all routes
-//   matcher: [], // empty array = never runs
-// };
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
