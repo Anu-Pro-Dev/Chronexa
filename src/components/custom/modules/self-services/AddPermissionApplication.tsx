@@ -100,7 +100,12 @@ export default function AddPermissionApplication({
   const [remarksLength, setRemarksLength] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
-
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+    fromTime: false,
+    toTime: false,
+  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -120,7 +125,7 @@ export default function AddPermissionApplication({
         onSave(null, data.data);
       }
       queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
-      router.push("/self-services/permissions/my-requests");
+      router.push("/self-services/permissions/my-request");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -139,7 +144,7 @@ export default function AddPermissionApplication({
         onSave(variables.single_permission_id?.toString() ?? null, variables);
       }
       queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
-      router.push("/self-services/permissions/my-requests");
+      router.push("/self-services/permissions/my-request");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -437,7 +442,7 @@ export default function AddPermissionApplication({
                     <FormLabel>
                       From Date <Required />
                     </FormLabel>
-                    <Popover>
+                    <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button size={"lg"} variant={"outline"}
@@ -478,7 +483,7 @@ export default function AddPermissionApplication({
                     <FormLabel>
                       To Date <Required />
                     </FormLabel>
-                    <Popover>
+                    <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button size={"lg"} variant={"outline"}
@@ -526,7 +531,7 @@ export default function AddPermissionApplication({
                 render={({ field }) => (
                   <FormItem className="">
                     <FormLabel>From time <Required/></FormLabel>
-                    <Popover>
+                    <Popover open={popoverStates.fromTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromTime: open }))}>
                       <FormControl>
                         <PopoverTrigger asChild>
                           <Button
@@ -562,7 +567,7 @@ export default function AddPermissionApplication({
                 render={({ field }) => (
                   <FormItem className="">
                   <FormLabel>To time <Required/></FormLabel>
-                    <Popover>
+                    <Popover open={popoverStates.toTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toTime: open }))}>
                       <FormControl>
                         <PopoverTrigger asChild>
                           <Button
@@ -623,7 +628,7 @@ export default function AddPermissionApplication({
                   type="button"
                   size={"lg"}
                   className="w-full"
-                  onClick={() => router.push("/self-services/permissions/my-requests")}
+                  onClick={() => router.push("/self-services/permissions/my-request")}
                 >
                   {translations.buttons.cancel}
                 </Button>

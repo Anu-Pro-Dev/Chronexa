@@ -70,7 +70,10 @@ export default function AddWeeklySchedule({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
-
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -238,7 +241,7 @@ export default function AddWeeklySchedule({
                   <FormLabel>
                     From Date <Required />
                   </FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
@@ -282,7 +285,7 @@ export default function AddWeeklySchedule({
                   <FormLabel>
                     To Date <Required />
                   </FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}

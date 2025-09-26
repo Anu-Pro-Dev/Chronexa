@@ -138,11 +138,10 @@ export default function Page() {
           <h1 className="font-bold text-xl text-primary">{t.manage_perms}</h1>
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.selfServices?.permissions?.items} />
+          <PowerTabs />
         </div>
         <PowerTable
           props={props}
-          showEdit={true}
           onEditClick={handleEditClick}
           onRowSelection={handleRowSelection}
           isLoading={isLoading}

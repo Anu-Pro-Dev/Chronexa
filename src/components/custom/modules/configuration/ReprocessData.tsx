@@ -48,6 +48,10 @@ export default function ReprocessData() {
   });
 
   const router = useRouter();
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       return;
@@ -109,7 +113,7 @@ export default function ReprocessData() {
                       <FormLabel>
                         From Date <Required />
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
@@ -193,7 +197,7 @@ export default function ReprocessData() {
                       <FormLabel>
                         To Date <Required />
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}

@@ -262,13 +262,13 @@ export default function LanguageProvider({
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
-          path: "/self-services/permissions/my-requests/",
+          path: "/self-services/permissions/my-request/",
           value: "permissions",
           hide:true,
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
-          path: "/self-services/permissions/my-requests/add/",
+          path: "/self-services/permissions/my-request/add/",
           value: "permissions",
           hide:true
         },
@@ -285,13 +285,13 @@ export default function LanguageProvider({
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
-          path: "/self-services/leaves/my-requests/",
+          path: "/self-services/leaves/my-request/",
           value: "leaves",
           hide:true,
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
-          path: "/self-services/leaves/my-requests/add/",
+          path: "/self-services/leaves/my-request/add/",
           value: "leaves",
           hide:true
         },
@@ -308,13 +308,13 @@ export default function LanguageProvider({
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
-          path: "/self-services/punches/my-requests/",
+          path: "/self-services/punches/my-request/",
           value: "punches",
           hide:true,
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
-          path: "/self-services/punches/my-requests/add/",
+          path: "/self-services/punches/my-request/add/",
           value: "punches",
           hide:true
         },
@@ -328,12 +328,12 @@ export default function LanguageProvider({
           },
           {
             label: currentLanguageData.translations?.modules?.selfServices?.my_requests || "My Requests",
-            url: "/self-services/permissions/my-requests/",
+            url: "/self-services/permissions/my-request/",
             value: "permission requests",
           },
           {
             label: currentLanguageData.translations?.modules?.selfServices?.team_requests || "Team Requests",
-            url: "/self-services/permissions/team-requests/",
+            url: "/self-services/permissions/team-request/",
             value: "permission requests",
           },
         ],
@@ -347,12 +347,12 @@ export default function LanguageProvider({
           },
           {
             label: currentLanguageData.translations?.modules?.selfServices?.my_requests || "My Requests",
-            url: "/self-services/leaves/my-requests/",
+            url: "/self-services/leaves/my-request/",
             value: "leaves requests",
           },
           {
             label: currentLanguageData.translations?.modules?.selfServices?.team_requests || "Team Requests",
-            url: "/self-services/leaves/team-requests/",
+            url: "/self-services/leaves/team-request/",
             value: "leaves requests",
           },
         ],
@@ -379,19 +379,19 @@ export default function LanguageProvider({
       items: [
         {
           label: currentLanguageData.translations?.modules?.manageApprovals?.my_punches || "Team Requests",
-          path: "/manage-approvals/team-requests/",
+          path: "/manage-approvals/team-request/",
         },
       ],
       teamrequests: { 
         items: [
           {
             label: currentLanguageData.translations?.modules?.manageApprovals?.permissions || "Permissions",
-            url: "/manage-approvals/team-requests/permissions/",
+            url: "/manage-approvals/team-request/permissions/",
             value: "permission approval",
           },
           {
             label: currentLanguageData.translations?.modules?.manageApprovals?.leaves || "Leaves",
-            url: "/manage-approvals/team-requests/leaves/",
+            url: "/manage-approvals/team-request/leaves/",
             value: "leave approval",
           }
         ],

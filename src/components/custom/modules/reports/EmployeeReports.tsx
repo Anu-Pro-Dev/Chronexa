@@ -57,6 +57,10 @@ export default function EmployeeReports() {
   });
 
   const router = useRouter();
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   const { language, translations } = useLanguage();
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -530,7 +534,7 @@ export default function EmployeeReports() {
                       <FormLabel>
                         From Date
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
@@ -565,7 +569,7 @@ export default function EmployeeReports() {
                       <FormLabel>
                         To Date
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}

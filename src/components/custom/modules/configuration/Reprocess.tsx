@@ -9,7 +9,7 @@ import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
-import { format } from "date-fns";
+import { format, toDate } from "date-fns";
 import { useRouter } from "next/navigation";
 import Required from "@/src/components/ui/required";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
@@ -48,6 +48,11 @@ export default function ReprocessData() {
   });
 
   const router = useRouter();
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
+  
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       return;
@@ -109,7 +114,7 @@ export default function ReprocessData() {
                       <FormLabel>
                         From Date <Required />
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
@@ -193,7 +198,7 @@ export default function ReprocessData() {
                       <FormLabel>
                         To Date <Required />
                       </FormLabel>
-                      <Popover>
+                      <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}

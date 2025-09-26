@@ -226,7 +226,6 @@ export default function Page() {
         {/* <FilterWeeklyScheduling/> */}
         <PowerTable
           props={props}
-          showEdit={false}
           onEditClick={handleEditClick}
           onRowSelection={handleRowSelection}
           isLoading={isLoading}

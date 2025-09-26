@@ -65,10 +65,8 @@ export default function Page() {
         ...empGroup,
         id: empGroup.employee_group_id,
         employee_group_members: "Members",
-        // Keep original dates for editing
         original_group_start_date: empGroup.group_start_date,
         original_group_end_date: empGroup.group_end_date,
-        // Format dates for display only
         group_start_date: new Date(empGroup.group_start_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
@@ -174,7 +172,6 @@ export default function Page() {
       />
       <PowerTable
         props={props}
-        showEdit={true}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}

@@ -49,8 +49,12 @@ export function StatusSelector({
       : trimmed;
   };
 
+  const [popoverStates, setPopoverStates] = useState({
+    statusColor: false,
+  });
+
   return (
-    <Popover>
+    <Popover open={popoverStates.statusColor} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, statusColor: open }))}>
       <PopoverTrigger asChild>
         <Button
           size="sm"

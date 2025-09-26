@@ -26,7 +26,7 @@ export default function Page() {
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [sortField, setSortField] = useState<string>("leave_id");
+  const [sortField, setSortField] = useState<string>("single_permissions_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -40,7 +40,10 @@ export default function Page() {
   const [selectedOption, setSelectedOption] = useState<string>("all");
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.selfServices || {};
-
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   const options = [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
@@ -52,16 +55,16 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
-  const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
-    const employeeMaster = leave.employee_master;
+  const getEmployeeDisplayInfo = useCallback((permission: any, language: string = 'en') => {
+    const employeeMaster = permission.employee_master;
     
     if (!employeeMaster) {
       return {
-        emp_no: `EMP${leave.employee_id}`,
-        employee_name: `Employee ${leave.employee_id}`,
+        emp_no: `EMP${permission.employee_id}`,
+        employee_name: `Employee ${permission.employee_id}`,
         firstName: '',
         lastName: '',
-        fullName: `Employee ${leave.employee_id}`
+        fullName: `Employee ${permission.employee_id}`
       };
     }
 
@@ -78,23 +81,23 @@ export default function Page() {
       : `${firstNameEn} ${lastNameEn}`.trim();
 
     return {
-      emp_no: employeeMaster.emp_no || `EMP${leave.employee_id}`,
-      employee_name: fullName || firstName || `Employee ${leave.employee_id}`,
+      emp_no: employeeMaster.emp_no || `EMP${permission.employee_id}`,
+      employee_name: fullName || firstName || `Employee ${permission.employee_id}`,
       firstName: firstName,
       lastName: lastName,
-      fullName: fullName || firstName || `Employee ${leave.employee_id}`,
-      employee_id: leave.employee_id
+      fullName: fullName || firstName || `Employee ${permission.employee_id}`,
+      employee_id: permission.employee_id
     };
   }, [language]);
 
-  const getLeaveTypeName = useCallback((leaveTypes: any) => {
-    if (!leaveTypes) {
+  const getPermissionTypeName = useCallback((permissionTypes: any) => {
+    if (!permissionTypes) {
       return language === "ar" ? "غير معروف" : "Unknown";
     }
     
     return language === "ar" 
-      ? leaveTypes.leave_type_arb || leaveTypes.leave_type_eng || "غير معروف"
-      : leaveTypes.leave_type_eng || leaveTypes.leave_type_arb || "Unknown";
+      ? permissionTypes.permission_type_arb || permissionTypes.permission_type_eng || "غير معروف"
+      : permissionTypes.permission_type_eng || permissionTypes.permission_type_arb || "Unknown";
   }, [language]);
 
   const getStatusLabel = useCallback((flag: number) => {
@@ -108,12 +111,13 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
-      { field: "from_date", headerName: t.from_date || "From Date" },
-      { field: "to_date", headerName: t.to_date || "To Date" },
-      { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
-      { field: "employee_remarks", headerName: t.justification || "Justification" },
-      { field: "leave_status", headerName: t.status || "Status" },
+      { field: "permission_type_name", headerName: t.perm_type || "Permission Type" },
+      { field: "firstName", headerName: t.employee_name || "Employee Name" },
+      { field: "permission_date", headerName: t.date || "Date" },
+      { field: "from_time", headerName: t.from_time || "From Time" },
+      { field: "to_time", headerName: t.to_time || "To Time" },
+      { field: "perm_minutes", headerName: t.perm_mins || "Permission Minutes" },
+      { field: "status", headerName: t.status || "Status" },
     ]);
   }, [language, t]);
 
@@ -124,59 +128,57 @@ export default function Page() {
     return `${year}-${month}-${day}`;
   };
 
-  const formatDateForDisplay = (dateString: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toISOString().split('T')[0];
-  };
-
-  const { data: leavesData, isLoading: isLoadingLeaves, error, refetch } = useFetchAllEntity(
-    "employeeLeave", 
+  const { data: permissionsData, isLoading: isLoadingPermissions, error, refetch } = useFetchAllEntity(
+    "employeeShortPermission", 
     {
       searchParams: {
         limit: String(rowsPerPage),
         offset: String(offset),
-        ...(selectedOption && selectedOption !== "all" && { leave_status: selectedOption }),
+        ...(selectedOption && selectedOption !== "all" && { status: selectedOption }),
         ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
         ...(toDate && { to_date: formatDateForAPI(toDate) }),
         ...(debouncedSearchValue && { search: debouncedSearchValue }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/byemployee/${employeeId}`,
+      endpoint: `/employeeShortPermission/all`,
     }
   );
 
   const data = useMemo(() => {
-    if (!Array.isArray(leavesData?.data)) {
+    if (!Array.isArray(permissionsData?.data)) {
       return [];
     }
 
-    const processedData = leavesData.data.map((leave: any) => {
-      const employeeInfo = getEmployeeDisplayInfo(leave, language);
+    const filteredData = permissionsData.data.filter((permission: any) => 
+      permission.employee_id !== employeeId
+    );
+
+    const processedData = filteredData.map((permission: any) => {
+      const employeeInfo = getEmployeeDisplayInfo(permission, language);
+      const permissionDate = permission.from_date 
+        ? new Date(permission.from_date).toISOString().split('T')[0]
+        : '';
       
-      const formattedFromDate = formatDateForDisplay(leave.from_date);
-      const formattedToDate = formatDateForDisplay(leave.to_date);
-            
       return {
-        ...leave,
-        id: leave.leave_id,
+        ...permission,
+        id: permission.single_permissions_id,
         emp_no: employeeInfo.emp_no,
         employee_name: employeeInfo.employee_name,
         firstName: employeeInfo.firstName,
         lastName: employeeInfo.lastName,
         fullName: employeeInfo.fullName,
-        leave_type_name: getLeaveTypeName(leave.leave_types),
-        from_date: formattedFromDate,
-        to_date: formattedToDate,
-        from_time: leave.from_time ? leave.from_time.substring(11, 19) : leave.from_time,
-        to_time: leave.to_time ? leave.to_time.substring(11, 19) : leave.to_time,
-        leave_status: getStatusLabel(leave.approve_reject_flag),
-        raw_employee_id: leave.employee_id,
-        employee_master: leave.employee_master,
+        permission_type_name: getPermissionTypeName(permission.permission_types),
+        permission_date: permissionDate,
+        from_time: permission.from_time ? permission.from_time.substring(11, 19) : permission.from_time,
+        to_time: permission.to_time ? permission.to_time.substring(11, 19) : permission.to_time,
+        status: getStatusLabel(permission.approve_reject_flag),
+        raw_employee_id: permission.employee_id,
+        employee_master: permission.employee_master,
       };
     });
 
     return processedData;
-  }, [leavesData, language, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel]);
+  }, [permissionsData, language, employeeId, getEmployeeDisplayInfo, getPermissionTypeName, getStatusLabel]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -227,7 +229,7 @@ export default function Page() {
     on_open_change: setOpen,
     selectedRows,
     setSelectedRows,
-    isLoading: isLoadingLeaves || isChecking,
+    isLoading: isLoadingPermissions || isChecking,
     SortField: sortField,
     CurrentPage: currentPage,
     SetCurrentPage: handlePageChange,
@@ -236,38 +238,12 @@ export default function Page() {
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: leavesData?.total || 0,
-    hasNext: leavesData?.hasNext,
+    total: permissionsData?.total || 0,
+    hasNext: permissionsData?.hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
-  };
-
-  const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["employeeLeave"] });
-  };
-
-  const handleEditClick = (rowData: any) => {
-    try {
-      const editData = {
-        ...rowData,
-        employeeInfo: {
-          emp_no: rowData.emp_no,
-          firstName: rowData.firstName,
-          lastName: rowData.lastName,
-          fullName: rowData.fullName,
-          employee_master: rowData.employee_master
-        }
-      };
-      
-      sessionStorage.setItem('editLeaveRequestData', JSON.stringify(editData));
-      
-      router.push("/self-services/leaves/my-requests/add");
-    } catch (error) {
-      console.error("Error setting edit data:", error);
-      toast.error("Failed to load leave data for editing");
-    }
   };
 
   const handleRowSelection = useCallback((rows: any[]) => {
@@ -300,11 +276,8 @@ export default function Page() {
     return (
       <PowerTable
         props={props}
-        showEdit={true}
-        showCheckbox={true}
-        onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
-        isLoading={isLoadingLeaves || isChecking}
+        isLoading={isLoadingPermissions || isChecking}
       />
     );
   };
@@ -313,10 +286,11 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
+        disableAdd
+        disableDelete
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
-        entityName="employeeLeave"
-        isAddNewPagePath="/self-services/leaves/my-requests/add"
+        entityName="employeeShortPermission"
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
@@ -337,7 +311,7 @@ export default function Page() {
           </Select>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -363,7 +337,7 @@ export default function Page() {
           </Popover>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -388,11 +362,11 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            My Leave Requests
+            Team Permission Requests
           </h1>
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.selfServices?.leaves?.items} />
+          <PowerTabs />
         </div>
         {renderPowerTable()}
       </div>

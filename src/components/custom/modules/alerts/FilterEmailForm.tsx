@@ -35,6 +35,10 @@ export default function FilterEmailForm({
 
   const router = useRouter();
   const { translations } = useLanguage();
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -55,7 +59,7 @@ export default function FilterEmailForm({
               render={({ field }) => (
                 <FormItem className="">
                   <FormLabel>From Date</FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -98,7 +102,7 @@ export default function FilterEmailForm({
               render={({ field }) => (
                 <FormItem className="">
                   <FormLabel>To Date</FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button

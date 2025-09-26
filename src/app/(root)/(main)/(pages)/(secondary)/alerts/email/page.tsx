@@ -29,7 +29,10 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.organization || {};
-
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
@@ -169,7 +172,7 @@ export default function Page() {
       
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Popover>
+          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
               <Button 
                 size={"lg"} 
@@ -198,7 +201,7 @@ export default function Page() {
         </div>
         
         <div>
-          <Popover>
+          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
             <PopoverTrigger asChild>
               <Button 
                 size={"lg"} 
@@ -229,7 +232,6 @@ export default function Page() {
 
       <PowerTable
         props={props}
-        showEdit={false}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}

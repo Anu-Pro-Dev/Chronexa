@@ -90,7 +90,10 @@ export default function AddLeaveApplication({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calculatedDays, setCalculatedDays] = useState<number>(0);
   const queryClient = useQueryClient();
-
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -139,7 +142,7 @@ export default function AddLeaveApplication({
     onSuccess: (data) => {
       toast.success("Leave application submitted successfully!");
       queryClient.invalidateQueries({ queryKey: ["employeeLeave"] });
-      router.push("/self-services/leaves/my-requests");
+      router.push("/self-services/leaves/my-request");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -386,7 +389,7 @@ export default function AddLeaveApplication({
                     <FormLabel>
                       From Date <Required />
                     </FormLabel>
-                    <Popover>
+                    <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button size={"lg"} variant={"outline"}
@@ -427,7 +430,7 @@ export default function AddLeaveApplication({
                     <FormLabel>
                       To Date <Required />
                     </FormLabel>
-                    <Popover>
+                    <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button size={"lg"} variant={"outline"}
@@ -522,7 +525,7 @@ export default function AddLeaveApplication({
                   type="button"
                   size={"lg"}
                   className="w-full"
-                  onClick={() => router.push("/self-services/leaves/my-requests")}
+                  onClick={() => router.push("/self-services/leaves/my-request")}
                 >
                   {translations.buttons.cancel}
                 </Button>

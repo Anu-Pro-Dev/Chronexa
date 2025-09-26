@@ -1,11 +1,32 @@
-'use client'
-import React, { createContext, useContext, ReactNode, useMemo } from "react";
+"use client";
+import React, { createContext, useContext, ReactNode } from "react";
 import { useRBAC } from "@/src/hooks/useRBAC";
+
+export interface TabPrivilege {
+  tab_id: number;
+  tab_name: string;
+  allowed: boolean;
+  privileges: {
+    access: boolean;
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+}
 
 export interface SubModulePrivilege {
   path: string;
   allowed: boolean;
   sub_module_name: string;
+  privileges: {
+    access: boolean;
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+  tabs: TabPrivilege[];
 }
 
 export interface ModulePrivilege {
@@ -21,32 +42,13 @@ export interface PrivilegeContextType {
   isLoading: boolean;
 }
 
-const defaultContext: PrivilegeContextType = { privilegeMap: {}, isLoading: true };
-const PrivilegeContext = createContext<PrivilegeContextType>(defaultContext);
+const PrivilegeContext = createContext<PrivilegeContextType>({
+  privilegeMap: {},
+  isLoading: true,
+});
 
 export function PrivilegeProvider({ children }: { children: ReactNode }) {
-  const { allowedModules, allowedSubModules, isLoading } = useRBAC(); // ✅ include isLoading
-
-  const privilegeMap: PrivilegeMap = useMemo(() => {
-    const map: PrivilegeMap = {};
-
-    allowedModules.forEach((mod: any) => {
-      const subModules = allowedSubModules
-        .filter((sm: any) => sm.module_id === mod.module_id)
-        .map((sm: any) => ({
-          path: sm.sub_module_name.replace(/\s+/g, "-").toLowerCase(),
-          allowed: true,
-          sub_module_name: sm.sub_module_name,
-        }));
-
-      map[mod.module_name] = {
-        allowed: subModules.length > 0,
-        subModules,
-      };
-    });
-
-    return map;
-  }, [allowedModules, allowedSubModules]);
+  const { privilegeMap, isLoading } = useRBAC();
 
   return (
     <PrivilegeContext.Provider value={{ privilegeMap, isLoading }}>
@@ -58,4 +60,3 @@ export function PrivilegeProvider({ children }: { children: ReactNode }) {
 export function usePrivileges() {
   return useContext(PrivilegeContext);
 }
-

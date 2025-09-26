@@ -10,9 +10,9 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
 
   const getApplyLink = () => {
     if (page === "Leaves") {
-      return "/self-services/leaves/my-requests/add";
+      return "/self-services/leaves/my-request/add";
     } else if (page === "Permissions") {
-      return "/self-services/permissions/my-requests/add";
+      return "/self-services/permissions/my-request/add";
     }
     return "/dashboard/my-attendance/";
   }

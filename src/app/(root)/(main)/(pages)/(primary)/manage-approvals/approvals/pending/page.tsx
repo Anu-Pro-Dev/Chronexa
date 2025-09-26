@@ -53,8 +53,8 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.manageApprovals?.items}
-        disableAdd
-        disableDelete
+        // disableAdd
+        // disableDelete
         enableApprove
         enableReject
         // enableFilters
@@ -72,7 +72,7 @@ export default function Page() {
           </h1> */}
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.manageApprovals?.approvals?.items} />
+          <PowerTabs />
         </div>
         <PowerTable props={props} api={"/self-services/approvals/pending"} />
       </div>

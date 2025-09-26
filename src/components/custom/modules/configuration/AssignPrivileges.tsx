@@ -64,9 +64,17 @@ export default function AssignPrivileges({
   const queryClient = useQueryClient();
   
   // Fetch data from APIs
-  const { data: modulesData, isLoading: isLoadingModules } = useFetchAllEntity("secModule");
-  const { data: subModulesData, isLoading: isLoadingSubModules } = useFetchAllEntity("secSubModule");
-  const { data: rolePrivilegesData, isLoading: isLoadingPrivileges } = useFetchAllEntity("secRolePrivilege");
+  const { data: modulesData, isLoading: modulesLoading } = useFetchAllEntity("secModule", {
+    removeAll: true,
+  });
+  
+  const { data: subModulesData, isLoading: subModulesLoading } = useFetchAllEntity("secSubModule", {
+    removeAll: true,
+  });
+
+  const { data: rolePrivilegesData, isLoading: isLoadingPrivileges } = useFetchAllEntity("secRolePrivilege", {
+    removeAll: true,
+  });
 
   // Add mutation for new privileges
   const addMutation = useMutation({
@@ -379,7 +387,7 @@ export default function AssignPrivileges({
   }
 
   // Loading state
-  if (isLoadingModules || isLoadingSubModules || isLoadingPrivileges) {
+  if (modulesLoading || subModulesLoading || isLoadingPrivileges) {
     return (
       <ResponsiveModal open={modal_props.open} onOpenChange={modal_props.on_open_change}>
         <ResponsiveModalContent size="extraLarge">

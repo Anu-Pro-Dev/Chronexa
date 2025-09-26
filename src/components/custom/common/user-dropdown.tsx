@@ -42,7 +42,7 @@ export function UserDropdown() {
               : parsedUser.employeename?.lastarb?.trim(),
           email: parsedUser.email,
           employeeId: parsedUser.employeenumber?.toString() || undefined,
-          role: parsedUser.roley || "Admin",
+          role: parsedUser.role || "Admin",
         };
 
         setUser(mappedUser);
@@ -78,7 +78,7 @@ export function UserDropdown() {
               <span className="truncate text-sm font-bold text-text-primary">
                 {user?.firstName}
               </span>
-              <span className="truncate text-sm font-semibold text-secondary">
+              <span className="truncate text-xs font-semibold text-secondary capitalize">
                 {user?.role}
               </span>
             </div>

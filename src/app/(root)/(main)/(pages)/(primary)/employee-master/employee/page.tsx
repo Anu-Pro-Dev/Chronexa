@@ -27,7 +27,6 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
-  // Fetch employee data
   const { data: employeeData, isLoading, refetch } = useFetchAllEntity("employee", {
     searchParams: {
       limit: String(rowsPerPage),
@@ -36,17 +35,14 @@ export default function Page() {
     },
   });
 
-  // Fetch organization data
   const { data: organizationData } = useFetchAllEntity("organization", {
     removeAll: true,
   });
 
-  // Fetch designation data
   const { data: designationData } = useFetchAllEntity("designation", {
     removeAll: true,
   });
 
-  // Create lookup maps for efficient data mapping
   const organizationMap = useMemo(() => {
     if (!organizationData?.data) return {};
     return organizationData.data.reduce((acc: any, org: any) => {
@@ -63,7 +59,6 @@ export default function Page() {
     }, {});
   }, [designationData, language]);
 
-  // Create employee map for manager names
   const employeeMap = useMemo(() => {
     if (!employeeData?.data) return {};
     return employeeData.data.reduce((acc: any, emp: any) => {
@@ -187,8 +182,6 @@ export default function Page() {
       />
       <PowerTable
         props={props}
-        showCheckbox={false} 
-        showEdit={true}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}

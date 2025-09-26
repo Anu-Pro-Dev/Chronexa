@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { cn } from "@/src/utils/utils";
@@ -26,7 +26,11 @@ export default function RamadanForm({
 }) {
   const { form, schema } = useRamadanForm(); // Use your custom hook
   const router = useRouter();
-const { translations } = useLanguage();
+  const { translations } = useLanguage();
+  const [popoverStates, setPopoverStates] = useState({
+    inTime: false,
+    outTime: false,
+  });
   // Fetch organizations and locations
   const { data: organizations } = useFetchAllEntity("organization");
   const { data: locations } = useFetchAllEntity("location");
@@ -166,7 +170,7 @@ const { translations } = useLanguage();
               return (
                 <FormItem>
                   <FormLabel className="text-left">In time <Required/></FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.inTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
                         <Button
@@ -210,7 +214,7 @@ const { translations } = useLanguage();
               return (
                 <FormItem>
                   <FormLabel className="text-left">Out time <Required/></FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.outTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, outTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
                         <Button

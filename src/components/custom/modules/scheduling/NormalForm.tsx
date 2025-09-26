@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { cn } from "@/src/utils/utils";
@@ -30,6 +30,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
   const router = useRouter();
   const clearSelectedRowData = useScheduleEditStore((state) => state.clearSelectedRowData);
   const { translations } = useLanguage();
+  const [popoverStates, setPopoverStates] = useState({
+    inTime: false,
+    outTime: false,
+    inactiveDate: false,
+  });
   // Fetch organizations and locations
   const { data: organizations } = useFetchAllEntity("organization");
   const { data: locations } = useFetchAllEntity("location");
@@ -168,7 +173,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               return (
                 <FormItem>
                   <FormLabel className="text-left">In time <Required/></FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.inTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
                         <Button
@@ -212,7 +217,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               return (
                 <FormItem>
                   <FormLabel className="text-left">Out time <Required/></FormLabel>
-                  <Popover>
+                  <Popover open={popoverStates.outTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, outTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
                         <Button
@@ -304,7 +309,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                 <FormLabel>
                   Inactive Date
                 </FormLabel>
-                <Popover>
+                <Popover open={popoverStates.inactiveDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inactiveDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}

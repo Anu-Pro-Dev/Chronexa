@@ -4,5 +4,5 @@ import { redirect } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 export default function Page() {
   const { modules } = useLanguage();
-  return redirect("/manage-approvals/team-requests/permissions/")
+  return redirect("/manage-approvals/team-request/permissions/")
 }

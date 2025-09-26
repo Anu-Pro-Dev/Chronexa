@@ -215,8 +215,6 @@ export default function EmployeeOnboardingPage() {
     },
   });
 
-  // Helper to extract error messages from a react-hook-form instance.
-  // Returns an array of strings like "Personal: email — Invalid email"
   const extractErrorsFromForm = (form: any, formLabel: string) => {
     const errs = form.formState?.errors || {};
     const messages: string[] = [];
@@ -252,7 +250,6 @@ export default function EmployeeOnboardingPage() {
         break;
 
       case "credentials-form":
-        // skip credentials validation when editing an existing employee
         if (isEdit) {
           isValid = true;
         } else {
@@ -291,7 +288,6 @@ export default function EmployeeOnboardingPage() {
     setLoading(true);
     const isEdit = !!selectedRowData?.employee_id;
 
-    // Trigger forms conditionally: skip credentials when editing
     const personalValid = await personalForm.trigger();
     const officialValid = await officialForm.trigger();
     const flagsValid = await flagsForm.trigger();
@@ -300,14 +296,12 @@ export default function EmployeeOnboardingPage() {
     const isValid = personalValid && officialValid && flagsValid && credentialsValid;
 
     if (!isValid) {
-      // gather messages from all failing forms (skip credentials if edit)
       const messages: string[] = [];
       if (!personalValid) messages.push(...extractErrorsFromForm(personalForm, "Personal"));
       if (!officialValid) messages.push(...extractErrorsFromForm(officialForm, "Official"));
       if (!flagsValid) messages.push(...extractErrorsFromForm(flagsForm, "Flags"));
       if (!isEdit && !credentialsValid) messages.push(...extractErrorsFromForm(credentialsForm, "Credentials"));
 
-      // show up to 5 error messages in a single toast
       const toShow = messages.length ? messages.slice(0, 5).join(" | ") : "Please fix the validation errors.";
       toast.error(toShow);
       setLoading(false);
@@ -329,7 +323,6 @@ export default function EmployeeOnboardingPage() {
     combined = transformDatesForAPI(combined, language);
 
     if (selectedRowData?.employee_id) {
-      // On edit: remove credentials from payload if present (no need to update secusers here)
       const { username, password, ...rest } = combined;
 
       editMutation.mutate({
@@ -337,7 +330,6 @@ export default function EmployeeOnboardingPage() {
         ...rest,
       });
     } else {
-      // On create: credentials are required (we already validated them above for non-edit)
       addMutation.mutate(combined);
     }
   };

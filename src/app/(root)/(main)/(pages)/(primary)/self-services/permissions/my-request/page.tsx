@@ -40,7 +40,10 @@ export default function Page() {
   const [selectedOption, setSelectedOption] = useState<string>("all");
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.selfServices || {};
-
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   const options = [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
@@ -109,7 +112,6 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       { field: "permission_type_name", headerName: t.perm_type || "Permission Type" },
-      { field: "firstName", headerName: t.employee_name || "Employee Name" },
       { field: "permission_date", headerName: t.date || "Date" },
       { field: "from_time", headerName: t.from_time || "From Time" },
       { field: "to_time", headerName: t.to_time || "To Time" },
@@ -137,7 +139,7 @@ export default function Page() {
         ...(debouncedSearchValue && { search: debouncedSearchValue }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeShortPermission/all`,
+      endpoint: `/employeeShortPermission/byemployee/${employeeId}`,
     }
   );
 
@@ -146,11 +148,7 @@ export default function Page() {
       return [];
     }
 
-    const filteredData = permissionsData.data.filter((permission: any) => 
-      permission.employee_id !== employeeId
-    );
-
-    const processedData = filteredData.map((permission: any) => {
+    const processedData = permissionsData.data.map((permission: any) => {
       const employeeInfo = getEmployeeDisplayInfo(permission, language);
       const permissionDate = permission.from_date 
         ? new Date(permission.from_date).toISOString().split('T')[0]
@@ -175,7 +173,7 @@ export default function Page() {
     });
 
     return processedData;
-  }, [permissionsData, language, employeeId, getEmployeeDisplayInfo, getPermissionTypeName, getStatusLabel]);
+  }, [permissionsData, language, getEmployeeDisplayInfo, getPermissionTypeName, getStatusLabel]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -243,6 +241,32 @@ export default function Page() {
     filter_on_open_change,
   };
 
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+  };
+
+  const handleEditClick = (rowData: any) => {
+    try {
+      const editData = {
+        ...rowData,
+        employeeInfo: {
+          emp_no: rowData.emp_no,
+          firstName: rowData.firstName,
+          lastName: rowData.lastName,
+          fullName: rowData.fullName,
+          employee_master: rowData.employee_master
+        }
+      };
+      
+      sessionStorage.setItem('editPermissionRequestData', JSON.stringify(editData));
+      
+      router.push("/self-services/permissions/my-request/add");
+    } catch (error) {
+      console.error("Error setting edit data:", error);
+      toast.error("Failed to load permission data for editing");
+    }
+  };
+
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -273,8 +297,7 @@ export default function Page() {
     return (
       <PowerTable
         props={props}
-        showEdit={false}
-        showCheckbox={false}
+        onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoadingPermissions || isChecking}
       />
@@ -285,11 +308,10 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        disableAdd
-        disableDelete
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeShortPermission"
+        isAddNewPagePath="/self-services/permissions/my-request/add"
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
@@ -310,7 +332,7 @@ export default function Page() {
           </Select>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -336,7 +358,7 @@ export default function Page() {
           </Popover>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -361,11 +383,11 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Team Permission Requests
+            My Permission Requests
           </h1>
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.selfServices?.permissions?.items} />
+          <PowerTabs />
         </div>
         {renderPowerTable()}
       </div>

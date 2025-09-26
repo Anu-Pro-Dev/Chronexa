@@ -30,6 +30,11 @@ export default function Page() {
   const [open, on_open_change] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
+
   const props = {
     Data,
     SetData,
@@ -58,7 +63,7 @@ export default function Page() {
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Popover>
+          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -82,7 +87,7 @@ export default function Page() {
           </Popover>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
           <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -104,8 +109,7 @@ export default function Page() {
       </div>
       <PowerTable 
         props={props}
-        api={"/alerts/sms"} 
-        showCheckbox={true} 
+        api={"/alerts/sms"}
         onRowSelection={setSelectedRows}
         customColDef={{
           flex: 0,

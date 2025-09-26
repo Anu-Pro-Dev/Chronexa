@@ -100,7 +100,6 @@ export default function Page() {
       />
       <PowerTable
         props={props}
-        showEdit={false}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}

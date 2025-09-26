@@ -9,10 +9,11 @@ import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
-import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
@@ -29,18 +30,20 @@ export default function Page() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedOption, setSelectedOption] = useState<string>("all");
-  const [employeeFilter, setEmployeeFilter] = useState<string>("");
-  const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("");
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
-  const debouncedLeaveTypeFilter = useDebounce(leaveTypeFilter, 300);
   const t = translations?.modules?.selfServices || {};
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
 
   const options = [
     { value: "all", label: "All" },
@@ -110,7 +113,6 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
-      { field: "firstName", headerName: t.employee_name || "Employee Name" },
       { field: "from_date", headerName: t.from_date || "From Date" },
       { field: "to_date", headerName: t.to_date || "To Date" },
       { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
@@ -141,11 +143,9 @@ export default function Page() {
         ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
         ...(toDate && { to_date: formatDateForAPI(toDate) }),
         ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
-        ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/all`,
+      endpoint: `/employeeLeave/byemployee/${employeeId}`,
     }
   );
 
@@ -224,16 +224,6 @@ export default function Page() {
     handleFilterChange();
   };
 
-  const handleEmployeeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmployeeFilter(event.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleLeaveTypeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLeaveTypeFilter(event.target.value);
-    setCurrentPage(1);
-  };
-
   const props = {
     Data: data,
     Columns: columns,
@@ -256,6 +246,32 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
+  };
+
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["employeeLeave"] });
+  };
+
+  const handleEditClick = (rowData: any) => {
+    try {
+      const editData = {
+        ...rowData,
+        employeeInfo: {
+          emp_no: rowData.emp_no,
+          firstName: rowData.firstName,
+          lastName: rowData.lastName,
+          fullName: rowData.fullName,
+          employee_master: rowData.employee_master
+        }
+      };
+      
+      sessionStorage.setItem('editLeaveRequestData', JSON.stringify(editData));
+      
+      router.push("/self-services/leaves/my-request/add");
+    } catch (error) {
+      console.error("Error setting edit data:", error);
+      toast.error("Failed to load leave data for editing");
+    }
   };
 
   const handleRowSelection = useCallback((rows: any[]) => {
@@ -288,7 +304,7 @@ export default function Page() {
     return (
       <PowerTable
         props={props}
-        showCheckbox={false}
+        onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoadingLeaves || isChecking}
       />
@@ -302,6 +318,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeLeave"
+        isAddNewPagePath="/self-services/leaves/my-request/add"
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
@@ -322,7 +339,7 @@ export default function Page() {
           </Select>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -348,7 +365,7 @@ export default function Page() {
           </Popover>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -369,43 +386,15 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
-        <div>
-          <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
-            <Label className="font-normal text-secondary whitespace-nowrap mr-2">
-              {t.employee_id || "Employee ID"} :
-            </Label>
-            <Input
-              type="text"
-              value={employeeFilter}
-              onChange={handleEmployeeFilterChange}
-              placeholder={t.placeholder_employee_id || "Enter Employee ID"}
-              className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
-            />
-          </div>
-        </div>
-        <div>
-          <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
-            <Label className="font-normal text-secondary whitespace-nowrap mr-2">
-              {t.leavetype_id || "Leave Type ID"} :
-            </Label>
-            <Input
-              type="text"
-              value={leaveTypeFilter}
-              onChange={handleLeaveTypeFilterChange}
-              placeholder={t.placeholder_leavetype_id || "Enter leave type ID"}
-              className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
-            />
-          </div>
-        </div>
       </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Team Leave Requests
+            My Leave Requests
           </h1>
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.selfServices?.leaves?.items} />
+          <PowerTabs />
         </div>
         {renderPowerTable()}
       </div>

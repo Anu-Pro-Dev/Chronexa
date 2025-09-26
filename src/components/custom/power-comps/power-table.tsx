@@ -11,7 +11,7 @@ import { FaPen } from "react-icons/fa";
 import { CheckCircle, XCircle } from "lucide-react";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/src/animations/hourglass-blue.json";
-import { pad } from "lodash";
+import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 
 const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data: any) => void }) => {
   const handleClick = () => {
@@ -28,8 +28,8 @@ const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data
 export default function PowerTable({
   props,
   api,
-  showEdit = false,
-  showCheckbox = true,
+  // showEdit = false,
+  // showCheckbox = true,
   onEditClick,
   customColDef = {},
   ispageValue5,
@@ -38,8 +38,8 @@ export default function PowerTable({
 }: {
   props: any;
   api?: any;
-  showEdit?: boolean;
-  showCheckbox?: boolean;
+  // showEdit?: boolean;
+  // showCheckbox?: boolean;
   onEditClick?: (data: any) => void;
   customColDef?: any;
   ispageValue5?: any;
@@ -59,7 +59,36 @@ export default function PowerTable({
   const hasNext = props.hasNext || false;
   
   const totalPages = Math.ceil(totalRecords / pageSize);
+  const { privilegeMap } = usePrivileges();
+  const pathname = window?.location?.pathname || "";
+  const firstPathSegment = pathname.split("/")[1];
 
+  const activeModuleKey = Object.keys(privilegeMap).find(
+    (key) => key.replace(/\s+/g, "-").toLowerCase() === firstPathSegment
+  );
+
+  const activeSubmodules = activeModuleKey
+    ? privilegeMap[activeModuleKey]?.subModules || []
+    : [];
+  
+  const activeSubmodule = activeSubmodules.find(sm => pathname.includes(sm.path));
+
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const submodulePathIndex = pathSegments.findIndex(seg => seg === activeSubmodule?.path);
+
+  const currentTabSlug = pathSegments[submodulePathIndex + 1]; // next segment after submodule path
+
+  const currentTab = activeSubmodule?.tabs?.find(tab =>
+    tab.tab_name.replace(/\s+/g, "-").toLowerCase() === currentTabSlug
+  );
+  
+  const effectivePrivileges = {
+    create: currentTab?.privileges?.create ?? activeSubmodule?.privileges?.create ?? false,
+    edit: currentTab?.privileges?.edit ?? activeSubmodule?.privileges?.edit ?? false,
+    delete: currentTab?.privileges?.delete ?? activeSubmodule?.privileges?.delete ?? false,
+    view: currentTab?.privileges?.view ?? activeSubmodule?.privileges?.view ?? false,
+  };
+  
   const onSelectionChanged = (event: any) => {
     const selectedNodes = event.api.getSelectedNodes();
     const newSelectedRows = selectedNodes.map((node: any) => node.data);
@@ -201,6 +230,21 @@ export default function PowerTable({
       </div>
     );
   };
+
+  // const showEdit = activeSubmodules.some(
+  //   (sm) => pathname.includes(sm.path) && sm.privileges.edit
+  // );
+
+  const showEdit = effectivePrivileges.edit;
+  const showCheckbox = effectivePrivileges.create || effectivePrivileges.edit || effectivePrivileges.delete;
+
+  // Show checkboxes only if create/edit/delete is true
+  // If only view_flag is true, hide checkboxes
+  // const showCheckbox = activeSubmodules.some(
+  //   (sm) =>
+  //     pathname.includes(sm.path) &&
+  //     (sm.privileges.create || sm.privileges.edit || sm.privileges.delete)
+  // );
 
   const columnDefs = [
     ...(showCheckbox

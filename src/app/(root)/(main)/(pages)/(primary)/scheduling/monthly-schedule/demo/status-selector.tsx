@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import {useState} from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Button } from "@/src/components/ui/button";
 
@@ -13,10 +14,16 @@ export function StatusSelector({
   status,
   onStatusChange,
 }: StatusSelectorProps) {
+
+  const [popoverStates, setPopoverStates] = useState({
+    scheduleSelect: false,
+    toDate: false,
+  });
+
   if (!status) return null;
 
   return (
-    <Popover>
+    <Popover open={popoverStates.scheduleSelect} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, scheduleSelect: open }))}>
       <PopoverTrigger asChild>
         <Button
           size={'sm'}

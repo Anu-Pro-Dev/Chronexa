@@ -72,7 +72,7 @@ export default function Page() {
           </h1> */}
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.manageApprovals?.teamrequests?.items} />
+          <PowerTabs />
         </div>
         <PowerTable props={props} api={"/self-services/approvals/pending"} />
       </div>

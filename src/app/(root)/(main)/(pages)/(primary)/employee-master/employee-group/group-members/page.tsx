@@ -30,7 +30,6 @@ export default function MembersTable() {
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.employeeMaster || {};
 
-  // Function to preserve URL parameters
   const preserveUrlParams = useCallback(() => {
     if (group && !searchParams.get("group")) {
       const params = new URLSearchParams(searchParams.toString());
@@ -39,17 +38,14 @@ export default function MembersTable() {
     }
   }, [group, searchParams, pathname, router]);
 
-  // Ensure URL parameters are preserved on component mount and updates
   useEffect(() => {
     preserveUrlParams();
   }, [preserveUrlParams]);
 
-  // Calculate offset for pagination
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
-  // Set up columns
   useEffect(() => {
     setColumns([
       { field: "employee_no", headerName: t.emp_no },
@@ -68,7 +64,6 @@ export default function MembersTable() {
     },
   });
 
-  // Fetch groups data
   const { data: groupsData, isLoading: isLoadingGroups } = useFetchAllEntity("employeeGroup");
 
   const filteredGroupMembers = useMemo(() => {
@@ -79,7 +74,6 @@ export default function MembersTable() {
     let filtered = groupMembersData.data;
     
     if (group && groupsData?.data) {      
-      // Find the group ID for the given group code
       const targetGroup = groupsData.data.find((g: any) => 
         g.group_code === group || g.code === group || g.groupCode === group
       );
@@ -94,21 +88,20 @@ export default function MembersTable() {
           return matches;
         });
       } else {
-        filtered = []; // No matches if group not found
+        filtered = [];
       }      
     }
     
     return filtered;
   }, [groupMembersData, groupsData, group]);
 
-  // Process and merge data - Updated to use the nested employee_master data
   const filteredData = useMemo(() => {
     if (!filteredGroupMembers || filteredGroupMembers.length === 0) {
       return [];
     }
     
     const mergedData = filteredGroupMembers.map((member: any) => {
-      const emp = member.employee_master; // Get employee data from nested object
+      const emp = member.employee_master;
       
       if (!emp) {
         console.warn(`No employee_master data found for group member ID: ${member.group_member_id}`);
@@ -139,7 +132,6 @@ export default function MembersTable() {
     return mergedData;
   }, [filteredGroupMembers, language]);
 
-  // Loading state
   const isLoading = isLoadingGroupMembers || isLoadingGroups;
 
   useEffect(() => {
@@ -148,7 +140,6 @@ export default function MembersTable() {
     }
   }, [open]);
 
-  // Pagination handlers - matching employee-group structure
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
     
@@ -171,12 +162,10 @@ export default function MembersTable() {
     setCurrentPage(1);
   }, []);
 
-  // Modified handleSave to preserve URL parameters
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["employeeGroupMember"] });
     setOpen(false);
     
-    // Ensure URL parameters are preserved after save
     setTimeout(() => {
       if (group) {
         const params = new URLSearchParams(searchParams.toString());
@@ -188,11 +177,8 @@ export default function MembersTable() {
     }, 100);
   }, [queryClient, group, searchParams, pathname, router]);
 
-  // Modified handleOpenChange to preserve URL parameters
   const handleOpenChange = useCallback((isOpen: boolean) => {
     setOpen(isOpen);
-    
-    // Preserve URL parameters when modal state changes
     if (group) {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.get("group")) {
@@ -211,7 +197,6 @@ export default function MembersTable() {
     setSelectedRows(rows);
   }, []);
 
-  // Props object with pagination data - matching employee-group structure
   const props = {
     Data: filteredData,
     Columns: columns,

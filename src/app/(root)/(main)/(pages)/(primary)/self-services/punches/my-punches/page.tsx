@@ -37,7 +37,10 @@ export default function Page() {
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.selfServices || {};
-
+  const [popoverStates, setPopoverStates] = useState({
+    fromDate: false,
+    toDate: false,
+  });
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
@@ -295,8 +298,6 @@ export default function Page() {
     return (
       <PowerTable
         props={props}
-        showEdit={false}
-        showCheckbox={false}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoadingTransactions || isChecking}
@@ -317,7 +318,7 @@ export default function Page() {
       {/* Date Filters */}
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Popover>
+          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -343,7 +344,7 @@ export default function Page() {
           </Popover>
         </div>
         <div>
-          <Popover>
+          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
             <PopoverTrigger asChild>
               <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
@@ -370,7 +371,7 @@ export default function Page() {
           <h1 className="font-bold text-xl text-primary">{t.manage_my_punches || "Manage My Punches"}</h1>
         </div>
         <div className="px-6">
-          <PowerTabs items={modules?.selfServices?.punches?.items} />
+          <PowerTabs />
         </div>
         {renderPowerTable()}
       </div>
