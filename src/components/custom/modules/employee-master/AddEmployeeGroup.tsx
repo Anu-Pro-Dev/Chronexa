@@ -2,11 +2,16 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
@@ -17,10 +22,15 @@ import { format } from "date-fns";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addEmployeeGroupRequest, editEmployeeGroupRequest, getManagerEmployees } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  group_code: z.string().default("").transform((val) => val.toUpperCase()),
-  group_name: z.string().default(""),
+  group_code: z
+    .string()
+    .min(1, { message: "employee_group_code_required" })
+    .transform((val) => val.toUpperCase()),
+  group_name: z.string().min(1, { message: "employee_group_name_required" }),
   group_start_date: z.date().nullable().optional(),
   group_end_date: z.date().nullable().optional(),
   schedule_flag: z.boolean().optional().default(false),
@@ -37,24 +47,26 @@ export default function AddEmployeeGroups({
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
 }) {
-
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
+  const t = translations?.modules?.employeeMaster || {};
+  const errT = translations?.formErrors || {};
 
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
-  })
+  });
 
   const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }))
-  }
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      group_code:"",
+      group_code: "",
       group_name: "",
       group_start_date: null,
       group_end_date: null,
@@ -80,7 +92,6 @@ export default function AddEmployeeGroups({
           language === "en"
             ? selectedRowData.group_name_eng ?? ""
             : selectedRowData.group_name_arb ?? "",
-        // Use original dates instead of formatted ones
         group_start_date: selectedRowData.original_group_start_date
           ? new Date(selectedRowData.original_group_start_date) : null,
         group_end_date: selectedRowData.original_group_end_date
@@ -90,23 +101,30 @@ export default function AddEmployeeGroups({
         reporting_person_id: selectedRowData.reporting_person_id ?? undefined,
       });
     } else {
-      form.reset(); // clears on add
+      form.reset({
+        group_code: "",
+        group_name: "",
+        group_start_date: null,
+        group_end_date: null,
+        schedule_flag: false,
+        reporting_group_flag: false,
+        reporting_person_id: undefined,
+      });
     }
   }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addEmployeeGroupRequest,
     onSuccess: (data) => {
-      toast.success("Employee group added successfully!");
+      showToast("success", "addempgrp_success");
       onSave(null, data.data);
       on_open_change(false);
-      queryClient.invalidateQueries({ queryKey: ["employeeGroup"] });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -114,37 +132,36 @@ export default function AddEmployeeGroups({
   const editMutation = useMutation({
     mutationFn: editEmployeeGroupRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Employee group updated successfully!");
+      showToast("success", "updateempgrp_success");
       onSave(variables.employee_group_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["employeeGroup"] });
       on_open_change(false);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
-
     setIsSubmitting(true);
-    
+
     try {
       const payload: any = {
         group_code: values.group_code,
         group_start_date: values.group_start_date
-          ? format(values.group_start_date, "yyyy-MM-dd"): null,
+          ? format(values.group_start_date, "yyyy-MM-dd") : null,
         group_end_date: values.group_end_date
-          ? format(values.group_end_date, "yyyy-MM-dd"): null,  
+          ? format(values.group_end_date, "yyyy-MM-dd") : null,
         schedule_flag: values.schedule_flag,
-        reporting_group_flag: values.reporting_group_flag,        
+        reporting_group_flag: values.reporting_group_flag,
         reporting_person_id: values.reporting_person_id,
       };
-      // Add only the language-specific name being edited
+
       if (language === "en") {
         payload.group_name_eng = values.group_name;
       } else {
@@ -174,7 +191,7 @@ export default function AddEmployeeGroups({
                 control={form.control}
                 name="schedule_flag"
                 render={({ field }) => (
-                  <FormItem className=" ">
+                  <FormItem>
                     <FormControl>
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -182,7 +199,9 @@ export default function AddEmployeeGroups({
                           checked={!!field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="schedule_flag" className="text-sm font-semibold">Schedule</FormLabel>
+                        <FormLabel htmlFor="schedule_flag" className="text-sm font-semibold">
+                          {t.schedule}
+                        </FormLabel>
                       </div>
                     </FormControl>
                   </FormItem>
@@ -192,7 +211,7 @@ export default function AddEmployeeGroups({
                 control={form.control}
                 name="reporting_group_flag"
                 render={({ field }) => (
-                  <FormItem className=" ">
+                  <FormItem>
                     <FormControl>
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -200,7 +219,9 @@ export default function AddEmployeeGroups({
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <FormLabel htmlFor="reporting_group_flag" className="text-sm font-semibold">Reporting group</FormLabel>
+                        <FormLabel htmlFor="reporting_group_flag" className="text-sm font-semibold">
+                          {t.reporting_group}
+                        </FormLabel>
                       </div>
                     </FormControl>
                   </FormItem>
@@ -213,18 +234,22 @@ export default function AddEmployeeGroups({
                   control={form.control}
                   name="group_code"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="min-w-0">
                       <FormLabel>
-                        Group code<Required />
+                        {t.group_code}
+                        <Required />
                       </FormLabel>
                       <FormControl>
                         <Input
                           type="text"
-                          placeholder="Enter employee group code"
+                          placeholder={t.placeholder_emp_group_code}
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <TranslatedError
+                        fieldError={form.formState.errors.group_code}
+                        translations={errT}
+                      />
                     </FormItem>
                   )}
                 />
@@ -232,27 +257,35 @@ export default function AddEmployeeGroups({
                   control={form.control}
                   name="group_name"
                   render={({ field }) => (
-                  <FormItem>
+                    <FormItem className="min-w-0">
                       <FormLabel>
                         {language === "ar"
-                          ? "Group Name (العربية) "
-                          : "Group Name (English) "}
+                          ? `${t.group_name} (العربية)`
+                          : `${t.group_name} (English)`}
                         <Required />
                       </FormLabel>
                       <FormControl>
-                      <Input placeholder="Enter employee group name" type="text" {...field} />
+                        <Input
+                          type="text"
+                          placeholder={t.placeholder_emp_group_name}
+                          {...field}
+                          className={language === "ar" ? "text-right" : "text-left"}
+                        />
                       </FormControl>
-                      <FormMessage />
-                  </FormItem>
+                      <TranslatedError
+                        fieldError={form.formState.errors.group_name}
+                        translations={errT}
+                      />
+                    </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="group_start_date"
                   render={({ field }) => (
-                    <FormItem className="">
+                    <FormItem className="min-w-0">
                       <FormLabel>
-                        From Date <Required />
+                        {t.group_start_date}
                       </FormLabel>
                       <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
@@ -263,7 +296,9 @@ export default function AddEmployeeGroups({
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
                               ) : (
-                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                                <span className="font-normal text-sm text-text-secondary">
+                                  {t.placeholder_date}
+                                </span>
                               )}
                               <CalendarIcon />
                             </Button>
@@ -274,22 +309,16 @@ export default function AddEmployeeGroups({
                             mode="single"
                             selected={field.value ? field.value : undefined}
                             onSelect={(date) => {
-                              field.onChange(date)
-                              closePopover('fromDate')
+                              field.onChange(date);
+                              closePopover('fromDate');
                             }}
-                            // disabled={(date) => {
-                            //   // Get today's date at start of day for comparison
-                            //   const today = new Date();
-                            //   today.setHours(0, 0, 0, 0);
-                              
-                            //   // Disable dates before today
-                            //   return date < today;
-                            // }}
                           />
                         </PopoverContent>
                       </Popover>
-
-                      <FormMessage />
+                      <TranslatedError
+                        fieldError={form.formState.errors.group_start_date}
+                        translations={errT}
+                      />
                     </FormItem>
                   )}
                 />
@@ -297,9 +326,9 @@ export default function AddEmployeeGroups({
                   control={form.control}
                   name="group_end_date"
                   render={({ field }) => (
-                    <FormItem className="">
+                    <FormItem className="min-w-0">
                       <FormLabel>
-                        To Date <Required />
+                        {t.group_end_date}
                       </FormLabel>
                       <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
@@ -310,7 +339,9 @@ export default function AddEmployeeGroups({
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
                               ) : (
-                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                                <span className="font-normal text-sm text-text-secondary">
+                                  {t.placeholder_date}
+                                </span>
                               )}
                               <CalendarIcon />
                             </Button>
@@ -321,18 +352,16 @@ export default function AddEmployeeGroups({
                             mode="single"
                             selected={field.value ? field.value : undefined}
                             onSelect={(date) => {
-                              field.onChange(date)
-                              closePopover('toDate')
+                              field.onChange(date);
+                              closePopover('toDate');
                             }}
                             disabled={(date) => {
                               const groupStartDate = form.getValues("group_start_date");
                               
                               if (!groupStartDate) {
-                                // If no start date is selected, disable all dates
                                 return true;
                               }
                               
-                              // Create a new date for comparison to avoid time issues
                               const startDate = new Date(groupStartDate);
                               startDate.setHours(0, 0, 0, 0);
                               
@@ -343,7 +372,10 @@ export default function AddEmployeeGroups({
                           />
                         </PopoverContent>
                       </Popover>
-                      <FormMessage />
+                      <TranslatedError
+                        fieldError={form.formState.errors.group_end_date}
+                        translations={errT}
+                      />
                     </FormItem>
                   )}
                 />
@@ -353,15 +385,17 @@ export default function AddEmployeeGroups({
                       control={form.control}
                       name="reporting_person_id"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex gap-1">Reporting Person <Required /></FormLabel>
+                        <FormItem className="min-w-0">
+                          <FormLabel className="flex gap-1">
+                            {t.reporting} <Required />
+                          </FormLabel>
                           <Select
                             onValueChange={(val) => field.onChange(Number(val))}
                             value={field.value !== undefined ? String(field.value) : ""}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Choose employee" />
+                                <SelectValue placeholder={t.placeholder_manager} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -375,7 +409,10 @@ export default function AddEmployeeGroups({
                                   ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
+                          <TranslatedError
+                            fieldError={form.formState.errors.reporting_person_id}
+                            translations={errT}
+                          />
                         </FormItem>
                       )}
                     />
@@ -384,19 +421,30 @@ export default function AddEmployeeGroups({
               </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 items-center">
+          <div className="flex justify-end gap-2 items-center pt-4 py-2">
             <div className="flex gap-4">
               <Button
-                variant={"outline"}
+                variant="outline"
                 type="button"
-                size={"lg"}
+                size="lg"
                 className="w-full"
                 onClick={() => on_open_change(false)}
               >
                 {translations.buttons.cancel}
               </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                Save
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? selectedRowData
+                    ? translations.buttons.updating
+                    : translations.buttons.saving
+                  : selectedRowData
+                  ? translations.buttons.update
+                  : translations.buttons.save}
               </Button>
             </div>
           </div>

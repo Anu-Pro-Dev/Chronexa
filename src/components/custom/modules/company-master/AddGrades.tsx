@@ -2,21 +2,31 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addGradeRequest, editGradeRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  grade_code: z.string().default("").transform((val) => val.toUpperCase()),
-  grade_name: z.string().default(""),
-  overtime_eligible_flag: z.boolean().optional().default(true), // true = "Y"
+  grade_code: z
+    .string()
+    .min(1, { message: "grade_code_required" })
+    .transform((val) => val.toUpperCase()),
+  grade_name: z.string().min(1, { message: "grade_name_required" }),
+  overtime_eligible_flag: z.boolean().optional().default(false),
 });
 
 export default function AddGrades({
@@ -28,16 +38,17 @@ export default function AddGrades({
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
 }) {
-
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
   const t = translations?.modules?.companyMaster || {};
+  const errT = translations?.formErrors || {};
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      grade_code:"",
+      grade_code: "",
       grade_name: "",
       overtime_eligible_flag: false,
     },
@@ -54,23 +65,26 @@ export default function AddGrades({
         overtime_eligible_flag: selectedRowData.overtime_eligible_flag ?? false,
       });
     } else {
-      form.reset(); // clears on add
+      form.reset({
+        grade_code: "",
+        grade_name: "",
+        overtime_eligible_flag: false,
+      });
     }
   }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addGradeRequest,
     onSuccess: (data) => {
-      toast.success("Grade added successfully!");
+      showToast("success", "addgrade_success");
       onSave(null, data.data);
       on_open_change(false);
-      queryClient.invalidateQueries({ queryKey: ["grade"] });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -78,32 +92,30 @@ export default function AddGrades({
   const editMutation = useMutation({
     mutationFn: editGradeRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Grade updated successfully!");
+      showToast("success", "updategrade_success");
       onSave(variables.grade_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["grade"] });
       on_open_change(false);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
-
     setIsSubmitting(true);
-    
+
     try {
       const payload: any = {
         grade_code: values.grade_code,
         overtime_eligible_flag: values.overtime_eligible_flag,
       };
 
-      // Add only the language-specific name being edited
       if (language === "en") {
         payload.grade_eng = values.grade_name;
       } else {
@@ -111,10 +123,7 @@ export default function AddGrades({
       }
 
       if (selectedRowData) {
-        editMutation.mutate({
-          grade_id: selectedRowData.id,
-          ...payload,
-        });
+        editMutation.mutate({ grade_id: selectedRowData.id, ...payload });
       } else {
         addMutation.mutate(payload);
       }
@@ -132,18 +141,22 @@ export default function AddGrades({
               control={form.control}
               name="grade_code"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
-                    {t.grade_code}<Required />
+                    {t.grade_code}
+                    <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder="Enter grade code"
+                      placeholder={t.placeholder_grade_code}
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.grade_code}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -151,7 +164,7 @@ export default function AddGrades({
               control={form.control}
               name="grade_name"
               render={({ field }) => (
-              <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {language === "ar"
                       ? `${t.grade_name} (العربية)`
@@ -159,10 +172,18 @@ export default function AddGrades({
                     <Required />
                   </FormLabel>
                   <FormControl>
-                  <Input placeholder="Enter grade name" type="text" {...field} />
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_grade_name}
+                      {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
+                    />
                   </FormControl>
-                  <FormMessage />
-              </FormItem>
+                  <TranslatedError
+                    fieldError={form.formState.errors.grade_name}
+                    translations={errT}
+                  />
+                </FormItem>
               )}
             />
           </div>
@@ -171,7 +192,7 @@ export default function AddGrades({
               control={form.control}
               name="overtime_eligible_flag"
               render={({ field }) => (
-                <FormItem className="">
+                <FormItem>
                   <FormControl>
                     <div className="flex items-center gap-2">
                       <Checkbox
@@ -188,22 +209,27 @@ export default function AddGrades({
               )}
             />
           </div>
-          <div className="w-full flex gap-2 items-center py-3">
+          <div className="w-full flex gap-2 items-center pt-4 py-2">
             <Button
-              variant={"outline"}
+              variant="outline"
               type="button"
-              size={"lg"}
+              size="lg"
               className="w-full"
               onClick={() => on_open_change(false)}
             >
               {translations.buttons.cancel}
             </Button>
-            <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
               {isSubmitting
-              ? selectedRowData
-                ? translations.buttons.updating
-                : translations.buttons.saving
-              : selectedRowData
+                ? selectedRowData
+                  ? translations.buttons.updating
+                  : translations.buttons.saving
+                : selectedRowData
                 ? translations.buttons.update
                 : translations.buttons.save}
             </Button>

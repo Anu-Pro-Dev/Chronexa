@@ -28,23 +28,23 @@ const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data
 export default function PowerTable({
   props,
   api,
-  // showEdit = false,
-  // showCheckbox = true,
   onEditClick,
   customColDef = {},
   ispageValue5,
   onRowSelection,
   isLoading = false,
+  overrideEditIcon, // Optional: true to force show, false to force hide, undefined to use privilege logic
+  overrideCheckbox, // Optional: true to force show, false to force hide, undefined to use privilege logic
 }: {
   props: any;
   api?: any;
-  // showEdit?: boolean;
-  // showCheckbox?: boolean;
   onEditClick?: (data: any) => void;
   customColDef?: any;
   ispageValue5?: any;
   onRowSelection?: (selectedRows: any[]) => void;
-  isLoading?: boolean; 
+  isLoading?: boolean;
+  overrideEditIcon?: boolean; // Add optional override prop
+  overrideCheckbox?: boolean; // Add optional override prop
 }) {
   const { language, dir, translations } = useLanguage();
   const gridRef = useRef<any>();
@@ -231,20 +231,14 @@ export default function PowerTable({
     );
   };
 
-  // const showEdit = activeSubmodules.some(
-  //   (sm) => pathname.includes(sm.path) && sm.privileges.edit
-  // );
+  // Use override if provided, otherwise fall back to privilege logic
+  const showEdit = overrideEditIcon !== undefined 
+    ? overrideEditIcon 
+    : effectivePrivileges.edit;
 
-  const showEdit = effectivePrivileges.edit;
-  const showCheckbox = effectivePrivileges.create || effectivePrivileges.edit || effectivePrivileges.delete;
-
-  // Show checkboxes only if create/edit/delete is true
-  // If only view_flag is true, hide checkboxes
-  // const showCheckbox = activeSubmodules.some(
-  //   (sm) =>
-  //     pathname.includes(sm.path) &&
-  //     (sm.privileges.create || sm.privileges.edit || sm.privileges.delete)
-  // );
+  const showCheckbox = overrideCheckbox !== undefined 
+    ? overrideCheckbox 
+    : (effectivePrivileges.create || effectivePrivileges.edit || effectivePrivileges.delete);
 
   const columnDefs = [
     ...(showCheckbox

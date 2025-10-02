@@ -2,12 +2,11 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import toast from "react-hot-toast";
-import * as z from "zod";
 import { Button } from "@/src/components/ui/button";
 import PowerSearch from "@/src/components/custom/power-comps/power-search";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addEmployeeGroupMemberRequest } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
@@ -18,7 +17,7 @@ export default function AddGroupMembers({
   selectedRowData,
   onSave,
   props,
-  groupCode, // Accept groupCode as prop to avoid URL dependency issues
+  groupCode,
 }: {
   on_open_change: any;
   selectedRowData?: any;
@@ -43,10 +42,8 @@ export default function AddGroupMembers({
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.employeeMaster || {};
 
-  // Use groupCode prop first, fallback to URL parameter
   const currentGroupCode = groupCode || searchParams.get("group");
 
-  // Function to preserve URL parameters
   const preserveUrlParams = useCallback(() => {
     if (currentGroupCode && !searchParams.get("group")) {
       const params = new URLSearchParams(searchParams.toString());
@@ -55,12 +52,10 @@ export default function AddGroupMembers({
     }
   }, [currentGroupCode, searchParams, pathname, router]);
 
-  // Ensure URL parameters are preserved
   useEffect(() => {
     preserveUrlParams();
   }, [preserveUrlParams]);
 
-  // Calculate offset for pagination
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
@@ -74,29 +69,55 @@ export default function AddGroupMembers({
   const group = groupListData?.data?.find((g: EmployeeGroup) => g.group_code === currentGroupCode);
   const employee_group_id = group?.employee_group_id ?? null;
 
-  // Fetch employees with pagination and search
-  const { data: employeeData, isLoading, refetch: refetchEmployees } = useFetchAllEntity("employee", {
+  // Fetch existing group members (all of them, not paginated)
+  const { data: existingMembersData, refetch: refetchExistingMembers } = useFetchAllEntity("employeeGroupMember", {
     searchParams: {
+      ...(currentGroupCode && { group_code: currentGroupCode }),
+      limit: "9999", // Get all members
+    },
+  });
+
+  // Refetch existing members when modal opens
+  useEffect(() => {
+    if (currentGroupCode) {
+      refetchExistingMembers?.();
+    }
+  }, [currentGroupCode, refetchExistingMembers]);
+
+  // Create a Set of existing employee IDs for efficient lookup
+  const existingEmployeeIds = useMemo(() => {
+    if (!existingMembersData?.data || !Array.isArray(existingMembersData.data)) {
+      return new Set<number>();
+    }
+    return new Set(existingMembersData.data.map((member: any) => member.employee_id));
+  }, [existingMembersData]);
+
+  // Build search params that will trigger refetch when changed
+  const employeeSearchParams = useMemo(() => {
+    const params: Record<string, string> = {
       limit: String(rowsPerPage),
       offset: String(offset),
-      ...(debouncedSearchValue && {
-        firstname_eng: debouncedSearchValue,
-        firstname_arb: debouncedSearchValue,
-        emp_no: debouncedSearchValue,
-      }),
-      ...(sortField && { sort_by: sortField }),
-      ...(sortDirection && { sort_order: sortDirection }),
-    },
+    };
+    
+    if (debouncedSearchValue) {
+      params.search = debouncedSearchValue;
+    }
+    
+    if (sortField) params.sort_by = sortField;
+    if (sortDirection) params.sort_order = sortDirection;
+    
+    return params;
+  }, [rowsPerPage, offset, debouncedSearchValue, sortField, sortDirection]);
+
+  // Fetch employees with pagination and search
+  const { data: employeeData, isLoading, refetch: refetchEmployees } = useFetchAllEntity("employee", {
+    searchParams: employeeSearchParams,
   });
 
   const addMutation = useMutation({
     mutationFn: addEmployeeGroupMemberRequest,
     onSuccess: (data) => {
-      // toast.success("Employee group member added successfully!");
-      
-      // Preserve URL parameters after success
       preserveUrlParams();
-      
       onSave(null, data.data);
       on_open_change(false);
       queryClient.invalidateQueries({ queryKey: ["employeeGroupMember"] });
@@ -107,8 +128,6 @@ export default function AddGroupMembers({
       } else {
         toast.error("Form submission error.");
       }
-      
-      // Preserve URL parameters after error
       preserveUrlParams();
     },
   });
@@ -150,33 +169,25 @@ export default function AddGroupMembers({
       }
 
       toast.success("Employee(s) added to the group successfully.");
-      
-      // Preserve URL parameters before closing
       preserveUrlParams();
-      
       onSave(null, null);
       on_open_change(false);
     } catch (error) {
       console.error(error);
       toast.error("Failed to add some or all employees.");
-      
-      // Preserve URL parameters after error
       preserveUrlParams();
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Handle cancel with URL preservation
   const handleCancel = useCallback(() => {
     preserveUrlParams();
     on_open_change(false);
   }, [preserveUrlParams, on_open_change]);
 
-  // Pagination handlers
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
-    
     if (refetchEmployees) {
       setTimeout(() => refetchEmployees(), 100);
     }
@@ -185,7 +196,6 @@ export default function AddGroupMembers({
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1);
-    
     if (refetchEmployees) {
       setTimeout(() => refetchEmployees(), 100);
     }
@@ -193,14 +203,13 @@ export default function AddGroupMembers({
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   }, []);
 
   const handleSortChange = useCallback((field: string, direction: "asc" | "desc") => {
     setSortField(field);
     setSortDirection(direction);
-    setCurrentPage(1); // Reset to first page when sorting
-    
+    setCurrentPage(1);
     if (refetchEmployees) {
       setTimeout(() => refetchEmployees(), 100);
     }
@@ -224,20 +233,23 @@ export default function AddGroupMembers({
     setSelectedRows(rows);
   }, []);
 
+  // Filter out employees who are already in the group
   const data = useMemo(() => {
     if (Array.isArray(employeeData?.data)) {
-      return employeeData.data.map((emp: any) => ({
-        ...emp,
-        id: emp.employee_id,
-        join_date: emp.join_date ? new Date(emp.join_date).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }) : "-",
-      }));
+      return employeeData.data
+        .filter((emp: any) => !existingEmployeeIds.has(emp.employee_id))
+        .map((emp: any) => ({
+          ...emp,
+          id: emp.employee_id,
+          join_date: emp.join_date ? new Date(emp.join_date).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }) : "-",
+        }));
     }
     return [];
-  }, [employeeData]);
+  }, [employeeData, existingEmployeeIds]);
 
   const tableProps = {
     Data: data,
@@ -253,8 +265,8 @@ export default function AddGroupMembers({
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: employeeData?.total || 0,
-    hasNext: employeeData?.hasNext,
+    total: data.length,
+    hasNext: employeeData?.hasNext || false,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
     onSortChange: handleSortChange,
@@ -268,10 +280,8 @@ export default function AddGroupMembers({
             <div className="flex">
               <PowerSearch 
                 props={{
-                  ...props,
-                  onSearchChange: handleSearchChange,
-                  placeholder: "Search employees...",
-                  searchValue: searchValue,
+                  SearchValue: searchValue,
+                  SetSearchValue: handleSearchChange,
                 }} 
               />
             </div>
@@ -280,7 +290,7 @@ export default function AddGroupMembers({
                 type="button"
                 variant={"success"} 
                 size={"sm"}
-                disabled={isSubmitting}
+                disabled={isSubmitting || selectedRows.length === 0}
                 onClick={handleAdd}
                 className="flex items-center space-y-0.5 border border-success"
               >

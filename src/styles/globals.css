@@ -169,3 +169,7 @@ body {
 .custom-radio:hover {
   @apply border-primary;
 }
+
+[data-radix-scroll-area-scrollbar] {
+  display: none !important;
+}

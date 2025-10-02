@@ -59,9 +59,7 @@ export default function LeavesRedirectPage() {
     if (firstAllowedTab) {
       // Redirect to first allowed tab
       const actualPath = tabPathMapping[firstAllowedTab.tab_name] || 
-                         firstAllowedTab.tab_name.toLowerCase().replace(/\s+/g, "-");
-      
-      console.log("Leaves - Redirecting to tab:", firstAllowedTab.tab_name, "->", actualPath);
+                         firstAllowedTab.tab_name.toLowerCase().replace(/\s+/g, "-");      
       router.replace(`/self-services/leaves/${actualPath}`);
     } else {
       // No tabs allowed, redirect to another allowed submodule

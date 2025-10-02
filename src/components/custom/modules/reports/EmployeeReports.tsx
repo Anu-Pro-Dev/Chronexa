@@ -329,7 +329,7 @@ export default function EmployeeReports() {
         formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
-        logoUrl: '/ChronexaLogo.png'
+        logoUrl: '/Logo.png'
       });
       
       await exporter.export();
@@ -362,7 +362,7 @@ export default function EmployeeReports() {
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="reports"
                   render={({ field }) => (
@@ -399,7 +399,7 @@ export default function EmployeeReports() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
                 <FormField
                   control={form.control}
                   name="organization"
@@ -488,7 +488,7 @@ export default function EmployeeReports() {
                   )}
                 />
                 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="manager"
                   render={({ field }) => (
@@ -525,7 +525,8 @@ export default function EmployeeReports() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
+
                 <FormField
                   control={form.control}
                   name="from_date"

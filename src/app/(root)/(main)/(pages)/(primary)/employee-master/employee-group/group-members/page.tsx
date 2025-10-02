@@ -5,11 +5,12 @@ import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddGroupMembers from "@/src/components/custom/modules/employee-master/AddGroupMembers";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { apiRequest } from "@/src/lib/apiHandler";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useShowToast } from "@/src/utils/toastHelper";
+import toast from "react-hot-toast"; 
 
 export default function MembersTable() {
   const searchParams = useSearchParams();
@@ -29,6 +30,51 @@ export default function MembersTable() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.employeeMaster || {};
+  const showToast = useShowToast();
+
+  // Custom delete mutation for group members
+  const deleteMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      if (ids.length === 1) {
+        return apiRequest(`/employeeGroupMember/delete/${ids[0]}`, "DELETE");
+      } else {
+        return apiRequest(`/employeeGroupMember/delete`, "DELETE", { ids });
+      }
+    },
+    onSuccess: (_result, ids) => {
+      const count = ids.length;
+      if (count === 1) {
+        showToast("success", "delete_success", { displayText: "Group Member" });
+      } else {
+        showToast("success", "delete_multiple_success", { displayText: "Group Members", count });
+      }
+      queryClient.invalidateQueries({ queryKey: ["employeeGroupMember"] });
+      setSelectedRows([]);
+    },
+    onError: (error) => {
+      console.error("Delete operation failed:", error);
+      showToast("error", "formsubmission_error");
+    },
+  });
+
+  // Custom delete handler
+  const handleDelete = useCallback(() => {
+    if (!selectedRows || selectedRows.length === 0) {
+      toast.error("No items selected for deletion");
+      return;
+    }
+
+    const ids = selectedRows
+      .map(row => row.group_member_id || row.id)
+      .filter(id => id !== undefined && id !== null);
+
+    if (ids.length === 0) {
+      toast.error("Selected items do not have valid IDs");
+      return;
+    }
+
+    deleteMutation.mutate(ids);
+  }, [selectedRows, deleteMutation]);
 
   const preserveUrlParams = useCallback(() => {
     if (group && !searchParams.get("group")) {
@@ -64,52 +110,29 @@ export default function MembersTable() {
     },
   });
 
-  const { data: groupsData, isLoading: isLoadingGroups } = useFetchAllEntity("employeeGroup");
-
-  const filteredGroupMembers = useMemo(() => {
+  const filteredData = useMemo(() => {
     if (!groupMembersData?.data || !Array.isArray(groupMembersData.data)) {
       return [];
     }
     
-    let filtered = groupMembersData.data;
-    
-    if (group && groupsData?.data) {      
-      const targetGroup = groupsData.data.find((g: any) => 
-        g.group_code === group || g.code === group || g.groupCode === group
-      );
-            
-      if (targetGroup) {
-        const targetGroupId = targetGroup.id || targetGroup.group_id || targetGroup.employee_group_id;
-        
-        filtered = filtered.filter((member: any) => {
-          const memberGroupId = member.employee_group_id || member.group_id || member.groupId;
-          const matches = memberGroupId?.toString() === targetGroupId?.toString();
-          
-          return matches;
-        });
-      } else {
-        filtered = [];
-      }      
-    }
-    
-    return filtered;
-  }, [groupMembersData, groupsData, group]);
-
-  const filteredData = useMemo(() => {
-    if (!filteredGroupMembers || filteredGroupMembers.length === 0) {
-      return [];
-    }
-    
-    const mergedData = filteredGroupMembers.map((member: any) => {
+    const mergedData = groupMembersData.data.map((member: any) => {
       const emp = member.employee_master;
       
       if (!emp) {
         console.warn(`No employee_master data found for group member ID: ${member.group_member_id}`);
       }
 
+      // Ensure group_member_id exists
+      if (!member.group_member_id) {
+        console.error('Missing group_member_id for member:', member);
+      }
+
       return {
         ...member,
-        id: member.group_member_id || member.id,
+        // This id field is used by PowerHeader/PowerTable for deletion
+        id: member.group_member_id,
+        // Keep the original ID field name for reference
+        group_member_id: member.group_member_id,
         employee_no: emp?.emp_no || "N/A",
         employee_name: language === "ar" 
           ? (emp?.firstname_arb || emp?.firstname_eng || "N/A")
@@ -129,10 +152,18 @@ export default function MembersTable() {
       };
     });
 
-    return mergedData;
-  }, [filteredGroupMembers, language]);
+    // Debug: Log the first item to verify ID structure
+    if (mergedData.length > 0) {
+      console.log('Sample row data for deletion:', {
+        id: mergedData[0].id,
+        group_member_id: mergedData[0].group_member_id
+      });
+    }
 
-  const isLoading = isLoadingGroupMembers || isLoadingGroups;
+    return mergedData;
+  }, [groupMembersData, language]);
+
+  const isLoading = isLoadingGroupMembers;
 
   useEffect(() => {
     if (!open) {
@@ -214,10 +245,12 @@ export default function MembersTable() {
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
     total: groupMembersData?.total || 0,
-    hasNext: groupMembersData?.hasNext,
+    hasNext: groupMembersData?.hasNext || false,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
     groupCode: group,
+    // Pass custom delete handler
+    onCustomDelete: handleDelete,
   };
 
   return (
@@ -227,7 +260,7 @@ export default function MembersTable() {
         selectedRows={selectedRows}
         items={modules?.employeeMaster?.items}
         entityName="employeeGroupMember"
-        modal_title="Group Members"
+        modal_title={t.group_members}
         modal_component={
           <AddGroupMembers
             on_open_change={setOpen}
@@ -238,12 +271,15 @@ export default function MembersTable() {
           />
         }
         size="large"
+        disableDelete={false}
+        customDeleteHandler={handleDelete}
       />
       <PowerTable
         props={props}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
+        overrideEditIcon={false}
       />
     </div>
   );

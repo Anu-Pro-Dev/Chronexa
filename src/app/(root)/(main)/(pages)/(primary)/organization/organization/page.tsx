@@ -116,6 +116,7 @@ export default function Page() {
     return orgData.data.map((org: any) => ({
       ...org,
       id: org.organization_id,
+      code: org.organization_code,
     }));
   }, [orgData]);
 

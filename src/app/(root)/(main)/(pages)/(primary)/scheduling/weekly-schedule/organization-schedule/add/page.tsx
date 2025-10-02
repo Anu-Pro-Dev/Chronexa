@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import AddWeeklySchedule from "@/src/components/custom/modules/scheduling/AddWeeklySchedule";
+import AddOrganizationSchedule from "@/src/components/custom/modules/scheduling/AddOrganizationSchedule";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 
@@ -23,12 +23,11 @@ export default function Page() {
         disableFeatures
       />
       <div className="pt-4">
-        <AddWeeklySchedule 
+        <AddOrganizationSchedule 
             selectedRowData={selectedRowData}
             onSave={handleSave}
         />
       </div>
-      {/* </div> */}
     </div>
   );
 }

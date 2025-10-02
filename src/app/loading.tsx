@@ -9,7 +9,7 @@ interface LoadingProps {
 }
 
 const LoadingAnimation: React.FC<LoadingProps> = ({ 
-  message = "Loading...", 
+  message = "", 
   size = 30 
 }) => (
   <>

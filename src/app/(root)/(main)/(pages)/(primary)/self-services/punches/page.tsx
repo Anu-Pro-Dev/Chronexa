@@ -1,12 +1,3 @@
-// "use client";
-// import { redirect } from "next/navigation";
-
-// import { useLanguage } from "@/src/providers/LanguageProvider";
-// export default function Page() {
-//   const { modules } = useLanguage();
-//   return redirect("/self-services/punches/team-punches")
-// }
-
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -18,7 +9,6 @@ export default function PunchesRedirectPage() {
   const router = useRouter();
   const { privilegeMap, isLoading } = usePrivileges();
 
-  // Special mapping for tab names to actual file paths
   const tabPathMapping: Record<string, string> = {
     'My Request': 'my-requests',
     'Team Request': 'team-requests', 
@@ -28,21 +18,17 @@ export default function PunchesRedirectPage() {
   useEffect(() => {
     if (isLoading) return;
 
-    // Find Self Services module
     const selfServicesModule = privilegeMap?.['Self Services'];
     if (!selfServicesModule?.allowed) {
-      // If no access to Self Services, redirect to dashboard
       router.replace('/dashboard/my-attendance');
       return;
     }
 
-    // Find punches submodule
     const punchesSubmodule = selfServicesModule.subModules?.find(
       (sm: any) => sm.path === 'punches'
     );
 
     if (!punchesSubmodule?.allowed) {
-      // If no access to punches, redirect to first allowed submodule in Self Services
       const firstAllowedSubmodule = selfServicesModule.subModules?.find(
         (sm: any) => sm.allowed
       );
@@ -54,18 +40,13 @@ export default function PunchesRedirectPage() {
       return;
     }
 
-    // Find first allowed tab in punches
     const firstAllowedTab = punchesSubmodule.tabs?.find((tab: any) => tab.allowed);
     
     if (firstAllowedTab) {
-      // Redirect to first allowed tab
       const actualPath = tabPathMapping[firstAllowedTab.tab_name] || 
-                         firstAllowedTab.tab_name.toLowerCase().replace(/\s+/g, "-");
-      
-      console.log("Punches - Redirecting to tab:", firstAllowedTab.tab_name, "->", actualPath);
+                         firstAllowedTab.tab_name.toLowerCase().replace(/\s+/g, "-");      
       router.replace(`/self-services/punches/${actualPath}`);
     } else {
-      // No tabs allowed, redirect to another allowed submodule
       const firstAllowedSubmodule = selfServicesModule.subModules?.find(
         (sm: any) => sm.allowed && sm.path !== 'punches'
       );
@@ -77,7 +58,6 @@ export default function PunchesRedirectPage() {
     }
   }, [privilegeMap, isLoading, router]);
 
-  // Show loading while determining redirect
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="text-center">

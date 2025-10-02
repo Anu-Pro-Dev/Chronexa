@@ -31,22 +31,17 @@ ResponsiveModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const ResponsiveModalVariants = cva(
   cn(
-    "fixed z-50 bg-accent p-6 shadow-popup rounded-[20px] transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+    "fixed z-50 bg-accent p-6 shadow-popup rounded-[20px] transition ease-in-out",
     "flex flex-col gap-5",
-    "md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
-    "md:w-full mx-auto md:mx-0 md:border md:duration-200 md:data-[state=open]:animate-in md:data-[state=closed]:animate-out md:data-[state=closed]:fade-out-0 md:data-[state=open]:fade-in-0 md:data-[state=closed]:zoom-out-95 md:data-[state=open]:zoom-in-95 md:rounded-[20px]"
+    "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+    "w-full mx-auto max-h-[90vh]",
+    "data-[state=open]:animate-in data-[state=closed]:animate-out",
+    "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+    "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+    "data-[state=closed]:duration-300 data-[state=open]:duration-500"
   ),
   {
     variants: {
-      side: {
-        top: "inset-x-0 top-0 border-b rounded-b-xl max-h-[90%] md:h-fit data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
-        bottom:
-          "inset-x-0 bottom-0 border-t md:h-fit max-h-[90%] rounded-t-xl data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-        left: "inset-y-0 left-0 h-full md:h-fit w-3/4 border-r rounded-r-xl data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
-        right:
-          "inset-y-0 right-0 h-full md:h-fit w-3/4 border-l rounded-l-xl data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
-        center: "inset-x-0 top-1/2 -translate-y-1/2 mx-auto w-[90%] max-h-[90vh] md:h-fit data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-      },
       size: {
         small: "w-10/12 max-w-[200px] sm:w-[200px]",
         medium: "w-10/12 max-w-[400px] sm:w-[400px]",
@@ -55,7 +50,6 @@ const ResponsiveModalVariants = cva(
       },
     },
     defaultVariants: {
-      side: "bottom",
       size: "medium",
     },
   }
@@ -68,9 +62,9 @@ interface ResponsiveModalContentProps
 const ResponsiveModalContent = React.forwardRef<
 React.ElementRef<typeof DialogPrimitive.Content>,
 ResponsiveModalContentProps
->(({ side = "center", size, className, children, ...props }, ref) => {
+>(({ size, className, children, ...props }, ref) => {
   const modalClasses = cn(
-    ResponsiveModalVariants({ side, size }),
+    ResponsiveModalVariants({ size }),
     className
   );
 
@@ -95,7 +89,7 @@ const ResponsiveModalHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col text-center gap-4",
+      "flex flex-col text-center gap-5",
       className
     )}
     {...props}

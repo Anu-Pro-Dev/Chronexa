@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
 import { DropDownIcon } from "@/src/icons/icons";
 import { Country } from "@/src/hooks/useCountries";
+import { useLanguage } from "@/src/providers/LanguageProvider";
 
 interface CountryDropdownProps {
   value: Country | null;
@@ -11,7 +12,8 @@ interface CountryDropdownProps {
 }
 
 const CountryDropdown = ({ value, onChange, countries, displayMode = "full", }: CountryDropdownProps) => {
-
+  const { language, translations } = useLanguage();
+  const t = translations?.modules?.companyMaster || {};
   const customStyles = {
     control: (provided: any, state: any) => ({
       ...provided,
@@ -100,8 +102,8 @@ const CountryDropdown = ({ value, onChange, countries, displayMode = "full", }: 
           <span>{country.country_code}</span>
         );
       }}
-      onChange={(selected) => onChange(selected as Country)} // Pass the whole country object
-      placeholder="Choose country"
+      onChange={(selected) => onChange(selected as Country)}
+      placeholder={t.placeholder_country}
       styles={customStyles}
       components={{ DropdownIndicator }}
       // menuPlacement="bottom"

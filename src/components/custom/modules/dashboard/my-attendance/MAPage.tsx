@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { AttendanceDataProvider } from "../my-attendance/AttendanceData";
 import LeaveCard from "./LeaveCard";
 import TimerCard from "./TimerCard";
 import LeaveAnalyticsCard from "./LeaveAnalyticsCard";
@@ -10,7 +11,7 @@ import InsightsCard from "./InsightsCard";
 
 function MyAttendancePage() {
   return (
-    <>
+    <AttendanceDataProvider>
       <div className="widget-group-1 flex justify-between gap-4">
         <div className="card-widget max-w-[calc(100vh / 3 * 4)] w-full h-auto flex flex-col gap-4">
           <LeaveCard />
@@ -30,7 +31,7 @@ function MyAttendancePage() {
           <InsightsCard />
         </div>
       </div>
-    </>
+    </AttendanceDataProvider>
   );
 }
 

@@ -7,56 +7,52 @@ const CurrentDate: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<DateRange>({
     from: new Date(),
   }); 
-  const [showCalendar, setShowCalendar] = useState<boolean>(false); // State to control calendar visibility
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
 
   useEffect(() => {
-    setCurrentDate({ from: new Date() }); // Initialize selected date
+    setCurrentDate({ from: new Date() });
   }, []);
 
-  // Format the date
   const formattedDate = currentDate.from
   ? currentDate.from.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     })
-  : "Select Date"; // Fallback text if no date is selected
+  : "Select Date";
 
-  // Toggle for showing/hiding the calendar
   const toggleCalendar = () => setShowCalendar((prev) => !prev);
 
   return (
     <div className="flex justify-center items-center bg-accent rounded-md px-2">
       <div className="text-center">
-        {/* Displaying calendar icon, current date, and chevron in a row */}
         <div className="flex items-center justify-center gap-1">
           <div 
-            className="cursor-pointer flex justify-center items-center gap-2" 
-            onClick={toggleCalendar}
+            className="flex justify-center items-center gap-2" 
+            // onClick={toggleCalendar}
           >
             <div className="w-7 h-7 bg-backdrop rounded-full flex justify-center items-center"><CalendarIcon className="w-4 h-4" /></div> {/* Calendar Icon */}
             <p className="text-sm text-text-primary font-semibold">
               {formattedDate}
             </p>
           
-            {showCalendar ? (
+            {/* {false && showCalendar ? (
               <FaChevronUpIcon className="w-4 h-4 text-text-primary" />
             ) : (
               <FaChevronDownIcon className="w-4 h-4 text-text-primary" />
-            )}
+            )} */}
           </div>
         </div>
 
-        {/* Conditionally render the Calendar component */}
         {showCalendar && (
           <div className="absolute mt-2 bg-accent shadow-lg rounded-lg z-50">
             <Calendar
-            mode="single" // Ensure single date selection mode
-            selected={currentDate.from} // Pass the selected date
+            mode="single"
+            selected={currentDate.from}
             onSelect={(date) => {
               if (date) {
-                setCurrentDate({ from: date }); // Update selected date
-                setShowCalendar(false); // Close the calendar after selection
+                setCurrentDate({ from: date });
+                setShowCalendar(false);
               }
             }}
             disabled={{ after: new Date() }}

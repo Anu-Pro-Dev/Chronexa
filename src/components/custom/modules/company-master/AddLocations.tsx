@@ -317,15 +317,11 @@ export default function AddLocations({
                       {...field}
                     />
                   </FormControl>
-                  <TranslatedError
-                    fieldError={form.formState.errors.country_code}
-                    translations={errT}
-                  />
                 </FormItem>
               )}
             />
           </div>
-          <div className="flex justify-end gap-2 items-center">
+          <div className="flex justify-end gap-2 items-center py-2">
             <div className="flex gap-4">
               <Button
                 variant="outline"

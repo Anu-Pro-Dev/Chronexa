@@ -21,14 +21,9 @@ export class ExcelExporter {
     this.calculateSummaryTotals = calculateSummaryTotals;
   }
 
-  private getFilteredHeaders() {
-    // Debug: Check what fields are available in your data
-    if (this.data.length > 0) {
-      console.log('Available data fields:', Object.keys(this.data[0]));
-    }
-    
+  private getFilteredHeaders() {   
     return [
-      'employee_number',      // Check if this field exists in your data
+      'employee_number',     
       'firstname_eng',
       'organization_eng',
       'transdate',

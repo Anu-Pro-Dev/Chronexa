@@ -35,7 +35,7 @@ export default function Login() {
   }, []);
 
   const getMainLogo = () => {
-    return isDarkMode ? "/ChronexaLogoDark.png" : "/ChronexaLogo.png";
+    return isDarkMode ? "/LogoDark.png" : "/Logo.png";
   };
   
   return (
@@ -46,7 +46,7 @@ export default function Login() {
       <div className="main-container h-full flex flex-col sm:flex-row">
         <div className="hidden sm:flex sm:flex-1 relative"> 
           <Image
-            src="/ChronexaBG.jpg"
+            src="/AppBG.jpg"
             alt="Time Management"
             objectFit="cover"
             layout="fill"

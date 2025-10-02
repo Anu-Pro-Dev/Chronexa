@@ -158,9 +158,7 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      if (newUserId !== currentUserId) {
-        console.log(`User changed from ${currentUserId} to ${newUserId}`);
-        
+      if (newUserId !== currentUserId) {        
         clearUserPunchState(currentUserId);
         
         resetCurrentSessionState();

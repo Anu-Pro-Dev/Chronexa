@@ -63,7 +63,7 @@ export default function PowerAdd({
             </Button>
           </ResponsiveModalTrigger>
         )}
-        <ResponsiveModalContent side="center" size={size}>
+        <ResponsiveModalContent size={size}>
           <ResponsiveModalHeader>
             <ResponsiveModalTitle>
               {modalTitle}

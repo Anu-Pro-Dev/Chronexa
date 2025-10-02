@@ -60,8 +60,6 @@ export default function PermissionsRedirectPage() {
       // Redirect to first allowed tab
       const actualPath = tabPathMapping[firstAllowedTab.tab_name] || 
                          firstAllowedTab.tab_name.toLowerCase().replace(/\s+/g, "-");
-      
-      console.log("Permissions - Redirecting to tab:", firstAllowedTab.tab_name, "->", actualPath);
       router.replace(`/self-services/permissions/${actualPath}`);
     } else {
       // No tabs allowed, redirect to another allowed submodule

@@ -201,7 +201,7 @@ export default function LoginForm() {
 
       {/* Forgot Password Modal */}
       <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={setForgotPasswordModalOpen}>
-        <ResponsiveModalContent side="center">
+        <ResponsiveModalContent>
           <ResponsiveModalHeader className="flex">
             <ResponsiveModalTitle>
               {t.forgot_password || "Forgot Password"}

@@ -15,7 +15,11 @@ export default function PowerDelete({ props, label, onClick }: { props: any, lab
         onClick={onClick}
       >
         <DeleteIcon />
-        <span>{label}</span>
+        <span>
+          {label === "Delete All"
+          ? translations?.buttons.delete_all
+          : translations?.buttons.delete}
+        </span>
       </Button>
     </div>
   );

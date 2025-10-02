@@ -42,11 +42,9 @@ export function PunchButton() {
       const serverResponse = await serverTimeZoneRequest();
       const rawTime = serverResponse?.time;
 
-      // Keep server time as-is with offset
       const formattedTime = rawTime && !isNaN(Date.parse(rawTime))
         ? rawTime
         : new Date().toISOString();
-      console.log(serverResponse,rawTime,formattedTime);
 
       const transactionData = {
         employee_id: employeeId,

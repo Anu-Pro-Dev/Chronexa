@@ -18,12 +18,12 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQuery } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addOrgScheduleRequest, editOrgScheduleRequest, getScheduleByOrganization } from "@/src/lib/apiHandler";
+import { addEmpScheduleRequest, editEmpScheduleRequest, getScheduleByEmployee } from "@/src/lib/apiHandler";
 
 const formSchema = z.object({
   from_date: z.date().nullable().optional(),
   to_date: z.date().nullable().optional(),
-  organization_id: z.coerce.number().optional(),
+  employee_id: z.coerce.number().optional(),
   schedule_id: z.coerce.number().optional(),
   sunday_schedule_id: z.coerce.number().optional(),
   monday_schedule_id: z.coerce.number().optional(),
@@ -58,7 +58,7 @@ const formSchema = z.object({
   ).optional(),
 });
 
-export default function AddWeeklySchedule({
+export default function AddEmployeeSchedule({
   selectedRowData,
   onSave,
 }: {
@@ -70,6 +70,9 @@ export default function AddWeeklySchedule({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
+  const [scheduleSearchTerm, setScheduleSearchTerm] = useState("");
+  
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -79,7 +82,7 @@ export default function AddWeeklySchedule({
     defaultValues: {
       from_date: null,
       to_date: null,
-      organization_id: undefined,
+      employee_id: undefined,
       schedule_id: undefined,
       sunday_schedule_id: undefined,
       monday_schedule_id: undefined,
@@ -130,24 +133,41 @@ export default function AddWeeklySchedule({
     }
   }, [scheduleId]);
 
-  const organizationId = form.watch("organization_id");
+  const employeeId = form.watch("employee_id");
 
-  const { data: organizations } = useFetchAllEntity("organization");
-  // const { data: schedules } = useFetchAllEntity("schedule");
-
-  const { data: schedules } = useQuery({
-    queryKey: ["schedules", organizationId],
-    queryFn: () => getScheduleByOrganization(organizationId!),
-    enabled: !!organizationId, // only run if organizationId is truthy
+  const { data: employees, isLoading: isSearchingEmployees } = useFetchAllEntity("employee", {
+    searchParams: {
+      ...(employeeSearchTerm && { search: employeeSearchTerm }),
+    },
+    removeAll: true,
   });
 
+  const { data: schedules, isLoading: isSearchingSchedules } = useFetchAllEntity("schedule", {
+    searchParams: {
+      ...(scheduleSearchTerm && { search: scheduleSearchTerm }),
+    },
+    removeAll: true,
+  });
+
+  const getFilteredEmployees = () => {
+    return (employees?.data || []).filter((item: any) => 
+      item.employee_id && item.employee_id.toString().trim() !== ''
+    );
+  };
+
+  const getFilteredSchedules = () => {
+    return (schedules?.data || []).filter((item: any) => 
+      item.schedule_id && item.schedule_id.toString().trim() !== ''
+    );
+  };
+  
   const addMutation = useMutation({
-    mutationFn: addOrgScheduleRequest,
+    mutationFn: addEmpScheduleRequest,
     onSuccess: (data) => {
-      toast.success("Weekly schedule added successfully!");
+      toast.success("Employee schedule added successfully!");
       onSave(null, data.data);
-      queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
-      router.push("/scheduling/weekly-schedule");
+      queryClient.invalidateQueries({ queryKey: ["employeeSchedule"] });
+      router.push("/scheduling/weekly-schedule/employee-schedule");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -159,11 +179,11 @@ export default function AddWeeklySchedule({
   });
 
   const editMutation = useMutation({
-    mutationFn: editOrgScheduleRequest,
+    mutationFn: editEmpScheduleRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Weekly schedule updated successfully!");
-      onSave(variables.organization_schedule_id?.toString() ?? null, variables);
-      queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
+      toast.success("Employee schedule updated successfully!");
+      onSave(variables.employee_schedule_id?.toString() ?? null, variables);
+      queryClient.invalidateQueries({ queryKey: ["employeeSchedule"] });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -187,7 +207,7 @@ export default function AddWeeklySchedule({
         to_date: values.to_date
           ? format(values.to_date, "yyyy-MM-dd")
           : null,
-        organization_id: values.organization_id,
+        employee_id: values.employee_id,
         schedule_id: values.schedule_id,
         sunday_schedule_id: values.sunday_schedule_id,
         monday_schedule_id: values.monday_schedule_id,
@@ -205,7 +225,7 @@ export default function AddWeeklySchedule({
 
       if (selectedRowData) {
         editMutation.mutate({
-          organizationSchedule_id: selectedRowData.id,
+          employeeSchedule_id: selectedRowData.id,
           ...payload,
         });
       } else {
@@ -225,12 +245,12 @@ export default function AddWeeklySchedule({
     form.setValue("friday_schedule_id", undefined);
     form.setValue("saturday_schedule_id", undefined);
     form.setValue("sunday_schedule_id", undefined);
-  }, [organizationId]);
+  }, [employeeId]);
   
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <h1 className="text-primary text-lg font-bold">Organization Schedule</h1>
+        <h1 className="text-primary text-lg font-bold">Employee Schedule</h1>
         <div className="flex flex-col gap-6 px-5">
           <div className="p-5 grid grid-cols-2 gap-y-5 gap-x-20">
             <FormField
@@ -306,15 +326,15 @@ export default function AddWeeklySchedule({
                         selected={field.value ? field.value : undefined}
                         onSelect={field.onChange}
                         disabled={(date) => {
-                          const orgScheduleStartDate = form.getValues("from_date");
+                          const empScheduleStartDate = form.getValues("from_date");
                           
-                          if (!orgScheduleStartDate) {
+                          if (!empScheduleStartDate) {
                             // If no start date is selected, disable all dates
                             return true;
                           }
                           
                           // Create a new date for comparison to avoid time issues
-                          const startDate = new Date(orgScheduleStartDate);
+                          const startDate = new Date(empScheduleStartDate);
                           startDate.setHours(0, 0, 0, 0);
                           
                           const compareDate = new Date(date);
@@ -330,25 +350,40 @@ export default function AddWeeklySchedule({
             />
             <FormField
               control={form.control}
-              name="organization_id"
+              name="employee_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Organization <Required/> </FormLabel>
+                  <FormLabel className="flex gap-1">Employee <Required/> </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Choose organization" />
+                        <SelectValue placeholder="Choose employee" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {(organizations?.data || []).map((item: any) => {
-                        if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
+                    <SelectContent
+                      showSearch={true}
+                      searchPlaceholder="Search employees..."
+                      onSearchChange={setEmployeeSearchTerm}
+                      className="mt-5"
+                    >
+                      {isSearchingEmployees && employeeSearchTerm.length > 0 && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          Searching...
+                        </div>
+                      )}
+                      {getFilteredEmployees().length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          No employees found
+                        </div>
+                      )}
+                      {getFilteredEmployees().map((item: any) => {
+                        if (!item.employee_id || item.employee_id.toString().trim() === '') return null;
                         return (
-                          <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                            {item.organization_eng}
+                          <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
+                            {item.firstname_eng} {item.emp_no ? `(${item.emp_no})` : ''}
                           </SelectItem>
                         );
                       })}
@@ -373,8 +408,23 @@ export default function AddWeeklySchedule({
                         <SelectValue placeholder="Choose schedule" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
+                    <SelectContent
+                      showSearch={true}
+                      searchPlaceholder="Search schedules..."
+                      onSearchChange={setScheduleSearchTerm}
+                      className="mt-5"
+                    >
+                      {isSearchingSchedules && scheduleSearchTerm.length > 0 && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          Searching...
+                        </div>
+                      )}
+                      {getFilteredSchedules().length === 0 && scheduleSearchTerm.length > 0 && !isSearchingSchedules && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          No schedules found
+                        </div>
+                      )}
+                      {getFilteredSchedules().map((item: any) => {
                         if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
                         return (
                           <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
@@ -626,7 +676,7 @@ export default function AddWeeklySchedule({
               type="button"
               size={"lg"}
               className="w-full"
-              onClick={() => router.push("/scheduling/weekly-schedule")}
+              onClick={() => router.push("/scheduling/weekly-schedule/employee-schedule")}
             >
               {translations.buttons.cancel}
             </Button>

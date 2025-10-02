@@ -1,7 +1,6 @@
 import axios from "axios";
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://wfm.khidmah.com:5000";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://kspkml3z-8000.inc1.devtunnels.ms";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const USER_TOKEN = "userToken";
 

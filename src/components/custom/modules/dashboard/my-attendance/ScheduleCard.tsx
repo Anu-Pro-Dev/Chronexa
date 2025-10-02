@@ -1,43 +1,51 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useMemo } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import Link from "next/link";
-import ProgressBarChart from "@/src/components/ui/ProgressBarChart";
+import ProgressBarChart from "../my-attendance/ProgressBarChart";
+import { useAttendanceData } from "../my-attendance/AttendanceData";
 
 function ScheduleCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
+  const { workSchedule, loading } = useAttendanceData();
 
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
+  // Compute chart values for current month
+  const { totalHours, workedHours, overtimeHours, pendingHours } = useMemo(() => {
+    if (!workSchedule) {
+      return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0 };
+    }
 
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+    const totalHours = parseFloat(workSchedule.TotalExpectingWrkHrs as any) || 0;
+
+    // All hours are considered worked, no absent or late
+    const workedHours = totalHours;
+    const overtimeHours = 0;
+    const pendingHours = 0;
+
+    return { totalHours, workedHours, overtimeHours, pendingHours };
+  }, [workSchedule]);
+
+  if (loading) {
+    return <div className="shadow-card rounded-[10px] bg-accent p-5">Loading...</div>;
+  }
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-5">
-      <div>
-        <div className="flex flex-col">
-          <div>
-            <div className="flex items-center justify-between">
-              <h5 className="text-lg text-text-primary font-bold">{t?.schedule}</h5>   
-              <Link href="/scheduling/monthly-schedule"  className="text-primary text-sm font-medium"> {translations?.buttons?.show_all}</Link>
-            </div>
-          </div>
-        </div>
-
+      <div className="flex items-center justify-between mb-6">
+        <h5 className="text-lg text-text-primary font-bold">{t?.schedule}</h5>
+        <Link href="/scheduling/monthly-schedule" className="text-primary text-sm font-medium">
+          {translations?.buttons?.show_all}
+        </Link>
       </div>
 
-      <div className="mb-6">
-        <ProgressBarChart
-          totalHours={206}
-          workedHours={140}
-          overtimeHours={32}
-          pendingHours={12}
-          barCount={50}
-        />
-      </div>
+      <ProgressBarChart
+        totalHours={totalHours}
+        workedHours={workedHours}
+        overtimeHours={overtimeHours}
+        pendingHours={pendingHours}
+      />
     </div>
   );
 }

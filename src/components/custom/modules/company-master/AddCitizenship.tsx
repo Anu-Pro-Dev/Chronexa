@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/src/components/ui/button";
@@ -12,9 +11,11 @@ import { useCountries } from "@/src/hooks/useCountries";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addCitizenshipRequest, editCitizenshipRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  citizenship_code: z.string().optional(),
+  citizenship_code: z.string().min(1, { message: "citizenship_code_select" }),
 });
 
 export default function AddCitizenship({
@@ -33,6 +34,8 @@ export default function AddCitizenship({
   const [selectedCountry, setSelectedCountry] = useState<any>(null);
   const queryClient = useQueryClient();
   const t = translations?.modules?.companyMaster || {};
+  const errT = translations?.formErrors || {};
+  const showToast = useShowToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,7 +47,7 @@ export default function AddCitizenship({
   const handleCountryChange = (country: any | null) => {
     if (country) {
       setSelectedCountry(country);
-      form.setValue("citizenship_code", country.citizenship_code);
+      form.setValue("citizenship_code", country.country_code);
     } else {
       setSelectedCountry(null);
       form.setValue("citizenship_code", "");
@@ -68,16 +71,16 @@ export default function AddCitizenship({
   const addMutation = useMutation({
     mutationFn: addCitizenshipRequest,
     onSuccess: (data) => {
-      toast.success("Citizenship added successfully!");
+      showToast("success", "addcitizenship_success");
       onSave(null, data.data);
       on_open_change(false);
       queryClient.invalidateQueries({ queryKey: ["citizenship"] });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -85,7 +88,7 @@ export default function AddCitizenship({
   const editMutation = useMutation({
     mutationFn: editCitizenshipRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Citizenship updated successfully!");
+      showToast("success", "updatecitizenship_success");
       onSave(
         variables.citizenship_id?.toString() ?? null,
         variables
@@ -95,20 +98,15 @@ export default function AddCitizenship({
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
-
-    if (!selectedCountry) {
-      toast.error("Please select a country.");
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -145,7 +143,10 @@ export default function AddCitizenship({
                     displayMode="full"
                   />
                 </FormControl>
-                <FormMessage />
+                <TranslatedError
+                  fieldError={form.formState.errors.citizenship_code}
+                  translations={errT}
+                />
               </FormItem>
             )}
           />

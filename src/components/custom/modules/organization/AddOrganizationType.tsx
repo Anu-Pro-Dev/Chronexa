@@ -2,19 +2,28 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addOrganizationTypeRequest, editOrganizationTypeRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  hierarchy: z.coerce.number(),
-  organization_type_name: z.string().default(""),
+  hierarchy: z
+    .string()
+    .min(1, { message: "hierarchy_required" }),
+  organization_type_name: z.string().min(1, { message: "organization_type_name_required" }),
 });
 
 export default function AddOrganizationType({
@@ -29,11 +38,14 @@ export default function AddOrganizationType({
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
+  const t = translations?.modules?.organization || {};
+  const errT = translations?.formErrors || {};
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      hierarchy: undefined,
+      hierarchy: "",
       organization_type_name: "",
     },
   });
@@ -41,30 +53,32 @@ export default function AddOrganizationType({
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
-        hierarchy: selectedRowData.org_type_level ?? "",
+        hierarchy: selectedRowData.org_type_level?.toString() ?? "",
         organization_type_name:
           language === "en"
             ? selectedRowData.organization_type_eng ?? ""
             : selectedRowData.organization_type_arb ?? "",
       });
     } else {
-      form.reset();
+      form.reset({
+        hierarchy: "",
+        organization_type_name: "",
+      });
     }
   }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addOrganizationTypeRequest,
     onSuccess: (data) => {
-      toast.success("Organization Type added successfully!");
+      showToast("success", "addorgtype_success");
       onSave(null, data.data);
       on_open_change(false);
-      queryClient.invalidateQueries({ queryKey: ["organizationType"] });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -72,28 +86,27 @@ export default function AddOrganizationType({
   const editMutation = useMutation({
     mutationFn: editOrganizationTypeRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Organization Type updated successfully!");
+      showToast("success", "updateorgtype_success");
       onSave(variables.organization_type_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["organizationType"] });
       on_open_change(false);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
-  
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
-
     setIsSubmitting(true);
-    
+
     try {
       const payload: any = {
-        org_type_level: values.hierarchy,
+        org_type_level: Number(values.hierarchy),
       };
 
       if (language === "en") {
@@ -103,10 +116,7 @@ export default function AddOrganizationType({
       }
 
       if (selectedRowData) {
-        editMutation.mutate({
-          organization_type_id: selectedRowData.id,
-          ...payload,
-        });
+        editMutation.mutate({ organization_type_id: selectedRowData.id, ...payload });
       } else {
         addMutation.mutate(payload);
       }
@@ -117,67 +127,82 @@ export default function AddOrganizationType({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-4">
-          <FormField
-            control={form.control}
-            name="hierarchy"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hierarchy</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter the hierarchy"
-                    type="number"
-                    value={field.value ?? ""}
-                    onChange={field.onChange}
+          <div className="grid gap-16 gap-y-4">
+            <FormField
+              control={form.control}
+              name="hierarchy"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {t.hierarchy}
+                    <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder={t.placeholder_hierarchy}
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.hierarchy}
+                    translations={errT}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="organization_type_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {language === "ar"
-                    ? "organization type name (العربية) "
-                    : "Organization type name (English) "}
-                  <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter organization type"
-                    type="text"
-                    {...field}
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="organization_type_name"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {language === "ar"
+                      ? `${t.org_type_name} (العربية)`
+                      : `${t.org_type_name} (English)`}
+                    <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_org_type}
+                      {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.organization_type_name}
+                    translations={errT}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="w-full flex gap-2 items-center py-3">
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="w-full flex gap-2 items-center pt-4 py-2">
             <Button
-              variant={"outline"}
+              variant="outline"
               type="button"
-              size={"lg"}
+              size="lg"
               className="w-full"
               onClick={() => on_open_change(false)}
             >
               {translations.buttons.cancel}
             </Button>
-            <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
               {isSubmitting
                 ? selectedRowData
-                  ? "Updating..."
-                  : "Saving..."
+                  ? translations.buttons.updating
+                  : translations.buttons.saving
                 : selectedRowData
-                  ? "Update"
-                  : "Save"
-              }
+                ? translations.buttons.update
+                : translations.buttons.save}
             </Button>
           </div>
         </div>

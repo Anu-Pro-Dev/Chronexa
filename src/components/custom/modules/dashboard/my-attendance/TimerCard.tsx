@@ -47,10 +47,6 @@ function TimerCard() {
             <p className="font-semibold pb-1">{t?.overtime}</p>
             <p className="text-[13px] font-bold">00:00</p>
           </div>
-          <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
-            <p className="font-semibold pb-1">{t?.break_time}</p>
-            <p className="text-[13px] font-bold">00:30</p>
-          </div>
         </div>
         <div className="w-full pt-5 flex justify-between uppercase">
           <div className="flex items-center gap-2 font-bold text-xs">
@@ -109,10 +105,6 @@ function TimerCard() {
             {overtimeHours.toString().padStart(2, "0")}:
             {overtimeMinutes.toString().padStart(2, "0")}
           </p>
-        </div>
-        <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
-          <p className="font-semibold pb-1">{t?.break_time}</p>
-          <p className="text-[13px] font-bold">00:30</p>
         </div>
       </div>
       <div className="w-full pt-5 flex justify-between uppercase">

@@ -244,15 +244,6 @@ export default function Page() {
       
       sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Employee Info for editing:', {
-          emp_no: rowData.emp_no,
-          firstName: rowData.firstName,
-          fullName: rowData.fullName,
-          transaction_id: rowData.transaction_id
-        });
-      }
-      
     } catch (error) {
       console.error("Error setting edit data:", error);
       toast.error("Failed to load transaction data for editing");
@@ -262,14 +253,6 @@ export default function Page() {
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
     
-    if (process.env.NODE_ENV === 'development' && rows.length > 0) {
-      console.log('Selected employees:', rows.map(row => ({
-        emp_no: row.emp_no,
-        firstName: row.firstName,
-        employee_name: row.employee_name,
-        transaction_id: row.transaction_id
-      })));
-    }
   }, []);
 
   const renderPowerTable = () => {

@@ -274,7 +274,6 @@ export default function AddLeaveApplication({
       toDate.setHours(23, 59, 59, 999);
       const toDateISO = toDate.toISOString();
 
-      // Calculate number of leave days
       const numberOfLeaveDays = calculateLeaveDays(values.from_date, values.to_date);
 
       const payload: any = {
@@ -286,12 +285,10 @@ export default function AddLeaveApplication({
         employee_remarks: values.employee_remarks,
       };
 
-      // Add attachment if provided
       if (values.leave_doc_filename_path && values.leave_doc_filename_path instanceof File) {
         payload.leave_doc_filename_path = values.leave_doc_filename_path;
       }
 
-      console.log("Payload with calculated days:", payload);
       addMutation.mutate(payload);
     } catch (error) {
       console.error("Form submission error", error);

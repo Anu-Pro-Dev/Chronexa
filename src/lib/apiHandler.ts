@@ -509,6 +509,35 @@ export const editOrgScheduleRequest = async (data: {
   return apiRequest(`/organizationSchedule/edit/${organization_schedule_id}`, "PUT", payload);
 };
 
+// Function to get a schedules by organization ID
+export async function getScheduleByEmployee(employee_id: number) {
+  return apiRequest(`/schedule/employee/${employee_id}`, "GET");
+}
+
+// Function to add a new weekly schedule
+export const addEmpScheduleRequest = async (data: {
+  employee_schedule_id?: number;
+  employee_id: number;
+  from_date: string;
+  to_date?: string;
+  [key: string]: any;
+}) => {
+  return apiRequest("/employeeSchedule/add", "POST", data);
+};
+
+// Function to edit a weekly schedule by ID
+export const editEmpScheduleRequest = async (data: {
+  employee_schedule_id: number;
+  employee_id?: number;
+  from_date?: string;
+  to_date?: string;
+  [key: string]: any;
+}) => {
+  const { employee_schedule_id, ...payload } = data;
+
+  return apiRequest(`/employeeSchedule/edit/${employee_schedule_id}`, "PUT", payload);
+};
+
 // Function to add a new workflow type
 export const addWorkflowTypeRequest = async (data: {
   workflow_id?: number;
@@ -817,4 +846,38 @@ export const editDeviceRequest = async (data: {
   const { device_id, ...payload } = data;
 
   return apiRequest(`/device/edit/${device_id}`, "PUT", payload);
+};
+
+// Functions for dashboard
+export const getDashboardData = async (action: string) => {
+  return apiRequest(`/dashboard/data?action=${action}`, "GET");
+};
+
+// Helper function to fetch all dashboard data
+export const getAllDashboardData = async () => {
+  const actions = ['getMyAttnDetails', 'WorkSchedule', 'getLeaveAnalytics', 'WorkHourTrends'];
+  
+  try {
+    const responses = await Promise.all(
+      actions.map(action => getDashboardData(action))
+    );
+    
+    // Combine all responses into a single object
+    return {
+      success: true,
+      data: {
+        getMyAttnDetails: responses[0]?.success ? responses[0].data : [],
+        WorkSchedule: responses[1]?.success ? responses[1].data : [],
+        getLeaveAnalytics: responses[2]?.success ? responses[2].data : [],
+        WorkHourTrends: responses[3]?.success ? responses[3].data : []
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    return {
+      success: false,
+      data: null,
+      error: 'Failed to fetch dashboard data'
+    };
+  }
 };
