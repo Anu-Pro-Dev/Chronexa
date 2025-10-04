@@ -238,7 +238,7 @@ export default function AddDBSettings({
 											value={field.value}
 										>
 											<FormControl>
-												<SelectTrigger>
+												<SelectTrigger className="max-w-[350px]">
 													<SelectValue placeholder="Choose encryption" />
 												</SelectTrigger>
 											</FormControl>

@@ -20,6 +20,10 @@ export function StatusSelector({
     toDate: false,
   });
 
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
+
   if (!status) return null;
 
   return (

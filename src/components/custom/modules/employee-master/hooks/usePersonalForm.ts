@@ -3,23 +3,29 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 export const personalFormSchema = z.object({
-  emp_no: z.string().min(1, "Required").max(100),
-  firstname: z.string().optional(),
-  lastname: z.string().optional(),
-  mobile: z.string().optional(),
-  email: z.string().optional(),
+  emp_no: z.string().min(1, { message: "emp_no_required" }).max(100),
+  firstname: z.string().min(1, { message: "firstname_required" }),
+  lastname: z.string().min(1, { message: "lastname_required" }),
+  mobile: z.string().min(1, { message: "mobile_required" }),
+  email: z
+    .string()
+    .min(1, { message: "email_required" })
+    .regex(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      { message: "email_invalid" }
+    ),  
+  join_date: z.date({ required_error: "join_date_required" }),
+  active_date: z.date().nullable().optional(),
+  inactive_date: z.date().nullable().optional(),
   card_number: z.string().optional(),
   pin: z.string().optional(),
   gender: z.string().optional(),
   passport_number: z.string().optional(),
+  passport_expiry_date: z.date().nullable().optional(),
   passport_issue_country_id: z.number().optional(),
   national_id: z.string().optional(),
-  remarks: z.string().optional(),
-  join_date: z.date().nullable().optional(),
-  active_date: z.date().nullable().optional(),
-  passport_expiry_date: z.date().nullable().optional(),
   national_id_expiry_date: z.date().nullable().optional(),
-  inactive_date: z.date().nullable().optional(),
+  remarks: z.string().optional(),
 });
 
 export const usePersonalForm = () => {

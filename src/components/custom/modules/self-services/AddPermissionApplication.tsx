@@ -106,6 +106,9 @@ export default function AddPermissionApplication({
     fromTime: false,
     toTime: false,
   });
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -403,7 +406,7 @@ export default function AddPermissionApplication({
                       disabled={isPermissionTypesLoading}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue 
                             placeholder={
                               isPermissionTypesLoading 
@@ -461,7 +464,10 @@ export default function AddPermissionApplication({
                         <Calendar
                           mode="single"
                           selected={field.value ? field.value : undefined}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            field.onChange(date)
+                            closePopover('fromDate')
+                          }}
                           disabled={(date) => {
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
@@ -502,7 +508,10 @@ export default function AddPermissionApplication({
                         <Calendar
                           mode="single"
                           selected={field.value ? field.value : undefined}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            field.onChange(date)
+                            closePopover('toDate')
+                          }}
                           disabled={(date) => {
                             const fromDate = form.getValues("from_date");
                             

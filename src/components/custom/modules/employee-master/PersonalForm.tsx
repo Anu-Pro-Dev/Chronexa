@@ -1,9 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import * as z from "zod";
-import toast from "react-hot-toast";
 import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Input } from "@/src/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
@@ -14,19 +13,24 @@ import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import CountryDropdown from "@/src/components/custom/common/country-dropdown";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useCountries, Country } from "@/src/hooks/useCountries";
+import { useCountries } from "@/src/hooks/useCountries";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 export default function PersonalForm({
-  Page, SetPage,personalFormSchema,personalForm
+  Page, SetPage, personalFormSchema, personalForm
 }: {
   Page?: any;
-  SetPage?:any;
-  personalFormSchema:any;
-  personalForm:any
+  SetPage?: any;
+  personalFormSchema: any;
+  personalForm: any;
 }) {
  
   const { language, translations } = useLanguage();
   const { countries } = useCountries();
+  const showToast = useShowToast();
+  const t = translations?.modules?.employeeMaster || {};
+  const errT = translations?.formErrors || {};
   
   const [popoverStates, setPopoverStates] = useState({
     joinDate: false,
@@ -34,19 +38,19 @@ export default function PersonalForm({
     inactiveDate: false,
     nationalIdExpiryDate: false,
     passportExpiryDate: false,
-  })
+  });
 
   const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }))
-  }
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
 
   function onSubmit(values: z.infer<typeof personalFormSchema>) {
     try {
       SetPage("credentials-form");
-      toast.success("Data Saved!");
+      showToast("success", "data_saved");
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      showToast("error", "formsubmission_error");
     }
   }
 
@@ -61,11 +65,13 @@ export default function PersonalForm({
             name="emp_no"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Emp No <Required /></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.emp_no || "Emp No"} <Required />
+                </FormLabel>
                 <FormControl>
-                <Input placeholder="Enter the employee No" type="text" {...field} />
+                  <Input placeholder={t.placeholder_emp_no || "Enter the employee No"} type="text" {...field} />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.emp_no} translations={errT} />
               </FormItem>
             )}
           />
@@ -74,7 +80,9 @@ export default function PersonalForm({
             name="join_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Join date <Required /></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.join_date || "Join date"} <Required />
+                </FormLabel>
                 <Popover open={popoverStates.joinDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, joinDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -84,7 +92,9 @@ export default function PersonalForm({
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          <span className="font-normal text-sm text-text-secondary">
+                            {t.placeholder_date || "Choose date"}
+                          </span>
                         )}
                         <CalendarIcon />
                       </Button>
@@ -95,14 +105,13 @@ export default function PersonalForm({
                       mode="single"
                       selected={field.value}
                       onSelect={(date) => {
-                        field.onChange(date)
-                        closePopover('joinDate')
+                        field.onChange(date);
+                        closePopover('joinDate');
                       }}
-                      // disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.join_date} translations={errT} />
               </FormItem>
             )}
           />
@@ -111,17 +120,20 @@ export default function PersonalForm({
             name="firstname"
             render={({ field }) => (
               <FormItem>
-                <FormLabel
-                  className="flex gap-1">
+                <FormLabel className="flex gap-1">
                   {language === "ar"
-                    ? "Firstname (العربية) "
-                    : "Firstname (English) "}
+                    ? `${t.first_name || "Firstname"} (العربية)`
+                    : `${t.first_name || "Firstname"} (English)`}
                   <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your firstname" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_firstname || "Enter your firstname"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.firstname} translations={errT} />
               </FormItem>
             )}
           />
@@ -130,17 +142,20 @@ export default function PersonalForm({
             name="lastname"
             render={({ field }) => (
               <FormItem>
-                <FormLabel
-                  className="flex gap-1">
+                <FormLabel className="flex gap-1">
                   {language === "ar"
-                    ? "Lastname (العربية) "
-                    : "Lastname (English) "}
+                    ? `${t.last_name || "Lastname"} (العربية)`
+                    : `${t.last_name || "Lastname"} (English)`}
                   <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your lastname" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_lastname || "Enter your lastname"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.lastname} translations={errT} />
               </FormItem>
             )}
           />
@@ -149,11 +164,17 @@ export default function PersonalForm({
             name="mobile"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Mobile <Required/></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.mobile || "Mobile"} <Required />
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the mobile number" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_mobile_number || "Enter the mobile number"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.mobile} translations={errT} />
               </FormItem>
             )}
           />
@@ -162,11 +183,17 @@ export default function PersonalForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Email <Required/></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.email || "Email"} <Required />
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the email address" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_email_add || "Enter the email address"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.email} translations={errT} />
               </FormItem>
             )}
           />
@@ -175,7 +202,9 @@ export default function PersonalForm({
             name="active_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Employee system activation </FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.emp_system_active || "Employee system activation"}
+                </FormLabel>
                 <Popover open={popoverStates.activeDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, activeDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -185,7 +214,9 @@ export default function PersonalForm({
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          <span className="font-normal text-sm text-text-secondary">
+                            {t.placeholder_date || "Choose date"}
+                          </span>
                         )}
                         <CalendarIcon />
                       </Button>
@@ -196,8 +227,8 @@ export default function PersonalForm({
                       mode="single"
                       selected={field.value}
                       onSelect={(date) => {
-                        field.onChange(date)
-                        closePopover('activeDate')
+                        field.onChange(date);
+                        closePopover('activeDate');
                       }}
                       disabled={(date) =>
                         personalForm.watch("join_date")
@@ -207,7 +238,7 @@ export default function PersonalForm({
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.active_date} translations={errT} />
               </FormItem>
             )}
           />
@@ -216,7 +247,9 @@ export default function PersonalForm({
             name="inactive_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1 text-right">Inactive date</FormLabel>
+                <FormLabel className="flex gap-1 text-right">
+                  {t.inactive_date || "Inactive date"}
+                </FormLabel>
                 <Popover open={popoverStates.inactiveDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inactiveDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -226,7 +259,9 @@ export default function PersonalForm({
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          <span className="font-normal text-sm text-text-secondary">
+                            {t.placeholder_date || "Choose date"}
+                          </span>
                         )}
                         <CalendarIcon />
                       </Button>
@@ -237,8 +272,8 @@ export default function PersonalForm({
                       mode="single"
                       selected={field.value}
                       onSelect={(date) => {
-                        field.onChange(date)
-                        closePopover('inactiveDate')
+                        field.onChange(date);
+                        closePopover('inactiveDate');
                       }}
                       disabled={(date) =>
                         personalForm.watch("active_date")
@@ -248,7 +283,7 @@ export default function PersonalForm({
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.inactive_date} translations={errT} />
               </FormItem>
             )}
           />
@@ -256,12 +291,16 @@ export default function PersonalForm({
             control={personalForm.control}
             name="card_number"
             render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1"> Card </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter the card number" type="text" {...field} />
-                  </FormControl>
-                  <FormMessage className="mt-1"/>
+              <FormItem>
+                <FormLabel className="flex gap-1">{t.card || "Card"}</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder={t.placeholder_card_number || "Enter the card number"} 
+                    type="text" 
+                    {...field} 
+                  />
+                </FormControl>
+                <TranslatedError fieldError={personalForm.formState.errors.card_number} translations={errT} />
               </FormItem>
             )}
           />
@@ -270,11 +309,15 @@ export default function PersonalForm({
             name="pin"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Pin</FormLabel>
+                <FormLabel className="flex gap-1">{t.pin || "Pin"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the pin" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_pin || "Enter the pin"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.pin} translations={errT} />
               </FormItem>
             )}
           />
@@ -283,11 +326,15 @@ export default function PersonalForm({
             name="national_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">National ID</FormLabel>
+                <FormLabel className="flex gap-1">{t.national_id || "National ID"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the national id" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_national_id || "Enter the national id"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.national_id} translations={errT} />
               </FormItem>
             )}
           />
@@ -296,7 +343,9 @@ export default function PersonalForm({
             name="national_id_expiry_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1 text-right">National ID expiry date</FormLabel>
+                <FormLabel className="flex gap-1 text-right">
+                  {t.national_id_exp_date || "National ID expiry date"}
+                </FormLabel>
                 <Popover open={popoverStates.nationalIdExpiryDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, nationalIdExpiryDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -306,7 +355,9 @@ export default function PersonalForm({
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          <span className="font-normal text-sm text-text-secondary">
+                            {t.placeholder_date || "Choose date"}
+                          </span>
                         )}
                         <CalendarIcon />
                       </Button>
@@ -317,14 +368,13 @@ export default function PersonalForm({
                       mode="single"
                       selected={field.value}
                       onSelect={(date) => {
-                        field.onChange(date)
-                        closePopover('nationalIdExpiryDate')
+                        field.onChange(date);
+                        closePopover('nationalIdExpiryDate');
                       }}
-                      // disabled={(date) => date < new Date()}
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.national_id_expiry_date} translations={errT} />
               </FormItem>
             )}
           />
@@ -333,11 +383,17 @@ export default function PersonalForm({
             name="passport_number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Passport number</FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.passport_number || "Passport number"}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the passport number" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_passport_number || "Enter the passport number"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.passport_number} translations={errT} />
               </FormItem>
             )}
           />
@@ -346,7 +402,9 @@ export default function PersonalForm({
             name="passport_expiry_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1 text-right">Passport expiry date</FormLabel>
+                <FormLabel className="flex gap-1 text-right">
+                  {t.passport_exp_date || "Passport expiry date"}
+                </FormLabel>
                 <Popover open={popoverStates.passportExpiryDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, passportExpiryDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -356,7 +414,9 @@ export default function PersonalForm({
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          <span className="font-normal text-sm text-text-secondary">
+                            {t.placeholder_date || "Choose date"}
+                          </span>
                         )}
                         <CalendarIcon />
                       </Button>
@@ -367,14 +427,13 @@ export default function PersonalForm({
                       mode="single"
                       selected={field.value}
                       onSelect={(date) => {
-                        field.onChange(date)
-                        closePopover('passportExpiryDate')
+                        field.onChange(date);
+                        closePopover('passportExpiryDate');
                       }}
-                      // disabled={(date) => date < new Date()}
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.passport_expiry_date} translations={errT} />
               </FormItem>
             )}
           />
@@ -388,14 +447,16 @@ export default function PersonalForm({
 
               return (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Passport issued</FormLabel>
+                  <FormLabel className="flex gap-1">
+                    {t.passport_issued || "Passport issued"}
+                  </FormLabel>
                   <CountryDropdown
                     countries={countries}
                     value={selectedCountry}
                     displayMode="code"
                     onChange={(country) => field.onChange(country?.country_id ?? "")}
                   />
-                  <FormMessage className="mt-1" />
+                  <TranslatedError fieldError={personalForm.formState.errors.passport_issue_country_id} translations={errT} />
                 </FormItem>
               );
             }}
@@ -405,22 +466,22 @@ export default function PersonalForm({
             name="gender"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Gender</FormLabel>
+                <FormLabel className="flex gap-1">{t.gender || "Gender"}</FormLabel>
                 <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
                 >
-                <FormControl>
-                    <SelectTrigger>
-                    <SelectValue placeholder="Choose Gender" />
+                  <FormControl>
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_gender || "Choose Gender"} />
                     </SelectTrigger>
-                </FormControl>
-                <SelectContent>
+                  </FormControl>
+                  <SelectContent>
                     <SelectItem value="F">Female</SelectItem>
                     <SelectItem value="M">Male</SelectItem>
-                </SelectContent>
+                  </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.gender} translations={errT} />
               </FormItem>
             )}
           />
@@ -429,11 +490,15 @@ export default function PersonalForm({
             name="remarks"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Remarks</FormLabel>
+                <FormLabel className="flex gap-1">{t.remarks || "Remarks"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the remarks" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_remarks || "Enter the remarks"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={personalForm.formState.errors.remarks} translations={errT} />
               </FormItem>
             )}
           />
@@ -450,7 +515,7 @@ export default function PersonalForm({
               {translations.buttons.cancel}
             </Button>
             <Button type="submit" size={"lg"} className="w-full">
-              Next
+              {translations.buttons.next || "Next"}
             </Button>
           </div>
         </div>

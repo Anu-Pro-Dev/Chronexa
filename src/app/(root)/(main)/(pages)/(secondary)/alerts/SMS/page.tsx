@@ -35,6 +35,10 @@ export default function Page() {
     toDate: false,
   });
 
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
+
   const props = {
     Data,
     SetData,
@@ -81,7 +85,10 @@ export default function Page() {
               <Calendar
                 mode="single"
                 selected={fromDate}
-                onSelect={setFromDate}
+                onSelect={(date) => {
+                  setFromDate(date);
+                  closePopover('fromDate');
+                }}
               />
             </PopoverContent>
           </Popover>
@@ -102,7 +109,14 @@ export default function Page() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={toDate} onSelect={setToDate} />
+              <Calendar 
+                mode="single" 
+                selected={toDate} 
+                onSelect={(date) => {
+                  setToDate(date);
+                  closePopover('toDate');
+                }}
+              />
             </PopoverContent>
           </Popover>
         </div>

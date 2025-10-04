@@ -396,7 +396,7 @@ export default function AddWorkflow() {
                   <FormLabel>Workflows <Required/></FormLabel>
                   <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="max-w-[350px]">
                         <SelectValue placeholder="Choose workflows category" />
                       </SelectTrigger>
                     </FormControl>
@@ -498,7 +498,7 @@ export default function AddWorkflow() {
                     onValueChange={(value) => updateStepData(rowId, 'roleId', value)}
                     onOpenChange={(open) => setShowRoleSearch(open)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose role" />
                     </SelectTrigger>
                     <SelectContent

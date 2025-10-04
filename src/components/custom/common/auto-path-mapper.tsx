@@ -162,6 +162,10 @@ export default function AutoPathMapper() {
       return translations.modules.employeeMaster[snake];
     }
 
+    if (translations?.actions?.[snake]) {
+      return translations.actions[snake];
+    }
+
     // Fallback to title case
     return toTitleCase(segment);
   };

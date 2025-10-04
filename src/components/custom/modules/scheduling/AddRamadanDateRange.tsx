@@ -41,6 +41,10 @@ export default function AddRamadanDateRange({
     fromDate: false,
     toDate: false,
   });
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -201,7 +205,10 @@ export default function AddRamadanDateRange({
                       <Calendar
                         mode="single"
                         selected={field.value ? field.value : undefined}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date)
+                          closePopover('fromDate')
+                        }}
                         disabled={(date) => {
                           // Get today's date at start of day for comparison
                           const today = new Date();
@@ -245,7 +252,10 @@ export default function AddRamadanDateRange({
                       <Calendar
                         mode="single"
                         selected={field.value ? field.value : undefined}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date)
+                          closePopover('toDate')
+                        }}
                         disabled={(date) => {
                           const ramadanStartDate = form.getValues("from_date");
                           

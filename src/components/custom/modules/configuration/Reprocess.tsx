@@ -52,7 +52,10 @@ export default function ReprocessData() {
     fromDate: false,
     toDate: false,
   });
-  
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       return;
@@ -92,7 +95,7 @@ export default function ReprocessData() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="max-w-[350px]">
                             <SelectValue placeholder="Choose employee" />
                           </SelectTrigger>
                         </FormControl>
@@ -133,7 +136,10 @@ export default function ReprocessData() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              field.onChange(date)
+                              closePopover('fromDate')
+                            }}
                             // disabled={(date) =>
                             //   date > new Date() || date < new Date("1900-01-01")
                             // }
@@ -176,7 +182,7 @@ export default function ReprocessData() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="max-w-[350px]">
                             <SelectValue placeholder="Choose organization" />
                           </SelectTrigger>
                         </FormControl>
@@ -217,7 +223,10 @@ export default function ReprocessData() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              field.onChange(date)
+                              closePopover('toDate')
+                            }}
                             // disabled={(date) =>
                             //   date > new Date() || date < new Date("1900-01-01")
                             // }

@@ -61,6 +61,10 @@ export default function EmployeeReports() {
     fromDate: false,
     toDate: false,
   });
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
   const { language, translations } = useLanguage();
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -374,7 +378,7 @@ export default function EmployeeReports() {
                         onOpenChange={(open) => setShowReportsSearch(open)}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="max-w-[350px]">
                             <SelectValue placeholder="Choose report" />
                           </SelectTrigger>
                         </FormControl>
@@ -412,7 +416,7 @@ export default function EmployeeReports() {
                         onOpenChange={(open) => setShowOrganizationSearch(open)}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="max-w-[350px]">
                             <SelectValue placeholder="Choose organization" />
                           </SelectTrigger>
                         </FormControl>
@@ -453,7 +457,7 @@ export default function EmployeeReports() {
                         onOpenChange={(open) => setShowEmployeeSearch(open)}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="max-w-[350px]">
                             <SelectValue placeholder="Choose employee" />
                           </SelectTrigger>
                         </FormControl>
@@ -500,7 +504,7 @@ export default function EmployeeReports() {
                         onOpenChange={(open) => setShowManagerSearch(open)}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="max-w-[350px]">
                             <SelectValue placeholder="Choose manager" />
                           </SelectTrigger>
                         </FormControl>
@@ -554,7 +558,10 @@ export default function EmployeeReports() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              field.onChange(date)
+                              closePopover('fromDate')
+                            }}
                           />
                         </PopoverContent>
                       </Popover>
@@ -589,7 +596,10 @@ export default function EmployeeReports() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              field.onChange(date)
+                              closePopover('toDate')
+                            }}
                             disabled={(date) => date > new Date()}
                           />
                         </PopoverContent>

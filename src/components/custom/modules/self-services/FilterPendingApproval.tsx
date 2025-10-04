@@ -93,7 +93,7 @@ const { translations } = useLanguage();
                                     defaultValue={field.value}
                                 >
                                     <FormControl>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="max-w-[350px]">
                                         <SelectValue placeholder="Choose any one" />
                                     </SelectTrigger>
                                     </FormControl>
@@ -117,7 +117,7 @@ const { translations } = useLanguage();
                                     defaultValue={field.value}
                                 >
                                     <FormControl>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="max-w-[350px]">
                                         <SelectValue placeholder="Choose any one" />
                                     </SelectTrigger>
                                     </FormControl>
@@ -141,7 +141,7 @@ const { translations } = useLanguage();
                                     defaultValue={field.value}
                                 >
                                     <FormControl>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="max-w-[350px]">
                                         <SelectValue placeholder="Choose any one" />
                                     </SelectTrigger>
                                     </FormControl>
@@ -165,7 +165,7 @@ const { translations } = useLanguage();
                                     defaultValue={field.value}
                                 >
                                     <FormControl>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="max-w-[350px]">
                                         <SelectValue placeholder="Choose any one" />
                                     </SelectTrigger>
                                     </FormControl>

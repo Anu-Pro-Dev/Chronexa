@@ -27,8 +27,16 @@ function ScheduleCard() {
     return { totalHours, workedHours, overtimeHours, pendingHours };
   }, [workSchedule]);
 
+  // if (loading) {
+  //   return <div className="shadow-card rounded-[10px] bg-accent p-5">Loading...</div>;
+  // }
+
   if (loading) {
-    return <div className="shadow-card rounded-[10px] bg-accent p-5">Loading...</div>;
+    return (
+        <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
+            <p className='text-text-secondary'>Loading...</p>
+        </div>
+    );
   }
 
   return (

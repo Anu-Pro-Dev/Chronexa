@@ -142,17 +142,11 @@ export default function LanguageProvider({
           path: "/organization/organization-structure/",
           value: "organization-structure",
         },
-        // {
-        //   label: "Departments",
-        //   path: "/organization/departments/",
-        //   value: "departments",
-        // },
-        // {
-        //   label: "Departments",
-        //   path: "/organization/departments/add/",
-        //   value: "add-departments",
-        //   hide: true,
-        // },
+        {
+          label: "Delegation",
+          path: "/organization/delegation/",
+          value: "delegation",
+        },
       ],
     };
 
@@ -212,8 +206,14 @@ export default function LanguageProvider({
         },
         {
           label: currentLanguageData.translations?.modules?.scheduling?.weekly_schedule || "Weekly Schedule",
-          path: "/scheduling/weekly-schedule/add/",
-          value: "add_weekly_schedule",
+          path: "/scheduling/weekly-schedule/organization-schedule/add/",
+          value: "add_organization_schedule",
+          hide: true,
+        },
+        {
+          label: currentLanguageData.translations?.modules?.scheduling?.weekly_schedule || "Weekly Schedule",
+          path: "/scheduling/weekly-schedule/employee-schedule/add/",
+          value: "add_employee_schedule",
           hide: true,
         },
         {
@@ -228,8 +228,8 @@ export default function LanguageProvider({
         },
         {
           label: currentLanguageData.translations?.modules?.scheduling?.set_ramadan_dates || "Set Ramadan Dates",
-          path: "/scheduling/set-ramadan-dates/",
-          value: "set_ramadan_dates",
+          path: "/scheduling/ramadan-dates/",
+          value: "ramadan_dates",
         },
       ],
     };

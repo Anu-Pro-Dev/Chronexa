@@ -374,6 +374,11 @@ export const editEmployeeRequest = async (data: {
   return apiRequest(`/employee/edit/${employee_id}`, "PUT", payload);
 };
 
+// Function to fetch employee by Id
+export const getEmployeeByID = async (employee_id: number) => {
+  return apiRequest(`/employee/get/${employee_id}`, "GET");
+};
+
 // Function to get a employees who is manager
 export async function getManagerEmployees() {
   return apiRequest("/employee/all?manager_flag=true", "GET");

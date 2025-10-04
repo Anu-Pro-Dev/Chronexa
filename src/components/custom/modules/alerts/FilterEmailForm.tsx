@@ -40,6 +40,10 @@ export default function FilterEmailForm({
     toDate: false,
   });
 
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       on_open_change(false);
@@ -82,7 +86,10 @@ export default function FilterEmailForm({
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date)
+                          closePopover('fromDate')
+                        }}
                         // disabled={(date) =>
                         //   date > new Date() || date < new Date("1900-01-01")
                         // }
@@ -125,7 +132,10 @@ export default function FilterEmailForm({
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date)
+                          closePopover('toDate')
+                        }}
                         // disabled={(date) =>
                         //   date > new Date() || date < new Date("1900-01-01")
                         // }

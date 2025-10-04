@@ -106,7 +106,7 @@ export default function AddPrivelege({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose employee group" />
                     </SelectTrigger>
                   </FormControl>

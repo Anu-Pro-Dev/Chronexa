@@ -98,7 +98,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>
@@ -122,7 +122,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose month" />
                     </SelectTrigger>
                   </FormControl>
@@ -156,7 +156,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose year" />
                     </SelectTrigger>
                   </FormControl>
@@ -184,7 +184,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose day" />
                     </SelectTrigger>
                   </FormControl>
@@ -237,7 +237,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose employee" />
                     </SelectTrigger>
                   </FormControl>
@@ -261,7 +261,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose group" />
                     </SelectTrigger>
                   </FormControl>
@@ -285,7 +285,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose manager" />
                     </SelectTrigger>
                   </FormControl>
@@ -309,7 +309,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose schedule" />
                     </SelectTrigger>
                   </FormControl>
@@ -335,7 +335,7 @@ export default function FilterForm() {
                 </FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder="Choose any one" />
                     </SelectTrigger>
                   </FormControl>

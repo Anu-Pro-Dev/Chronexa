@@ -53,6 +53,10 @@ export function StatusSelector({
     statusColor: false,
   });
 
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
+
   return (
     <Popover open={popoverStates.statusColor} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, statusColor: open }))}>
       <PopoverTrigger asChild>

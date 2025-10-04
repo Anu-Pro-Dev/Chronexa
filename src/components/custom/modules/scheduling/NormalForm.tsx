@@ -1,70 +1,106 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 import { cn } from "@/src/utils/utils";
 import { Button } from "@/src/components/ui/button";
-
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import Required from "@/src/components/ui/required";
 import { CalendarIcon, ClockIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
-import { differenceInMinutes, addMinutes, format } from "date-fns";
+import { differenceInMinutes, format } from "date-fns";
 import { TimePicker } from "@/src/components/ui/time-picker";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import ColorPicker from "@/src/components/ui/color-picker";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useFormContext } from "react-hook-form";
 import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
-import { useLanguage } from "@/src/providers/LanguageProvider"
+import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 interface NormalFormProps {
   SetPage: (page: string) => void;
 }
+
+const formatTimeToString = (date: Date | undefined): string => {
+  if (!date || !(date instanceof Date)) return "";
+  return format(date, "HH:mm:ss");
+};
+
+const parseTimeString = (timeString: string): Date | undefined => {
+  if (!timeString) return undefined;
+  const [hours, minutes, seconds = "00"] = timeString.split(":");
+  const date = new Date();
+  date.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds || "0"), 0);
+  return date;
+};
 
 export default function NormalForm({ SetPage }: NormalFormProps) {
   const form = useFormContext();
   const router = useRouter();
   const clearSelectedRowData = useScheduleEditStore((state) => state.clearSelectedRowData);
   const { translations } = useLanguage();
+  const showToast = useShowToast();
+  const t = translations?.modules?.scheduling || {};
+  const errT = translations?.formErrors || {};
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [popoverStates, setPopoverStates] = useState({
     inTime: false,
     outTime: false,
     inactiveDate: false,
   });
-  // Fetch organizations and locations
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
+
   const { data: organizations } = useFetchAllEntity("organization");
   const { data: locations } = useFetchAllEntity("location");
 
   async function onSubmit(values: any) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    console.log("submitting");
     try {
-      SetPage("policy-schedule");
-      toast.success("Data Saved!");
+      const isRamadanSchedule = values.ramadan_flag || form.getValues("ramadan_flag");
+      
+      if (isRamadanSchedule) {
+        SetPage("ramadan-schedule");
+      } else {
+        SetPage("policy-schedule");
+      }
+      showToast("success", "data_saved");
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      showToast("error", "formsubmission_error");
+    } finally {
+      setIsSubmitting(false);
     }
   }
   
-  // Auto-calculate required_work_hours when in_time or out_time changes
   useEffect(() => {
     const inTime = form.watch("in_time");
     const outTime = form.watch("out_time");
 
-    if (inTime && outTime && inTime instanceof Date && outTime instanceof Date) {
-      let diff = differenceInMinutes(outTime, inTime);
-      if (diff < 0) diff += 24 * 60; // handle overnight shifts
+    if (inTime && outTime) {
+      const inDate = inTime instanceof Date ? inTime : parseTimeString(inTime);
+      const outDate = outTime instanceof Date ? outTime : parseTimeString(outTime);
+      
+      if (inDate && outDate) {
+        let diff = differenceInMinutes(outDate, inDate);
+        if (diff < 0) diff += 24 * 60;
 
-      const hours = Math.floor(diff / 60);
-      const minutes = diff % 60;
-      const formatted = `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
+        const hours = Math.floor(diff / 60);
+        const minutes = diff % 60;
+        const seconds = 0;
+        const formatted = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-      form.setValue("required_work_hours", formatted);
+        form.setValue("required_work_hours", formatted);
+      }
     } else {
       form.setValue("required_work_hours", "");
     }
@@ -79,14 +115,14 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="organization_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Organization <Required/> </FormLabel>
+                <FormLabel className="flex gap-1">{t.organization || "Organization"} <Required/></FormLabel>
                 <Select
                   onValueChange={val => field.onChange(Number(val))}
                   value={field.value ? String(field.value) : ""}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose organization" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_org || "Choose organization"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -100,7 +136,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={form.formState.errors.organization_id} translations={errT} />
               </FormItem>
             )}
           />
@@ -109,14 +145,14 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="schedule_location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Schedule Location <Required/> </FormLabel>
+                <FormLabel className="flex gap-1">{t.schedule_location || "Schedule Location"} <Required/></FormLabel>
                 <Select
                   onValueChange={val => field.onChange(Number(val))}
                   value={field.value ? String(field.value) : ""}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose schedule location" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_schedule_location || "Choose schedule location"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -130,7 +166,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={form.formState.errors.schedule_location} translations={errT} />
               </FormItem>
             )}
           />
@@ -139,11 +175,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="schedule_code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Code <Required /></FormLabel>
+                <FormLabel className="flex gap-1">{t.code || "Code"} <Required /></FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the code" type="text" {...field} />
+                  <Input placeholder={t.placeholder_code || "Enter the code"} type="text" {...field} />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={form.formState.errors.schedule_code} translations={errT} />
               </FormItem>
             )}
           />
@@ -152,11 +188,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="sch_color"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Color <Required/></FormLabel>
+                <FormLabel className="flex gap-1">{t.color || "Color"} <Required/></FormLabel>
                 <FormControl>
                   <ColorPicker value={field.value} onChange={field.onChange} />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={form.formState.errors.sch_color} translations={errT} />
               </FormItem>
             )}
           />
@@ -164,15 +200,15 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             control={form.control}
             name="in_time"
             render={({ field }) => {
-              const value =
-                field.value instanceof Date
-                  ? field.value
-                  : field.value
-                  ? new Date(field.value)
+              const displayValue = field.value instanceof Date 
+                ? field.value 
+                : typeof field.value === 'string' 
+                  ? parseTimeString(field.value)
                   : undefined;
+              
               return (
                 <FormItem>
-                  <FormLabel className="text-left">In time <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.in_time || "In time"} <Required/></FormLabel>
                   <Popover open={popoverStates.inTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
@@ -180,12 +216,12 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                           variant="outline"
                           className={cn(
                             "flex justify-between h-10 w-full max-w-[350px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                            !value && "text-muted-foreground"
+                            !displayValue && "text-muted-foreground"
                           )}
                         >
-                          {value
-                            ? format(value, "HH:mm")
-                            : <span className="text-text-secondary">Choose time</span>
+                          {displayValue
+                            ? format(displayValue, "HH:mm:ss")
+                            : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
                           }
                           <ClockIcon />
                         </Button>
@@ -193,12 +229,14 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                     </FormControl>
                     <PopoverContent className="w-auto p-0">
                       <TimePicker
-                        setDate={field.onChange}
-                        date={value}
+                        setDate={(date) => {
+                          field.onChange(date ? formatTimeToString(date) : undefined);
+                        }}
+                        date={displayValue}
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError fieldError={form.formState.errors.in_time} translations={errT} />
                 </FormItem>
               );
             }}
@@ -207,16 +245,15 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             control={form.control}
             name="out_time"
             render={({ field }) => {
-              // Ensure value is a Date object or undefined
-              const value =
-                field.value instanceof Date
-                  ? field.value
-                  : field.value
-                  ? new Date(field.value)
+              const displayValue = field.value instanceof Date 
+                ? field.value 
+                : typeof field.value === 'string' 
+                  ? parseTimeString(field.value)
                   : undefined;
+              
               return (
                 <FormItem>
-                  <FormLabel className="text-left">Out time <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.out_time || "Out time"} <Required/></FormLabel>
                   <Popover open={popoverStates.outTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, outTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
@@ -224,12 +261,12 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                           variant="outline"
                           className={cn(
                             "flex justify-between h-10 w-full max-w-[350px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                            !value && "text-muted-foreground"
+                            !displayValue && "text-muted-foreground"
                           )}
                         >
-                          {value
-                            ? format(value, "HH:mm")
-                            : <span className="text-text-secondary">Choose time</span>
+                          {displayValue
+                            ? format(displayValue, "HH:mm:ss")
+                            : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
                           }
                           <ClockIcon />
                         </Button>
@@ -237,12 +274,14 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                     </FormControl>
                     <PopoverContent className="w-auto p-0">
                       <TimePicker
-                        setDate={field.onChange}
-                        date={value}
+                        setDate={(date) => {
+                          field.onChange(date ? formatTimeToString(date) : undefined);
+                        }}
+                        date={displayValue}
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError fieldError={form.formState.errors.out_time} translations={errT} />
                 </FormItem>
               );
             }}
@@ -252,16 +291,16 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="required_work_hours"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-left">Required Work Hours</FormLabel>
+                <FormLabel className="text-left">{t.required_work_hrs || "Required Work Hours"}</FormLabel>
                 <FormControl>
                   <Input
                     type="text"
                     value={field.value || ""}
                     readOnly
-                    placeholder="Duration will be auto-calculated"
+                    placeholder={t.auto_cal_duration || "Duration will be auto-calculated"}
                   />
                 </FormControl>
-                <FormMessage className="mt-1"/>
+                <TranslatedError fieldError={form.formState.errors.required_work_hours} translations={errT} />
               </FormItem>
             )}
           />
@@ -270,10 +309,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="flexible_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Flexible (Minutes)</FormLabel>
+                <FormLabel className="flex gap-1">{t.flexible || "Flexible"}</FormLabel>
                 <FormControl>
                   <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
+                <TranslatedError fieldError={form.formState.errors.flexible_min} translations={errT} />
               </FormItem>
             )}
           />
@@ -282,10 +322,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="grace_in_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Grace In (Minutes)</FormLabel>
+                <FormLabel className="flex gap-1">{t.grace_in || "Grace In"}</FormLabel>
                 <FormControl>
                   <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
+                <TranslatedError fieldError={form.formState.errors.grace_in_min} translations={errT} />
               </FormItem>
             )}
           />
@@ -294,10 +335,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="grace_out_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Grace out (Minutes)</FormLabel>
+                <FormLabel className="flex gap-1">{t.grace_out || "Grace Out"}</FormLabel>
                 <FormControl>
                   <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
+                <TranslatedError fieldError={form.formState.errors.grace_out_min} translations={errT} />
               </FormItem>
             )}
           />
@@ -306,9 +348,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="inactive_date"
             render={({ field }) => (
               <FormItem className="">
-                <FormLabel>
-                  Inactive Date
-                </FormLabel>
+                <FormLabel>{t.inactive_date || "Inactive Date"}</FormLabel>
                 <Popover open={popoverStates.inactiveDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inactiveDate: open }))}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -318,7 +358,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         {field.value ? (
                           format(field.value, "dd/MM/yy")
                         ) : (
-                          <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                          <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || "Choose date"}</span>
                         )}
                         <CalendarIcon />
                       </Button>
@@ -328,24 +368,23 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                     <Calendar
                       mode="single"
                       selected={field.value ? field.value : undefined}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date)
+                        closePopover('inactiveDate')
+                      }}
                       disabled={(date) => {
-                        // Get today's date at start of day for comparison
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
-                        
-                        // Disable dates before today
                         return date < today;
                       }}
                     />
                   </PopoverContent>
                 </Popover>
-
-                <FormMessage />
+                <TranslatedError fieldError={form.formState.errors.inactive_date} translations={errT} />
               </FormItem>
             )}
           />
-          <div className="w-full py-2 grid grid-rows-2 gap-y-2 items-center space-y-0">
+          <div className="w-full py-2 grid grid-rows-3 gap-y-2 items-center space-y-0">
             <FormField
               control={form.control}
               name="open_shift_flag"
@@ -358,7 +397,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      <FormLabel htmlFor="open_shift_flag" className="text-sm font-semibold">Open shift</FormLabel>
+                      <FormLabel htmlFor="open_shift_flag" className="text-sm font-semibold">{t.open_shift || "Open shift"}</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>
@@ -376,7 +415,25 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      <FormLabel htmlFor="night_shift_flag" className="text-sm font-semibold">Night shift</FormLabel>
+                      <FormLabel htmlFor="night_shift_flag" className="text-sm font-semibold">{t.night_shift || "Night shift"}</FormLabel>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="ramadan_flag"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="ramadan_flag"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <FormLabel htmlFor="ramadan_flag" className="text-sm font-semibold">{t.ramadan_schedule || "Ramadan Schedule"}</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>
@@ -396,10 +453,10 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                 router.push("/scheduling/schedules/");
               }}
             >
-              {translations.buttons.cancel}
+              {translations?.buttons?.cancel || "Cancel"}
             </Button>
-            <Button type="submit" size={"lg"} className="w-full">
-              Next
+            <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (translations?.buttons?.loading || "Loading") : (translations?.buttons?.next || "Next")}
             </Button>
           </div>
         </div>

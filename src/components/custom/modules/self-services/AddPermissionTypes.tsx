@@ -405,7 +405,7 @@ export default function AddPermissionTypes({
                       disabled={isWorkflowLoading}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue 
                             placeholder={
                               isWorkflowLoading 
@@ -448,7 +448,7 @@ export default function AddPermissionTypes({
                       onValueChange={field.onChange}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue 
                             placeholder="Choose Gender"
                           />

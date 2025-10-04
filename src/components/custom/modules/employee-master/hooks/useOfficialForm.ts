@@ -3,13 +3,34 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 export const officialFormSchema = z.object({
-  employee_type_id: z.coerce.number().optional(),
-  location_id: z.coerce.number().optional(),
-  citizenship_id: z.coerce.number().optional(),
-  designation_id: z.coerce.number().optional(),
-  grade_id: z.coerce.number().optional(),
-  organization_id: z.coerce.number().optional(),
-  manager_id: z.coerce.number().optional(),
+  employee_type_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ required_error: "employee_type_required" })
+  ),
+  location_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ required_error: "location_required" })
+  ),
+  citizenship_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ required_error: "citizenship_required" })
+  ),
+  designation_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ required_error: "designation_required" })
+  ),
+  organization_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ required_error: "organization_required" })
+  ),
+  grade_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number().optional()
+  ),
+  manager_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number().optional()
+  ),
   manager_flag: z.boolean(),
 });
 

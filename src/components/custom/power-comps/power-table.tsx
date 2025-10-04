@@ -336,6 +336,7 @@ export default function PowerTable({
               suppressCellFocus: true,
               suppressMovableColumns: true,
               suppressRowClickSelection: true,
+              overlayNoRowsTemplate: `<span class="text-secondary">${translations?.no_data || 'No data available'}</span>`,
             }}
             defaultColDef={{
               autoHeight: true,

@@ -94,6 +94,10 @@ export default function AddLeaveApplication({
     fromDate: false,
     toDate: false,
   });
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -348,7 +352,7 @@ export default function AddLeaveApplication({
                       disabled={isLeaveTypesLoading}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue 
                             placeholder={
                               isLeaveTypesLoading 
@@ -405,7 +409,10 @@ export default function AddLeaveApplication({
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            field.onChange(date)
+                            closePopover('fromDate')
+                          }}
                           disabled={(date) => {
                             const tomorrow = new Date();
                             tomorrow.setDate(tomorrow.getDate() + 1);
@@ -446,7 +453,10 @@ export default function AddLeaveApplication({
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            field.onChange(date)
+                            closePopover('toDate')
+                          }}
                           disabled={(date) => {
                             const fromDate = form.getValues("from_date");
                             

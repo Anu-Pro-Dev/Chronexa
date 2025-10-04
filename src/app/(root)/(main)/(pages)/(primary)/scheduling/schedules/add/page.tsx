@@ -1,11 +1,7 @@
 "use client";
-import React, { useState, useEffect} from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import React, { useState, useEffect } from "react";
+import { FormProvider } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerMultiStepForm from "@/src/components/custom/power-comps/power-multi-step-form";
@@ -13,7 +9,6 @@ import { useScheduleForm } from "@/src/components/custom/modules/scheduling/hook
 import NormalForm from "@/src/components/custom/modules/scheduling/NormalForm";
 import RamadanForm from "@/src/components/custom/modules/scheduling/RamadanForm";
 import PolicyForm from "@/src/components/custom/modules/scheduling/PolicyForm";
-import { addScheduleRequest, editScheduleRequest } from "@/src/lib/apiHandler";
 import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
 
 export default function Page() {
@@ -21,27 +16,51 @@ export default function Page() {
   const router = useRouter();
   const { form, selectedRowData } = useScheduleForm();
   const clearSelectedRowData = useScheduleEditStore((state) => state.clearSelectedRowData);
-
-  const [fields, set_fields] = useState<any>([]);
-
-  // async function onSubmit(values: any) {
-  //   try {
-  //     await addScheduleRequest(values);
-  //     toast.success("Schedule added successfully!");
-  //     router.push("/scheduling/schedules/");
-  //   } catch (error: any) {
-  //     console.error("Form submission error", error);
-  //     toast.error(error?.response?.data?.message || "Failed to submit the form. Please try again.");
-  //   }
-  // }
+  const [currentPage, setCurrentPage] = useState<string>("normal-schedule");
+  
+  // Watch the ramadan_flag to conditionally show the Ramadan tab
+  const isRamadanEnabled = form.watch("ramadan_flag");
 
   useEffect(() => {
     if (!selectedRowData?.schedule_id) {
       clearSelectedRowData();
     }
-  }, []);
+  }, [selectedRowData, clearSelectedRowData]);
 
-  const [Page, SetPage] = useState<string>("normal-schedule");
+  // If Ramadan flag is disabled and user is on Ramadan tab, redirect to Policy
+  useEffect(() => {
+    if (!isRamadanEnabled && currentPage === "ramadan-schedule") {
+      setCurrentPage("policy-schedule");
+    }
+  }, [isRamadanEnabled, currentPage]);
+
+  // Build pages array
+  const pages = [];
+  
+  pages.push({
+    title: "Normal",
+    state_route: "normal-schedule",
+    disable: false,
+    component: <NormalForm SetPage={setCurrentPage} />,
+  });
+
+  // Only add Ramadan tab if the flag is enabled
+  if (isRamadanEnabled) {
+    pages.push({
+      title: "Ramadan",
+      state_route: "ramadan-schedule",
+      disable: false,
+      component: <RamadanForm SetPage={setCurrentPage} />,
+    });
+  }
+
+  // Always add Policy tab at the end
+  pages.push({
+    title: "Policy",
+    state_route: "policy-schedule",
+    disable: false,
+    component: <PolicyForm SetPage={setCurrentPage} />,
+  });
   
   return (
     <div className="flex flex-col gap-4">
@@ -51,35 +70,9 @@ export default function Page() {
       />
       <FormProvider {...form}>
         <PowerMultiStepForm
-          SetPage={SetPage}
-          Page={Page}
-          // onSubmit={form.handleSubmit(onSubmit)}
-          Pages={[
-            {
-              title: "Normal",
-              state_route: "normal-schedule",
-              disable: false,
-              component: (
-                <NormalForm SetPage={SetPage}/>
-              ),
-            },
-            // {
-            //   title: "Ramadan",
-            //   state_route: "ramadan-schedule",
-            //   disable: false,
-            //   component: (
-            //     <RamadanForm />
-            //   ),
-            // },
-            {
-              title: "Policy",
-              state_route: "policy-schedule",
-              disable: false,
-              component: (
-                <PolicyForm />
-              ),
-            },
-          ]}
+          SetPage={setCurrentPage}
+          Page={currentPage}
+          Pages={pages}
         />
       </FormProvider>
     </div>

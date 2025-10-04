@@ -1,10 +1,9 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { debounce } from "lodash";
 import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import Required from "@/src/components/ui/required";
@@ -12,6 +11,9 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getManagerEmployees } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
+import { useLanguage } from "@/src/providers/LanguageProvider";
 
 export default function OfficialForm({
   Page,
@@ -25,6 +27,11 @@ export default function OfficialForm({
   officialForm: any;
 }) {
   const router = useRouter();
+  const showToast = useShowToast();
+  const { language, translations } = useLanguage();
+  const t = translations?.modules?.employeeMaster || {};
+  const errT = translations?.formErrors || {};
+  
   const managerFlagChecked = officialForm.watch("manager_flag");
   const [step, setStep] = useState(1);
 
@@ -217,10 +224,10 @@ export default function OfficialForm({
   function onSubmit(values: z.infer<typeof officialFormSchema>) {
     try {
       SetPage("flags-form");
-      toast.success("Data Saved!");
+      showToast("success", "data_saved");
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      showToast("error", "formsubmission_error");
     }
   }
 
@@ -241,7 +248,7 @@ export default function OfficialForm({
                       onCheckedChange={field.onChange}
                     />
                     <FormLabel htmlFor="manager_flag" className="text-sm font-semibold">
-                      Manager flag
+                      {t.manager_flag || "Manager flag"}
                     </FormLabel>
                   </div>
                 </FormControl>
@@ -257,26 +264,28 @@ export default function OfficialForm({
             name="employee_type_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Employee Type <Required /></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.employee_type || "Employee Type"} <Required />
+                </FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
                   onOpenChange={(open) => setShowEmployeeTypeSearch(open)}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose employee type" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_emp_type || "Choose employee type"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent
                     showSearch={true}
-                    searchPlaceholder="Search employee types..."
+                    searchPlaceholder={t.search || "Search employee types..."}
                     onSearchChange={debouncedEmployeeTypeSearch}
                     className="mt-1"
                   >
                     {getFilteredEmployeeTypes().length === 0 && employeeTypeSearchTerm.length > 0 && (
                       <div className="p-3 text-sm text-text-secondary">
-                        No employee types found
+                        {t.no_results || "No employee types found"}
                       </div>
                     )}
                     {getFilteredEmployeeTypes().map((item: any) => {
@@ -289,7 +298,7 @@ export default function OfficialForm({
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <TranslatedError fieldError={officialForm.formState.errors.employee_type_id} translations={errT} />
               </FormItem>
             )}
           />
@@ -300,26 +309,28 @@ export default function OfficialForm({
             name="location_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Location <Required /></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.locations || "Location"} <Required />
+                </FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
                   onOpenChange={(open) => setShowLocationSearch(open)}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose location" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_location || "Choose location"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent
                     showSearch={true}
-                    searchPlaceholder="Search locations..."
+                    searchPlaceholder={t.search || "Search locations..."}
                     onSearchChange={debouncedLocationSearch}
                     className="mt-1 max-w-[350px]"
                   >
                     {getFilteredLocations().length === 0 && locationSearchTerm.length > 0 && (
                       <div className="p-3 text-sm text-text-secondary">
-                        No locations found
+                        {t.no_results || "No locations found"}
                       </div>
                     )}
                     {getFilteredLocations().map((item: any) => {
@@ -332,7 +343,7 @@ export default function OfficialForm({
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <TranslatedError fieldError={officialForm.formState.errors.location_id} translations={errT} />
               </FormItem>
             )}
           />
@@ -343,26 +354,28 @@ export default function OfficialForm({
             name="citizenship_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Citizenship <Required /></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.citizenship || "Citizenship"} <Required />
+                </FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
                   onOpenChange={(open) => setShowCitizenshipSearch(open)}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose citizenship" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_citizenship || "Choose citizenship"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent
                     showSearch={true}
-                    searchPlaceholder="Search citizenships..."
+                    searchPlaceholder={t.search || "Search citizenships..."}
                     onSearchChange={debouncedCitizenshipSearch}
                     className="mt-1"
                   >
                     {getFilteredCitizenships().length === 0 && citizenshipSearchTerm.length > 0 && (
                       <div className="p-3 text-sm text-text-secondary">
-                        No citizenships found
+                        {t.no_results || "No citizenships found"}
                       </div>
                     )}
                     {getFilteredCitizenships().map((item: any) => {
@@ -375,7 +388,7 @@ export default function OfficialForm({
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <TranslatedError fieldError={officialForm.formState.errors.citizenship_id} translations={errT} />
               </FormItem>
             )}
           />
@@ -386,26 +399,28 @@ export default function OfficialForm({
             name="designation_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Designation <Required /></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.designation || "Designation"} <Required />
+                </FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
                   onOpenChange={(open) => setShowDesignationSearch(open)}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose designation" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_designation || "Choose designation"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent
                     showSearch={true}
-                    searchPlaceholder="Search designations..."
+                    searchPlaceholder={t.search || "Search designations..."}
                     onSearchChange={debouncedDesignationSearch}
                     className="mt-1"
                   >
                     {getFilteredDesignations().length === 0 && designationSearchTerm.length > 0 && (
                       <div className="p-3 text-sm text-text-secondary">
-                        No designations found
+                        {t.no_results || "No designations found"}
                       </div>
                     )}
                     {getFilteredDesignations().map((item: any) => {
@@ -418,7 +433,7 @@ export default function OfficialForm({
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <TranslatedError fieldError={officialForm.formState.errors.designation_id} translations={errT} />
               </FormItem>
             )}
           />
@@ -429,26 +444,28 @@ export default function OfficialForm({
             name="organization_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Organization <Required /></FormLabel>
+                <FormLabel className="flex gap-1">
+                  {t.organization || "Organization"} <Required />
+                </FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
                   onOpenChange={(open) => setShowOrganizationSearch(open)}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose organization" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_organization || "Choose organization"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent
                     showSearch={true}
-                    searchPlaceholder="Search organizations..."
+                    searchPlaceholder={t.search || "Search organizations..."}
                     onSearchChange={debouncedOrganizationSearch}
                     className="mt-1"
                   >
                     {getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 && (
                       <div className="p-3 text-sm text-text-secondary">
-                        No organizations found
+                        {t.no_results || "No organizations found"}
                       </div>
                     )}
                     {getFilteredOrganizations().map((item: any) => {
@@ -461,7 +478,7 @@ export default function OfficialForm({
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <TranslatedError fieldError={officialForm.formState.errors.organization_id} translations={errT} />
               </FormItem>
             )}
           />
@@ -472,26 +489,26 @@ export default function OfficialForm({
             name="grade_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Grade</FormLabel>
+                <FormLabel className="flex gap-1">{t.grade || "Grade"}</FormLabel>
                 <Select
                   onValueChange={(val) => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
                   onOpenChange={(open) => setShowGradeSearch(open)}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose grade" />
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_grade || "Choose grade"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent
                     showSearch={true}
-                    searchPlaceholder="Search grades..."
+                    searchPlaceholder={t.search || "Search grades..."}
                     onSearchChange={debouncedGradeSearch}
                     className="mt-1"
                   >
                     {getFilteredGrades().length === 0 && gradeSearchTerm.length > 0 && (
                       <div className="p-3 text-sm text-text-secondary">
-                        No grades found
+                        {t.no_results || "No grades found"}
                       </div>
                     )}
                     {getFilteredGrades().map((item: any) => {
@@ -504,63 +521,61 @@ export default function OfficialForm({
                     })}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <TranslatedError fieldError={officialForm.formState.errors.grade_id} translations={errT} />
               </FormItem>
             )}
           />
 
-          {/* Manager (conditionally shown if manager_flag is false) */}
-          {/* {!managerFlagChecked && ( */}
-            <FormField
-              control={officialForm.control}
-              name="manager_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">Manager</FormLabel>
-                  <Select
-                    onValueChange={(val) => field.onChange(Number(val))}
-                    value={field.value !== undefined ? String(field.value) : ""}
-                    onOpenChange={(open) => setShowManagerSearch(open)}
+          {/* Manager */}
+          <FormField
+            control={officialForm.control}
+            name="manager_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex gap-1">{t.manager || "Manager"}</FormLabel>
+                <Select
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowManagerSearch(open)}
+                >
+                  <FormControl>
+                    <SelectTrigger className="max-w-[350px]">
+                      <SelectValue placeholder={t.placeholder_manager || "Choose manager"} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder={t.search || "Search managers..."}
+                    onSearchChange={debouncedManagerSearch}
+                    className="mt-1"
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose manager" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent
-                      showSearch={true}
-                      searchPlaceholder="Search managers..."
-                      onSearchChange={debouncedManagerSearch}
-                      className="mt-1"
-                    >
-                      {getFilteredManagers().length === 0 && managerSearchTerm.length > 0 && (
-                        <div className="p-3 text-sm text-text-secondary">
-                          No managers found
-                        </div>
-                      )}
-                      {getFilteredManagers()
-                        .filter((emp: any) => emp.employee_id != null)
-                        .map((emp: any) => (
-                          <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
-                            {emp.firstname_eng}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          {/* )} */}
+                    {getFilteredManagers().length === 0 && managerSearchTerm.length > 0 && (
+                      <div className="p-3 text-sm text-text-secondary">
+                        {t.no_results || "No managers found"}
+                      </div>
+                    )}
+                    {getFilteredManagers()
+                      .filter((emp: any) => emp.employee_id != null)
+                      .map((emp: any) => (
+                        <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
+                          {emp.firstname_eng}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <TranslatedError fieldError={officialForm.formState.errors.manager_id} translations={errT} />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-5">
             <Button variant="outline" type="button" size="lg" className="w-full" onClick={() => setStep((prev) => prev - 1)}>
-              Back
+              {translations.buttons.back || "Back"}
             </Button>
             <Button type="submit" size="lg" className="w-full">
-              Next
+              {translations.buttons.next || "Next"}
             </Button>
           </div>
         </div>

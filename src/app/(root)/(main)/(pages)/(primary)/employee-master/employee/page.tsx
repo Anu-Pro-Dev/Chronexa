@@ -161,7 +161,7 @@ export default function Page() {
   const handleEditClick = useCallback(
     (row: any) => {
       setSelectedRowData(row);
-      router.push("/employee-master/employee/add");
+      router.push(`/employee-master/employee/edit?id=${row.employee_id}`);
     },
     [router, setSelectedRowData]
   );

@@ -44,6 +44,10 @@ export default function Page() {
     fromDate: false,
     toDate: false,
   });
+
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
   const options = [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
@@ -352,7 +356,10 @@ export default function Page() {
               <Calendar
                 mode="single"
                 selected={fromDate}
-                onSelect={handleFromDateChange}
+                onSelect={(date) => {
+                  handleFromDateChange(date);
+                  closePopover('fromDate');
+                }}
               />
             </PopoverContent>
           </Popover>
@@ -375,7 +382,14 @@ export default function Page() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={toDate} onSelect={handleToDateChange} />
+              <Calendar 
+                mode="single"
+                selected={toDate} 
+                onSelect={(date) => {
+                  handleToDateChange(date);
+                  closePopover('toDate');
+                }} 
+              />
             </PopoverContent>
           </Popover>
         </div>

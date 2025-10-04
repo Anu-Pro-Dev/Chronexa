@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
-import AddOrganization from "@/src/components/custom/modules/organization/AddOrganization";
+import AddDelegate from "@/src/components/custom/modules/organization/AddDelegate";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -32,8 +32,7 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
-  // Fetch paginated organization data for display
-  const { data: orgData, isLoading, refetch } = useFetchAllEntity("organization", {
+  const { data: delegateData, isLoading, refetch } = useFetchAllEntity("delegation", {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -41,68 +40,27 @@ export default function Page() {
     },
   });
 
-  // Fetch ALL organizations for parent mapping
-  const { data: allOrgData } = useFetchAllEntity("organization", {
-    searchParams: {
-      limit: "1000",
-    },
-  });
-
-  const orgMap = useMemo(() => {
-    if (!Array.isArray(allOrgData?.data)) return {};
-    
-    const map: Record<string, string> = {};
-    allOrgData.data.forEach((org: any) => {
-      if (org.organization_id) {
-        map[org.organization_id] = language === "ar" 
-          ? (org.organization_arb || org.organization_eng || "") 
-          : (org.organization_eng || org.organization_arb || "");
-      }
-    });
-    
-    return map;
-  }, [allOrgData, language]);
-
   const columns: Column[] = useMemo(() => [
     {
-      field: "organization_code",
-      headerName: t.org_code,
-      cellRenderer: (row: any) => (row["organization_code"] || "").toUpperCase(),
+      field: "employee_name",
+      headerName: "Employee Name",
     },
     {
-      field: language === "ar" ? "organization_arb" : "organization_eng",
-      headerName: t.org_name,
+      field: "delegated_employee",
+      headerName: "Delegated Employee",
     },
-    {
-      field: "parent_id",
-      headerName: t.parent,
-      cellRenderer: (row: any) => {
-        if (!row.parent_id) {
-          return <span className="text-gray-500 italic">No Parent</span>;
-        }
-        
-        const parentName = orgMap[row.parent_id];
-        
-        return <span>{parentName || "Loading..."}</span>;
-      },
-    },
-  ], [language, orgMap, t]);
+    { field: "from_date", headerName: "From Date" },
+    { field: "to_date", headerName: "To Date" },
+    { field: "active", headerName: "Active" },
 
-  const data = useMemo(() => {
-    if (!Array.isArray(orgData?.data)) return [];
-    return orgData.data.map((org: any) => ({
-      ...org,
-      id: org.organization_id,
-      code: org.organization_code,
-    }));
-  }, [orgData]);
+  ], [language, t]);
 
   useEffect(() => {
     if (!open) setSelectedRowData(null);
   }, [open]);
 
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["organization"] });
+    queryClient.invalidateQueries({ queryKey: ["delegation"] });
   };
 
   const handleEditClick = useCallback((row: any) => {
@@ -135,7 +93,7 @@ export default function Page() {
   }, []);
 
   const props = useMemo(() => ({
-    Data: data,
+    Data: delegateData,
     Columns: columns,
     open,
     on_open_change: setOpen,
@@ -150,11 +108,11 @@ export default function Page() {
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: orgData?.total || 0,
-    hasNext: orgData?.hasNext,
+    total: delegateData?.total || 0,
+    hasNext: delegateData?.hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
-  }), [data, columns, open, selectedRows, isLoading, sortField, currentPage, sortDirection, searchValue]);
+  }), [delegateData, columns, open, selectedRows, isLoading, sortField, currentPage, sortDirection, searchValue]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -162,10 +120,10 @@ export default function Page() {
         props={props}
         selectedRows={selectedRows}
         items={modules?.organization.items}
-        entityName="organization"
-        modal_title={t.organization}
+        entityName="delegation"
+        modal_title={t.delegation}
         modal_component={
-          <AddOrganization
+          <AddDelegate
             on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}

@@ -394,7 +394,7 @@ export default function AddEmployeeGroups({
                             value={field.value !== undefined ? String(field.value) : ""}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="max-w-[350px]">
                                 <SelectValue placeholder={t.placeholder_manager} />
                               </SelectTrigger>
                             </FormControl>

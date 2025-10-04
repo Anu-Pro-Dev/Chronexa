@@ -353,7 +353,7 @@ export default function AddLeaveTypes({
                       disabled={isWorkflowLoading}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue 
                             placeholder={
                               isWorkflowLoading 
@@ -396,7 +396,7 @@ export default function AddLeaveTypes({
                       onValueChange={field.onChange}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue 
                             placeholder="Choose Gender"
                           />

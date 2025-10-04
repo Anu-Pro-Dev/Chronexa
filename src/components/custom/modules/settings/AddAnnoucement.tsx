@@ -88,7 +88,7 @@ export default function AddAnnoucement() {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue placeholder="Choose organization" />
                         </SelectTrigger>
                       </FormControl>
@@ -112,7 +112,7 @@ export default function AddAnnoucement() {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="max-w-[350px]">
                           <SelectValue placeholder="Choose employee" />
                         </SelectTrigger>
                       </FormControl>
