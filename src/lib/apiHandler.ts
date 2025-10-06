@@ -858,23 +858,40 @@ export const getDashboardData = async (action: string) => {
   return apiRequest(`/dashboard/data?action=${action}`, "GET");
 };
 
+// Functions for dashboard - separate endpoints
+export const getAttendanceDetails = async () => {
+  return apiRequest('/dashboard/attendance', "GET");
+};
+
+export const getWorkSchedule = async () => {
+  return apiRequest('/dashboard/work-schedule', "GET");
+};
+
+export const getLeaveAnalytics = async () => {
+  return apiRequest('/dashboard/leave-analytics', "GET");
+};
+
+export const getWorkHourTrends = async () => {
+  return apiRequest('/dashboard/work-hour-trends', "GET");
+};
+
 // Helper function to fetch all dashboard data
 export const getAllDashboardData = async () => {
-  const actions = ['getMyAttnDetails', 'WorkSchedule', 'getLeaveAnalytics', 'WorkHourTrends'];
-  
   try {
-    const responses = await Promise.all(
-      actions.map(action => getDashboardData(action))
-    );
+    const [attendance, schedule, leaves, workHours] = await Promise.all([
+      getAttendanceDetails(),
+      getWorkSchedule(),
+      getLeaveAnalytics(),
+      getWorkHourTrends()
+    ]);
     
-    // Combine all responses into a single object
     return {
       success: true,
       data: {
-        getMyAttnDetails: responses[0]?.success ? responses[0].data : [],
-        WorkSchedule: responses[1]?.success ? responses[1].data : [],
-        getLeaveAnalytics: responses[2]?.success ? responses[2].data : [],
-        WorkHourTrends: responses[3]?.success ? responses[3].data : []
+        getMyAttnDetails: attendance?.success ? attendance.data : [],
+        WorkSchedule: schedule?.success ? schedule.data : [],
+        getLeaveAnalytics: leaves?.success ? leaves.data : [],
+        WorkHourTrends: workHours?.success ? workHours.data : []
       }
     };
   } catch (error) {
@@ -885,4 +902,82 @@ export const getAllDashboardData = async () => {
       error: 'Failed to fetch dashboard data'
     };
   }
+};
+
+// Function to add a new db setting
+export const addDBSettingRequest = async (data: {
+  db_settings_id?: number;
+  db_databasetype: string;
+  db_databasename: string;
+  db_host_name: string;
+  db_port_no: string;
+  db_username: string;
+  db_password: string;
+  em_encryption: string;
+  connect_db_flag: boolean;
+}) => {
+  return apiRequest("/dbSetting/add", "POST", data);
+};
+
+// Function to edit an db setting by ID
+export const editDBSettingRequest = async (data: {
+  db_settings_id: number;
+  db_databasetype: string;
+  db_databasename: string;
+  db_host_name: string;
+  db_port_no: string;
+  db_username: string;
+  db_password: string;
+  em_encryption: string;
+  connect_db_flag: boolean;
+}) => {
+  const { db_settings_id, ...payload } = data;
+
+  return apiRequest(`/dbSetting/edit/${db_settings_id}`, "PUT", payload);
+};
+
+
+// Function to add a new email setting
+export const addEmailSettingRequest = async (data: {
+  em_id?: number;
+  em_smtp_name: string;
+  em_smtp_password: string;
+  em_host_name: string;
+  em_port_no: string;
+  em_from_email: string;
+  em_encryption: string;
+  em_active_smtp_flag: boolean;
+  created_id: number;
+  last_updated_id: number;
+}) => {
+  return apiRequest("/emailSetting/add", "POST", data);
+};
+
+// Function to edit an email setting by ID
+export const editEmailSettingRequest = async (data: {
+  em_id: number;
+  em_smtp_name: string;
+  em_smtp_password: string;
+  em_host_name: string;
+  em_port_no: string;
+  em_from_email: string;
+  em_encryption: string;
+  em_active_smtp_flag: boolean;
+  created_id?: number;
+  last_updated_id: number;
+}) => {
+  const { em_id, ...payload } = data;
+
+  return apiRequest(`/emailSetting/edit/${em_id}`, "PUT", payload);
+};
+
+// Function to send a test email
+export const sendTestEmailRequest = async (data: {
+  to: string;
+  subject: string;
+  body: string;
+  cc?: string;
+  bcc?: string;
+}) => {
+  return apiRequest(`/emailSetting/test`, "POST", data);
 };

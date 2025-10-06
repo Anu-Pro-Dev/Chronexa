@@ -5,7 +5,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddOrganizationSchedule from "@/src/components/custom/modules/scheduling/AddOrganizationSchedule";
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function Page({ mode, id }: { mode: "add" | "edit"; id?: string | null }) {  
+export default function Page() {  
   const { modules } = useLanguage();
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const queryClient = useQueryClient();

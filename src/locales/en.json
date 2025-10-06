@@ -789,7 +789,13 @@
       "delete_error": "Delete operation failed.",
       "delete_invalidid_error": "Selected items do not have valid IDs",
       "addorgschedule_success": "Organization schedule added successfully!",
-      "updateorgschedule_success": "Organization schedule updated successfully!"
+      "updateorgschedule_success": "Organization schedule updated successfully!",
+      "addemailsetting_success": "Email setting added successfully!",
+      "updateemailsetting_success": "Email setting updated successfully!",
+      "adddbsetting_success": "DB Setting added successfully!",
+      "updatedbsetting_success": "DB Setting updated successfully!",
+      "addappsetting_success": "App Setting added successfully!",
+      "updateappsetting_success": "App Setting updated successfully!"
     },
     "formErrors": {
       "location_code_required": "Location code is required.",
@@ -846,7 +852,24 @@
       "ramadan_in_time_required": "Ramadan in time is required.",
       "ramadan_out_time_required": "Ramadan out time is required.",
       "schedule_required": "Schedule is required",
-      "attachment_invalid": "Invalid file. Ensure it's an image (JPEG/PNG) and less than 5MB."
+      "attachment_invalid": "Invalid file. Ensure it's an image (JPEG/PNG) and less than 5MB.",
+      "id_required": "ID is required",
+      "id_max_length": "ID must not exceed 8 characters",
+      "name_required": "Name is required",
+      "name_max_length": "Name must not exceed 100 characters",
+      "host_required": "Host is required",
+      "host_max_length": "Host must not exceed 100 characters",
+      "port_required": "Port is required",
+      "port_max_length": "Port must not exceed 100 characters",
+      "encryption_required": "Encryption is required",
+      "email_max_length": "Email must not exceed 100 characters",
+      "database_required": "Database is required.",
+      "database_name_required": "Database name is required.",
+      "database_name_max_length": "Database name must not exceed 100 characters.",
+      "user_required": "User is required.",
+      "user_max_length": "User must not exceed 25 characters.",
+      "password_required": "Password is required.",
+      "password_max_length": "Password must not exceed 20 characters."
     }
   }
 }

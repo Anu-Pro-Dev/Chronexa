@@ -1,20 +1,19 @@
-
 "use client";
 import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/src/utils/utils";
 import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import Required from "@/src/components/ui/required";
-import toast from "react-hot-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import Switch from "@/src/components/ui/switch";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addEmailSettingRequest, editEmailSettingRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const encryptionValues: Record<string, string> = {
   "1": "TLS",
@@ -27,41 +26,32 @@ const encryptionLabelToId = Object.fromEntries(
 );
 
 const formSchema = z.object({
-		id: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(8),
-    name: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(100),
-    host: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(100),
-    port: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(100),
-		from_email: z
-			.string()
-			.min(6, {
-				message: "Required",
-			})
-			.max(25),
-		encryption: z.string().min(1, { message: "Required" }),
-		active: z.boolean(),
+   host: z
+    .string()
+    .min(1, { message: "host_required" })
+    .max(100, { message: "host_max_length" }),
+  port: z
+    .string()
+    .min(1, { message: "port_required" })
+    .max(100, { message: "port_max_length" }),
+  name: z
+    .string()
+    .min(1, { message: "name_required" })
+    .max(100, { message: "name_max_length" }),
+  password: z
+    .string()
+    .min(1, { message: "password_required" })
+    .max(100, { message: "password_max_length" }),
+  from_email: z
+    .string()
+    .min(1, { message: "email_required" })
+    .email({ message: "email_invalid" })
+    .max(100, { message: "email_max_length" }),
+  encryption: z.string().min(1, { message: "encryption_required" }),
+  active: z.boolean(),
 });
 
-export default function AddDBSettings({
+export default function AddEmailSettings({
   on_open_change,
   selectedRowData,
   onSave,
@@ -70,225 +60,309 @@ export default function AddDBSettings({
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
 }) {
-    
-	const {language, translations } = useLanguage();
-    
+  const { language, translations } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const showToast = useShowToast();
+  const t = translations?.modules?.settings || {};
+  const errT = translations?.formErrors || {};
+  const btnT = translations?.buttons || {};
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-			id: "",
       name: "",
+      password: "",
       host: "",
       port: "",
-			encryption: "",
-			from_email: "",
-			active: false,
+      encryption: "",
+      from_email: "",
+      active: false,
     },
   });
 
-	useEffect(() => {
-		form.reset(form.getValues());
-	}, [language]);
+  useEffect(() => {
+    if (!selectedRowData) {
+      form.reset({
+        name: "",
+        password: "",
+        host: "",
+        port: "",
+        encryption: "",
+        from_email: "",
+        active: false,
+      });
+    } else {
+      const encryptionId = encryptionLabelToId[selectedRowData.em_encryption] || "";
+      form.reset({
+        name: selectedRowData.em_smtp_name || "",
+        password: selectedRowData.em_smtp_password || "",
+        host: selectedRowData.em_host_name || "",
+        port: selectedRowData.em_port_no?.toString() || "",
+        from_email: selectedRowData.em_from_email || "",
+        encryption: encryptionId,
+        active: selectedRowData.em_active_smtp_flag === true || selectedRowData.em_active_smtp_flag === "Y",
+      });
+    }
+  }, [selectedRowData, form]);
 
-	useEffect(() => {
-		if (!selectedRowData) {
-			form.reset();
-		} else {
-			const encryptionId = encryptionLabelToId[selectedRowData.encryption] || "";
-			form.reset({
-				id: selectedRowData.emailID,
-				name: selectedRowData.name,
-				host: selectedRowData.host,
-				port: selectedRowData.port,
-				from_email: selectedRowData.fromEmail,
-				encryption: encryptionId,
-				active: selectedRowData?.isActive || false,
-			});
-		}
-	}, [selectedRowData, form]);
+  const addMutation = useMutation({
+    mutationFn: addEmailSettingRequest,
+    onSuccess: (data) => {
+      showToast("success", "addemailsetting_success");
+      onSave(null, data.data);
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
+      } else {
+        showToast("error", "formsubmission_error");
+      }
+    },
+  });
 
-	const handleSave = () => {
-		const formData = form.getValues();
-		if (selectedRowData) {
-			onSave(selectedRowData.id, formData);
-		} else {
-			onSave(null, formData);
-		}
-		on_open_change(false);
-	};
+  const editMutation = useMutation({
+    mutationFn: editEmailSettingRequest,
+    onSuccess: (_data, variables) => {
+      showToast("success", "updateemailsetting_success");
+      onSave(variables.em_id?.toString() ?? null, variables);
+      queryClient.invalidateQueries({ queryKey: ["emailSetting"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
+      } else {
+        showToast("error", "formsubmission_error");
+      }
+    },
+  });
 
-  const router = useRouter();
-  
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-		if (selectedRowData) {
-			toast.success("Email Settings updated successfully");
-			onSave(selectedRowData.id, values);
-		} else {
-			toast.success("Email Settings added successfully");
-			onSave(null, values);
-		}
-		on_open_change(false);
-    } catch (error) {
-      console.error("Form submission error", error);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {      
+      const payload: any = {
+        em_smtp_name: values.name,
+        em_smtp_password: values.password,
+        em_host_name: values.host,
+        em_port_no: values.port,
+        em_from_email: values.from_email,
+        em_encryption: encryptionValues[values.encryption],
+        em_active_smtp_flag: values.active,
+      };
+
+      if (selectedRowData) {
+        editMutation.mutate({ 
+          em_id: selectedRowData.em_id, 
+          ...payload 
+        });
+      } else {
+        addMutation.mutate({ 
+          ...payload,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-16 gap-y-4">
-							<FormField
-									control={form.control}
-									name="id"
-									render={({ field }) => (
-											<FormItem>
-											<FormLabel>
-													ID <Required />
-											</FormLabel>
-											<FormControl>
-													<Input placeholder="Enter Unique identifier for database reference" type="text" {...field} />
-											</FormControl>
-											<FormMessage />
-											</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="name"
-									render={({ field }) => (
-											<FormItem>
-											<FormLabel>
-													Name <Required />
-											</FormLabel>
-											<FormControl>
-													<Input placeholder="Enter SMTP configuration name" type="text" {...field} />
-											</FormControl>
-											<FormMessage />
-											</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="host"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											Host <Required />
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter the IP or domain name"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="port"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											Port <Required />
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter your port number"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="from_email"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											From Email <Required/>
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter from email address"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-								key={form.watch("encryption")}
-								control={form.control}
-								name="encryption"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Encryption <Required /></FormLabel>
-										<Select
-											onValueChange={field.onChange}
-											value={field.value}
-										>
-											<FormControl>
-												<SelectTrigger className="max-w-[350px]">
-													<SelectValue placeholder="Choose encryption" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												{Object.entries(encryptionValues).map(([value, label]) => (
-													<SelectItem key={value} value={value}>
-														{label}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="active"
-								render={({ field }) => (
-									<FormItem className="flex items-center space-x-4">
-										<FormLabel className="mb-0">Active SMTP</FormLabel>
-										<FormControl>
-											<Switch
-												checked={!!field.value}
-												onChange={(val: boolean) => field.onChange(val)}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+          <div className="grid grid-cols-2 gap-16 gap-y-4">
+            <FormField
+              control={form.control}
+              name="host"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t.host || "Host"} <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter the IP or domain name"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.host}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="port"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t.port || "Port"} <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter port number"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.port}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t.name || "Name"} <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter SMTP configuration name"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.name}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Password <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter SMTP password"
+                      type="password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.password}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              key={form.watch("encryption")}
+              control={form.control}
+              name="encryption"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Encryption <Required />
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="max-w-[350px]">
+                        <SelectValue placeholder="Choose encryption" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(encryptionValues).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <TranslatedError
+                    fieldError={form.formState.errors.encryption}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="from_email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    From Email <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter from email address"
+                      type="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.from_email}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="active"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-4">
+                  <FormLabel className="mb-0">
+                    {t.active || "Active"} SMTP
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={!!field.value}
+                      onChange={(val: boolean) => field.onChange(val)}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.active}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="flex justify-end gap-2 items-center py-5">
+            <div className="flex gap-4 px-5">
+              <Button
+                variant="outline"
+                type="button"
+                size="lg"
+                className="w-full"
+                onClick={() => on_open_change(false)}
+              >
+                {btnT?.cancel || "Cancel"}
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? selectedRowData
+                    ? btnT?.updating || "Updating..."
+                    : btnT?.saving || "Saving..."
+                  : selectedRowData
+                  ? btnT?.update || "Update"
+                  : btnT?.save || "Save"}
+              </Button>
             </div>
-            <div className="flex justify-end gap-2 items-center py-5">
-							<div className="flex gap-4 px-5">
-									<Button
-									variant={"outline"}
-									type="button"
-									size={"lg"}
-									className="w-full"
-									onClick={() => {
-										on_open_change(false);
-									}}
-									>
-										{translations?.buttons?.cancel}
-									</Button>
-									<Button type="submit" size={"lg"} className="w-full">
-										{selectedRowData ? translations?.buttons?.Update || "Update" : translations?.buttons?.save || "Save"} 
-									</Button>
-							</div>
-            </div>
+          </div>
         </div>
       </form>
     </Form>

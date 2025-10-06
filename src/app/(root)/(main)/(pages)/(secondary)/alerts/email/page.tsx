@@ -245,6 +245,7 @@ export default function Page() {
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
+        overrideCheckbox={true}
         customColDef={{
           flex: 0,
         }}

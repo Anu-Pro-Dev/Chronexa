@@ -29,10 +29,10 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "designation_code", headerName: t.designation_code },
+      { field: "designation_code", headerName: t.designation_code || "Designation Code" },
       {
         field: language === "ar" ? "designation_arb" : "designation_eng",
-        headerName: t.designation_name,
+        headerName: t.designation_name || "Designation Name",
       },
     ]);
   }, [t, language]);
@@ -69,7 +69,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -78,7 +78,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -127,7 +127,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.companyMaster.items}
         entityName="designation"
-        modal_title={t.designations}
+        modal_title={t.designations || "Designations"}
         modal_component={
           <AddDesignations
             on_open_change={setOpen}

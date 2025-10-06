@@ -6,6 +6,7 @@ import AddDBSettings from "@/src/components/custom/modules/settings/AddDBSetting
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -17,19 +18,32 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.settings || {};
+
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "db_databasetype", headerName: "Database" },
-      { field: "db_databasename", headerName: "Database Name" },
-      { field: "db_host_name", headerName: "Host" },
-      { field: "db_port_no", headerName: "Port" },
-      { field: "connect_db_flag", headerName: "Connection"},
+      { field: "db_databasetype", headerName: t.database || "Database" },
+      { field: "db_databasename", headerName: t.database_name || "Database Name" },
+      { field: "db_host_name", headerName: t.host || "Host" },
+      { field: "db_port_no", headerName: t.port || "Port" },
+      { field: "connect_db_flag", headerName: t.connection || "Connection"},
     ]);
-  }, [language]);
+  }, [t, language]);
 
-  const { data: dbSettingData, isLoading } = useFetchAllEntity("dbSetting");
+  const { data: dbSettingData, isLoading, refetch } = useFetchAllEntity("dbSetting", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(dbSettingData?.data)) {
@@ -37,6 +51,7 @@ export default function Page() {
         return {
           ...dbSet,
           id: dbSet.db_settings_id,
+          db_setting_id: dbSet.db_settings_id, // Add this for delete to work
         };
       });
     }
@@ -49,27 +64,32 @@ export default function Page() {
     }
   }, [open]);
 
-  const props = {
-    Data: data,
-    Columns: columns,
-    open,
-    on_open_change: setOpen,
-    selectedRows,
-    setSelectedRows,
-    isLoading,
-    SortField: sortField,
-    CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
-    SetSortField: setSortField,
-    SortDirection: sortDirection,
-    SetSortDirection: setSortDirection,
-    SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
-  };
- 
-  const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["chron-db-setting"] });
-  };
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
+  const handleSave = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["dbSetting"] });
+    setSelectedRows([]);
+  }, [queryClient]);
  
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
@@ -80,15 +100,44 @@ export default function Page() {
     setSelectedRows(rows);
   }, []);
 
+  const handleDeleteSuccess = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["dbSetting"] });
+    setSelectedRows([]);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [queryClient, refetch]);
+
+  const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: handlePageChange,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: handleSearchChange,
+    total: dbSettingData?.total || 0,
+    hasNext: dbSettingData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        disableAdd
         selectedRows={selectedRows}
         items={modules?.settings.items}
         entityName="dbSetting"
-        modal_title="DB Settings"
+        modal_title={t.db_settings || "DB Settings"}
         modal_component={
           <AddDBSettings
             on_open_change={setOpen}
@@ -103,6 +152,7 @@ export default function Page() {
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
+        overrideEditIcon={false}
       />
     </div>
   );

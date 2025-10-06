@@ -6,6 +6,7 @@ import AddAppSettings from "@/src/components/custom/modules/settings/AddAppSetti
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -17,25 +18,38 @@ export default function Page() {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.settings || {};
+
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "version_name", headerName: "Version" },
-      { field: "tab_no", headerName: "Tab" },
-      { field: "value", headerName: "Value" },
-      { field: "descr", headerName: "Description" },
+      { field: "version_name", headerName: t.version || "Version" },
+      { field: "tab_no", headerName: t.tab || "Tab" },
+      { field: "value", headerName: t.value || "Value" },
+      { field: "descr", headerName: t.description || "Description" },
     ]);
-  }, [language]);
+  }, [t, language]);
 
-  const { data: appSettingData, isLoading } = useFetchAllEntity("appSetting");
+  const { data: appSettingData, isLoading, refetch } = useFetchAllEntity("appSetting", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+    },
+  });
 
   const data = useMemo(() => {
     if (Array.isArray(appSettingData?.data)) {
-      return appSettingData.data.map((emailSet: any) => {
+      return appSettingData.data.map((appSet: any) => {
         return {
-          ...emailSet,
-          id: emailSet.em_id,
+          ...appSet,
+          id: appSet.app_settings_id || appSet.id,
         };
       });
     }
@@ -48,6 +62,28 @@ export default function Page() {
     }
   }, [open]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -58,12 +94,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: appSettingData?.total || 0,
+    hasNext: appSettingData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
  
   const handleSave = () => {
@@ -87,7 +127,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.settings.items}
         entityName="appSetting"
-        modal_title="App Settings"
+        modal_title={t.app_settings || "App Settings"}
         modal_component={
           <AddAppSettings
             on_open_change={setOpen}
@@ -102,6 +142,8 @@ export default function Page() {
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
+        overrideEditIcon={false}
+        overrideCheckbox={false}
       />
     </div>
   );
