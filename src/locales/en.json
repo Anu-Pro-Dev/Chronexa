@@ -787,7 +787,9 @@
       "delete_success": "{displayText} deleted successfully!",
       "delete_multiple_success": "{count} {displayText}s deleted successfully!",
       "delete_error": "Delete operation failed.",
-      "delete_invalidid_error": "Selected items do not have valid IDs"
+      "delete_invalidid_error": "Selected items do not have valid IDs",
+      "addorgschedule_success": "Organization schedule added successfully!",
+      "updateorgschedule_success": "Organization schedule updated successfully!"
     },
     "formErrors": {
       "location_code_required": "Location code is required.",
@@ -809,6 +811,7 @@
       "employee_type_name_required":"Employee type name is required.",
       "employee_group_code_required":"Employee group code is required.", 
       "employee_group_name_required":"Employee group name is required.",
+      "reporting_person_required": "Reporting person is required.",
       "employee_required":"Employee is required.", 
       "delegated_employee_required":"Delegated employee is required.",
       "from_date_required":"From date is required.",
@@ -841,7 +844,9 @@
       "grace_in_min_invalid": "Must be 0 or greater.",
       "grace_out_min_invalid": "Must be 0 or greater.",
       "ramadan_in_time_required": "Ramadan in time is required.",
-      "ramadan_out_time_required": "Ramadan out time is required."
+      "ramadan_out_time_required": "Ramadan out time is required.",
+      "schedule_required": "Schedule is required",
+      "attachment_invalid": "Invalid file. Ensure it's an image (JPEG/PNG) and less than 5MB."
     }
   }
 }

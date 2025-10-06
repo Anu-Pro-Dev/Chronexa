@@ -33,7 +33,7 @@ export default function FlagsForm({
     ["inpayroll_flag", t.in_payroll || "Inpayroll"],
     ["email_notification_flag", t.email_notification || "Email notification"],
     ["open_shift_flag", t.open_shift || "Open shift"],
-    ["geofench_flag", t.geo_fence || "Geo Fence"],
+    ["geofence_flag", t.geo_fence || "Geo Fence"],
     ["SAP_user_flag", "SAP user"],
     ["calculate_monthly_missed_hrs_flag", t.cal_monthly_missed_hrs || "Calculate monthly missed hours"],
   ];

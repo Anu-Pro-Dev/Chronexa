@@ -12,17 +12,36 @@ import { addScheduleRequest, editScheduleRequest } from "@/src/lib/apiHandler";
 import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useShowToast } from "@/src/utils/toastHelper";
-import { format } from "date-fns";
 
 interface PolicyFormProps {
   SetPage?: (page: string) => void;
 }
 
-const formatTimeToString = (value: any): string => {
-  if (!value) return "";
-  if (typeof value === "string") return value;
-  if (value instanceof Date) return format(value, "HH:mm:ss");
-  return "";
+const formatTimeToISO = (value: any): string | null => {
+  if (!value) return null;
+  
+  // If it's already a Date object
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    const hours = String(value.getHours()).padStart(2, '0');
+    const minutes = String(value.getMinutes()).padStart(2, '0');
+    const seconds = String(value.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
+  }
+  
+  // If it's a time string like "13:00:00"
+  if (typeof value === "string") {
+    const [hours, minutes, seconds = "00"] = value.split(":");
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
+  }
+  
+  return null;
 };
 
 export default function PolicyForm({ SetPage }: PolicyFormProps) {
@@ -70,16 +89,45 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
     setLoading(true);
 
     try {
-      const formattedValues = {
+      const formattedValues: any = {
         ...values,
-        in_time: formatTimeToString(values.in_time),
-        out_time: formatTimeToString(values.out_time),
+        in_time: formatTimeToISO(values.in_time),
+        out_time: formatTimeToISO(values.out_time),
         required_work_hours: values.required_work_hours || "",
-        ramadan_in_time: formatTimeToString(values.ramadan_in_time),
-        ramadan_out_time: formatTimeToString(values.ramadan_out_time),
-        ramadan_break_time: formatTimeToString(values.ramadan_break_time),
-        ramadan_prayer_time: formatTimeToString(values.ramadan_prayer_time),
       };
+
+      // Only include ramadan fields if they have values
+      if (values.ramadan_in_time) {
+        formattedValues.ramadan_in_time = formatTimeToISO(values.ramadan_in_time);
+      }
+      
+      if (values.ramadan_out_time) {
+        formattedValues.ramadan_out_time = formatTimeToISO(values.ramadan_out_time);
+      }
+      
+      if (values.ramadan_break_time) {
+        formattedValues.ramadan_break_time = formatTimeToISO(values.ramadan_break_time);
+      }
+      
+      if (values.ramadan_prayer_time) {
+        formattedValues.ramadan_prayer_time = formatTimeToISO(values.ramadan_prayer_time);
+      }
+
+      // Handle inactive_date
+      if (values.inactive_date) {
+        const date = values.inactive_date instanceof Date 
+          ? values.inactive_date 
+          : new Date(values.inactive_date);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        formattedValues.inactive_date = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
+      } else {
+        formattedValues.inactive_date = null;
+      }
 
       if (selectedRowData?.schedule_id) {
         editMutation.mutate({

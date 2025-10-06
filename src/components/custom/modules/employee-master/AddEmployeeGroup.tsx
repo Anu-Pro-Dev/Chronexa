@@ -31,11 +31,19 @@ const formSchema = z.object({
     .min(1, { message: "employee_group_code_required" })
     .transform((val) => val.toUpperCase()),
   group_name: z.string().min(1, { message: "employee_group_name_required" }),
-  group_start_date: z.date().nullable().optional(),
-  group_end_date: z.date().nullable().optional(),
+  group_start_date: z.string().nullable().optional(),
+  group_end_date: z.string().nullable().optional(),
   schedule_flag: z.boolean().optional().default(false),
   reporting_group_flag: z.boolean().optional().default(false),
   reporting_person_id: z.coerce.number().optional(),
+}).refine((data) => {
+  if (data.reporting_group_flag && !data.reporting_person_id) {
+    return false;
+  }
+  return true;
+}, {
+  message: "reporting_person_required",
+  path: ["reporting_person_id"],
 });
 
 export default function AddEmployeeGroups({
@@ -68,8 +76,8 @@ export default function AddEmployeeGroups({
     defaultValues: {
       group_code: "",
       group_name: "",
-      group_start_date: null,
-      group_end_date: null,
+      group_start_date: "",
+      group_end_date: "",
       schedule_flag: false,
       reporting_group_flag: false,
       reporting_person_id: undefined,
@@ -92,10 +100,8 @@ export default function AddEmployeeGroups({
           language === "en"
             ? selectedRowData.group_name_eng ?? ""
             : selectedRowData.group_name_arb ?? "",
-        group_start_date: selectedRowData.original_group_start_date
-          ? new Date(selectedRowData.original_group_start_date) : null,
-        group_end_date: selectedRowData.original_group_end_date
-          ? new Date(selectedRowData.original_group_end_date) : null,
+        group_start_date: selectedRowData.original_group_start_date ?? "",
+        group_end_date: selectedRowData.original_group_end_date ?? "",
         schedule_flag: selectedRowData.schedule_flag ?? false,
         reporting_group_flag: selectedRowData.reporting_group_flag ?? false,
         reporting_person_id: selectedRowData.reporting_person_id ?? undefined,
@@ -104,8 +110,8 @@ export default function AddEmployeeGroups({
       form.reset({
         group_code: "",
         group_name: "",
-        group_start_date: null,
-        group_end_date: null,
+        group_start_date: "",
+        group_end_date: "",
         schedule_flag: false,
         reporting_group_flag: false,
         reporting_person_id: undefined,
@@ -126,6 +132,7 @@ export default function AddEmployeeGroups({
       } else {
         showToast("error", "formsubmission_error");
       }
+      setIsSubmitting(false);
     },
   });
 
@@ -143,6 +150,7 @@ export default function AddEmployeeGroups({
       } else {
         showToast("error", "formsubmission_error");
       }
+      setIsSubmitting(false);
     },
   });
 
@@ -153,14 +161,21 @@ export default function AddEmployeeGroups({
     try {
       const payload: any = {
         group_code: values.group_code,
-        group_start_date: values.group_start_date
-          ? format(values.group_start_date, "yyyy-MM-dd") : null,
-        group_end_date: values.group_end_date
-          ? format(values.group_end_date, "yyyy-MM-dd") : null,
         schedule_flag: values.schedule_flag,
         reporting_group_flag: values.reporting_group_flag,
-        reporting_person_id: values.reporting_person_id,
       };
+
+      if (values.group_start_date) {
+        payload.group_start_date = format(new Date(values.group_start_date), "yyyy-MM-dd");
+      }
+
+      if (values.group_end_date) {
+        payload.group_end_date = format(new Date(values.group_end_date), "yyyy-MM-dd");
+      }
+
+      if (values.reporting_person_id) {
+        payload.reporting_person_id = values.reporting_person_id;
+      }
 
       if (language === "en") {
         payload.group_name_eng = values.group_name;
@@ -176,7 +191,7 @@ export default function AddEmployeeGroups({
       } else {
         addMutation.mutate(payload);
       }
-    } finally {
+    } catch (error) {
       setIsSubmitting(false);
     }
   }
@@ -217,7 +232,12 @@ export default function AddEmployeeGroups({
                         <Checkbox
                           id="reporting_group_flag"
                           checked={field.value}
-                          onCheckedChange={field.onChange}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (!checked) {
+                              form.setValue("reporting_person_id", undefined);
+                            }
+                          }}
                         />
                         <FormLabel htmlFor="reporting_group_flag" className="text-sm font-semibold">
                           {t.reporting_group}
@@ -294,7 +314,7 @@ export default function AddEmployeeGroups({
                               className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
                             >
                               {field.value ? (
-                                format(field.value, "dd/MM/yy")
+                                format(new Date(field.value), "dd/MM/yy")
                               ) : (
                                 <span className="font-normal text-sm text-text-secondary">
                                   {t.placeholder_date}
@@ -307,9 +327,9 @@ export default function AddEmployeeGroups({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value ? field.value : undefined}
+                            selected={field.value ? new Date(field.value) : undefined}
                             onSelect={(date) => {
-                              field.onChange(date);
+                              field.onChange(date ? date.toISOString() : "");
                               closePopover('fromDate');
                             }}
                           />
@@ -337,7 +357,7 @@ export default function AddEmployeeGroups({
                               className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
                             >
                               {field.value ? (
-                                format(field.value, "dd/MM/yy")
+                                format(new Date(field.value), "dd/MM/yy")
                               ) : (
                                 <span className="font-normal text-sm text-text-secondary">
                                   {t.placeholder_date}
@@ -350,9 +370,9 @@ export default function AddEmployeeGroups({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value ? field.value : undefined}
+                            selected={field.value ? new Date(field.value) : undefined}
                             onSelect={(date) => {
-                              field.onChange(date);
+                              field.onChange(date ? date.toISOString() : "");
                               closePopover('toDate');
                             }}
                             disabled={(date) => {

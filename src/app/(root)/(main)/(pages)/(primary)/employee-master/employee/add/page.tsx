@@ -134,7 +134,7 @@
 //         include_email_flag: selectedRowData.include_email_flag ?? false,
 //         web_punch_flag: selectedRowData.web_punch_flag ?? false,
 //         check_inout_selfie_flag: selectedRowData.check_inout_selfie_flag ?? false,
-//         geofench_flag: selectedRowData.geofench_flag ?? false,
+//         geofence_flag: selectedRowData.geofence_flag ?? false,
 //         SAP_user_flag: selectedRowData.SAP_user_flag ?? false,
 //         local_user_flag: selectedRowData.local_user_flag ?? false,
 //       });
@@ -556,7 +556,7 @@ export default function EmployeeOnboardingPage() {
       include_email_flag: selectedRowData.include_email_flag ?? false,
       web_punch_flag: selectedRowData.web_punch_flag ?? false,
       check_inout_selfie_flag: selectedRowData.check_inout_selfie_flag ?? false,
-      geofench_flag: selectedRowData.geofench_flag ?? false,
+      geofence_flag: selectedRowData.geofence_flag ?? false,
       SAP_user_flag: selectedRowData.SAP_user_flag ?? false,
       local_user_flag: selectedRowData.local_user_flag ?? false,
     });

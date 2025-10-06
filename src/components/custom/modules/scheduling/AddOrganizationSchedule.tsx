@@ -1,9 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
@@ -19,12 +18,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addOrgScheduleRequest, editOrgScheduleRequest, getScheduleByOrganization } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  from_date: z.date().nullable().optional(),
-  to_date: z.date().nullable().optional(),
-  organization_id: z.coerce.number().optional(),
-  schedule_id: z.coerce.number().optional(),
+  from_date: z.date({ required_error: "from_date_required" }).optional(),
+  to_date: z.date({ required_error: "to_date_required" }).optional(),
+  organization_id: z.coerce.number({ required_error: "organization_required" }).min(1, { message: "organization_required" }),
+  schedule_id: z.coerce.number({ required_error: "schedule_required" }).min(1, { message: "schedule_required" }),
   sunday_schedule_id: z.coerce.number().optional(),
   monday_schedule_id: z.coerce.number().optional(),
   tuesday_schedule_id: z.coerce.number().optional(),
@@ -34,26 +35,22 @@ const formSchema = z.object({
   saturday_schedule_id: z.coerce.number().optional(),
   attachment: z.custom<any>(
     (value) => {
+      if (!value) return true;
       if (!(value instanceof File)) {
-        return false; // Ensure the value is a File object
+        return false;
       }
-      // Validate file size (e.g., max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      const maxSize = 5 * 1024 * 1024;
       if (value.size > maxSize) {
         return false;
       }
-
-      // Validate file type (e.g., allow only images)
       const allowedTypes = ["image/jpeg", "image/png"];
       if (!allowedTypes.includes(value.type)) {
         return false;
       }
-
       return true;
     },
     {
-      message:
-        "Invalid file. Ensure it's an image (JPEG/PNG) and less than 5MB.",
+      message: "attachment_invalid",
     }
   ).optional(),
 });
@@ -72,7 +69,9 @@ export default function AddOrganizationSchedule({
   const queryClient = useQueryClient();
   const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
   const [scheduleSearchTerm, setScheduleSearchTerm] = useState("");
-  
+  const showToast = useShowToast();
+  const t = translations?.modules?.schedulingModule || {};
+  const errT = translations?.formErrors || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -84,8 +83,8 @@ export default function AddOrganizationSchedule({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      from_date: null,
-      to_date: null,
+      from_date: undefined,
+      to_date: undefined,
       organization_id: undefined,
       schedule_id: undefined,
       sunday_schedule_id: undefined,
@@ -99,6 +98,27 @@ export default function AddOrganizationSchedule({
   });
 
   const scheduleId = form.watch("schedule_id");
+  const organizationId = form.watch("organization_id");
+  const prevOrgIdRef = useRef(organizationId);
+
+  // Populate form when editing
+  useEffect(() => {
+    if (selectedRowData) {
+      form.reset({
+        from_date: selectedRowData.from_date ? new Date(selectedRowData.from_date) : undefined,
+        to_date: selectedRowData.to_date ? new Date(selectedRowData.to_date) : undefined,
+        organization_id: selectedRowData.organization_id,
+        schedule_id: selectedRowData.schedule_id,
+        monday_schedule_id: selectedRowData.monday_schedule_id,
+        tuesday_schedule_id: selectedRowData.tuesday_schedule_id,
+        wednesday_schedule_id: selectedRowData.wednesday_schedule_id,
+        thursday_schedule_id: selectedRowData.thursday_schedule_id,
+        friday_schedule_id: selectedRowData.friday_schedule_id,
+        saturday_schedule_id: selectedRowData.saturday_schedule_id,
+        sunday_schedule_id: selectedRowData.sunday_schedule_id,
+      });
+    }
+  }, [selectedRowData, form]);
 
   useEffect(() => {
     if (!scheduleId) return;
@@ -135,9 +155,21 @@ export default function AddOrganizationSchedule({
       form.setValue("saturday_schedule_id", updatedFields.saturday_schedule_id ?? currentValues.saturday_schedule_id);
       form.setValue("sunday_schedule_id", updatedFields.sunday_schedule_id ?? currentValues.sunday_schedule_id);
     }
-  }, [scheduleId]);
+  }, [scheduleId, form]);
 
-  const organizationId = form.watch("organization_id");
+  useEffect(() => {
+    if (prevOrgIdRef.current !== organizationId && prevOrgIdRef.current !== undefined) {
+      form.resetField("schedule_id");
+      form.resetField("monday_schedule_id");
+      form.resetField("tuesday_schedule_id");
+      form.resetField("wednesday_schedule_id");
+      form.resetField("thursday_schedule_id");
+      form.resetField("friday_schedule_id");
+      form.resetField("saturday_schedule_id");
+      form.resetField("sunday_schedule_id");
+    }
+    prevOrgIdRef.current = organizationId;
+  }, [organizationId, form]);
 
   const { data: organizations, isLoading: isSearchingOrganizations } = useFetchAllEntity("organization", {
     searchParams: {
@@ -167,16 +199,16 @@ export default function AddOrganizationSchedule({
   const addMutation = useMutation({
     mutationFn: addOrgScheduleRequest,
     onSuccess: (data) => {
-      toast.success("Organization schedule added successfully!");
+      showToast("success", "addorgschedule_success");     
       onSave(null, data.data);
       queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
       router.push("/scheduling/weekly-schedule/organization-schedule");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error"); 
       }
     },
   });
@@ -184,15 +216,15 @@ export default function AddOrganizationSchedule({
   const editMutation = useMutation({
     mutationFn: editOrgScheduleRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Organization schedule updated successfully!");
+      showToast("success", "updateorgschedule_success");
       onSave(variables.organization_schedule_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error"); 
       }
     },
   });
@@ -206,10 +238,10 @@ export default function AddOrganizationSchedule({
       const payload: any = {
         from_date: values.from_date
           ? format(values.from_date, "yyyy-MM-dd")
-          : null,
+          : undefined,
         to_date: values.to_date
           ? format(values.to_date, "yyyy-MM-dd")
-          : null,
+          : undefined,
         organization_id: values.organization_id,
         schedule_id: values.schedule_id,
         sunday_schedule_id: values.sunday_schedule_id,
@@ -221,14 +253,13 @@ export default function AddOrganizationSchedule({
         saturday_schedule_id: values.saturday_schedule_id,
       };
 
-      // If attachment is provided, append it (e.g., convert to Base64 or use FormData depending on API)
       if (values.attachment) {
         payload.attachment = values.attachment;
       }
 
       if (selectedRowData) {
         editMutation.mutate({
-          organizationSchedule_id: selectedRowData.id,
+          organization_schedule_id: selectedRowData.id,
           ...payload,
         });
       } else {
@@ -238,22 +269,11 @@ export default function AddOrganizationSchedule({
       setIsSubmitting(false);
     }
   }
-
-  useEffect(() => {
-    form.setValue("schedule_id", undefined);
-    form.setValue("monday_schedule_id", undefined);
-    form.setValue("tuesday_schedule_id", undefined);
-    form.setValue("wednesday_schedule_id", undefined);
-    form.setValue("thursday_schedule_id", undefined);
-    form.setValue("friday_schedule_id", undefined);
-    form.setValue("saturday_schedule_id", undefined);
-    form.setValue("sunday_schedule_id", undefined);
-  }, [organizationId]);
   
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <h1 className="text-primary text-lg font-bold">Organization Schedule</h1>
+        <h1 className="text-primary text-lg font-bold">{t.organization_schedule || "Organization Schedule"}</h1>
         <div className="flex flex-col gap-6 px-5">
           <div className="p-5 grid grid-cols-2 gap-y-5 gap-x-20">
             <FormField
@@ -262,7 +282,7 @@ export default function AddOrganizationSchedule({
               render={({ field }) => (
                 <FormItem className="">
                   <FormLabel>
-                    From Date <Required />
+                    {t.from_date || "From Date"} <Required />
                   </FormLabel>
                   <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                     <PopoverTrigger asChild>
@@ -273,7 +293,7 @@ export default function AddOrganizationSchedule({
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
                           ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || "Choose date"}</span>
                           )}
                           <CalendarIcon />
                         </Button>
@@ -288,18 +308,17 @@ export default function AddOrganizationSchedule({
                           closePopover('fromDate')
                         }}
                         disabled={(date) => {
-                          // Get today's date at start of day for comparison
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
-                          
-                          // Disable dates before today
                           return date < today;
                         }}
                       />
                     </PopoverContent>
                   </Popover>
-
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.from_date}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -309,7 +328,7 @@ export default function AddOrganizationSchedule({
               render={({ field }) => (
                 <FormItem className="">
                   <FormLabel>
-                    To Date <Required />
+                    {t.to_date || "To Date"} <Required />
                   </FormLabel>
                   <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                     <PopoverTrigger asChild>
@@ -320,7 +339,7 @@ export default function AddOrganizationSchedule({
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
                           ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || "Choose date"}</span>
                           )}
                           <CalendarIcon />
                         </Button>
@@ -338,11 +357,9 @@ export default function AddOrganizationSchedule({
                           const orgScheduleStartDate = form.getValues("from_date");
                           
                           if (!orgScheduleStartDate) {
-                            // If no start date is selected, disable all dates
                             return true;
                           }
                           
-                          // Create a new date for comparison to avoid time issues
                           const startDate = new Date(orgScheduleStartDate);
                           startDate.setHours(0, 0, 0, 0);
                           
@@ -353,69 +370,42 @@ export default function AddOrganizationSchedule({
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.to_date}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
-            {/* <FormField
-              control={form.control}
-              name="organization_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">Organization <Required/> </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose organization" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(organizations?.data || []).map((item: any) => {
-                        if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                            {item.organization_eng}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="mt-1"/>
-                </FormItem>
-              )}
-            /> */}
             <FormField
               control={form.control}
               name="organization_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Organization <Required/> </FormLabel>
+                  <FormLabel className="flex gap-1">{t.organization || "Organization"} <Required/> </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose employee" />
+                        <SelectValue placeholder={t.placeholder_organization || "Choose organization"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent
                       showSearch={true}
-                      searchPlaceholder="Search employees..."
+                      searchPlaceholder={t.search_organizations || "Search organizations..."}
                       onSearchChange={setOrganizationSearchTerm}
                       className="mt-5"
                     >
                       {isSearchingOrganizations && organizationSearchTerm.length > 0 && (
                         <div className="p-3 text-sm text-text-secondary">
-                          Searching...
+                          {t.searching || "Searching..."}
                         </div>
                       )}
                       {getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 && !isSearchingOrganizations && (
                         <div className="p-3 text-sm text-text-secondary">
-                          No organization found
+                          {t.no_organization_found || "No organization found"}
                         </div>
                       )}
                       {getFilteredOrganizations().map((item: any) => {
@@ -428,7 +418,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.organization_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -437,30 +430,30 @@ export default function AddOrganizationSchedule({
               name="schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Schedule <Required/> </FormLabel>
+                  <FormLabel className="flex gap-1">{t.schedule || "Schedule"} <Required/> </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent
                       showSearch={true}
-                      searchPlaceholder="Search schedules..."
+                      searchPlaceholder={t.search_schedules || "Search schedules..."}
                       onSearchChange={setScheduleSearchTerm}
                       className="mt-5"
                     >
                       {isSearchingSchedules && scheduleSearchTerm.length > 0 && (
                         <div className="p-3 text-sm text-text-secondary">
-                          Searching...
+                          {t.searching || "Searching..."}
                         </div>
                       )}
                       {(schedules?.data || []).length === 0 && scheduleSearchTerm.length > 0 && !isSearchingSchedules && (
                         <div className="p-3 text-sm text-text-secondary">
-                          No schedules found
+                          {t.no_schedules_found || "No schedules found"}
                         </div>
                       )}
                       {(schedules?.data || []).map((item: any) => {
@@ -473,7 +466,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -482,14 +478,14 @@ export default function AddOrganizationSchedule({
               name="monday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Monday </FormLabel>
+                  <FormLabel className="flex gap-1">{t.monday || "Monday"} </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -503,7 +499,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.monday_schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -512,14 +511,14 @@ export default function AddOrganizationSchedule({
               name="tuesday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Tuesday </FormLabel>
+                  <FormLabel className="flex gap-1">{t.tuesday || "Tuesday"} </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -533,7 +532,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.tuesday_schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -542,14 +544,14 @@ export default function AddOrganizationSchedule({
               name="wednesday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Wednesday </FormLabel>
+                  <FormLabel className="flex gap-1">{t.wednesday || "Wednesday"} </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -563,7 +565,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.wednesday_schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -572,14 +577,14 @@ export default function AddOrganizationSchedule({
               name="thursday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Thursday </FormLabel>
+                  <FormLabel className="flex gap-1">{t.thursday || "Thursday"} </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -593,7 +598,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.thursday_schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -602,14 +610,14 @@ export default function AddOrganizationSchedule({
               name="friday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Friday </FormLabel>
+                  <FormLabel className="flex gap-1">{t.friday || "Friday"} </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -623,7 +631,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.friday_schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -632,14 +643,14 @@ export default function AddOrganizationSchedule({
               name="saturday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Saturday </FormLabel>
+                  <FormLabel className="flex gap-1">{t.saturday || "Saturday"} </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -653,7 +664,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.saturday_schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -662,14 +676,14 @@ export default function AddOrganizationSchedule({
               name="sunday_schedule_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex gap-1">Sunday </FormLabel>
+                  <FormLabel className="flex gap-1">{t.sunday || "Sunday"} </FormLabel>
                   <Select
                     onValueChange={val => field.onChange(Number(val))}
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
                       <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder="Choose schedule" />
+                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -683,7 +697,10 @@ export default function AddOrganizationSchedule({
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="mt-1"/>
+                  <TranslatedError
+                    fieldError={form.formState.errors.sunday_schedule_id}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -693,7 +710,7 @@ export default function AddOrganizationSchedule({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Attachment
+                    {t.attachment || "Attachment"}
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -702,7 +719,10 @@ export default function AddOrganizationSchedule({
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.attachment}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -719,8 +739,19 @@ export default function AddOrganizationSchedule({
             >
               {translations.buttons.cancel}
             </Button>
-            <Button type="submit" size={"lg"} className="w-full">
-              Save
+            <Button 
+              type="submit" 
+              size={"lg"} 
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? selectedRowData
+                  ? translations.buttons.updating
+                  : translations.buttons.saving
+                : selectedRowData
+                ? translations.buttons.update
+                : translations.buttons.save}
             </Button>
           </div>
         </div>

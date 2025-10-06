@@ -789,7 +789,9 @@
       "deletecitizenship_success": "تم حذف الجنسية بنجاح",
       "deletedesignation_success": "تم حذف المسمى الوظيفي بنجاح",
       "delete_success": "تم حذف {displayText} بنجاح!",
-      "delete_multiple_success": "تم حذف {count} {displayText} بنجاح!"
+      "delete_multiple_success": "تم حذف {count} {displayText} بنجاح!",
+      "addorgschedule_success": "Organization schedule added successfully!",
+      "updateorgschedule_success": "Organization schedule updated successfully!"
     },
     "formErrors": {
       "location_code_required": "Location code is required.",
@@ -811,6 +813,7 @@
       "employee_type_name_required":"Employee type name is required.",
       "employee_group_code_required":"Employee group code is required.", 
       "employee_group_name_required":"Employee group name is required.",
+      "reporting_person_required": "Reporting person is required.",
       "employee_required":"Employee is required.", 
       "delegated_employee_required":"Delegated employee is required.",
       "from_date_required":"From date is required.",

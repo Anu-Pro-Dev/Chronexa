@@ -51,8 +51,8 @@ export default function EmployeeReports() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      limit: "1000",
-      offset: "1",
+      limit: "2000",
+      // offset: "1",
     }
   });
 
@@ -88,10 +88,10 @@ export default function EmployeeReports() {
   const { data: organizations } = useFetchAllEntity("organization", { removeAll: true });
   const { data: employees } = useFetchAllEntity("employee");
 
-  const { data: managerEmployees } = useQuery({
-    queryKey: ["managerEmployees"],
-    queryFn: getManagerEmployees,
-  });
+  // const { data: managerEmployees } = useQuery({
+  //   queryKey: ["managerEmployees"],
+  //   queryFn: getManagerEmployees,
+  // });
 
   // Debounced search functions for each dropdown
   const debouncedEmployeeSearch = useCallback(
@@ -152,16 +152,16 @@ export default function EmployeeReports() {
     );
   };
 
-  const getFilteredManagers = () => {
-    const baseData = managerEmployees?.data || [];
+  // const getFilteredManagers = () => {
+  //   const baseData = managerEmployees?.data || [];
     
-    if (managerSearchTerm.length === 0) return baseData;
+  //   if (managerSearchTerm.length === 0) return baseData;
     
-    return baseData.filter((emp: any) => 
-      emp.employee_id != null &&
-      emp.firstname_eng?.toLowerCase().includes(managerSearchTerm.toLowerCase())
-    );
-  };
+  //   return baseData.filter((emp: any) => 
+  //     emp.employee_id != null &&
+  //     emp.firstname_eng?.toLowerCase().includes(managerSearchTerm.toLowerCase())
+  //   );
+  // };
 
   const getFilteredReports = () => {
     const reportsData = [
@@ -176,6 +176,35 @@ export default function EmployeeReports() {
   };
 
   // Function to build query parameters from form values
+  // const buildQueryParams = (values: any) => {
+  //   const params: Record<string, string> = {};
+
+  //   if (values.from_date) {
+  //     params.startDate = format(values.from_date, 'yyyy-MM-dd');
+  //   }
+  //   if (values.to_date) {
+  //     params.endDate = format(values.to_date, 'yyyy-MM-dd');
+  //   }
+  //   if (values.employee) {
+  //     params.employeeId = values.employee.toString();
+  //   }
+  //   if (values.organization) {
+  //     // Find organization name from organizations data
+  //     const org = organizations?.data?.find((o: any) => o.organization_id.toString() === values.organization.toString());
+  //     if (org) {
+  //       params.organization = org.organization_eng;
+  //     }
+  //   }
+  //   if (values.limit) {
+  //     params.limit = values.limit;
+  //   }
+  //   if (values.offset) {
+  //     params.offset = values.offset;
+  //   }
+
+  //   return params;
+  // };
+  // Function to build query parameters from form values
   const buildQueryParams = (values: any) => {
     const params: Record<string, string> = {};
 
@@ -189,11 +218,7 @@ export default function EmployeeReports() {
       params.employeeId = values.employee.toString();
     }
     if (values.organization) {
-      // Find organization name from organizations data
-      const org = organizations?.data?.find((o: any) => o.organization_id.toString() === values.organization.toString());
-      if (org) {
-        params.organization = org.organization_eng;
-      }
+      params.organizationId = values.organization.toString();
     }
     if (values.limit) {
       params.limit = values.limit;
@@ -204,7 +229,6 @@ export default function EmployeeReports() {
 
     return params;
   };
-
   // TanStack Query for fetching reports with the new endpoint
   const {
     data: reportsQueryData,
@@ -222,7 +246,7 @@ export default function EmployeeReports() {
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join('&');
       
-      const url = `/report${queryString ? `?${queryString}` : ''}`;
+      const url = `/report/new${queryString ? `?${queryString}` : ''}`;
       const response = await apiRequest(url, "GET");
       return response;
     },

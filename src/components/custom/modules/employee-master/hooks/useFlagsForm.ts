@@ -17,7 +17,7 @@ export const flagsFormSchema = z.object({
   include_email_flag: z.boolean(),
   web_punch_flag: z.boolean(),
   check_inout_selfie_flag: z.boolean(),
-  geofench_flag: z.boolean(),
+  geofence_flag: z.boolean(),
   SAP_user_flag: z.boolean(),
   local_user_flag: z.boolean(),
 });
@@ -40,7 +40,7 @@ export const useFlagsForm = () => {
       include_email_flag: false,
       web_punch_flag: false,
       check_inout_selfie_flag: false,
-      geofench_flag: false,
+      geofence_flag: false,
       SAP_user_flag: false,
       local_user_flag: false,
     },
