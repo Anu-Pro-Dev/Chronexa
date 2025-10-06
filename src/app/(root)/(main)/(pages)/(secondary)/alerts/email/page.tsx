@@ -5,9 +5,10 @@ import PowerTable from "@/src/components/custom/power-comps/power-table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
-import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
+import { Input } from "@/src/components/ui/input";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -25,18 +26,31 @@ export default function Page() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [status, setStatus] = useState<string>("");
+  const [recipient, setRecipient] = useState<string>("");
   const queryClient = useQueryClient();
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const debouncedSearchValue = useDebounce(searchValue, 300);
+  const debouncedStatus = useDebounce(status, 300);
+  const debouncedRecipient = useDebounce(recipient, 300);
   const t = translations?.modules?.organization || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
 
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return "Choose date";
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
+  };
+
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
+  
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
@@ -66,7 +80,7 @@ export default function Page() {
       { field: "to_text", headerName: "Email" },
       { field: "subject_text", headerName: "Subject" },
       { field: "body_text", headerName: "Body" },
-      { field: "email_status", headerName: "Status"},
+      { field: "email_status_display", headerName: "Status"},
       { field: "cc_email", headerName: "CC Email" },
       { field: "bcc_email", headerName: "BCC Email" },
     ]);
@@ -77,29 +91,45 @@ export default function Page() {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(debouncedStatus && { status: debouncedStatus }),
+      ...(debouncedRecipient && { recipient: debouncedRecipient }),
     },
   });
+
+  const getStatusDisplay = useCallback((status: number) => {
+    const statusMap: { [key: number]: { label: string; color: string; bgColor: string } } = {
+      0: { label: "Pending", color: "text-yellow-700", bgColor: "bg-yellow-100" },
+      1: { label: "Processed", color: "text-green-700", bgColor: "bg-green-100" },
+      2: { label: "Failed", color: "text-red-700", bgColor: "bg-red-100" },
+    };
+    return statusMap[status] || { label: "Unknown", color: "text-gray-700", bgColor: "bg-gray-100" };
+  }, []);
 
   const data = useMemo(() => {
     if (Array.isArray(taEmailData?.data)) {
       return taEmailData.data.map((taEmail: any) => {
         const cleanBodyText = stripHtmlTags(taEmail.body_text || "");
         const truncatedBodyText = truncateText(cleanBodyText, 150);
+        const statusInfo = getStatusDisplay(taEmail.email_status);
 
         return {
           ...taEmail,
           id: taEmail.ta_email_id,
           body_text: truncatedBodyText,
-          original_body_text: taEmail.body_text,
+          body_text_full: cleanBodyText,
           subject_text: stripHtmlTags(taEmail.subject_text || ""),
           to_text: stripHtmlTags(taEmail.to_text || ""),
           cc_email: stripHtmlTags(taEmail.cc_email || ""),
           bcc_email: stripHtmlTags(taEmail.bcc_email || ""),
+          email_status_display: statusInfo.label,
+          email_status_color: statusInfo.color,
+          email_status_bg: statusInfo.bgColor,
+          email_status_raw: taEmail.email_status,
         };
       });
     }
     return [];
-  }, [taEmailData, stripHtmlTags, truncateText]);
+  }, [taEmailData, stripHtmlTags, truncateText, getStatusDisplay]);
 
   useEffect(() => {
     if (!open) {
@@ -127,6 +157,24 @@ export default function Page() {
     setCurrentPage(1);
   }, []);
 
+  const handleStatusChange = useCallback((newStatus: string) => {
+    setStatus(newStatus === "all" ? "" : newStatus);
+    setCurrentPage(1);
+  }, []);
+
+  const handleRecipientChange = useCallback((newRecipient: string) => {
+    setRecipient(newRecipient);
+    setCurrentPage(1);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setStatus("");
+    setRecipient("");
+    setFromDate(undefined);
+    setToDate(undefined);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -145,7 +193,36 @@ export default function Page() {
     total: taEmailData?.total || 0,
     hasNext: taEmailData?.hasNext,
     rowsPerPage,
-    setRowsPerPage: handleRowsPerPageChange, 
+    setRowsPerPage: handleRowsPerPageChange,
+    filterValues: {
+      status,
+      recipient,
+    },
+    filterHandlers: {
+      setStatus: handleStatusChange,
+      setRecipient: handleRecipientChange,
+    },
+    filterOptions: {
+      status: [
+        { label: "All Status", value: "all" },
+        { label: "Pending", value: "0" },
+        { label: "Processed", value: "1" },
+        { label: "Failed", value: "2" },
+      ],
+    },
+    customCellRenderers: {
+      email_status_display: (params: any) => {
+        const { email_status_display, email_status_color, email_status_bg } = params.data;
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${email_status_bg} ${email_status_color}`}
+          >
+            {email_status_display}
+          </span>
+        );
+      },
+    },
+
   };
  
   const handleSave = () => {
@@ -161,12 +238,32 @@ export default function Page() {
     setSelectedRows(rows);
   }, []);
 
+  const propsWithFullBodyText = useMemo(() => {
+    const dataForExport = data.map((item: any) => ({
+      ...item,
+      body_text: item.body_text_full,
+      email_status: item.email_status_display,
+    }));
+
+    const selectedRowsForExport = selectedRows.map((item: any) => ({
+      ...item,
+      body_text: item.body_text_full,
+      email_status: item.email_status_display, 
+    }));
+
+    return {
+      ...props,
+      Data: dataForExport,
+      selectedRows: selectedRowsForExport,
+    };
+  }, [props, data, selectedRows]);
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        props={props}
+        props={propsWithFullBodyText}
         disableAdd
-        selectedRows={selectedRows}
+        selectedRows={propsWithFullBodyText.selectedRows}
         items={modules?.alerts.items}
         entityName="ta-emails"
         disableDelete
@@ -188,7 +285,7 @@ export default function Page() {
                     From Date :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}
+                    {formatDate(fromDate)}
                   </span>
                 </p>
                 <CalendarIcon />
@@ -220,7 +317,7 @@ export default function Page() {
                     To Date :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}
+                    {formatDate(toDate)}
                   </span>
                 </p>
                 <CalendarIcon />

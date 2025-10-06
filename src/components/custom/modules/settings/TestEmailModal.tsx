@@ -72,7 +72,7 @@ export default function TestEmailModal({
     },
     onError: (error: any) => {
       console.error(error);
-      showToast("error", "test_email_failed");
+      showToast("error", "");
     },
   });
 
@@ -102,15 +102,15 @@ export default function TestEmailModal({
 
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
-      <ResponsiveModalContent size="large">
+      <ResponsiveModalContent>
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Test Email Configuration</ResponsiveModalTitle>
         </ResponsiveModalHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-5">
-            <div className="flex flex-col gap-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 gap-y-4 min-w-0">
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-16 gap-y-4">
                 {/* To */}
                 <FormField
                   control={form.control}
@@ -129,7 +129,7 @@ export default function TestEmailModal({
                 />
 
                 {/* Subject */}
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="subject"
                   render={({ field }) => (
@@ -143,10 +143,10 @@ export default function TestEmailModal({
                       <TranslatedError fieldError={form.formState.errors.subject} translations={errT} />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 {/* Body */}
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="body"
                   render={({ field }) => (
@@ -160,10 +160,10 @@ export default function TestEmailModal({
                       <TranslatedError fieldError={form.formState.errors.body} translations={errT} />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 {/* CC */}
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="cc"
                   render={({ field }) => (
@@ -175,10 +175,10 @@ export default function TestEmailModal({
                       <TranslatedError fieldError={form.formState.errors.cc} translations={errT} />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 {/* BCC */}
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="bcc"
                   render={({ field }) => (
@@ -190,30 +190,28 @@ export default function TestEmailModal({
                       <TranslatedError fieldError={form.formState.errors.bcc} translations={errT} />
                     </FormItem>
                   )}
-                />
+                /> */}
               </div>
 
               {/* Buttons */}
-              <div className="flex justify-end gap-2 items-center py-2">
-                <div className="flex gap-4 w-full">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    size="lg"
-                    className="w-full"
-                    onClick={handleCancel}
-                  >
-                    {btnT?.cancel || "Cancel"}
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Sending..." : "Send Test Email"}
-                  </Button>
-                </div>
+              <div className="w-full flex gap-2 items-center pt-4 py-2">
+                <Button
+                  variant="outline"
+                  type="button"
+                  size="lg"
+                  className="w-full"
+                  onClick={handleCancel}
+                >
+                  {btnT?.cancel || "Cancel"}
+                </Button>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Sending..." : "Send Test Email"}
+                </Button>
               </div>
             </div>
           </form>

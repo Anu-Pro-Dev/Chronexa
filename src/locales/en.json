@@ -795,7 +795,9 @@
       "adddbsetting_success": "DB Setting added successfully!",
       "updatedbsetting_success": "DB Setting updated successfully!",
       "addappsetting_success": "App Setting added successfully!",
-      "updateappsetting_success": "App Setting updated successfully!"
+      "updateappsetting_success": "App Setting updated successfully!",
+      "test_email_sent": "Test email sent! Please check your inbox.",
+      "test_email_failed": "Failed to send test email. Please check your settings."
     },
     "formErrors": {
       "location_code_required": "Location code is required.",
