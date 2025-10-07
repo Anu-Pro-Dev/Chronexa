@@ -90,9 +90,6 @@ export default function FilterEmailForm({
                           field.onChange(date)
                           closePopover('fromDate')
                         }}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
                       />
                     </PopoverContent>
                   </Popover>
@@ -136,9 +133,6 @@ export default function FilterEmailForm({
                           field.onChange(date)
                           closePopover('toDate')
                         }}
-                        // disabled={(date) =>
-                        //   date > new Date() || date < new Date("1900-01-01")
-                        // }
                       />
                     </PopoverContent>
                   </Popover>

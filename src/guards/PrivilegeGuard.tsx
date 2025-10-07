@@ -12,7 +12,6 @@ export default function PrivilegeGuard({ children }: Props) {
 
   useEffect(() => {
     if (!isLoading) {
-      // ❌ If no privileges at all → block access
       if (!privilegeMap || Object.keys(privilegeMap).length === 0) {
         router.replace("/no-access");
         return;
@@ -20,7 +19,6 @@ export default function PrivilegeGuard({ children }: Props) {
 
       let hasAccess = false;
 
-      // ✅ Iterate through modules + submodules
       Object.values(privilegeMap).forEach((module: any) => {
         if (module.allowed) {
           module.subModules?.forEach((subModule: any) => {
@@ -35,7 +33,7 @@ export default function PrivilegeGuard({ children }: Props) {
       });
 
       if (!hasAccess) {
-        router.replace("/no-access"); // redirect if no access
+        router.replace("/no-access");
       }
     }
   }, [isLoading, pathname, privilegeMap, router]);

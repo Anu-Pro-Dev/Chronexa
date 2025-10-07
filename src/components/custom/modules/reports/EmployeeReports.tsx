@@ -52,7 +52,6 @@ export default function EmployeeReports() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       limit: "2000",
-      // offset: "1",
     }
   });
 
@@ -70,30 +69,21 @@ export default function EmployeeReports() {
   const [loading, setLoading] = useState(false);
   const [showReportData, setShowReportData] = useState(false);
   
-  // Search state for all dropdowns
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
   const [reportsSearchTerm, setReportsSearchTerm] = useState("");
   
-  // Dropdown open states
   const [showEmployeeSearch, setShowEmployeeSearch] = useState(false);
   const [showOrganizationSearch, setShowOrganizationSearch] = useState(false);
   const [showManagerSearch, setShowManagerSearch] = useState(false);
   const [showReportsSearch, setShowReportsSearch] = useState(false);
 
-  // Watch form values for real-time query parameters
   const watchedValues = form.watch();
 
   const { data: organizations } = useFetchAllEntity("organization", { removeAll: true });
   const { data: employees } = useFetchAllEntity("employee");
 
-  // const { data: managerEmployees } = useQuery({
-  //   queryKey: ["managerEmployees"],
-  //   queryFn: getManagerEmployees,
-  // });
-
-  // Debounced search functions for each dropdown
   const debouncedEmployeeSearch = useCallback(
     debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
@@ -122,14 +112,12 @@ export default function EmployeeReports() {
     []
   );
 
-  // Search query for employees
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
     queryKey: ["employeeSearch", employeeSearchTerm],
     queryFn: () => searchEmployees(employeeSearchTerm),
     enabled: employeeSearchTerm.length > 0,
   });
 
-  // Filter functions for each dropdown
   const getFilteredEmployees = () => {
     const baseData = employeeSearchTerm.length > 0 
       ? searchedEmployees?.data || []
@@ -152,17 +140,6 @@ export default function EmployeeReports() {
     );
   };
 
-  // const getFilteredManagers = () => {
-  //   const baseData = managerEmployees?.data || [];
-    
-  //   if (managerSearchTerm.length === 0) return baseData;
-    
-  //   return baseData.filter((emp: any) => 
-  //     emp.employee_id != null &&
-  //     emp.firstname_eng?.toLowerCase().includes(managerSearchTerm.toLowerCase())
-  //   );
-  // };
-
   const getFilteredReports = () => {
     const reportsData = [
       { value: "1", label: "Daily Movement Report" }
@@ -175,36 +152,6 @@ export default function EmployeeReports() {
     );
   };
 
-  // Function to build query parameters from form values
-  // const buildQueryParams = (values: any) => {
-  //   const params: Record<string, string> = {};
-
-  //   if (values.from_date) {
-  //     params.startDate = format(values.from_date, 'yyyy-MM-dd');
-  //   }
-  //   if (values.to_date) {
-  //     params.endDate = format(values.to_date, 'yyyy-MM-dd');
-  //   }
-  //   if (values.employee) {
-  //     params.employeeId = values.employee.toString();
-  //   }
-  //   if (values.organization) {
-  //     // Find organization name from organizations data
-  //     const org = organizations?.data?.find((o: any) => o.organization_id.toString() === values.organization.toString());
-  //     if (org) {
-  //       params.organization = org.organization_eng;
-  //     }
-  //   }
-  //   if (values.limit) {
-  //     params.limit = values.limit;
-  //   }
-  //   if (values.offset) {
-  //     params.offset = values.offset;
-  //   }
-
-  //   return params;
-  // };
-  // Function to build query parameters from form values
   const buildQueryParams = (values: any) => {
     const params: Record<string, string> = {};
 
@@ -229,7 +176,6 @@ export default function EmployeeReports() {
 
     return params;
   };
-  // TanStack Query for fetching reports with the new endpoint
   const {
     data: reportsQueryData,
     isLoading: isLoadingReports,
@@ -240,7 +186,6 @@ export default function EmployeeReports() {
     queryFn: async () => {
       const params = buildQueryParams(watchedValues);
       
-      // Build query string
       const queryString = Object.entries(params)
         .filter(([_, value]) => value !== undefined && value !== null && value !== '')
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
@@ -250,12 +195,11 @@ export default function EmployeeReports() {
       const response = await apiRequest(url, "GET");
       return response;
     },
-    enabled: false, // Only fetch when manually triggered
+    enabled: false,
     staleTime: 0,
     refetchOnWindowFocus: false,
   });
 
-  // Function to fetch report data (now uses TanStack Query)
   const fetchReportData = async () => {
     setLoading(true);
     
@@ -272,7 +216,6 @@ export default function EmployeeReports() {
     }
   };
 
-  // Updated header map for the specified columns only
   const headerMap: Record<string, string> = {
     employee_number: "Emp No",
     firstname_eng: "Employee Name",
@@ -282,7 +225,6 @@ export default function EmployeeReports() {
     punch_out: "Time Out",
     late: "Late",
     early: "Early",
-    // workmts: "Total Work Minutes",
     dailyworkhrs: "Total Work Hrs",
     DailyMissedHrs: "Missed Hrs",
     dailyextrawork: "Overtime",
@@ -290,7 +232,6 @@ export default function EmployeeReports() {
     isabsent: "Absent"
   };
 
-  // Function to calculate summary totals from data
   const calculateSummaryTotals = (dataArray: any[]) => {
     const totals = {
       totalLateInHours: 0,
@@ -302,7 +243,6 @@ export default function EmployeeReports() {
     };
 
     dataArray.forEach((row: any) => {
-      // Convert minutes to hours and sum up
       totals.totalLateInHours += parseFloat(row.late || 0) / 60;
       totals.totalWorkedHours += parseFloat(row.dailyworkhrs || 0);
       totals.totalEarlyOutHours += parseFloat(row.early || 0) / 60;
@@ -310,7 +250,6 @@ export default function EmployeeReports() {
       totals.totalExtraHours += parseFloat(row.dailyextrawork || 0);
     });
 
-    // Format to 2 decimal places and convert to HH:MM format
     const formatToHoursMinutes = (hours: number) => {
       const h = Math.floor(Math.abs(hours));
       const m = Math.round((Math.abs(hours) - h) * 60);
@@ -327,7 +266,6 @@ export default function EmployeeReports() {
     };
   };
 
-  // Function to handle Excel export with PDF-like formatting
   const handleExportExcel = async () => {
     const data = await fetchReportData();
     const dataArray = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
@@ -346,7 +284,6 @@ export default function EmployeeReports() {
     }
   };
 
-  // Updated PDF export handler using the new PDFExporter class
   const handleShowReport = async () => {
     const data = await fetchReportData();
     const dataArray = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);

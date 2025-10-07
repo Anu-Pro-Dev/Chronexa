@@ -302,7 +302,6 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
-      {/* Date Filters */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>

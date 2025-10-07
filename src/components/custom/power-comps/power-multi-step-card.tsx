@@ -30,7 +30,6 @@ export default function PowerMultiStepCard({
   const [formErrors, setFormErrors] = useState<Record<string, boolean>>({});
   
   const handleTabChange = async (newPage: string) => {
-    // Skip validation if returning to a previous step
     const currentIndex = Pages.findIndex((p) => p.state_route === Page);
     const nextIndex = Pages.findIndex((p) => p.state_route === newPage);
     const goingForward = nextIndex > currentIndex;

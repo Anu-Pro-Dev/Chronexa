@@ -33,8 +33,8 @@ export default function PowerTable({
   ispageValue5,
   onRowSelection,
   isLoading = false,
-  overrideEditIcon, // Optional: true to force show, false to force hide, undefined to use privilege logic
-  overrideCheckbox, // Optional: true to force show, false to force hide, undefined to use privilege logic
+  overrideEditIcon, 
+  overrideCheckbox,
 }: {
   props: any;
   api?: any;
@@ -43,8 +43,8 @@ export default function PowerTable({
   ispageValue5?: any;
   onRowSelection?: (selectedRows: any[]) => void;
   isLoading?: boolean;
-  overrideEditIcon?: boolean; // Add optional override prop
-  overrideCheckbox?: boolean; // Add optional override prop
+  overrideEditIcon?: boolean;
+  overrideCheckbox?: boolean;
 }) {
   const { language, dir, translations } = useLanguage();
   const gridRef = useRef<any>();
@@ -76,7 +76,7 @@ export default function PowerTable({
   const pathSegments = pathname.split("/").filter(Boolean);
   const submodulePathIndex = pathSegments.findIndex(seg => seg === activeSubmodule?.path);
 
-  const currentTabSlug = pathSegments[submodulePathIndex + 1]; // next segment after submodule path
+  const currentTabSlug = pathSegments[submodulePathIndex + 1];
 
   const currentTab = activeSubmodule?.tabs?.find(tab =>
     tab.tab_name.replace(/\s+/g, "-").toLowerCase() === currentTabSlug
@@ -231,7 +231,6 @@ export default function PowerTable({
     );
   };
 
-  // Use override if provided, otherwise fall back to privilege logic
   const showEdit = overrideEditIcon !== undefined 
     ? overrideEditIcon 
     : effectivePrivileges.edit;

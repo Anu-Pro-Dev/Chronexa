@@ -19,13 +19,11 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
 
-  // Compute barCount dynamically based on current month
   const today = new Date();
   const year = today.getFullYear();
-  const month = today.getMonth(); // 0-11
-  const barCount = new Date(year, month + 1, 0).getDate(); // days in month
+  const month = today.getMonth(); 
+  const barCount = new Date(year, month + 1, 0).getDate(); 
 
-  // Prevent NaN by defaulting to 0 if totalHours is 0
   const workedBars = totalHours ? Math.round((workedHours / totalHours) * barCount) : 0;
   const overtimeBars = totalHours ? Math.round((overtimeHours / totalHours) * barCount) : 0;
   const pendingBars = totalHours ? Math.round((pendingHours / totalHours) * barCount) : 0;
@@ -39,7 +37,6 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
     return "#EBEBEB";
   });
 
-  // Flip bars order if RTL
   const barsToRender = dir === "rtl" ? [...bars].reverse() : bars;
 
   return (

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import AddEmailSettings from "@/src/components/custom/modules/settings/AddEmailSettings";
-import TestEmailModal from "@/src/components/custom/modules/settings/TestEmailModal"; // ✅ import your modal
+import TestEmailModal from "@/src/components/custom/modules/settings/TestEmailModal";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -24,7 +24,7 @@ export default function Page() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [open, setOpen] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ for Test Email modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -36,7 +36,6 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
-  // ✅ Clicking on "Test" cell
   const handleCellClick = useCallback((data: any) => {
     setSelectedRowData(data);
     setIsModalOpen(true);
@@ -65,7 +64,7 @@ export default function Page() {
         return {
           ...emailSet,
           id: emailSet.em_id,
-          test: "Send", // ✅ clickable column label
+          test: "Send",
         };
       });
     }
@@ -163,7 +162,6 @@ export default function Page() {
         isLoading={isLoading}
       />
 
-      {/* ✅ Test Email Modal */}
       {isModalOpen && selectedRowData && (
         <TestEmailModal
           open={isModalOpen}

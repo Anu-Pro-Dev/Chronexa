@@ -51,7 +51,7 @@ export default function PowerMultiStepForm({ Pages, Page, SetPage, validateCurre
             )}
             onClick={async () => {
               if (!page.disable) {
-                await handleTabChange(page.state_route); // Use the validation function if provided
+                await handleTabChange(page.state_route);
               }
             }}
           >

@@ -16,8 +16,6 @@ export default function Page() {
     { field: "employee" },
     { field: "request_type" },
     { field: "type" },
-    // { field: "from_date" },
-    // { field: "to_date" },
     { field: "from_time", headerName: "From time" },
     { field: "to_time", headerName: "To Time" },
   ]);
@@ -57,8 +55,6 @@ export default function Page() {
         disableDelete
         enableApprove
         enableReject
-        // enableFilters
-        // filter_modal_title="none"
         filter_modal_component={
           <FilterPendingApproval on_open_change={filter_on_open_change} />
         }
@@ -67,9 +63,6 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">Pending Approval</h1>
-          {/* <h1 className="font-semibold text-sm text-text-secondary">
-            List of items pending for approvals
-          </h1> */}
         </div>
         <div className="px-6">
           <PowerTabs />

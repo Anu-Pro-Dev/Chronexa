@@ -29,17 +29,12 @@ export default function Page() {
         field: "module_name",
         headerName: language === "ar" ? "مجموعة" : "Module",
       },
-      // {
-      //   field: "sub_module_id",
-      //   headerName: language === "ar" ? "مجموعة" : "Sub Module",
-      // },
     ]);
   }, [language]);
 
   const { data: secPrivilegeData, isLoading } = useFetchAllEntity("secPrivilege");
   const { data: secModuleData, isLoading: isLoadingModule } = useFetchAllEntity("secModule");
 
-    // Helper function to get employee name (following the same pattern as the first document)
   const getModuleName = (moduleId: number, secModuleData: any) => {
     const module = secModuleData?.data?.find(
       (emp: any) => emp.module_id === moduleId
@@ -49,7 +44,6 @@ export default function Page() {
       return `Module ${moduleId}`;
     }
     
-    // Use the same naming pattern as the first document
     const moduleName = module.module_name;
     return moduleName;
   };

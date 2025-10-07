@@ -43,8 +43,6 @@ export default function ScheduleGrid() {
             if (row.id !== rowId) return row;
 
             const updatedSlots = [...row.slots];
-            // We just update the status code here.
-            // Color will be set by StatusSelector on render.
             updatedSlots[dayIndex] = {
               ...updatedSlots[dayIndex],
               status: newStatusCode,

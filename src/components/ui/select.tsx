@@ -112,7 +112,6 @@ const SelectContent = React.forwardRef<
     searchInputRef.current?.focus();
   };
 
-  // Focus search input when dropdown opens
   React.useEffect(() => {
     if (showSearch && searchInputRef.current) {
       const timer = setTimeout(() => {
@@ -148,7 +147,6 @@ const SelectContent = React.forwardRef<
                 onChange={handleSearchChange}
                 className="w-full pl-8 pr-8 py-2 text-sm bg-transparent border border-border-accent rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary placeholder:text-text-secondary"
                 onKeyDown={(e) => {
-                  // Prevent select from closing when typing
                   e.stopPropagation();
                 }}
               />

@@ -51,7 +51,6 @@ function WorkTrendsCard() {
   const t = translations?.modules?.dashboard || {};
   const currentMonthIndex = new Date().getMonth();
 
-  // ✅ use stable keys: "this_month" or month index as string
   const [selectedMonth, setSelectedMonth] = useState<"this_month" | string>("this_month");
 
   const monthKeys = [
@@ -59,7 +58,6 @@ function WorkTrendsCard() {
     "july", "august", "september", "october", "november", "december"
   ];
 
-  // ✅ translated month labels
   const months = monthKeys.map(
     (key, i) => translations?.[key] || new Date(0, i).toLocaleString("en", { month: "long" })
   );

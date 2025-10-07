@@ -7,7 +7,6 @@ import { PunchInIcon, PunchOutIcon } from "@/src/icons/icons";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { addEventTransaction, serverTimeZoneRequest } from "@/src/lib/apiHandler";
 
-// Device ID detection
 const getDeviceId = () => {
   const userAgent = navigator.userAgent.toLowerCase();
   if (/mobile|android|iphone|ipad|tablet/.test(userAgent)) return 102;

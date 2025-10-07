@@ -25,10 +25,9 @@ import {
   AccordionTrigger,
 } from "@/src/components/ui/accordion";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { addRolePrivilegeRequest, editRolePrivilegeRequest, addPrivilegeRequest, deletePrivilegeRequest } from "@/src/lib/apiHandler";
+import { addRolePrivilegeRequest, editRolePrivilegeRequest, addRoleTabPrivilegeRequest, editRoleTabPrivilegeRequest } from "@/src/lib/apiHandler";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 
-// Privilege keys mapping to API fields
 const privilegeKeys = ["access", "view", "create", "edit", "delete"] as const;
 type PrivilegeKey = typeof privilegeKeys[number];
 
@@ -50,6 +49,16 @@ function getEmptyPrivileges() {
   };
 }
 
+interface CombinedStructure {
+  [moduleName: string]: {
+    subModules: {
+      [subModuleName: string]: {
+        tabs: string[];
+      };
+    };
+  };
+}
+
 export default function AssignPrivileges({
   modal_props,
   roleName,
@@ -63,7 +72,6 @@ export default function AssignPrivileges({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   
-  // Fetch data from APIs
   const { data: modulesData, isLoading: modulesLoading } = useFetchAllEntity("secModule", {
     removeAll: true,
   });
@@ -72,66 +80,87 @@ export default function AssignPrivileges({
     removeAll: true,
   });
 
-  const { data: rolePrivilegesData, isLoading: isLoadingPrivileges } = useFetchAllEntity("secRolePrivilege", {
+  const { data: tabsData, isLoading: tabsLoading } = useFetchAllEntity("secTab", {
     removeAll: true,
   });
 
-  // Add mutation for new privileges
-  const addMutation = useMutation({
+  const { data: rolePrivilegesData, isLoading: rolePrivilegesLoading } = useFetchAllEntity("secRolePrivilege", {
+    removeAll: true,
+  });
+
+  const { data: roleTabPrivilegesData, isLoading: roleTabPrivilegesLoading } = useFetchAllEntity("secRoleTabPrivilege", {
+    removeAll: true,
+  });
+
+  const addSubModuleMutation = useMutation({
     mutationFn: addRolePrivilegeRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secRolePrivilege"] });
     },
-    onError: (error: any) => {
-      console.error("Add privilege error:", error);
-    },
   });
 
-  // Edit mutation for existing privileges
-  const editMutation = useMutation({
+  const editSubModuleMutation = useMutation({
     mutationFn: editRolePrivilegeRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secRolePrivilege"] });
     },
-    onError: (error: any) => {
-      console.error("Edit privilege error:", error);
+  });
+
+  const addTabMutation = useMutation({
+    mutationFn: addRoleTabPrivilegeRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["secRoleTabPrivilege"] });
     },
   });
 
-  // Process the API data to create section structure
-  const sectionStructure = useMemo(() => {
+  const editTabMutation = useMutation({
+    mutationFn: editRoleTabPrivilegeRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["secRoleTabPrivilege"] });
+    },
+  });
+
+  const sectionStructure = useMemo((): CombinedStructure => {
     if (!modulesData?.data || !subModulesData?.data) return {};
     
-    const structure: Record<string, string[]> = {};
+    const structure: CombinedStructure = {};
     
-    // Add all modules first
     modulesData.data.forEach((module: any) => {
-      structure[module.module_name] = [];
-    });
-    
-    // Add sub-modules to their parent modules
-    subModulesData.data.forEach((subModule: any) => {
-      const parentModule = modulesData.data.find(
-        (module: any) => module.module_id === subModule.module_id
+      const moduleName = module.module_name;
+      structure[moduleName] = { subModules: {} };
+      
+      const moduleSubModules = subModulesData.data.filter(
+        (subModule: any) => subModule.module_id === module.module_id
       );
       
-      if (parentModule && !structure[parentModule.module_name].includes(subModule.sub_module_name)) {
-        structure[parentModule.module_name].push(subModule.sub_module_name);
-      }
+      moduleSubModules.forEach((subModule: any) => {
+        const subModuleName = subModule.sub_module_name;
+        
+        const subModuleTabs = tabsData?.data?.filter(
+          (tab: any) => tab.sub_module_id === subModule.sub_module_id
+        ) || [];
+        
+        structure[moduleName].subModules[subModuleName] = {
+          tabs: subModuleTabs.map((tab: any) => tab.tab_name),
+        };
+      });
     });
     
     return structure;
-  }, [modulesData, subModulesData]);
+  }, [modulesData, subModulesData, tabsData]);
 
-  // Create dynamic schema based on section structure
   const privilegeSchema = useMemo(() => {
-    const subItemSchema = z.record(privilegeObject);
+    const tabSchema = z.record(privilegeObject);
+    const subModuleSchema = z.record(z.object({
+      subModule: privilegeObject,
+      tabs: tabSchema,
+    }));
     const schemaObject: any = {
       roleName: z.string().min(1),
     };
 
-    Object.keys(sectionStructure).forEach((section) => {
-      schemaObject[section] = subItemSchema;
+    Object.keys(sectionStructure).forEach((module) => {
+      schemaObject[module] = subModuleSchema;
     });
 
     return z.object(schemaObject);
@@ -139,60 +168,99 @@ export default function AssignPrivileges({
 
   type PrivilegeFormValues = z.infer<typeof privilegeSchema>;
 
-  // Get existing privileges for this role - UPDATED to include role_privilege_id
   const existingPrivileges = useMemo(() => {
-    if (!rolePrivilegesData?.data || !roleId || !modulesData?.data || !subModulesData?.data) return {};
+    if (!roleId || !modulesData?.data || !subModulesData?.data) return { subModules: {}, tabs: {} };
     
-    const privileges: Record<string, Record<string, any>> = {};
+    const subModulePrivs: Record<string, Record<string, any>> = {};
+    const tabPrivs: Record<string, Record<string, Record<string, any>>> = {};
     
-    // Filter privileges for current role
-    const currentRolePrivileges = rolePrivilegesData.data.filter(
-      (priv: any) => priv.role_id === roleId
-    );
-        
-    currentRolePrivileges.forEach((privilege: any) => {
-      // Find the sub-module for this privilege
-      const subModule = subModulesData.data.find(
-        (subMod: any) => subMod.sub_module_id === privilege.sub_module_id
-      );
-      
-      if (subModule) {
-        // Find the parent module for this sub-module
-        const module = modulesData.data.find(
-          (mod: any) => mod.module_id === subModule.module_id
-        );
-        
-        if (module) {
-          const moduleName = module.module_name;
-          const subModuleName = subModule.sub_module_name;
+    if (rolePrivilegesData?.data) {
+      rolePrivilegesData.data
+        .filter((priv: any) => priv.role_id === roleId)
+        .forEach((privilege: any) => {
+          const subModule = subModulesData.data.find(
+            (sm: any) => sm.sub_module_id === privilege.sub_module_id
+          );
           
-          if (!privileges[moduleName]) {
-            privileges[moduleName] = {};
+          if (subModule) {
+            const module = modulesData.data.find(
+              (m: any) => m.module_id === subModule.module_id
+            );
+            
+            if (module) {
+              if (!subModulePrivs[module.module_name]) {
+                subModulePrivs[module.module_name] = {};
+              }
+              
+              subModulePrivs[module.module_name][subModule.sub_module_name] = {
+                role_privilege_id: privilege.role_privilege_id,
+                access: privilege.access_flag || false,
+                view: privilege.view_flag || false,
+                create: privilege.create_flag || false,
+                edit: privilege.edit_flag || false,
+                delete: privilege.delete_flag || false,
+              };
+            }
           }
+        });
+    }
+    
+    if (roleTabPrivilegesData?.data && tabsData?.data) {
+      roleTabPrivilegesData.data
+        .filter((priv: any) => priv.role_id === roleId)
+        .forEach((privilege: any) => {
+          const tab = tabsData.data.find((t: any) => t.tab_id === privilege.tab_id);
           
-          // Set privileges for this specific sub-module - INCLUDE role_privilege_id
-          privileges[moduleName][subModuleName] = {
-            role_privilege_id: privilege.role_privilege_id, // ADD THIS LINE
-            access: privilege.access_flag || false,
-            view: privilege.view_flag || false,
-            create: privilege.create_flag || false,
-            edit: privilege.edit_flag || false,
-            delete: privilege.delete_flag || false,
-          };
-        }
-      }
-    });
-    return privileges;
-  }, [rolePrivilegesData, roleId, modulesData, subModulesData, sectionStructure]);
+          if (tab) {
+            const subModule = subModulesData.data.find(
+              (sm: any) => sm.sub_module_id === tab.sub_module_id
+            );
+            
+            if (subModule) {
+              const module = modulesData.data.find(
+                (m: any) => m.module_id === subModule.module_id
+              );
+              
+              if (module) {
+                if (!tabPrivs[module.module_name]) {
+                  tabPrivs[module.module_name] = {};
+                }
+                if (!tabPrivs[module.module_name][subModule.sub_module_name]) {
+                  tabPrivs[module.module_name][subModule.sub_module_name] = {};
+                }
+                
+                tabPrivs[module.module_name][subModule.sub_module_name][tab.tab_name] = {
+                  role_tab_privilege_id: privilege.role_tab_privilege_id,
+                  access: privilege.access_flag || false,
+                  view: privilege.view_flag || false,
+                  create: privilege.create_flag || false,
+                  edit: privilege.edit_flag || false,
+                  delete: privilege.delete_flag || false,
+                };
+              }
+            }
+          }
+        });
+    }
+    
+    return { subModules: subModulePrivs, tabs: tabPrivs };
+  }, [rolePrivilegesData, roleTabPrivilegesData, roleId, modulesData, subModulesData, tabsData]);
   
-  // Generate default values
   const getDefaultValues = useMemo((): PrivilegeFormValues => {
     const values: any = { roleName: roleName || "" };
 
-    Object.entries(sectionStructure).forEach(([section, subItems]) => {
-      values[section] = {};
-      subItems.forEach((sub) => {
-        values[section][sub] = existingPrivileges[section]?.[sub] || getEmptyPrivileges();
+    Object.entries(sectionStructure).forEach(([module, { subModules }]) => {
+      values[module] = {};
+      Object.entries(subModules).forEach(([subModule, { tabs }]) => {
+        values[module][subModule] = {
+          subModule: existingPrivileges.subModules[module]?.[subModule] || getEmptyPrivileges(),
+          tabs: {},
+        };
+        
+        tabs.forEach((tab) => {
+          values[module][subModule].tabs[tab] = 
+            existingPrivileges.tabs[module]?.[subModule]?.[tab] || getEmptyPrivileges();
+        });
       });
     });
 
@@ -204,33 +272,23 @@ export default function AssignPrivileges({
     defaultValues: getDefaultValues,
   });
 
-  // Reset form when data changes
   useEffect(() => {
     if (Object.keys(sectionStructure).length > 0) {
       form.reset(getDefaultValues);
     }
   }, [getDefaultValues, form, sectionStructure]);
 
-  // Function to determine scope based on privileges
-  const getScope = (privileges: any) => {
-    const privilegeValues = Object.values(privileges);
-    const totalPrivileges = privilegeValues.length;
-    const enabledPrivileges = privilegeValues.filter(Boolean).length;
-    
-    if (enabledPrivileges === totalPrivileges) {
-      return "ALL";
-    } else {
-      return "OWN";
-    }
-  };
-
-  // Function to check if privileges have changed
   const hasPrivilegesChanged = (currentPrivs: any, existingPrivs: any) => {
-    if (!existingPrivs) return true; // New sub-module
+    if (!existingPrivs) return true;
     
-    return Object.keys(currentPrivs).some(key => 
+    return privilegeKeys.some(key => 
       currentPrivs[key] !== (existingPrivs[key] || false)
     );
+  };
+
+  const getScope = (privileges: any) => {
+    const enabledCount = privilegeKeys.filter(key => privileges[key]).length;
+    return enabledCount === privilegeKeys.length ? "ALL" : "OWN";
   };
   
   const onSubmit = async (data: PrivilegeFormValues) => {    
@@ -242,132 +300,105 @@ export default function AssignPrivileges({
     setIsSubmitting(true);
 
     try {
-      const addOperations: any[] = [];
-      const editOperations: any[] = [];
-      const privilegeNameOperations: any[] = [];
-      const deleteOperations: number[] = [];
+      const operations: Promise<any>[] = [];
 
-      // Process each module
       Object.entries(data).forEach(([moduleName, moduleData]) => {
-        if (moduleName === "roleName") {
-          return;
-        }
+        if (moduleName === "roleName") return;
 
-        // Find the module
         const module = modulesData?.data?.find((m: any) => m.module_name === moduleName);
-        if (!module) {
-          return;
-        }
+        if (!module) return;
 
-        const modulePrivileges = moduleData as Record<string, any>;
-
-        // Process each sub-module individually
-        Object.entries(modulePrivileges).forEach(([subModuleName, subModulePrivs]: [string, any]) => {
-          // Find the sub-module to get its ID
+        Object.entries(moduleData as any).forEach(([subModuleName, subModuleData]: [string, any]) => {
           const subModule = subModulesData?.data?.find(
             (sm: any) => sm.sub_module_name === subModuleName && sm.module_id === module.module_id
           );
 
-          if (!subModule) {
-            return;
-          }
+          if (!subModule) return;
 
-          // Get existing privileges for this sub-module
-          const existingSubModulePrivs = existingPrivileges[moduleName]?.[subModuleName];
+          const subModulePrivs = subModuleData.subModule;
+          const existingSubModulePrivs = existingPrivileges.subModules[moduleName]?.[subModuleName];
 
-          // Check if privileges have changed
-          if (!hasPrivilegesChanged(subModulePrivs, existingSubModulePrivs)) {
-            return; // Skip if no changes
-          }
+          if (hasPrivilegesChanged(subModulePrivs, existingSubModulePrivs)) {
+            const hasAnyPrivilege = privilegeKeys.some(key => subModulePrivs[key]);
+            
+            if (hasAnyPrivilege || existingSubModulePrivs?.role_privilege_id) {
+              const privilegeData = {
+                role_id: roleId,
+                scope: getScope(subModulePrivs),
+                sub_module_id: subModule.sub_module_id,
+                access_flag: subModulePrivs.access || false,
+                view_flag: subModulePrivs.view || false,
+                create_flag: subModulePrivs.create || false,
+                edit_flag: subModulePrivs.edit || false,
+                delete_flag: subModulePrivs.delete || false,
+              };
 
-          // Check if this sub-module has any privileges
-          const hasPrivileges =
-            subModulePrivs.access ||
-            subModulePrivs.view ||
-            subModulePrivs.create ||
-            subModulePrivs.edit ||
-            subModulePrivs.delete;
-
-          if (hasPrivileges) {
-            const privilegeData = {
-              role_id: roleId,
-              scope: getScope(subModulePrivs),
-              sub_module_id: subModule.sub_module_id,
-              access_flag: subModulePrivs.access || false,
-              view_flag: subModulePrivs.view || false,
-              create_flag: subModulePrivs.create || false,
-              edit_flag: subModulePrivs.edit || false,
-              delete_flag: subModulePrivs.delete || false,
-            };
-
-            // Check if this is an existing privilege (update) or new one (add)
-            if (existingSubModulePrivs && existingSubModulePrivs.role_privilege_id) {
-              editOperations.push({
-                ...privilegeData,
-                role_privilege_id: existingSubModulePrivs.role_privilege_id,
-              });
-              deleteOperations.push(existingSubModulePrivs.role_privilege_id);
-            } else {
-              addOperations.push(privilegeData);
+              if (existingSubModulePrivs?.role_privilege_id) {
+                operations.push(editSubModuleMutation.mutateAsync({
+                  ...privilegeData,
+                  role_privilege_id: existingSubModulePrivs.role_privilege_id,
+                }));
+              } else if (hasAnyPrivilege) {
+                operations.push(addSubModuleMutation.mutateAsync(privilegeData));
+              }
             }
-
-            // Generate privilege_name strings like ACCESS_MY_ATTENDANCE
-            // privilegeKeys.forEach((key) => {
-            //   const currentChecked = subModulePrivs[key];
-            //   const previouslyChecked = existingSubModulePrivs?.[key] || false;
-
-            //   if (currentChecked && !previouslyChecked) {
-            //     const privilege_name = `${key.toUpperCase()}_${subModule.sub_module_name.toUpperCase().replace(/\s+/g, "_")}`;
-            //     privilegeNameOperations.push({
-            //       privilege_name,
-            //       module_id: module.module_id,
-            //     });
-            //   }
-            // });
-
           }
+
+          const tabsData_local = subModuleData.tabs;
+          Object.entries(tabsData_local).forEach(([tabName, tabPrivs]: [string, any]) => {
+            const tab = tabsData?.data?.find(
+              (t: any) => t.tab_name === tabName && t.sub_module_id === subModule.sub_module_id
+            );
+
+            if (!tab) return;
+
+            const existingTabPrivs = existingPrivileges.tabs[moduleName]?.[subModuleName]?.[tabName];
+
+            if (hasPrivilegesChanged(tabPrivs, existingTabPrivs)) {
+              const hasAnyPrivilege = privilegeKeys.some(key => tabPrivs[key]);
+              
+              if (hasAnyPrivilege || existingTabPrivs?.role_tab_privilege_id) {
+                const privilegeData = {
+                  role_id: roleId,
+                  tab_id: tab.tab_id,
+                  sub_module_id: subModule.sub_module_id,
+                  access_flag: tabPrivs.access || false,
+                  view_flag: tabPrivs.view || false,
+                  create_flag: tabPrivs.create || false,
+                  edit_flag: tabPrivs.edit || false,
+                  delete_flag: tabPrivs.delete || false,
+                };
+
+                if (existingTabPrivs?.role_tab_privilege_id) {
+                  operations.push(editTabMutation.mutateAsync({
+                    ...privilegeData,
+                    role_tab_privilege_id: existingTabPrivs.role_tab_privilege_id,
+                  }));
+                } else if (hasAnyPrivilege) {
+                  operations.push(addTabMutation.mutateAsync(privilegeData));
+                }
+              }
+            }
+          });
         });
       });
 
-      if (addOperations.length === 0 && editOperations.length === 0 && privilegeNameOperations.length === 0) {
-        toast.error("No privileges to save");
+      if (operations.length === 0) {
+        toast.error("No changes to save");
         setIsSubmitting(false);
         return;
       }
 
-      // Execute all mutations
-      const promises: Promise<any>[] = [];
+      const results = await Promise.allSettled(operations);
 
-      // Add new privileges
-      addOperations.forEach((operation) => {
-        promises.push(addMutation.mutateAsync(operation));
-      });
-
-      // Edit existing privileges
-      editOperations.forEach((operation) => {
-        promises.push(editMutation.mutateAsync(operation));
-      });
-
-      // Add privilege_name entries
-      // privilegeNameOperations.forEach((operation) => {
-      //   promises.push(addPrivilegeRequest(operation));
-      // });
-
-      // Delete operations (when all privileges are unchecked)
-      // deleteOperations.forEach((id) => {
-      //   promises.push(deletePrivilegeRequest(id));
-      // });
-
-      const results = await Promise.allSettled(promises);
-
-      const successful = results.filter((result) => result.status === "fulfilled").length;
-      const failed = results.filter((result) => result.status === "rejected").length;
+      const successful = results.filter(r => r.status === "fulfilled").length;
+      const failed = results.filter(r => r.status === "rejected").length;
 
       if (failed > 0) {
-        console.error("Failed operations:", results.filter((r) => r.status === "rejected"));
+        console.error("Failed operations:", results.filter(r => r.status === "rejected"));
         toast.error(`Failed to save ${failed} privileges. ${successful} saved successfully.`);
       } else {
-        toast.success(`Successfully saved ${successful} sub-module privileges!`);
+        toast.success(`Successfully saved ${successful} privileges!`);
         modal_props.on_open_change(false);
       }
     } catch (error) {
@@ -381,13 +412,12 @@ export default function AssignPrivileges({
   function formatName(name: string) {
     return name
       .toLowerCase()
-      .split("_")
+      .split(/[_\s]+/)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   }
 
-  // Loading state
-  if (modulesLoading || subModulesLoading || isLoadingPrivileges) {
+  if (modulesLoading || subModulesLoading || tabsLoading || rolePrivilegesLoading || roleTabPrivilegesLoading) {
     return (
       <ResponsiveModal open={modal_props.open} onOpenChange={modal_props.on_open_change}>
         <ResponsiveModalContent size="extraLarge">
@@ -404,7 +434,6 @@ export default function AssignPrivileges({
     );
   }
 
-  // No data state
   if (!Object.keys(sectionStructure).length) {
     return (
       <ResponsiveModal open={modal_props.open} onOpenChange={modal_props.on_open_change}>
@@ -438,36 +467,38 @@ export default function AssignPrivileges({
             </ResponsiveModalHeader>
 
             <Accordion type="multiple" className="mb-6">
-              {Object.entries(sectionStructure).map(([section, subItems]) => (
-                <AccordionItem key={section} value={section}>
+              {Object.entries(sectionStructure).map(([module, { subModules }]) => (
+                <AccordionItem key={module} value={module}>
                   <div className="border-b">
-                    <AccordionTrigger className="text-base text-text-content font-semibold capitalize flex justify-between items-center w-full">
-                      {formatName(section)}
+                    <AccordionTrigger className="text-base text-text-content font-semibold capitalize">
+                      {formatName(module)}
                     </AccordionTrigger>
 
                     <AccordionContent className="pb-4">
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left border">
-                          <thead className="border-b">
+                          <thead className="border-b bg-gray-50">
                             <tr className="text-secondary">
-                              <th className="px-4 py-2 font-normal"></th>
+                              <th className="px-4 py-2 font-medium">Sub-Module / Tab</th>
                               {privilegeKeys.map((label) => (
-                                <th key={label} className="px-4 py-2 text-center capitalize text-sm font-normal">
+                                <th key={label} className="px-4 py-2 text-center capitalize text-sm font-medium">
                                   {label}
                                 </th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
-                            {/* Select All Row */}
-                            <tr className="border-b font-semibold">
+                            <tr className="border-b bg-blue-50">
                               <td className="px-4 py-2 text-text-primary text-sm font-bold">Select All</td>
                               {privilegeKeys.map((perm) => (
                                 <td key={perm} className="px-4 py-2 text-center">
                                   <Checkbox
                                     onCheckedChange={(checked) => {
-                                      subItems.forEach((sub) => {
-                                        form.setValue(`${section}.${sub}.${perm}` as any, !!checked);
+                                      Object.entries(subModules).forEach(([subModule, { tabs }]) => {
+                                        form.setValue(`${module}.${subModule}.subModule.${perm}` as any, !!checked);
+                                        tabs.forEach((tab) => {
+                                          form.setValue(`${module}.${subModule}.tabs.${tab}.${perm}` as any, !!checked);
+                                        });
                                       });
                                     }}
                                   />
@@ -475,23 +506,17 @@ export default function AssignPrivileges({
                               ))}
                             </tr>
 
-                            {subItems.length === 0 ? (
-                              <tr className="border-b">
-                                <td colSpan={privilegeKeys.length + 1} className="px-4 py-8 text-center text-secondary">
-                                  No sub-modules found for {formatName(section)}
-                                </td>
-                              </tr>
-                            ) : (
-                              subItems.map((sub) => (
-                                <tr key={sub} className="border-b">
-                                  <td className="px-4 py-2 text-sm font-normal text-secondary">
-                                    {formatName(sub)}
+                            {Object.entries(subModules).map(([subModule, { tabs }]) => (
+                              <React.Fragment key={subModule}>
+                                <tr className="border-b bg-gray-100">
+                                  <td className="px-4 py-2 text-sm font-semibold text-text-content">
+                                    {formatName(subModule)}
                                   </td>
                                   {privilegeKeys.map((perm) => (
                                     <td key={perm} className="px-4 py-2 text-center">
                                       <FormField
                                         control={form.control}
-                                        name={`${section}.${sub}.${perm}` as any}
+                                        name={`${module}.${subModule}.subModule.${perm}` as any}
                                         render={({ field }) => (
                                           <FormItem>
                                             <Checkbox
@@ -504,8 +529,32 @@ export default function AssignPrivileges({
                                     </td>
                                   ))}
                                 </tr>
-                              ))
-                            )}
+
+                                {tabs.length > 0 && tabs.map((tab) => (
+                                  <tr key={tab} className="border-b hover:bg-gray-50">
+                                    <td className="px-8 py-2 text-sm font-normal text-secondary">
+                                      ↳ {formatName(tab)}
+                                    </td>
+                                    {privilegeKeys.map((perm) => (
+                                      <td key={perm} className="px-4 py-2 text-center">
+                                        <FormField
+                                          control={form.control}
+                                          name={`${module}.${subModule}.tabs.${tab}.${perm}` as any}
+                                          render={({ field }) => (
+                                            <FormItem>
+                                              <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                              />
+                                            </FormItem>
+                                          )}
+                                        />
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </React.Fragment>
+                            ))}
                           </tbody>
                         </table>
                       </div>
@@ -515,7 +564,7 @@ export default function AssignPrivileges({
               ))}
             </Accordion>
 
-            <div className="w-full flex gap-2 justify-end items-center py-3">
+            <div className="w-full flex gap-2 justify-end items-center py-3 border-t">
               <Button
                 variant="outline"
                 type="button"
@@ -530,7 +579,6 @@ export default function AssignPrivileges({
                 disabled={isSubmitting}
                 onClick={async () => {
                   const formValues = form.getValues();
-                  // Manually trigger validation
                   const isValid = await form.trigger();                  
                   if (isValid) {
                     await onSubmit(formValues);

@@ -305,7 +305,6 @@ export default function Page() {
                 items={modules?.scheduling?.items}
                 entityName="organizationSchedule"
                 isAddNewPagePath="/scheduling/weekly-schedule/organization-schedule/add"
-                // onSelectionClear={handleSelectionClear}
             />
             <div className="grid grid-cols-3 gap-4">
                 <div>

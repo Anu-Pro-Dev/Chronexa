@@ -31,8 +31,6 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.scheduling?.items}
-        // disableAdd
-        // disableDelete
       />
 
       <div className="flex flex-col justify-between bg-accent rounded-[15px] items-center px-5 py-3">

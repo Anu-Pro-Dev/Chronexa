@@ -789,6 +789,37 @@ export const editRolePrivilegeRequest = async (data: {
   return apiRequest(`/secRolePrivilege/edit/${role_privilege_id}`, "PUT", payload);
 }
 
+// Function to add a new role privilege
+export const addRoleTabPrivilegeRequest = async (data: {
+  role_id?: number;
+  tab_id: number;
+  sub_module_id: number;
+  access_flag?: boolean;
+  view_flag?: boolean;
+  create_flag?: boolean;
+  edit_flag?: boolean;
+  delete_flag?: boolean;
+}) => {
+  return apiRequest("/secRoleTabPrivilege/add", "POST", data);
+}
+
+// Function to update a role privilege
+export const editRoleTabPrivilegeRequest = async (data: {
+  role_tab_privilege_id?:number;
+  role_id?: number;
+  tab_id?: number;
+  sub_module_id?: number;
+  access_flag?: boolean;
+  view_flag?: boolean;
+  create_flag?: boolean;
+  edit_flag?: boolean;
+  delete_flag?: boolean;
+}) => {
+  const { role_tab_privilege_id, ...payload } = data;
+
+  return apiRequest(`/secRoleTabPrivilege/edit/${role_tab_privilege_id}`, "PUT", payload);
+}
+
 // Function to add a new privilege
 export const addPrivilegeRequest = async (data: {
   privilege_name?: string;

@@ -50,7 +50,6 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
     setIsSubmitting(true);
 
     try {
-      // Manual validation for Ramadan required fields
       const errors: Record<string, { message: string }> = {};
       
       if (!values.ramadan_in_time || values.ramadan_in_time === "") {
@@ -62,7 +61,6 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
       }
 
       if (Object.keys(errors).length > 0) {
-        // Set errors manually
         Object.keys(errors).forEach(key => {
           form.setError(key as any, { type: "manual", message: errors[key].message });
         });

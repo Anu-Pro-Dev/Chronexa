@@ -23,40 +23,34 @@ const LeafletMapWrapper = ({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Clean up existing map if it exists
     if (mapRef.current) {
       mapRef.current.remove();
       mapRef.current = null;
     }
 
-    // Create new map
     const map = L.map(containerRef.current, {
       center: userLocation || [0, 0],
       zoom: 13,
       attributionControl: false,
     });
 
-    // Add tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
     mapRef.current = map;
 
-    // Cleanup function
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, []); // Only run once
+  }, []); 
 
-  // Update map when user location changes
   useEffect(() => {
     if (!mapRef.current || !userLocation) return;
 
-    // Remove existing marker and circle
     if (markerRef.current) {
       mapRef.current.removeLayer(markerRef.current);
     }
@@ -64,14 +58,12 @@ const LeafletMapWrapper = ({
       mapRef.current.removeLayer(circleRef.current);
     }
 
-    // Add new marker
     const marker = L.marker([userLocation.lat, userLocation.lng], { icon: markerIcon })
       .bindPopup(`Latitude: ${userLocation.lat}<br>Longitude: ${userLocation.lng}`);
     
     marker.addTo(mapRef.current);
     markerRef.current = marker;
 
-    // Add accuracy circle
     const circle = L.circle([userLocation.lat, userLocation.lng], {
       radius: locationAccuracy || radius,
       color: '#0078d4',
@@ -81,7 +73,6 @@ const LeafletMapWrapper = ({
     circle.addTo(mapRef.current);
     circleRef.current = circle;
 
-    // Fly to location
     mapRef.current.flyTo([userLocation.lat, userLocation.lng], 13, {
       animate: true,
       duration: 1.5

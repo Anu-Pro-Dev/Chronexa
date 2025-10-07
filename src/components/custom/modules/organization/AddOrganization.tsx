@@ -297,7 +297,6 @@ export default function AddOrganization({
               )}
             />
 
-            {/* Parent */}
             <FormField
               control={form.control}
               name="parent_name"
@@ -325,7 +324,6 @@ export default function AddOrganization({
               )}
             />
 
-            {/* Org Type */}
             <FormField
               control={form.control}
               name="organization_type"
@@ -362,7 +360,6 @@ export default function AddOrganization({
               )}
             />
 
-            {/* Org Code */}
             <FormField
               control={form.control}
               name="organization_code"
@@ -383,7 +380,6 @@ export default function AddOrganization({
               )}
             />
 
-            {/* Org Name */}
             <FormField
               control={form.control}
               name="organization_name"

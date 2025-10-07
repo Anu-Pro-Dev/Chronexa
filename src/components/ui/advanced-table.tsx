@@ -221,10 +221,8 @@ const Table = <T extends Record<string, any>>({
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-x-auto rounded-md border border-border">
         {" "}
-        {/* Apply overflow-x-auto here */}
         <table className="min-w-full border-collapse">
           {" "}
-          {/* Ensure table takes up the full available width */}
           <TableHeader
             columns={columns}
             onSort={handleSort}
@@ -541,8 +539,6 @@ const AttachmentCell = ({
     </div>
   );
 };
-
-// Example usage with dynamic data fetching and custom cell renderers
 
 export {
   Table,

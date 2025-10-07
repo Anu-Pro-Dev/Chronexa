@@ -19,7 +19,7 @@ import { useAttendanceData } from "../my-attendance/AttendanceData";
 function ViolationsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { attendanceDetails, loading } = useAttendanceData(); // ✅ pull values
+  const { attendanceDetails, loading } = useAttendanceData();
 
   const missedIn = attendanceDetails?.TotalMissedIn ?? 0;
   const missedOut = attendanceDetails?.TotalMissedOut ?? 0;
@@ -81,7 +81,6 @@ function ViolationsCard() {
 
           <CarouselItem className="pl-0">
             <div className="aspect-square flex flex-col items-center justify-center gap-4 px-6">
-              {/* Late In */}
               <div className="h-auto w-full rounded-[10px] bg-gradient-to-r from-[#0078D450] to-[#DAEDFF] p-[2px]">
                 <div className="flex flex-col h-full w-full items-center justify-center bg-background rounded-[8px] px-3 py-6">
                   <div className="flex justify-between w-full">

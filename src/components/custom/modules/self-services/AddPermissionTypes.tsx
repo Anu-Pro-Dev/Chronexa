@@ -168,7 +168,6 @@ export default function AddPermissionTypes({
         (workflow: any) => workflow.workflow_id.toString() === values.workflows
       );
 
-      // Convert gender values to single character codes
       let genderCode = "";
       if (values.specific_gender === "ALL") genderCode = "A";
       else if (values.specific_gender === "Female") genderCode = "F";
@@ -219,7 +218,7 @@ export default function AddPermissionTypes({
         permission_type: "",
       });
       setBasicFormData(null);
-      setPageNumber(0); // go back to step 1
+      setPageNumber(0);
     }
   }, [selectedRowData, formBasciSetup, formPolicy]);
 

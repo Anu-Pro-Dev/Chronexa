@@ -42,7 +42,6 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
   return R * c;
 };
 
-// Safe localStorage access
 const safeLocalStorage = {
   getItem: (key: string) => {
     if (typeof window !== 'undefined') {
@@ -84,15 +83,13 @@ export default function Geolocation() {
 
   const handleCloseModal = () => setShowSuccessModal(false);
 
-  // TanStack Query for server time
   const { data: serverTimeData, refetch: refetchServerTime } = useQuery({
     queryKey: ['serverTime'],
-    queryFn: serverTimeZoneRequest, // or serverTimeRequest based on your preference
-    refetchInterval: 60000, // Refetch every minute
+    queryFn: serverTimeZoneRequest,
+    refetchInterval: 60000,
     enabled: isMounted,
   });
 
-  // TanStack Mutation for punch transaction
   const punchMutation = useMutation({
     mutationFn: (punchData: {
       employee_id: number;
@@ -241,7 +238,6 @@ export default function Geolocation() {
 
   }, [isMounted, tobevalidated, officeCoordinates, radius]);
 
-  // Update time from server time data
   useEffect(() => {
     if (!isMounted || !serverTimeData) return;
 
@@ -255,7 +251,6 @@ export default function Geolocation() {
         second: '2-digit',
       });
 
-      // Use server time if available, otherwise fallback to client time
       if (serverTimeData?.currentDate && serverTimeData?.currentTime) {
         setTransactionDate(serverTimeData.currentDate);
         const time24Hour = new Date(`1970-01-01T${serverTimeData.currentTime}Z`).toLocaleTimeString('en-GB', {
@@ -329,7 +324,6 @@ export default function Geolocation() {
       }
     }
 
-    // Check minimum punch gap
     const lastPunchTimeStr = safeLocalStorage.getItem("lastpunchtime");
     const lastPunchTime = lastPunchTimeStr ? new Date(lastPunchTimeStr) : null;
     const currentTime = new Date();
@@ -345,12 +339,11 @@ export default function Geolocation() {
 
     const newTransactionType = userData.lastpunchtype === "IN" ? "OUT" : "IN";
 
-    // Prepare punch data for the new API
     const punchData = {
-      employee_id: parseInt(userData.employeenumber), // Assuming employeenumber is the employee_id
+      employee_id: parseInt(userData.employeenumber), 
       transaction_time: `${transactionDate} ${transactionTime}`,
       reason: `${newTransactionType} punch via geolocation`,
-      user_entry_flag: false, // Since this is automatic via geolocation
+      user_entry_flag: false,
       transaction_type: newTransactionType,
       is_geo_validated: userData.tobevalidated,
       original_coordinates: JSON.stringify([userLocation.lat, userLocation.lng]),

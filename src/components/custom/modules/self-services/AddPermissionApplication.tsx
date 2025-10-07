@@ -292,12 +292,10 @@ export default function AddPermissionApplication({
         (permType: any) => permType.permission_type_id.toString() === values.permission_types
       );
 
-      // For dates - send just the date part in YYYY-MM-DD format
       const fromDateString = `${values.from_date.getFullYear()}-${(values.from_date.getMonth() + 1).toString().padStart(2, '0')}-${values.from_date.getDate().toString().padStart(2, '0')}`;
 
       const toDateString = `${values.to_date.getFullYear()}-${(values.to_date.getMonth() + 1).toString().padStart(2, '0')}-${values.to_date.getDate().toString().padStart(2, '0')}`;
 
-      // For times - send just the time part in HH:mm:ss format
       const fromTimeString = `${values.from_time.getHours().toString().padStart(2, '0')}:${values.from_time.getMinutes().toString().padStart(2, '0')}:${values.from_time.getSeconds().toString().padStart(2, '0')}`;
 
       const toTimeString = `${values.to_time.getHours().toString().padStart(2, '0')}:${values.to_time.getMinutes().toString().padStart(2, '0')}:${values.to_time.getSeconds().toString().padStart(2, '0')}`;
@@ -380,7 +378,6 @@ export default function AddPermissionApplication({
                 )}
               />
 
-              {/* Permission Types Dropdown */}
               <FormField
                 control={form.control}
                 name="permission_types"

@@ -14,12 +14,7 @@ export default function Page() {
   const [Columns, setColumns] = useState([
     { field: "number" },
     { field: "employee" },
-    // { field: "request_type" },
     { field: "type" },
-    // { field: "from_date" },
-    // { field: "to_date" },
-    // { field: "from_time" },
-    // { field: "to_time" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
@@ -53,23 +48,13 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.manageApprovals?.items}
-        // disableAdd
-        // disableDelete
         enableApprove
         enableReject
-        // enableFilters
-        // filter_modal_title="none"
-        // filter_modal_component={
-        //   <FilterPendingApproval on_open_change={filter_on_open_change} />
-        // }
         size="large"
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
           <h1 className="font-bold text-xl text-primary">Pending Approval</h1>
-          {/* <h1 className="font-semibold text-sm text-text-secondary">
-            List of items pending for approvals
-          </h1> */}
         </div>
         <div className="px-6">
           <PowerTabs />

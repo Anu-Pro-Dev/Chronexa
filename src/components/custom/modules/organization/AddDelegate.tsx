@@ -55,11 +55,9 @@ export default function AddHoliday({
   };
   const [remarksLength, setRemarksLength] = useState(0);
 
-  // Search state for employee dropdowns
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [delegatedEmployeeSearchTerm, setDelegatedEmployeeSearchTerm] = useState("");
 
-  // Dropdown open states
   const [showEmployeeSearch, setShowEmployeeSearch] = useState(false);
   const [showDelegatedEmployeeSearch, setShowDelegatedEmployeeSearch] = useState(false);
 
@@ -75,10 +73,8 @@ export default function AddHoliday({
     },
   });
 
-  // Fetch all employees
   const { data: employees } = useFetchAllEntity("employee");
 
-  // Debounced search functions
   const debouncedEmployeeSearch = useCallback(
     debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
@@ -93,7 +89,6 @@ export default function AddHoliday({
     []
   );
 
-  // Search queries for employees
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
     queryKey: ["employeeSearch", employeeSearchTerm],
     queryFn: () => searchEmployees(employeeSearchTerm),
@@ -106,7 +101,6 @@ export default function AddHoliday({
     enabled: delegatedEmployeeSearchTerm.length > 0,
   });
 
-  // Filter functions for dropdowns
   const getFilteredEmployees = () => {
     const baseData = employeeSearchTerm.length > 0 
       ? searchedEmployees?.data || []
@@ -140,7 +134,7 @@ export default function AddHoliday({
         active_flag: selectedRowData.active_flag ?? false,
       });
     } else {
-      form.reset(); // clears on add
+      form.reset();
     }
   }, [selectedRowData, language]);
 

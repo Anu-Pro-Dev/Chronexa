@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-// import { logout } from "@/src/utils/utils";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
@@ -32,13 +31,12 @@ export default function ChangePasswordForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Send request to reset password
       await resetPasswordRequest(values.new_password);
 
       alert("Password changed successfully. Please log in again.");
       
-      logoutRequest(); // Log out the user
-      router.push("/"); // Redirect to login
+      logoutRequest(); 
+      router.push("/");
     } catch (error) {
       console.error("Password reset error", error);
       alert("Failed to reset password. Please try again.");

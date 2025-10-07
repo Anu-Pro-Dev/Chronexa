@@ -110,26 +110,21 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
             setLoading(true);
             setError(null);
             
-            // Fetch all dashboard data using Promise.all
             const response = await getAllDashboardData();
 
             if (response.success && response.data) {
-                // Parse attendance details
                 if (response.data.getMyAttnDetails?.length > 0) {
                     setAttendanceDetails(response.data.getMyAttnDetails[0]);
                 }
 
-                // Parse work schedule
                 if (response.data.WorkSchedule?.length > 0) {
                     setWorkSchedule(response.data.WorkSchedule[0]);
                 }
 
-                // Parse leave analytics
                 if (response.data.getLeaveAnalytics) {
                     setLeaveAnalytics(response.data.getLeaveAnalytics);
                 }
 
-                // Parse work hour trends
                 if (response.data.WorkHourTrends) {
                     setWorkHourTrends(response.data.WorkHourTrends);
                 }

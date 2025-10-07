@@ -21,7 +21,6 @@ const optionalNumber = z.preprocess(
   z.number().nonnegative("Must be 0 or greater").optional()
 );
 
-// ALL fields optional in merged schema
 const ramadanFormSchemaOptional = z.object({
   ramadan_in_time: timeString,
   ramadan_out_time: timeString,
@@ -42,7 +41,6 @@ const policyFormSchemaOptional = z.object({
   reduce_required_hrs_flag: z.boolean().optional(),
 });
 
-// Simple merge - NO conditional validation
 export const scheduleFormSchema = normalFormSchema
   .merge(ramadanFormSchemaOptional)
   .merge(policyFormSchemaOptional);
@@ -52,7 +50,7 @@ export const useScheduleForm = () => {
 
   const form = useForm<z.infer<typeof scheduleFormSchema>>({
     resolver: zodResolver(scheduleFormSchema),
-    mode: "onSubmit", // Only validate on submit
+    mode: "onSubmit",
     defaultValues: {
       schedule_code: "",
       schedule_location: undefined,

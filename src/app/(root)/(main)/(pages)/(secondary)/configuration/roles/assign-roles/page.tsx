@@ -45,7 +45,6 @@ export default function MembersTable() {
     return foundRole?.id || foundRole?.role_id || null;
   }, [role, rolesData]);
 
-  // Fetch user roles for the specific role_id ONLY
   const { data: userRolesData, isLoading: isLoadingUserRoles } = useQuery({
     queryKey: ["secUserRole", "byRole", roleId],
     queryFn: async () => {
@@ -171,7 +170,6 @@ export default function MembersTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Show role information header */}
       <div className="bg-blue-50 p-4 rounded-lg">
         <h2 className="text-xl font-semibold mb-2">
           Users Assigned to Role: <span className="font-bold">{role || "Unknown Role"}</span>

@@ -32,7 +32,6 @@ export default function MembersTable() {
   const t = translations?.modules?.employeeMaster || {};
   const showToast = useShowToast();
 
-  // Custom delete mutation for group members
   const deleteMutation = useMutation({
     mutationFn: async (ids: number[]) => {
       if (ids.length === 1) {
@@ -57,7 +56,6 @@ export default function MembersTable() {
     },
   });
 
-  // Custom delete handler
   const handleDelete = useCallback(() => {
     if (!selectedRows || selectedRows.length === 0) {
       toast.error("No items selected for deletion");
@@ -122,16 +120,13 @@ export default function MembersTable() {
         console.warn(`No employee_master data found for group member ID: ${member.group_member_id}`);
       }
 
-      // Ensure group_member_id exists
       if (!member.group_member_id) {
         console.error('Missing group_member_id for member:', member);
       }
 
       return {
         ...member,
-        // This id field is used by PowerHeader/PowerTable for deletion
         id: member.group_member_id,
-        // Keep the original ID field name for reference
         group_member_id: member.group_member_id,
         employee_no: emp?.emp_no || "N/A",
         employee_name: language === "ar" 
@@ -152,7 +147,6 @@ export default function MembersTable() {
       };
     });
 
-    // Debug: Log the first item to verify ID structure
     if (mergedData.length > 0) {
       console.log('Sample row data for deletion:', {
         id: mergedData[0].id,
@@ -249,7 +243,6 @@ export default function MembersTable() {
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
     groupCode: group,
-    // Pass custom delete handler
     onCustomDelete: handleDelete,
   };
 

@@ -69,7 +69,7 @@ export default function AddRamadanDateRange({
         remarks: selectedRowData.remarks ?? "",
       });
     } else {
-      form.reset(); // clears on add
+      form.reset();
     }
   }, [selectedRowData, language]);
 
@@ -121,7 +121,6 @@ export default function AddRamadanDateRange({
         remarks: values.remarks,
       };
 
-      // Add only the language-specific name being edited
       if (language === "en") {
         payload.ramadan_name_eng = values.ramadan_name;
       } else {
@@ -210,11 +209,9 @@ export default function AddRamadanDateRange({
                           closePopover('fromDate')
                         }}
                         disabled={(date) => {
-                          // Get today's date at start of day for comparison
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
                           
-                          // Disable dates before today
                           return date < today;
                         }}
                       />
@@ -260,11 +257,9 @@ export default function AddRamadanDateRange({
                           const ramadanStartDate = form.getValues("from_date");
                           
                           if (!ramadanStartDate) {
-                            // If no start date is selected, disable all dates
                             return true;
                           }
                           
-                          // Create a new date for comparison to avoid time issues
                           const startDate = new Date(ramadanStartDate);
                           startDate.setHours(0, 0, 0, 0);
                           

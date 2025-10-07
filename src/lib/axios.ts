@@ -70,9 +70,9 @@ if (typeof window !== "undefined") {
 
   const authErrorInterceptor = (error: any) => {
     if (error.response?.status === 401 || error.response?.data?.auth === "invalid") {
-      setAuthToken(null); // Remove token from storage
+      setAuthToken(null);
       if (window.location.pathname !== "/") {
-        window.location.href = "/"; // Redirect user to login page
+        window.location.href = "/";
       }
     }
     return Promise.reject(error);

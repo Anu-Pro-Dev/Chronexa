@@ -17,12 +17,10 @@ function TimerCard() {
     elapsedSeconds,
   } = usePunch();
 
-  // Ensure component is hydrated before showing time-dependent content
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Don't render time-dependent content until client-side hydration
   if (!isClient) {
     return (
       <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#0078D4] to-[#003E6E] text-white p-4 flex flex-col items-center">

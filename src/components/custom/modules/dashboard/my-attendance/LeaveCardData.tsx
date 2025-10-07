@@ -13,14 +13,12 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
     const { translations } = useLanguage();
     const t = translations?.modules?.dashboard || {};
 
-    // Parse permission hours (HH:MM format to number)
     const parsePermissionHours = (timeString: string): number => {
         if (!timeString || timeString === "00:00") return 0;
         const [hours, minutes] = timeString.split(':').map(Number);
         return hours + (minutes / 60);
     };
 
-    // Calculate pending leaves
     const calculatePendingLeaves = () => {
         if (!attendanceDetails) return 0;
         const approved = attendanceDetails.ApprovedLeaves || 0;
@@ -44,7 +42,6 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
         );
     }
 
-    // Leaves Data from API
     const leavesData = [
         { 
             label: t?.working_days, 
@@ -90,7 +87,6 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
         }
     ];
 
-    // Permissions Data from API
     const permissionsData = [
         { 
             label: t?.working_days, 
@@ -136,7 +132,6 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
         }
     ];
 
-    // Select data based on page
     const data = page === "Leaves" ? leavesData : permissionsData;
 
     return (

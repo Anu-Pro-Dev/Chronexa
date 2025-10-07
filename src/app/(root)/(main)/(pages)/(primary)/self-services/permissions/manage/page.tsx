@@ -112,7 +112,6 @@ export default function Page() {
       
       sessionStorage.setItem('editPermissionsData', JSON.stringify(editData));
       
-      // Navigate to the add page (which will handle edit mode)
       router.push("/self-services/permissions/manage/add");
     } catch (error) {
       console.error("Error setting edit data:", error);

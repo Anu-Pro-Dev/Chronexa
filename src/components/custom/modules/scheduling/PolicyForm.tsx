@@ -20,7 +20,6 @@ interface PolicyFormProps {
 const formatTimeToISO = (value: any): string | null => {
   if (!value) return null;
   
-  // If it's already a Date object
   if (value instanceof Date) {
     const year = value.getFullYear();
     const month = String(value.getMonth() + 1).padStart(2, '0');
@@ -31,7 +30,6 @@ const formatTimeToISO = (value: any): string | null => {
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
   }
   
-  // If it's a time string like "13:00:00"
   if (typeof value === "string") {
     const [hours, minutes, seconds = "00"] = value.split(":");
     const date = new Date();
@@ -96,7 +94,6 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
         required_work_hours: values.required_work_hours || "",
       };
 
-      // Only include ramadan fields if they have values
       if (values.ramadan_in_time) {
         formattedValues.ramadan_in_time = formatTimeToISO(values.ramadan_in_time);
       }
@@ -113,7 +110,6 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
         formattedValues.ramadan_prayer_time = formatTimeToISO(values.ramadan_prayer_time);
       }
 
-      // Handle inactive_date
       if (values.inactive_date) {
         const date = values.inactive_date instanceof Date 
           ? values.inactive_date 

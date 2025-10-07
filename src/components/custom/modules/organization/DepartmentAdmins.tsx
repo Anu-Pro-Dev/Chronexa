@@ -26,27 +26,22 @@ export default function DepartmentAdmins({
             <ResponsiveModalTitle>Department Admins</ResponsiveModalTitle>
           </ResponsiveModalHeader>
           <div className="flex flex-col gap-4">
-                {/* <p><strong>ID:</strong> {rowData?.number || "N/A"}</p>
-                <p><strong>Organization:</strong> {rowData?.organization || "N/A"}</p>
-                <p><strong>From Date:</strong> {rowData?.from_date || "N/A"}</p>
-                <p><strong>To Date:</strong> {rowData?.to_date || "N/A"}</p>
-                <p><strong>Active:</strong> {rowData?.active ? "Yes" : "No"}</p> */}
-                <p>01 - Chairman</p>
-                <p>02 - Vice Chairman</p>
-                <p>03 - Secretary</p>
-                <p>04 - Treasurer</p>
-                <p>05 - Member</p>
-                <div className="w-full flex gap-2 justify-center items-center py-3">
-                    <Button
-                    variant={"outline"}
-                    type="button"
-                    size={"lg"}
-                    onClick={() => modal_props?.on_open_change(false)}
-                    >
-                        {translations.buttons.cancel}
-                    </Button>
-                </div>
-            </div>
+            <p>01 - Chairman</p>
+            <p>02 - Vice Chairman</p>
+            <p>03 - Secretary</p>
+            <p>04 - Treasurer</p>
+            <p>05 - Member</p>
+              <div className="w-full flex gap-2 justify-center items-center py-3">
+                  <Button
+                  variant={"outline"}
+                  type="button"
+                  size={"lg"}
+                  onClick={() => modal_props?.on_open_change(false)}
+                  >
+                      {translations.buttons.cancel}
+                  </Button>
+              </div>
+          </div>
         </ResponsiveModalContent>
       </ResponsiveModal>
     </div>

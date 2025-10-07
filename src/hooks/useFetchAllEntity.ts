@@ -45,16 +45,12 @@ export function useFetchAllEntity(entity: string, options?: Options) {
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       .join('&');
     
-    // Determine the base URL
     let baseUrl: string;
     if (endpoint) {
-      // Use fully custom endpoint
       baseUrl = endpoint;
     } else if (removeAll) {
-      // Use entity name without '/all'
       baseUrl = `/${entity}/`;
     } else {
-      // Default behavior: use entity name with '/all'
       baseUrl = `/${entity}/all`;
     }
     

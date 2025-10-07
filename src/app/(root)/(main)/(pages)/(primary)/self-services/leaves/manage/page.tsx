@@ -114,7 +114,6 @@ export default function Page() {
       
       sessionStorage.setItem('editLeavesData', JSON.stringify(editData));
       
-      // Navigate to the add page (which will handle edit mode)
       router.push("/self-services/leaves/manage/add");
     } catch (error) {
       console.error("Error setting edit data:", error);

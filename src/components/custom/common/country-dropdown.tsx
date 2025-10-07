@@ -78,7 +78,6 @@ const CountryDropdown = ({ value, onChange, countries, displayMode = "full", }: 
       value={value}
       getOptionValue={(country) => country.country_code}
       formatOptionLabel={(country, { context }) => {
-        // Full display for dropdown options
         if (context === "menu") {
           return (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -90,7 +89,6 @@ const CountryDropdown = ({ value, onChange, countries, displayMode = "full", }: 
           );
         }
 
-        // Conditionally display for selected value
         return displayMode === "full" ? (
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <img src={country.country_flag} alt={country.country_code} width="20" height="15" />
@@ -106,7 +104,6 @@ const CountryDropdown = ({ value, onChange, countries, displayMode = "full", }: 
       placeholder={t.placeholder_country}
       styles={customStyles}
       components={{ DropdownIndicator }}
-      // menuPlacement="bottom"
     />
   );
 };

@@ -15,12 +15,12 @@ export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCellClick = (data: any) => {
-    setSelectedRowData(data); // Store clicked row data
-    setIsModalOpen(true); // Open the modal
+    setSelectedRowData(data);  
+    setIsModalOpen(true);
   };
 
   const handleModalClose = () => {
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false); 
   };
 
   const handleEditClick = (data: any) => {
@@ -29,7 +29,6 @@ export default function Page() {
   };
 
   const [Columns, setColumns] = useState([
-    // { field: "number" },
     { field: "name" },
     { field: "organization", clickable: true, onCellClick: handleCellClick },
     { field: "active" },
@@ -72,9 +71,9 @@ export default function Page() {
         <DepartmentAdmins
           modal_props={{
             open: isModalOpen,
-            on_open_change: setIsModalOpen, // Pass function to update modal state
+            on_open_change: setIsModalOpen, 
           }}
-          rowData={selectedRowData} // Pass dynamic row data
+          rowData={selectedRowData} 
         />
       )}
     </div>

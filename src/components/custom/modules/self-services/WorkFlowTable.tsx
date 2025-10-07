@@ -14,7 +14,6 @@ export default function WorkflowTable() {
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
       <div className="grid gap-4">
-        {/* Header */}
         <div className="grid grid-cols-5 gap-4 text-sm font-medium text-blue-600">
           <div>Type</div>
           <div>Value</div>
@@ -23,7 +22,6 @@ export default function WorkflowTable() {
           <div>Status Text</div>
         </div>
 
-        {/* Rows */}
         {rows.map((row) => (
           <div key={row} className="grid grid-cols-5 gap-4">
             <Select>

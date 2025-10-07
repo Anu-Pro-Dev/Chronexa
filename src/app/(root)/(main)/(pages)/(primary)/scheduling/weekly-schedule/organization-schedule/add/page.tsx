@@ -11,11 +11,9 @@ export default function Page() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Get data from sessionStorage
     const storedData = sessionStorage.getItem('editOrgSchedule');
     if (storedData) {
       setSelectedRowData(JSON.parse(storedData));
-      // Clear after reading
       sessionStorage.removeItem('editOrgSchedule');
     }
   }, []);

@@ -11,7 +11,6 @@ function ScheduleCard() {
   const t = translations?.modules?.dashboard || {};
   const { workSchedule, loading } = useAttendanceData();
 
-  // Compute chart values for current month
   const { totalHours, workedHours, overtimeHours, pendingHours } = useMemo(() => {
     if (!workSchedule) {
       return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0 };
@@ -19,17 +18,12 @@ function ScheduleCard() {
 
     const totalHours = parseFloat(workSchedule.TotalExpectingWrkHrs as any) || 0;
 
-    // All hours are considered worked, no absent or late
     const workedHours = totalHours;
     const overtimeHours = 0;
     const pendingHours = 0;
 
     return { totalHours, workedHours, overtimeHours, pendingHours };
   }, [workSchedule]);
-
-  // if (loading) {
-  //   return <div className="shadow-card rounded-[10px] bg-accent p-5">Loading...</div>;
-  // }
 
   if (loading) {
     return (

@@ -69,9 +69,6 @@ export default function ReprocessData() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl relative">
         <div className="pb-3">
           <h1 className="font-bold text-xl text-primary">Reprocess</h1>
-          {/* <h1 className="font-semibold text-sm text-text-secondary">
-            Choose the choices for reprocess the data
-          </h1> */}
         </div>
         <div className="absolute top-6 right-10">
           {!form.watch("employee") && (
@@ -140,9 +137,6 @@ export default function ReprocessData() {
                               field.onChange(date)
                               closePopover('fromDate')
                             }}
-                            // disabled={(date) =>
-                            //   date > new Date() || date < new Date("1900-01-01")
-                            // }
                           />
                         </PopoverContent>
                       </Popover>
@@ -227,9 +221,6 @@ export default function ReprocessData() {
                               field.onChange(date)
                               closePopover('toDate')
                             }}
-                            // disabled={(date) =>
-                            //   date > new Date() || date < new Date("1900-01-01")
-                            // }
                           />
                         </PopoverContent>
                       </Popover>

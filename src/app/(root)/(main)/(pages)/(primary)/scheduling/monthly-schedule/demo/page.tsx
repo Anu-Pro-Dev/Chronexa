@@ -28,9 +28,8 @@ export default function Page() {
     return scheduleData.flatMap((category: any) => {
       const flattenedRows = category.subcategories.flatMap((subcategory: any) => {
         return subcategory.rows.map((row: any) => {
-          // Convert schedule slots into day-wise structure
           const schedule = row.slots.reduce((acc: any, slot: any, idx: number) => {
-            acc[idx + 1] = slot.status; // Map slots to 1-31 for the days of the month
+            acc[idx + 1] = slot.status;
             return acc;
           }, {});
           return {
@@ -114,7 +113,6 @@ export default function Page() {
       { field: "subcategory", headerName: "Subcategory", width: 200 },
       { field: "number", headerName: "Number", width: 150 },
       { field: "name", headerName: "Name", width: 150 },
-      // { field: "version", headerName: "Version", width: 100 },
       { field: "status", headerName: "Status", width: 100 },
       ...dayColumns,
       { field: "hours", headerName: "Work Hours", width: 120, pinned: "right" },

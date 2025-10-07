@@ -106,15 +106,6 @@ export default function Page() {
             </span>
             ),
         },
-        // { 
-        //     field: "saturday_schedule_id", 
-        //     headerName: "Saturday",
-        //     cellRenderer: (row: any) => (
-        //     <span style={{ color: row.saturday_schedule_color }}>
-        //         {row.saturday_schedule_id}
-        //     </span>
-        //     ),
-        // },
         ]);
     }, [language]);
 
@@ -172,13 +163,6 @@ export default function Page() {
                 friday_schedule_id: scheduleMap[orgSch.friday_schedule_id]?.trim() ?? "-",
                 saturday_schedule_id: scheduleMap[orgSch.saturday_schedule_id]?.trim() ?? "-",
                 sunday_schedule_id: scheduleMap[orgSch.sunday_schedule_id]?.trim() ?? "-",
-                // monday_schedule_color: scheduleColorMap[orgSch.monday_schedule_id] ?? "#000",
-                // tuesday_schedule_color: scheduleColorMap[orgSch.tuesday_schedule_id] ?? "#000",
-                // wednesday_schedule_color: scheduleColorMap[orgSch.wednesday_schedule_id] ?? "#000",
-                // thursday_schedule_color: scheduleColorMap[orgSch.thursday_schedule_id] ?? "#000",
-                // friday_schedule_color: scheduleColorMap[orgSch.friday_schedule_id] ?? "#000",
-                // saturday_schedule_color: scheduleColorMap[orgSch.saturday_schedule_id] ?? "#000",
-                // sunday_schedule_color: scheduleColorMap[orgSch.sunday_schedule_id] ?? "#000",
             }));
         }, [employeeScheduleData, scheduleMap, scheduleColorMap]);
 

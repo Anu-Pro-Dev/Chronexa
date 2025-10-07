@@ -79,14 +79,6 @@ export default function FilterForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        {/* <div className="flex justify-between">
-          <div className="pb-6">
-              <h1 className="font-bold text-xl text-primary pb-2">Filter</h1>
-              <h1 className="font-semibold text-sm text-text-secondary pb-2">
-                Choose the Filters for further process
-              </h1>
-          </div>
-        </div> */}
         <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-3">
           <FormField
             control={form.control}

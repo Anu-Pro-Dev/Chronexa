@@ -42,7 +42,6 @@ const formSchema = z.object({
   }),
   leave_doc_filename_path: z.custom<any>(
     (value) => {
-      // Allow empty string
       if (value === "" || value === null || value === undefined) {
         return true;
       }
@@ -51,13 +50,11 @@ const formSchema = z.object({
         return false;
       }
       
-      // Validate file size (e.g., max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      const maxSize = 5 * 1024 * 1024; 
       if (value.size > maxSize) {
         return false;
       }
 
-      // Validate file type - match server requirements
       const allowedTypes = [
         "application/pdf",
         "image/jpeg", 
@@ -108,27 +105,22 @@ export default function AddLeaveApplication({
     },
   });
 
-  // Function to calculate number of days between dates
   const calculateLeaveDays = useCallback((fromDate: Date, toDate: Date) => {
     if (!fromDate || !toDate) return 0;
     
-    // Ensure dates are at start of day for accurate calculation
     const startDate = new Date(fromDate);
     startDate.setHours(0, 0, 0, 0);
     
     const endDate = new Date(toDate);
     endDate.setHours(0, 0, 0, 0);
     
-    // Calculate the difference in time
     const timeDifference = endDate.getTime() - startDate.getTime();
     
-    // Calculate the difference in days and add 1 to include both start and end dates
     const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
     
-    return Math.max(0, dayDifference); // Ensure non-negative result
+    return Math.max(0, dayDifference); 
   }, []);
 
-  // Watch for date changes and calculate days
   const watchFromDate = form.watch("from_date");
   const watchToDate = form.watch("to_date");
 

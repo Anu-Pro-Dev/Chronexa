@@ -51,7 +51,6 @@ export default function AddWorkflow() {
   const [existingWorkflowData, setExistingWorkflowData] = useState<any>(null);
   const [isGenerateMode, setIsGenerateMode] = useState(false);
   
-  // Search state for role dropdowns
   const [roleSearchTerm, setRoleSearchTerm] = useState("");
   const [showRoleSearch, setShowRoleSearch] = useState(false);
 
@@ -60,10 +59,8 @@ export default function AddWorkflow() {
     defaultValues: { workflow_code: "", workflow_category: "", workflow_name: "" },
   });
 
-  // Fetch roles from API
   const { data: rolesData, isLoading: rolesLoading } = useFetchAllEntity("secRole");
 
-  // Debounced search function for roles
   const debouncedRoleSearch = useCallback(
     debounce((searchTerm: string) => {
       setRoleSearchTerm(searchTerm);
@@ -71,7 +68,6 @@ export default function AddWorkflow() {
     []
   );
 
-  // Filter roles based on search term for specific row
   const getFilteredRoles = () => {
     const baseData = rolesData?.data || [];
     
@@ -210,7 +206,6 @@ export default function AddWorkflow() {
   const addStepMutation = useMutation({
     mutationFn: addWorkflowTypeStepRequest,
     onSuccess: () => {
-      // Don't show individual step success messages here
     },
     onError: (error: any) => {
       console.error("Error adding step:", error);
@@ -220,24 +215,19 @@ export default function AddWorkflow() {
   const editStepMutation = useMutation({
     mutationFn: editWorkflowTypeStepRequest,
     onSuccess: () => {
-      // Don't show individual step success messages here
     },
     onError: (error: any) => {
       console.error("Error updating step:", error);
     },
   });
 
-  // Handle Generate button - just show steps table without creating workflow
   const handleGenerate = async () => {
     try {
-      // Validate form first - trigger() returns a Promise
       const isValid = await form.trigger();
       if (!isValid) {
-        // Form has validation errors, don't proceed
         return;
       }
 
-      // Form is valid, proceed to show steps
       setIsGenerateMode(true);
       setShowTable(true);
       setRows([1]);
@@ -252,11 +242,9 @@ export default function AddWorkflow() {
       });
     } catch (error) {
       console.error("Form validation error:", error);
-      // Don't show steps if validation fails
     }
   };
 
-  // Handle form submission for edit mode
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const payload: any = {
@@ -282,7 +270,6 @@ export default function AddWorkflow() {
 
   const handleSaveSteps = async () => {
     try {
-      // Validate all steps are complete
       const incompleteSteps = rows.filter(rowId => {
         const step = stepData[rowId];
         return !step?.stepName || !step?.roleId || !step?.onSuccess;
@@ -295,7 +282,6 @@ export default function AddWorkflow() {
 
       let currentWorkflowId = workflowId;
 
-      // If in generate mode (new workflow), create the workflow first
       if (isGenerateMode && !selectedRow) {
         const formValues = form.getValues();
         const workflowPayload: any = {
@@ -315,7 +301,6 @@ export default function AddWorkflow() {
         setWorkflowId(currentWorkflowId);
       }
 
-      // Now save/update all steps
       const stepPromises = rows.map(async (rowId, index) => {
         const step = stepData[rowId];
         const stepOrder = index + 1;

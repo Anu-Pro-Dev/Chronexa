@@ -28,7 +28,6 @@ import {
   ResponsiveModalDescription,
 } from "@/src/components/ui/responsive-modal";
 
-// Form schema
 const formSchema = z.object({
   to: z.string().min(1, { message: "email_required" }).email({ message: "email_invalid" }),
   subject: z.string().min(1, { message: "subject_required" }).max(200, { message: "subject_max_length" }),
@@ -111,7 +110,6 @@ export default function TestEmailModal({
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-5">
             <div className="flex flex-col gap-4">
               <div className="grid gap-16 gap-y-4">
-                {/* To */}
                 <FormField
                   control={form.control}
                   name="to"
@@ -127,73 +125,7 @@ export default function TestEmailModal({
                     </FormItem>
                   )}
                 />
-
-                {/* Subject */}
-                {/* <FormField
-                  control={form.control}
-                  name="subject"
-                  render={({ field }) => (
-                    <FormItem className="min-w-0">
-                      <FormLabel>
-                        Subject <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter email subject" type="text" {...field} />
-                      </FormControl>
-                      <TranslatedError fieldError={form.formState.errors.subject} translations={errT} />
-                    </FormItem>
-                  )}
-                /> */}
-
-                {/* Body */}
-                {/* <FormField
-                  control={form.control}
-                  name="body"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>
-                        Message <Required />
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Enter email message" rows={4} {...field} />
-                      </FormControl>
-                      <TranslatedError fieldError={form.formState.errors.body} translations={errT} />
-                    </FormItem>
-                  )}
-                /> */}
-
-                {/* CC */}
-                {/* <FormField
-                  control={form.control}
-                  name="cc"
-                  render={({ field }) => (
-                    <FormItem className="min-w-0">
-                      <FormLabel>CC (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter CC email" type="email" {...field} />
-                      </FormControl>
-                      <TranslatedError fieldError={form.formState.errors.cc} translations={errT} />
-                    </FormItem>
-                  )}
-                /> */}
-
-                {/* BCC */}
-                {/* <FormField
-                  control={form.control}
-                  name="bcc"
-                  render={({ field }) => (
-                    <FormItem className="min-w-0">
-                      <FormLabel>BCC (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter BCC email" type="email" {...field} />
-                      </FormControl>
-                      <TranslatedError fieldError={form.formState.errors.bcc} translations={errT} />
-                    </FormItem>
-                  )}
-                /> */}
               </div>
-
-              {/* Buttons */}
               <div className="w-full flex gap-2 items-center pt-4 py-2">
                 <Button
                   variant="outline"

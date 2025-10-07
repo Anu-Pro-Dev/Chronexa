@@ -109,16 +109,13 @@ export default function Page() {
  
   const handleEditClick = (rowData: any) => {
     try {
-      // Store the workflow data in sessionStorage so it persists across navigation
       const editData = {
         ...rowData,
-        // Make sure we have the workflow steps data
         workflow_type_steps: rowData.workflow_type_steps || []
       };
       
       sessionStorage.setItem('editWorkflowData', JSON.stringify(editData));
       
-      // Navigate to the add page (which will handle edit mode)
       router.push("/self-services/workflow/add");
     } catch (error) {
       console.error("Error setting edit data:", error);

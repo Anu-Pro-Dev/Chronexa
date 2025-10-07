@@ -35,7 +35,6 @@ function LeaveAnalyticsCard() {
     translations.december || "December",
   ];
 
-  // Build chart data
   const chartData = useMemo(() => {
     const year = selectedYear === "this_year" ? currentYear : Number(selectedYear);
     const data = monthNames.map((monthName, index) => {
@@ -57,7 +56,6 @@ function LeaveAnalyticsCard() {
     absent: { label: t?.leaves_absent, color: "hsl(var(--chart-absent))" },
   };
 
-  // Year dropdown
   const years = [
     "this_year",
     ...Array.from({ length: currentYear - 2019 }, (_, i) => (currentYear - i).toString()).slice(1),
@@ -96,7 +94,7 @@ function LeaveAnalyticsCard() {
             tickLine={false}
             tickMargin={2}
             axisLine={false}
-            tickFormatter={(value) => value.slice(0, 3)} // Show only 3 letters
+            tickFormatter={(value) => value.slice(0, 3)}
             textAnchor={dir === "rtl" ? "end" : "start"}
             tick={{ dx: dir === "rtl" ? -10 : 0 }}
           />

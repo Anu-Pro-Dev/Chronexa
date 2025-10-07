@@ -26,7 +26,7 @@ export function useAuthGuard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [employeeId, setEmployeeId] = useState<number | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string>(''); // <-- added
+  const [userRole, setUserRole] = useState<string>('');
   const [isGeofenceEnabled, setIsGeofenceEnabled] = useState(false);
 
   useEffect(() => {    
@@ -42,14 +42,14 @@ export function useAuthGuard() {
       try {
         let finalEmployeeId: number | null = null;
         let finalUserInfo: any = null;
-        let finalUserRole = ''; // <-- added
+        let finalUserRole = '';
         let geofenceStatus = false;
 
         const decodedToken = decodeJWT(token);
         
         if (decodedToken) {
           if (decodedToken.id) finalEmployeeId = Number(decodedToken.id);
-          if (decodedToken.role) finalUserRole = String(decodedToken.role); // <-- from token
+          if (decodedToken.role) finalUserRole = String(decodedToken.role);
         }
 
         const storageKeys = [
@@ -73,7 +73,7 @@ export function useAuthGuard() {
               let userData = parsedData.user && typeof parsedData.user === 'object' ? parsedData.user : parsedData;
               
               if (userData.employeenumber && !finalEmployeeId) finalEmployeeId = Number(userData.employeenumber);
-              if (userData.role && !finalUserRole) finalUserRole = String(userData.role); // <-- from storage
+              if (userData.role && !finalUserRole) finalUserRole = String(userData.role);
               if (!finalUserInfo || (userData.employeename && Object.keys(userData).length >= Object.keys(finalUserInfo).length)) {
                 finalUserInfo = userData;
               }
@@ -95,7 +95,7 @@ export function useAuthGuard() {
 
         setEmployeeId(finalEmployeeId);
         setUserInfo(finalUserInfo);
-        setUserRole(finalUserRole); // <-- set state
+        setUserRole(finalUserRole);
         setIsGeofenceEnabled(geofenceStatus);
         setIsAuthenticated(true);
         
@@ -115,7 +115,7 @@ export function useAuthGuard() {
     isChecking, 
     employeeId, 
     userInfo,
-    userRole, // <-- return it
+    userRole,
     isGeofenceEnabled
   };
 }

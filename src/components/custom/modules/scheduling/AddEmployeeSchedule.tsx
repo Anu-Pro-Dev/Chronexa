@@ -35,15 +35,13 @@ const formSchema = z.object({
   attachment: z.custom<any>(
     (value) => {
       if (!(value instanceof File)) {
-        return false; // Ensure the value is a File object
+        return false;
       }
-      // Validate file size (e.g., max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      const maxSize = 5 * 1024 * 1024; 
       if (value.size > maxSize) {
         return false;
       }
 
-      // Validate file type (e.g., allow only images)
       const allowedTypes = ["image/jpeg", "image/png"];
       if (!allowedTypes.includes(value.type)) {
         return false;
@@ -222,7 +220,6 @@ export default function AddEmployeeSchedule({
         saturday_schedule_id: values.saturday_schedule_id,
       };
 
-      // If attachment is provided, append it (e.g., convert to Base64 or use FormData depending on API)
       if (values.attachment) {
         payload.attachment = values.attachment;
       }
@@ -289,11 +286,9 @@ export default function AddEmployeeSchedule({
                           closePopover('fromDate')
                         }}
                         disabled={(date) => {
-                          // Get today's date at start of day for comparison
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
                           
-                          // Disable dates before today
                           return date < today;
                         }}
                       />
@@ -339,11 +334,9 @@ export default function AddEmployeeSchedule({
                           const empScheduleStartDate = form.getValues("from_date");
                           
                           if (!empScheduleStartDate) {
-                            // If no start date is selected, disable all dates
                             return true;
                           }
                           
-                          // Create a new date for comparison to avoid time issues
                           const startDate = new Date(empScheduleStartDate);
                           startDate.setHours(0, 0, 0, 0);
                           

@@ -22,8 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiRequest("/auth/login", "POST", { username, password });
       if (response?.user?.role) {
-        setUserRole(response.user.role); // store role for RBAC
-        // Do not redirect here; PrivilegeGuard will handle redirect
+        setUserRole(response.user.role);
       }
     } finally {
       setIsAuthenticating(false);
@@ -32,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUserRole(null);
-    // clear tokens / localStorage if needed
     router.replace("/login");
   };
 

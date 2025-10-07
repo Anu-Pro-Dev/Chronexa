@@ -18,7 +18,6 @@ export default function Page() {
   const clearSelectedRowData = useScheduleEditStore((state) => state.clearSelectedRowData);
   const [currentPage, setCurrentPage] = useState<string>("normal-schedule");
   
-  // Watch the ramadan_flag to conditionally show the Ramadan tab
   const isRamadanEnabled = form.watch("ramadan_flag");
 
   useEffect(() => {
@@ -27,14 +26,12 @@ export default function Page() {
     }
   }, [selectedRowData, clearSelectedRowData]);
 
-  // If Ramadan flag is disabled and user is on Ramadan tab, redirect to Policy
   useEffect(() => {
     if (!isRamadanEnabled && currentPage === "ramadan-schedule") {
       setCurrentPage("policy-schedule");
     }
   }, [isRamadanEnabled, currentPage]);
 
-  // Build pages array
   const pages = [];
   
   pages.push({
@@ -44,7 +41,6 @@ export default function Page() {
     component: <NormalForm SetPage={setCurrentPage} />,
   });
 
-  // Only add Ramadan tab if the flag is enabled
   if (isRamadanEnabled) {
     pages.push({
       title: "Ramadan",
@@ -54,7 +50,6 @@ export default function Page() {
     });
   }
 
-  // Always add Policy tab at the end
   pages.push({
     title: "Policy",
     state_route: "policy-schedule",

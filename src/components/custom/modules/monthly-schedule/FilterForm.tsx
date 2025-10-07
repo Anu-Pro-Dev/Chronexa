@@ -79,14 +79,6 @@ export default function FilterForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
-        {/* <div className="flex justify-between">
-          <div className="pb-6">
-              <h1 className="font-bold text-xl text-primary pb-2">Filter</h1>
-              <h1 className="font-semibold text-sm text-text-secondary pb-2">
-                Choose the Filters for further process
-              </h1>
-          </div>
-        </div> */}
         <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-3">
           <FormField
             control={form.control}
@@ -373,22 +365,6 @@ export default function FilterForm() {
             </FormItem>
           )}
         />
-        {/* <div className="flex justify-end gap-2 items-center py-5">
-          <div className="flex gap-4 px-1">
-            <Button
-              variant={"outline"}
-              type="button"
-              size={"lg"}
-              className=""
-              onClick={() => on_open_change(false)}
-            >
-              {translations.buttons.cancel}
-            </Button>
-            <Button type="submit" size={"lg"} className="">
-              Save
-            </Button>
-          </div>
-        </div> */}
       </form>
     </Form>
   );

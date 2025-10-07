@@ -53,42 +53,37 @@ export default function AddRole({
 
   useEffect(() => {
     if (!selectedRowData) {
-      form.reset(); // Reset the form values when in "Add" mode
+      form.reset();
     } else {
       form.reset({
         name_en: selectedRowData.name_en,
         name_ar: selectedRowData.name_ar,
-      }); // Pre-fill the form when in "Edit" mode
+      }); 
     }
   }, [selectedRowData, form]);
 
   const handleSave = () => {
-    const formData = form.getValues(); // Get the form data directly from the hook
+    const formData = form.getValues();
     if (selectedRowData) {
-      // Update existing row
       onSave(selectedRowData.id, formData);
     } else {
-      // Add new row
       onSave(null, formData);
     }
-    on_open_change(false); // Close modal after saving
+    on_open_change(false);
   };
 
   const router = useRouter();
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Handle form submission: Add or Update logic based on whether it's edit mode or not
       if (selectedRowData) {
-        // Update logic (edit mode)
         onSave(selectedRowData.id, values);
         toast.success("Updating region!");
       } else {
-        // Add logic (create mode)
         onSave(null, values);
         toast.success("Creating region!");
       }
-      on_open_change(false); // Close the modal after submission
+      on_open_change(false); 
     } catch (error) {
       console.error("Form submission error", error);
     }

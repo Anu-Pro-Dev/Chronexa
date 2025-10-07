@@ -40,7 +40,6 @@ export default function ApprovalModal({
     (isApprove ? translations?.buttons?.approve : translations?.buttons?.reject) ||
     (isApprove ? "Approve Request" : "Reject Request");
   
-  // Enhanced description that includes selected count
   const description =
     modal_description ||
     (isApprove
@@ -54,7 +53,6 @@ export default function ApprovalModal({
 
   const handleConfirm = () => {
     modal_props?.on_confirm();
-    // Don't close modal here - let the parent handle closing after API success/failure
   };
 
   return (
@@ -77,14 +75,12 @@ export default function ApprovalModal({
           <ResponsiveModalDescription>{description}</ResponsiveModalDescription>
         </ResponsiveModalHeader>
         
-        {/* Custom modal component if provided */}
         {modal_component && (
           <div className="py-4">
             {modal_component}
           </div>
         )}
         
-        {/* Action buttons */}
         <div className="flex justify-end gap-2 pt-4">
           <Button 
             variant="outline"

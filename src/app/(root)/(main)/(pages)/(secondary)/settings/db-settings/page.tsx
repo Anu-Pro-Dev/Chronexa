@@ -51,7 +51,7 @@ export default function Page() {
         return {
           ...dbSet,
           id: dbSet.db_settings_id,
-          db_setting_id: dbSet.db_settings_id, // Add this for delete to work
+          db_setting_id: dbSet.db_settings_id,
         };
       });
     }

@@ -32,7 +32,6 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
-  // Fetch paginated organization data for display
   const { data: orgData, isLoading, refetch } = useFetchAllEntity("organization", {
     searchParams: {
       limit: String(rowsPerPage),
@@ -41,7 +40,6 @@ export default function Page() {
     },
   });
 
-  // Fetch ALL organizations for parent mapping
   const { data: allOrgData } = useFetchAllEntity("organization", {
     searchParams: {
       limit: "1000",

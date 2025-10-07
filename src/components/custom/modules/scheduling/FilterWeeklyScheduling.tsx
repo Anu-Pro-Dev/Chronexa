@@ -34,11 +34,7 @@ const formSchema = z.object({
     .max(100),
 });
 
-export default function FilterWeeklyScheduling({
-  // on_open_change,
-}: {
-  // on_open_change: any;
-}) {
+export default function FilterWeeklyScheduling() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

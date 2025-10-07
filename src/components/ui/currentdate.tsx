@@ -29,7 +29,6 @@ const CurrentDate: React.FC = () => {
         <div className="flex items-center justify-center gap-1">
           <div 
             className="flex justify-center items-center gap-2" 
-            // onClick={toggleCalendar}
           >
             <div className="w-7 h-7 bg-backdrop rounded-full flex justify-center items-center"><CalendarIcon className="w-4 h-4" /></div> {/* Calendar Icon */}
             <p className="text-sm text-text-primary font-semibold">

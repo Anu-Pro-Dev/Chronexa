@@ -44,18 +44,16 @@ export class ExcelExporter {
     const isSpecificEmployee = this.formValues.employee && this.formValues.employee !== '';
     
     if (isSpecificEmployee) {
-      // For specific employee, use actual data
       return {
         employeeId: firstRow?.employee_id || this.formValues.employee || '',
         employeeName: firstRow?.firstname_eng || '',
         employeeNo: firstRow?.employee_number || '',
       };
     } else {
-      // For all employees
       return {
         employeeId: 'All Employees',
         employeeName: 'All Employees',
-        employeeNo: '', // Empty for all employees
+        employeeNo: '', 
       };
     }
   }
@@ -89,7 +87,6 @@ export class ExcelExporter {
   }
 
   private applyCellStyle(cell: any, styleType: 'header' | 'data' | 'title' | 'label' | 'value') {
-    // Define styles with proper typing
     const baseStyle = {
       border: {
         top: { style: 'thin' }, 
@@ -128,7 +125,6 @@ export class ExcelExporter {
         break;
     }
     
-    // Apply border to all cells
     cell.border = baseStyle.border;
   }
 
@@ -154,7 +150,6 @@ export class ExcelExporter {
 
       const filteredHeaders = this.getFilteredHeaders();
 
-      // 1. HEADER SECTION WITHOUT LOGO
       const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails();
       let currentRow = 1;
 
@@ -195,8 +190,6 @@ export class ExcelExporter {
       worksheet.getCell(`M${currentRow}`).alignment = { horizontal: "right" };
       currentRow += 2;
       
-      // 3. EMPLOYEE DETAILS TABLE
-      // First row: EMPLOYEE NAME | Name Value | EMPLOYEE NO | No Value (if not empty)
       const nameCell = worksheet.getCell(`A${currentRow}`);
       nameCell.value = 'EMPLOYEE NAME';
       this.applyCellStyle(nameCell, 'label');
@@ -215,7 +208,6 @@ export class ExcelExporter {
 
       currentRow++;
 
-      // Second row: FROM DATE | From Value | TO DATE | To Value (if dates exist)
       if (this.formValues.from_date || this.formValues.to_date) {
         const fromDateCell = worksheet.getCell(`A${currentRow}`);
         fromDateCell.value = 'FROM DATE';
@@ -236,9 +228,8 @@ export class ExcelExporter {
         currentRow++;
       }
 
-      currentRow += 1; // Skip a row before main table
+      currentRow += 1;
       
-      // 4. MAIN DATA TABLE - Headers
       filteredHeaders.forEach((header, index) => {
         const cell = worksheet.getCell(currentRow, index + 1);
         cell.value = (this.headerMap[header] || header).toUpperCase();
@@ -246,16 +237,12 @@ export class ExcelExporter {
       });
       currentRow++;
 
-      // Data rows
       this.data.forEach((row: Record<string, any>) => {
         filteredHeaders.forEach((header, index) => {
           const cell = worksheet.getCell(currentRow, index + 1);
           const cellValue = this.formatCellValue(header, row[header]);
           cell.value = cellValue;
           this.applyCellStyle(cell, 'data');
-          // if (header === 'DailyMissedHrs' && cellValue && parseFloat(cellValue) > 0) {
-          //   cell.font = { ...cell.font, color: { argb: 'FFFF0000' } };
-          // }
           if (
             (header === 'DailyMissedHrs' || header === 'late') &&
             cellValue &&
@@ -267,11 +254,9 @@ export class ExcelExporter {
         currentRow++;
       });
 
-      // 5. SUMMARY TOTALS TABLE
       currentRow += 2;
       const summaryTotals = this.calculateSummaryTotals(this.data);
 
-      // Summary title
       worksheet.mergeCells(`A${currentRow}:F${currentRow}`);
       const summaryTitleCell = worksheet.getCell(`A${currentRow}`);
       summaryTitleCell.value = 'SUMMARY TOTALS';
@@ -279,7 +264,6 @@ export class ExcelExporter {
       worksheet.getRow(currentRow).height = 25;
       currentRow += 2;
 
-      // Summary data
       const summaryData = [
         ['Total Late In Hours', summaryTotals.totalLateInHours, 'Total Early Out Hours', summaryTotals.totalEarlyOutHours, 'Total Missed Hours', summaryTotals.totalMissedHours],
         ['Total Worked Hours', summaryTotals.totalWorkedHours, 'Total Extra Hours', summaryTotals.totalExtraHours, '', '']
@@ -303,7 +287,6 @@ export class ExcelExporter {
         currentRow++;
       });
 
-      // Auto-fit columns
       worksheet.columns = filteredHeaders.map(header => ({
         header: this.headerMap[header] || header,
         key: header,
@@ -325,7 +308,6 @@ export class ExcelExporter {
         column.width = Math.min(Math.max(maxWidth + 1, 6), 40);
       });
 
-      // Set row heights
       for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
         const row = worksheet.getRow(rowIndex);
         

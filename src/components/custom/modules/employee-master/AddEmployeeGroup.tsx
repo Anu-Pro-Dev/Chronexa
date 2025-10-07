@@ -86,7 +86,6 @@ export default function AddEmployeeGroups({
 
   const reportingGroupChecked = form.watch("reporting_group_flag");
 
-  // Fetch employees with manager flag
   const { data: managerEmployees } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,

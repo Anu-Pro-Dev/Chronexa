@@ -54,12 +54,10 @@ export function TransferList({
   const [localItems, setLocalItems] = React.useState<Employee[]>(items);
   const [transferredItems, setTransferredItems] = React.useState<Employee[]>([]);
 
-  // Sync localItems with items prop
   React.useEffect(() => {
     setLocalItems(items);
   }, [items]);
 
-  // Handle checkbox selection
   const handleItemSelection = (item: Employee, isSelected: boolean) => {
     const updatedItems = localItems.map((i) =>
       i.id === item.id ? { ...i, selected: isSelected } : i
@@ -67,37 +65,29 @@ export function TransferList({
     setLocalItems(updatedItems);
   };
 
-  // Handle transfer on arrow click
   const handleTransfer = () => {
-    // Get selected and unselected items
     const selectedItems = localItems.filter((item) => item.selected);
     const unselectedItems = localItems.filter((item) => !item.selected);
 
-    // Add newly selected items to transferredItems
     const newTransferredItems = selectedItems.filter(
       (selectedItem) =>
         !transferredItems.some((transferred) => transferred.id === selectedItem.id)
     );
 
-    // Remove unselected items from transferredItems
     const updatedTransferredItems = transferredItems.filter((transferredItem) =>
       !unselectedItems.some((unselected) => unselected.id === transferredItem.id)
     );
 
-    // Update transferredItems
     setTransferredItems([...updatedTransferredItems, ...newTransferredItems]);
 
-    // Reset selection in localItems
     const updatedLocalItems = localItems.map((item) =>
       item.selected ? { ...item, selected: false } : item
     );
     setLocalItems(updatedLocalItems);
 
-    // Notify parent of selected items
     onSelectionChange(selectedItems);
   };
 
-  // Filter items for display
   const filteredLeftItems = localItems.filter((item) =>
     item.name.toLowerCase().includes(searchLeft.toLowerCase())
   );
@@ -108,7 +98,6 @@ export function TransferList({
 
   return (
     <div className={cn("flex items-center gap-4 px-5", className)}>
-      {/* Left Side: All Items */}
       <Card className="flex-1">
         <CardHeader className="pb-4">
           <CardTitle className="text-center pb-3">All {title}</CardTitle>
@@ -143,14 +132,12 @@ export function TransferList({
         </CardContent>
       </Card>
 
-      {/* Arrow Button */}
       <div className='w-fit h-fit'>
         <button className='m-5 w-fit h-fit' onClick={handleTransfer}>
           <ArrowSvg />
         </button>
       </div>
 
-      {/* Right Side: Transferred Items */}
       <Card className="flex-1">
         <CardHeader className="pb-4">
           <CardTitle className="text-center pb-3">Selected {title}</CardTitle>

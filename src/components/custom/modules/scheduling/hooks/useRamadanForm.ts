@@ -9,7 +9,6 @@ const timeString = z
   .nullable()
   .optional();
 
-// Ramadan-specific fields only
 export const ramadanFormSchema = z.object({
   ramadan_in_time: z.string().min(1, "ramadan_in_time_required").regex(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, "time_invalid"),
   ramadan_out_time: z.string().min(1, "ramadan_out_time_required").regex(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, "time_invalid"),

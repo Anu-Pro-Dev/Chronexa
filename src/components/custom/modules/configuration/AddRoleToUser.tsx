@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { AddIcon, CancelIcon2 } from "@/src/icons/icons";
 
-// API function to add role to user
 const addRoletoUser = async (data: {
   user_id: number;
   role_id: number;
@@ -44,12 +43,10 @@ export default function AddRoleToUser({
   const queryClient = useQueryClient();
 
   const searchParams = useSearchParams();
-  const role = searchParams.get("role"); // Get role name from URL (e.g., "ADMIN")
+  const role = searchParams.get("role");
 
-  // Fetch all roles to get role_id from role name
   const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
 
-  // Find the role_id for the given role name
   const roleId = useMemo(() => {
     if (!role || !rolesData?.data) return null;
     
@@ -60,10 +57,8 @@ export default function AddRoleToUser({
     return foundRole?.id || foundRole?.role_id || null;
   }, [role, rolesData]);
 
-  // Fetch all employees
   const { data: employeeData, isLoading: isLoadingEmployees } = useFetchAllEntity("employee");
 
-  // Fetch existing user roles for this specific role to exclude already assigned users
   const { data: existingUserRoles, isLoading: isLoadingUserRoles } = useQuery({
     queryKey: ["secUserRole", "byRole", roleId],
     queryFn: async () => {
@@ -80,7 +75,6 @@ export default function AddRoleToUser({
     enabled: !!roleId,
   });
 
-  // Get user IDs that already have this role assigned
   const assignedUserIds = useMemo(() => {
     if (!existingUserRoles?.data || !Array.isArray(existingUserRoles.data)) {
       return [];
@@ -88,7 +82,6 @@ export default function AddRoleToUser({
     return existingUserRoles.data.map((ur: any) => ur.user_id).filter(Boolean);
   }, [existingUserRoles]);
 
-  // Mutation for adding role to user
   const addMutation = useMutation({
     mutationFn: addRoletoUser,
     onSuccess: (data) => {
@@ -121,7 +114,7 @@ export default function AddRoleToUser({
     try {
       for (const row of selectedRows) {
         const payload = {
-          user_id: row.employee_id, // employee_id acts as user_id
+          user_id: row.employee_id, 
           role_id: roleId,
         };
 
@@ -159,13 +152,11 @@ export default function AddRoleToUser({
     setSearchTerm(searchValue);
   };
 
-  // Filter employees to show only those who don't have this role assigned
   const availableEmployees = useMemo(() => {
     if (!Array.isArray(employeeData?.data)) {
       return [];
     }
 
-    // Filter out employees who already have this role assigned
     return employeeData.data
       .filter((emp: any) => {
         const empId = emp.employee_id;

@@ -1,4 +1,3 @@
-// components/Switch.tsx
 import React from "react";
 
 interface SwitchProps {

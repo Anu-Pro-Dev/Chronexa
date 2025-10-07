@@ -238,7 +238,7 @@ export default function Page() {
         selectedRows.map((row) =>
           approveLeaveRequest({
             employee_leave_id: row.id,
-            approve_reject_flag: 1, // 1 for approve
+            approve_reject_flag: 1,
           })
         )
       );
@@ -248,7 +248,7 @@ export default function Page() {
       });
 
       setSelectedRows([]);
-      setApproveOpen(false); // Close modal after success
+      setApproveOpen(false);
       await refetch();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Approval failed");
@@ -267,7 +267,7 @@ export default function Page() {
         selectedRows.map((row) =>
           approveLeaveRequest({
             employee_leave_id: row.id,
-            approve_reject_flag: 2, // 2 for reject
+            approve_reject_flag: 2, 
           })
         )
       );
@@ -277,7 +277,7 @@ export default function Page() {
       });
 
       setSelectedRows([]);
-      setRejectOpen(false); // Close modal after success
+      setRejectOpen(false); 
       await refetch();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Rejection failed");

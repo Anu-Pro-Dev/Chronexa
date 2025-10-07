@@ -69,22 +69,19 @@ export default function AddGroupMembers({
   const group = groupListData?.data?.find((g: EmployeeGroup) => g.group_code === currentGroupCode);
   const employee_group_id = group?.employee_group_id ?? null;
 
-  // Fetch existing group members (all of them, not paginated)
   const { data: existingMembersData, refetch: refetchExistingMembers } = useFetchAllEntity("employeeGroupMember", {
     searchParams: {
       ...(currentGroupCode && { group_code: currentGroupCode }),
-      limit: "9999", // Get all members
+      limit: "9999", 
     },
   });
 
-  // Refetch existing members when modal opens
   useEffect(() => {
     if (currentGroupCode) {
       refetchExistingMembers?.();
     }
   }, [currentGroupCode, refetchExistingMembers]);
 
-  // Create a Set of existing employee IDs for efficient lookup
   const existingEmployeeIds = useMemo(() => {
     if (!existingMembersData?.data || !Array.isArray(existingMembersData.data)) {
       return new Set<number>();
@@ -92,7 +89,6 @@ export default function AddGroupMembers({
     return new Set(existingMembersData.data.map((member: any) => member.employee_id));
   }, [existingMembersData]);
 
-  // Build search params that will trigger refetch when changed
   const employeeSearchParams = useMemo(() => {
     const params: Record<string, string> = {
       limit: String(rowsPerPage),
@@ -109,7 +105,6 @@ export default function AddGroupMembers({
     return params;
   }, [rowsPerPage, offset, debouncedSearchValue, sortField, sortDirection]);
 
-  // Fetch employees with pagination and search
   const { data: employeeData, isLoading, refetch: refetchEmployees } = useFetchAllEntity("employee", {
     searchParams: employeeSearchParams,
   });
@@ -233,7 +228,6 @@ export default function AddGroupMembers({
     setSelectedRows(rows);
   }, []);
 
-  // Filter out employees who are already in the group
   const data = useMemo(() => {
     if (Array.isArray(employeeData?.data)) {
       return employeeData.data

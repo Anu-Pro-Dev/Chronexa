@@ -187,7 +187,6 @@ export default function LoginForm() {
             >
               {loginMutation.status === "pending" ? (
                 <div className="flex items-center gap-2">
-                  {/* <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> */}
                   {translations?.buttons?.logging_in || "Logging in"}
                   <ThreeDotsLoader />
                 </div>
@@ -199,7 +198,6 @@ export default function LoginForm() {
         </form>
       </Form>
 
-      {/* Forgot Password Modal */}
       <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={setForgotPasswordModalOpen}>
         <ResponsiveModalContent>
           <ResponsiveModalHeader className="flex">

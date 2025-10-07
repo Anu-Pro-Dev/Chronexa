@@ -35,7 +35,6 @@ export default function OfficialForm({
   const managerFlagChecked = officialForm.watch("manager_flag");
   const [step, setStep] = useState(1);
 
-  // Search state for all dropdowns
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [locationSearchTerm, setLocationSearchTerm] = useState("");
   const [citizenshipSearchTerm, setCitizenshipSearchTerm] = useState("");
@@ -44,7 +43,6 @@ export default function OfficialForm({
   const [gradeSearchTerm, setGradeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
 
-  // Dropdown open states
   const [showEmployeeTypeSearch, setShowEmployeeTypeSearch] = useState(false);
   const [showLocationSearch, setShowLocationSearch] = useState(false);
   const [showCitizenshipSearch, setShowCitizenshipSearch] = useState(false);
@@ -53,7 +51,6 @@ export default function OfficialForm({
   const [showGradeSearch, setShowGradeSearch] = useState(false);
   const [showManagerSearch, setShowManagerSearch] = useState(false);
 
-  // Dynamic fetches
   const { data: employeeTypes } = useFetchAllEntity("employeeType",{ removeAll: true });
   const { data: locations } = useFetchAllEntity("location",{ removeAll: true });
   const { data: citizenships } = useFetchAllEntity("citizenship",{ removeAll: true });
@@ -61,13 +58,11 @@ export default function OfficialForm({
   const { data: organizations } = useFetchAllEntity("organization",{ removeAll: true });
   const { data: grades } = useFetchAllEntity("grade",{ removeAll: true });
 
-  // Manager list
   const { data: managerEmployees } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
   });
 
-  // Debounced search functions for each dropdown
   const debouncedEmployeeTypeSearch = useCallback(
     debounce((searchTerm: string) => {
       setEmployeeTypeSearchTerm(searchTerm);
@@ -117,7 +112,6 @@ export default function OfficialForm({
     []
   );
 
-  // Filter functions for each dropdown
   const getFilteredEmployeeTypes = () => {
     const baseData = employeeTypes?.data || [];
     
@@ -258,7 +252,6 @@ export default function OfficialForm({
         </div>
 
         <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
-          {/* Employee Type */}
           <FormField
             control={officialForm.control}
             name="employee_type_id"
@@ -303,7 +296,6 @@ export default function OfficialForm({
             )}
           />
 
-          {/* Location */}
           <FormField
             control={officialForm.control}
             name="location_id"
@@ -348,7 +340,6 @@ export default function OfficialForm({
             )}
           />
 
-          {/* Citizenship */}
           <FormField
             control={officialForm.control}
             name="citizenship_id"
@@ -393,7 +384,6 @@ export default function OfficialForm({
             )}
           />
 
-          {/* Designation */}
           <FormField
             control={officialForm.control}
             name="designation_id"
@@ -438,7 +428,6 @@ export default function OfficialForm({
             )}
           />
 
-          {/* Organization */}
           <FormField
             control={officialForm.control}
             name="organization_id"
@@ -483,7 +472,6 @@ export default function OfficialForm({
             )}
           />
 
-          {/* Grade */}
           <FormField
             control={officialForm.control}
             name="grade_id"
@@ -526,7 +514,6 @@ export default function OfficialForm({
             )}
           />
 
-          {/* Manager */}
           <FormField
             control={officialForm.control}
             name="manager_id"

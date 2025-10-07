@@ -61,7 +61,6 @@ export default function FlagsForm({
       <div className="flex flex-col gap-6">
         <div className="p-5 flex flex-col">
           <div className="flex justify-between items-start gap-20">
-            {/* LEFT COLUMN FLAGS */}
             <div className="flex flex-col flex-1 gap-5">
               {leftColumnFlags.map(([name, label]) => (
                 <FormField
@@ -88,7 +87,6 @@ export default function FlagsForm({
               ))}
             </div>
 
-            {/* RIGHT COLUMN FLAGS */}
             <div className="flex flex-col flex-1 gap-5">
               {rightColumnFlags.map(([name, label]) => (
                 <FormField

@@ -101,7 +101,6 @@ export default function AddOrganizationSchedule({
   const organizationId = form.watch("organization_id");
   const prevOrgIdRef = useRef(organizationId);
 
-  // Populate form when editing
   useEffect(() => {
     if (selectedRowData) {
       form.reset({

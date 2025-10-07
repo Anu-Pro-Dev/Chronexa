@@ -76,7 +76,7 @@ export default function AddHoliday({
         public_holiday_flag: selectedRowData.public_holiday_flag ?? false,
       });
     } else {
-      form.reset(); // clears on add
+      form.reset();
     }
   }, [selectedRowData, language]);
 
@@ -129,7 +129,6 @@ export default function AddHoliday({
         recurring_flag: values.recurring_flag,
         public_holiday_flag: values.public_holiday_flag,
       };
-      // Add only the language-specific name being edited
       if (language === "en") {
         payload.holiday_eng = values.holiday_name;
       } else {
@@ -258,11 +257,9 @@ export default function AddHoliday({
                               closePopover('fromDate')
                             }}
                             disabled={(date) => {
-                              // Get today's date at start of day for comparison
                               const today = new Date();
                               today.setHours(0, 0, 0, 0);
                               
-                              // Disable dates before today
                               return date < today;
                             }}
                           />

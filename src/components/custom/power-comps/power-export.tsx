@@ -77,7 +77,6 @@ export default function PowerExport({
     const tableHeaders = Object.keys(data[0]);
 
     const tableRows = [
-      // Header row
       new docx.TableRow({
         children: tableHeaders.map((key) =>
           new docx.TableCell({
@@ -91,7 +90,6 @@ export default function PowerExport({
           })
         ),
       }),
-      // Data rows
       ...data.map((item) =>
         new docx.TableRow({
           children: Object.values(item).map((val) =>
@@ -145,7 +143,6 @@ export default function PowerExport({
       return;
     }
 
-    // Import html2pdf dynamically (client only)
     const html2pdf = (await import("html2pdf.js")).default;
 
     const tableHeaders = Object.keys(data[0]).map((key) =>
@@ -155,7 +152,6 @@ export default function PowerExport({
       Object.values(item).map((value) => String(value))
     );
 
-    // Build table HTML
     let tableHTML = `
       <table style="width:100%; border: 1px solid black; border-collapse: collapse; font-family: Arial, sans-serif;">
         <thead style="background-color: #f2f2f2;">

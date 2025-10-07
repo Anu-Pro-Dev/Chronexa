@@ -146,7 +146,7 @@ export default function AddDBSettings({
     setIsSubmitting(true);
 
     try {
-      const userId = 1; // TODO: Get from auth context
+      const userId = 1;
       
       const payload: any = {
         db_databasetype: dbTypeValues[values.database],

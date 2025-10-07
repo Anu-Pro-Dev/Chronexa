@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Forward backend response and status
     return NextResponse.json(body, { status });
 
   } catch (error: unknown) {

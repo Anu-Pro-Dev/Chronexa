@@ -6,7 +6,7 @@ interface PDFExporterProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
-  logoUrl?: string; // Optional logo URL
+  logoUrl?: string;
 }
 
 export class PDFExporter {

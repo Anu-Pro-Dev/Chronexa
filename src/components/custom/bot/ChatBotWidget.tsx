@@ -22,7 +22,6 @@ export default function ChatBotWidget() {
     setOpen(o => {
       const newOpen = !o
       if (newOpen && messages.length === 0) {
-        // On first open show welcome message + buttons
         setMessages([{
           from: 'Chronexa',
           text: `Hey Sree,\n\nHappy Morning\n\nYou were late by 00:10 minutes today. Do you want me to apply for a permission?`,
@@ -34,7 +33,6 @@ export default function ChatBotWidget() {
     })
   }
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -50,8 +48,6 @@ export default function ChatBotWidget() {
   }
 
   const handleUserReply = async (reply: string) => {
-    // Add user message
-    // Remove buttons from last Chronexa message
     setMessages(prev => {
     const updated = [...prev]
     const lastIndex = updated.map(m => m.from).lastIndexOf('Chronexa')
@@ -70,7 +66,6 @@ export default function ChatBotWidget() {
     } else if (stage === 'support') {
         if (reply.toLowerCase() === 'ok') {
             const botReply = await sendToApi('ok')
-            //Remove the line that adds "You: ok" again
             setMessages(prev => [
             ...prev,
             { from: 'Chronexa', text: botReply, buttons: true }
@@ -86,7 +81,6 @@ export default function ChatBotWidget() {
         setStage('done')
       }
     } else {
-      // For any other input or after done, just add user message
       setMessages(prev => [...prev, { from: 'You', text: reply }])
     }
   }
@@ -98,7 +92,6 @@ export default function ChatBotWidget() {
     if (stage === 'support' && trimmed.toLowerCase() === 'ok') {
       handleUserReply('ok')
     } else if (stage === 'late' || stage === 'absent') {
-      // Disable text input when buttons shown, so ignore text messages here
       return
     } else {
       setMessages(prev => [...prev, { from: 'You', text: trimmed }])
@@ -109,7 +102,6 @@ export default function ChatBotWidget() {
 
   return (
     <>
-      {/* Floating button */}
       <button
         onClick={toggle}
         className="fixed bottom-5 right-5 bg-primary hover:bg-primary-100 text-white p-3 rounded-full shadow-lg z-50"
@@ -118,7 +110,6 @@ export default function ChatBotWidget() {
         <MessageCircle />
       </button>
 
-      {/* Chat window */}
       {open && (
         <div className="fixed bottom-20 right-5 w-72 bg-white border rounded-lg shadow-xl z-50 flex flex-col">
           <div className="p-3 border-b font-semibold bg-primary text-white flex justify-between items-center">
@@ -131,7 +122,6 @@ export default function ChatBotWidget() {
             {messages.map((msg, idx) => (
               <div key={idx} className={`text-${msg.from === 'You' ? 'right' : 'left'}`}>
                 <strong>{msg.from}:</strong> <span className="whitespace-pre-line">{msg.text}</span>
-                {/* Show buttons if available */}
                 {msg.buttons && (
                   <div className="flex gap-2 mt-2 justify-center">
                     <Button
@@ -163,7 +153,7 @@ export default function ChatBotWidget() {
               placeholder="Type a message"
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && onSendText()}
-              disabled={stage === 'late' || stage === 'absent'} // disable typing when buttons showing
+              disabled={stage === 'late' || stage === 'absent'}
             />
             <Button onClick={onSendText} size="sm" className="px-2 py-1" disabled={!input.trim()}>
               Send
