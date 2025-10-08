@@ -8,7 +8,7 @@ interface LeaveCardDataProps {
     page: string;
 }
 
-export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
+export default function LeaveCardData({ page }: LeaveCardDataProps) {
     const { attendanceDetails, loading, error } = useAttendanceData();
     const { translations } = useLanguage();
     const t = translations?.modules?.dashboard || {};
@@ -19,11 +19,9 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
         return hours + (minutes / 60);
     };
 
-    const calculatePendingLeaves = () => {
-        if (!attendanceDetails) return 0;
-        const approved = attendanceDetails.ApprovedLeaves || 0;
-        const taken = attendanceDetails.LeaveTaken || 0;
-        return Math.max(0, 9 - approved - taken);
+    const formatValue = (value: any): number => {
+        if (value === null || value === undefined) return 0;
+        return typeof value === 'string' ? parseInt(value) || 0 : value;
     };
 
     if (loading) {
@@ -45,42 +43,42 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
     const leavesData = [
         { 
             label: t?.working_days, 
-            value: attendanceDetails?.TotalWorkingDays || 0, 
+            value: formatValue(attendanceDetails?.TotalWorkingDays),
             color: "text-primary", 
             icon: WorkingDaysIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]" 
         },
         { 
             label: t?.total_leaves, 
-            value: 9, 
+            value: formatValue(attendanceDetails?.TotalLeaves),
             color: "text-[#6741CA]", 
             icon: TotalLeavesIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]" 
         },
         { 
             label: t?.leaves_taken, 
-            value: attendanceDetails?.LeaveTaken || 0, 
+            value: formatValue(attendanceDetails?.LeaveTaken),
             color: "text-[#FFBF00]", 
             icon: LeaveTakenIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]" 
         },
         { 
             label: t?.leaves_absent, 
-            value: parseInt(attendanceDetails?.AbsentDays || "0"), 
+            value: formatValue(parseInt(attendanceDetails?.AbsentDays || "0")),
             color: "text-[#DA153E]", 
             icon: AbsentIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]" 
         },
         { 
             label: t?.approved_leaves, 
-            value: attendanceDetails?.ApprovedLeaves || 0, 
+            value: formatValue(attendanceDetails?.ApprovedLeaves),
             color: "text-[#1DAA61]", 
             icon: ApprovedIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(29,170,97,0.05)]" 
         },
         { 
             label: t?.pending_leaves, 
-            value: calculatePendingLeaves(), 
+            value: formatValue(attendanceDetails?.PendingLeaves),
             color: "text-[#FF6347]", 
             icon: PendingIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(255,99,71,0.1)]" 
@@ -90,42 +88,46 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
     const permissionsData = [
         { 
             label: t?.working_days, 
-            value: attendanceDetails?.TotalWorkingDays || 0, 
+            value: formatValue(attendanceDetails?.TotalWorkingDays),
             color: "text-primary", 
             icon: WorkingDaysIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]" 
         },
         { 
             label: t?.total_perms, 
-            value: attendanceDetails?.TotalPermissionCnt || 0, 
+            value: formatValue(attendanceDetails?.TotalPermissionCnt),
             color: "text-[#6741CA]", 
             icon: TotalLeavesIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]" 
         },
         { 
             label: t?.prems_taken, 
-            value: `${parsePermissionHours(attendanceDetails?.ApprovedPermissionHrs || "00:00").toFixed(1)} hrs`, 
+            value: attendanceDetails?.PermissionsTaken 
+                ? `${parsePermissionHours(attendanceDetails.PermissionsTaken).toFixed(1)} hrs`
+                : "0.0 hrs",
             color: "text-[#FFBF00]", 
             icon: LeaveTakenIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]"
         },
         { 
-            label: t?.leaves_absent, 
-            value: parseInt(attendanceDetails?.AbsentDays || "0"), 
+            label: t?.unapproved_perms || "Unapproved Permissions", 
+            value: `${parsePermissionHours(attendanceDetails?.UnapprovedPermisions || "00:00").toFixed(1)} hrs`,
             color: "text-[#DA153E]", 
             icon: AbsentIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]" 
         },
         { 
             label: t?.approved_perms, 
-            value: `${parsePermissionHours(attendanceDetails?.ApprovedPermissionHrs || "00:00").toFixed(1)} hrs`, 
+            value: `${parsePermissionHours(attendanceDetails?.ApprovedPermissionHrs || "00:00").toFixed(1)} hrs`,
             color: "text-[#1DAA61]", 
             icon: ApprovedIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(29,170,97,0.05)]"
         },
         { 
             label: t?.pending_perms, 
-            value: `${parsePermissionHours(attendanceDetails?.UnapprovedPermisions || "00:00").toFixed(1)} hrs`, 
+            value: attendanceDetails?.PendingPermissions 
+                ? `${parsePermissionHours(attendanceDetails.PendingPermissions).toFixed(1)} hrs`
+                : "0.0 hrs",
             color: "text-[#FF6347]", 
             icon: PendingIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(255,99,71,0.1)]"
@@ -147,7 +149,7 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
                                 </div>
                             </div>
                             <p className={`text-2xl ${item.color} font-bold pt-2`}>
-                                {typeof item.value === 'number' ? item.value : item.value}
+                                {item.value}
                             </p>
                         </div>
                         {index < 2 && <div className='w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15'></div>}
@@ -179,4 +181,4 @@ export const LeaveCardData = ({ page }: LeaveCardDataProps) => {
             </div>
         </>
     );
-};
+}

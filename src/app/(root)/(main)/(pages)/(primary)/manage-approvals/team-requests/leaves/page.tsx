@@ -355,8 +355,6 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        disableAdd
-        disableDelete
         enableApprove
         enableReject
         selectedRows={selectedRows}

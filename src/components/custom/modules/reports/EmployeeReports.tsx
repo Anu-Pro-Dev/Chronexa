@@ -4,82 +4,49 @@ import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/src/utils/utils";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
-import { ScrollArea, ScrollBar } from "@/src/components/ui/scroll-area";
-import { USER_TOKEN } from "@/src/utils/constants";
-import { useRouter } from "next/navigation";
-import Required from "@/src/components/ui/required";
-import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
-import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
-import { Checkbox } from "@/src/components/ui/checkbox";
 import { useQuery } from "@tanstack/react-query";
-import { getManagerEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
-import { Input } from "@/src/components/ui/input";
-import {
-  CalendarIcon,
-  ExportExcelIcon,
-  ExportPDFIcon,
-  ExportWordIcon,
-  LoginIcon,
-} from "@/src/icons/icons";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
+import { Calendar } from "@/src/components/ui/calendar";
 import { searchEmployees } from "@/src/lib/apiHandler";
 import { toast } from "react-hot-toast";
 import { PDFExporter } from './PDFExporter';
 import { ExcelExporter } from './ExcelExporter';
+import { CSVExporter } from './CSVExporter';
+import { CalendarIcon, ExportExcelIcon, LoginIcon } from "@/src/icons/icons";
+import { FileText } from "lucide-react";
 
 const formSchema = z.object({
-  reports: z.string().optional(),
   organization: z.string().optional(),
-  manager: z.string().optional(),
   employee: z.string().optional(),
-  employee_type: z.string().optional(),
-  employee_group: z.string().optional(),
   from_date: z.date().optional(),
   to_date: z.date().optional(),
-  limit: z.string().optional(),
-  offset: z.string().optional(),
-  inactive: z.boolean().optional(),
 });
 
 export default function EmployeeReports() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      limit: "2000",
-    }
+    defaultValues: {},
   });
 
-  const router = useRouter();
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
+  
+  const [loading, setLoading] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
+  const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
+  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
 
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
-  const { language, translations } = useLanguage();
-  const [reportData, setReportData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [showReportData, setShowReportData] = useState(false);
-  
-  const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
-  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
-  const [managerSearchTerm, setManagerSearchTerm] = useState("");
-  const [reportsSearchTerm, setReportsSearchTerm] = useState("");
-  
-  const [showEmployeeSearch, setShowEmployeeSearch] = useState(false);
-  const [showOrganizationSearch, setShowOrganizationSearch] = useState(false);
-  const [showManagerSearch, setShowManagerSearch] = useState(false);
-  const [showReportsSearch, setShowReportsSearch] = useState(false);
-
-  const watchedValues = form.watch();
 
   const { data: organizations } = useFetchAllEntity("organization", { removeAll: true });
   const { data: employees } = useFetchAllEntity("employee");
@@ -94,20 +61,6 @@ export default function EmployeeReports() {
   const debouncedOrganizationSearch = useCallback(
     debounce((searchTerm: string) => {
       setOrganizationSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedManagerSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setManagerSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedReportsSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setReportsSearchTerm(searchTerm);
     }, 300),
     []
   );
@@ -130,7 +83,6 @@ export default function EmployeeReports() {
 
   const getFilteredOrganizations = () => {
     const baseData = organizations?.data || [];
-    
     if (organizationSearchTerm.length === 0) return baseData;
     
     return baseData.filter((item: any) => 
@@ -138,82 +90,6 @@ export default function EmployeeReports() {
       item.organization_id.toString().trim() !== '' &&
       item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
     );
-  };
-
-  const getFilteredReports = () => {
-    const reportsData = [
-      { value: "1", label: "Daily Movement Report" }
-    ];
-    
-    if (reportsSearchTerm.length === 0) return reportsData;
-    
-    return reportsData.filter((item: any) => 
-      item.label.toLowerCase().includes(reportsSearchTerm.toLowerCase())
-    );
-  };
-
-  const buildQueryParams = (values: any) => {
-    const params: Record<string, string> = {};
-
-    if (values.from_date) {
-      params.startDate = format(values.from_date, 'yyyy-MM-dd');
-    }
-    if (values.to_date) {
-      params.endDate = format(values.to_date, 'yyyy-MM-dd');
-    }
-    if (values.employee) {
-      params.employeeId = values.employee.toString();
-    }
-    if (values.organization) {
-      params.organizationId = values.organization.toString();
-    }
-    if (values.limit) {
-      params.limit = values.limit;
-    }
-    if (values.offset) {
-      params.offset = values.offset;
-    }
-
-    return params;
-  };
-  const {
-    data: reportsQueryData,
-    isLoading: isLoadingReports,
-    error: reportsError,
-    refetch: refetchReports
-  } = useQuery({
-    queryKey: ["reports", watchedValues],
-    queryFn: async () => {
-      const params = buildQueryParams(watchedValues);
-      
-      const queryString = Object.entries(params)
-        .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join('&');
-      
-      const url = `/report/new${queryString ? `?${queryString}` : ''}`;
-      const response = await apiRequest(url, "GET");
-      return response;
-    },
-    enabled: false,
-    staleTime: 0,
-    refetchOnWindowFocus: false,
-  });
-
-  const fetchReportData = async () => {
-    setLoading(true);
-    
-    try {
-      const result = await refetchReports();
-      const data = result.data?.data || result.data;
-      setReportData(data);
-      return data;
-    } catch (error) {
-      toast.error("Error fetching report data. Please try again.");
-      return null;
-    } finally {
-      setLoading(false);
-    }
   };
 
   const headerMap: Record<string, string> = {
@@ -266,40 +142,85 @@ export default function EmployeeReports() {
     };
   };
 
-  const handleExportExcel = async () => {
-    const data = await fetchReportData();
-    const dataArray = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+  const handleExportCSV = async () => {
+    setLoading(true);
+    setExportProgress(0);
+    setExportType('csv');
     
-    if (dataArray.length > 0) {
-      const exporter = new ExcelExporter({
-        data: dataArray,
+    try {
+      const exporter = new CSVExporter({
         formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
+        onProgress: setExportProgress,
+      });
+      
+      await exporter.exportStreaming();
+      
+    } catch (error) {
+      console.error("CSV export error:", error);
+      toast.error("Error exporting CSV. Please try again.");
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setExportProgress(0);
+        setExportType(null);
+      }, 500);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setLoading(true);
+    setExportProgress(0);
+    setExportType('excel');
+    
+    try {
+      const exporter = new ExcelExporter({
+        formValues: form.getValues(),
+        headerMap,
+        calculateSummaryTotals,
+        onProgress: setExportProgress,
       });
       
       await exporter.export();
-    } else {
-      toast.error("No data available to export.");
+      
+    } catch (error) {
+      console.error("Excel export error:", error);
+      toast.error("Error exporting Excel. Please try again.");
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setExportProgress(0);
+        setExportType(null);
+      }, 500);
     }
   };
 
   const handleShowReport = async () => {
-    const data = await fetchReportData();
-    const dataArray = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+    setLoading(true);
+    setExportProgress(0);
+    setExportType('pdf');
     
-    if (dataArray.length > 0) {
+    try {
       const exporter = new PDFExporter({
-        data: dataArray,
         formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
-        logoUrl: '/Logo.png'
+        logoUrl: '/Logo.png',
+        onProgress: setExportProgress,
       });
       
       await exporter.export();
-    } else {
-      toast.error("No data available to export.");
+      
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast.error("Error generating PDF. Please try again.");
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setExportProgress(0);
+        setExportType(null);
+      }, 500);
     }
   };
 
@@ -307,18 +228,20 @@ export default function EmployeeReports() {
     return () => {
       debouncedEmployeeSearch.cancel();
       debouncedOrganizationSearch.cancel();
-      debouncedManagerSearch.cancel();
-      debouncedReportsSearch.cancel();
     };
-  }, [debouncedEmployeeSearch, debouncedOrganizationSearch, debouncedManagerSearch, debouncedReportsSearch]);
+  }, [debouncedEmployeeSearch, debouncedOrganizationSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      return;
-    } catch (error) {
-      console.error("Form submission error", error);
-    }
+    return;
   }
+
+  const getProgressMessage = () => {
+    if (exportProgress < 45) return 'Fetching data from server...';
+    if (exportType === 'csv') return 'Generating CSV file...';
+    if (exportType === 'excel') return 'Generating Excel file...';
+    if (exportType === 'pdf') return 'Generating PDF file...';
+    return 'Processing...';
+  };
 
   return (
     <div>
@@ -327,44 +250,6 @@ export default function EmployeeReports() {
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
-                {/* <FormField
-                  control={form.control}
-                  name="reports"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Reports</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        onOpenChange={(open) => setShowReportsSearch(open)}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
-                            <SelectValue placeholder="Choose report" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search reports..."
-                          onSearchChange={debouncedReportsSearch}
-                          className="mt-5"
-                        >
-                          {getFilteredReports().length === 0 && reportsSearchTerm.length > 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              No reports found
-                            </div>
-                          )}
-                          {getFilteredReports().map((item: any) => (
-                            <SelectItem key={item.value} value={item.value}>
-                              {item.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
                 <FormField
                   control={form.control}
                   name="organization"
@@ -374,7 +259,6 @@ export default function EmployeeReports() {
                       <Select
                         onValueChange={(val) => field.onChange(Number(val))}
                         value={field.value !== undefined ? String(field.value) : ""}
-                        onOpenChange={(open) => setShowOrganizationSearch(open)}
                       >
                         <FormControl>
                           <SelectTrigger className="max-w-[350px]">
@@ -411,11 +295,10 @@ export default function EmployeeReports() {
                   name="employee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Employee </FormLabel>
+                      <FormLabel className="flex gap-1">Employee</FormLabel>
                       <Select
                         onValueChange={(val) => field.onChange(Number(val))}
                         value={field.value !== undefined ? String(field.value) : ""}
-                        onOpenChange={(open) => setShowEmployeeSearch(open)}
                       >
                         <FormControl>
                           <SelectTrigger className="max-w-[350px]">
@@ -452,54 +335,13 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
-                
-                {/* <FormField
-                  control={form.control}
-                  name="manager"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Manager</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(Number(val))}
-                        value={field.value !== undefined ? String(field.value) : ""}
-                        onOpenChange={(open) => setShowManagerSearch(open)}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
-                            <SelectValue placeholder="Choose manager" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search managers..."
-                          onSearchChange={debouncedManagerSearch}
-                          className="mt-5"
-                        >
-                          {getFilteredManagers().length === 0 && managerSearchTerm.length > 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              No managers found
-                            </div>
-                          )}
-                          {getFilteredManagers().map((emp: any) => (
-                            <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
-                              {emp.firstname_eng}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
 
                 <FormField
                   control={form.control}
                   name="from_date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel>
-                        From Date
-                      </FormLabel>
+                      <FormLabel>From Date</FormLabel>
                       <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -535,9 +377,7 @@ export default function EmployeeReports() {
                   name="to_date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel>
-                        To Date
-                      </FormLabel>
+                      <FormLabel>To Date</FormLabel>
                       <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -569,75 +409,85 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
-                
-                {/* Add Limit field */}
-                {/* <FormField
-                  control={form.control}
-                  name="limit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Limit (Records per page)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter limit (default: 100)"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
-                
-                {/* Add Offset field */}
-                {/* <FormField
-                  control={form.control}
-                  name="offset"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Offset (Page offset)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter offset (default: 0)"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
               </div>
             </div>
+
+            {/* Progress Bar */}
+            {loading && exportProgress > 0 && (
+              <div className="px-8 pb-2">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-900">
+                      {getProgressMessage()}
+                    </span>
+                    <span className="text-sm font-bold text-blue-900">
+                      {exportProgress}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${exportProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-blue-700 mt-2">
+                    {exportType === 'csv' && 'CSV exports are fastest for large datasets'}
+                    {exportType === 'excel' && 'Processing large dataset... Please wait'}
+                    {exportType === 'pdf' && 'Generating PDF... This may take a moment'}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-center gap-2 items-center pb-5">
               <div className="flex gap-4 px-5">
                 <Button
                   type="button"
                   size={"sm"}
-                  className="flex items-center space-y-0.5"
+                  className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
                   onClick={handleShowReport}
-                  disabled={loading || isLoadingReports}
+                  disabled={loading}
                 >
                   <LoginIcon />
-                  {loading || isLoadingReports ? "Loading..." : "Show report"}
+                  {loading && exportType === 'pdf' ? `${exportProgress}%` : "Show PDF"}
                 </Button>
+                
+                <Button
+                  type="button"
+                  size={"sm"}
+                  className="flex items-center gap-2 bg-[#0073C6]"
+                  onClick={handleExportCSV}
+                  disabled={loading}
+                >
+                  <FileText className="w-4 h-4" />
+                  {loading && exportType === 'csv' ? `${exportProgress}%` : "Export CSV"}
+                </Button>
+                
                 <Button
                   type="button"
                   variant={"success"}
                   size={"sm"}
-                  className="flex items-center space-y-0.5 bg-[#21A366]"
+                  className="flex items-center gap-2 bg-[#21A366]"
                   onClick={handleExportExcel}
-                  disabled={loading || isLoadingReports}
+                  disabled={loading}
                 >
                   <ExportExcelIcon />
-                  Export to excel
+                  {loading && exportType === 'excel' ? `${exportProgress}%` : "Export Excel"}
                 </Button>
+              </div>
+            </div>
+
+            <div className="px-8 pb-2">
+              <div className="border border-blue-200 rounded-md px-3 py-2 font-semibold bg-blue-400 bg-opacity-10">
+                <p className="text-xs text-primary">
+                  <strong>💡 Tip:</strong> For datasets over 5,000 records, use <strong>CSV export</strong> for best performance. 
+                  Excel export works great for up to 20,000 records. PDF shows last 1,000 records for large datasets.
+                </p>
               </div>
             </div>
           </div>
         </form>
       </Form>
-    
     </div>
   );
 }

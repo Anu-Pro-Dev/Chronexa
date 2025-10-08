@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { debounce } from "lodash";
 import { cn } from "@/src/utils/utils";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
@@ -47,6 +48,12 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
   const t = translations?.modules?.scheduling || {};
   const errT = translations?.formErrors || {};
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dropdownOptions, setDropdownOptions] = useState([]);
+  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
+  const [locationSearchTerm, setLocationSearchTerm] = useState("");
+
+  const [showOrganizationSearch, setShowOrganizationSearch] = useState(false);
+  const [showLocationSearch, setShowLocationSearch] = useState(false);
   
   const [popoverStates, setPopoverStates] = useState({
     inTime: false,
@@ -58,13 +65,60 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
 
-  const { data: organizations } = useFetchAllEntity("organization");
-  const { data: locations } = useFetchAllEntity("location");
+  const { data: organizations, isLoading: orgsLoading } = useFetchAllEntity("organization", { removeAll: true });
+  const { data: locations, isLoading: locsLoading } = useFetchAllEntity("location", { removeAll: true });
+
+  const { data: scheduleData, isLoading } = useFetchAllEntity("schedule", { removeAll: true
+  });
+
+  const debouncedOrganizationSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setOrganizationSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedLocationSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setLocationSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const getFilteredOrganizations = () => {
+    const baseData = organizations?.data || [];
+    
+    if (organizationSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.organization_id && 
+      item.organization_id.toString().trim() !== '' &&
+      item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredLocations = () => {
+    const baseData = locations?.data || [];
+    
+    if (locationSearchTerm.length === 0) return baseData;
+    
+    return baseData.filter((item: any) => 
+      item.location_id && 
+      item.location_id.toString().trim() !== '' &&
+      item.location_eng?.toLowerCase().includes(locationSearchTerm.toLowerCase())
+    );
+  };
+
+  useEffect(() => {
+    return () => {
+      debouncedOrganizationSearch.cancel();
+      debouncedLocationSearch.cancel();
+    };
+  }, [debouncedOrganizationSearch, debouncedLocationSearch]);
 
   async function onSubmit(values: any) {
     if (isSubmitting) return;
     setIsSubmitting(true);
-    console.log("submitting");
     try {
       const isRamadanSchedule = values.ramadan_flag || form.getValues("ramadan_flag");
       
@@ -118,15 +172,35 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                 <FormLabel className="flex gap-1">{t.organization || "Organization"} <Required/></FormLabel>
                 <Select
                   onValueChange={val => field.onChange(Number(val))}
-                  value={field.value ? String(field.value) : ""}
+                  value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowOrganizationSearch(open)}
+                  disabled={orgsLoading}
                 >
                   <FormControl>
                     <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder={t.placeholder_org || "Choose organization"} />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {(organizations?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder={t.search || "Search organizations..."}
+                    onSearchChange={debouncedOrganizationSearch}
+                    className="mt-1"
+                  >
+                    {orgsLoading ? (
+                      <div className="p-3 text-sm text-text-secondary">
+                        {translations?.common?.loading || "Loading..."}
+                      </div>
+                    ) : getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 ? (
+                      <div className="p-3 text-sm text-text-secondary">
+                        {t.no_results || "No organizations found"}
+                      </div>
+                    ) : getFilteredOrganizations().length === 0 ? (
+                      <div className="p-3 text-sm text-text-secondary">
+                        {t.no_data || "No organizations available"}
+                      </div>
+                    ) : null}
+                    {getFilteredOrganizations().map((item: any) => {
                       if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
@@ -148,15 +222,35 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                 <FormLabel className="flex gap-1">{t.schedule_location || "Schedule Location"} <Required/></FormLabel>
                 <Select
                   onValueChange={val => field.onChange(Number(val))}
-                  value={field.value ? String(field.value) : ""}
+                  value={field.value !== undefined ? String(field.value) : ""}
+                  onOpenChange={(open) => setShowLocationSearch(open)}
+                  disabled={locsLoading}
                 >
                   <FormControl>
                     <SelectTrigger className="max-w-[350px]">
                       <SelectValue placeholder={t.placeholder_schedule_location || "Choose schedule location"} />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {(locations?.data || []).map((item: any) => {
+                  <SelectContent
+                    showSearch={true}
+                    searchPlaceholder={t.search || "Search locations..."}
+                    onSearchChange={debouncedLocationSearch}
+                    className="mt-1"
+                  >
+                    {locsLoading ? (
+                      <div className="p-3 text-sm text-text-secondary">
+                        {translations?.common?.loading || "Loading..."}
+                      </div>
+                    ) : getFilteredLocations().length === 0 && locationSearchTerm.length > 0 ? (
+                      <div className="p-3 text-sm text-text-secondary">
+                        {t.no_results || "No locations found"}
+                      </div>
+                    ) : getFilteredLocations().length === 0 ? (
+                      <div className="p-3 text-sm text-text-secondary">
+                        {t.no_data || "No locations available"}
+                      </div>
+                    ) : null}
+                    {getFilteredLocations().map((item: any) => {
                       if (!item.location_id || item.location_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.location_id} value={item.location_id.toString()}>
@@ -177,7 +271,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               <FormItem>
                 <FormLabel className="flex gap-1">{t.code || "Code"} <Required /></FormLabel>
                 <FormControl>
-                  <Input placeholder={t.placeholder_code || "Enter the code"} type="text" {...field} />
+                  <Input placeholder={t.Placeholder_code || "Enter the code"} type="text" {...field} />
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.schedule_code} translations={errT} />
               </FormItem>
@@ -221,7 +315,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         >
                           {displayValue
                             ? format(displayValue, "HH:mm:ss")
-                            : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
+                            : <span className="text-text-secondary">{t.Placeholder_time || "Choose time"}</span>
                           }
                           <ClockIcon />
                         </Button>
@@ -266,7 +360,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         >
                           {displayValue
                             ? format(displayValue, "HH:mm:ss")
-                            : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
+                            : <span className="text-text-secondary">{t.Placeholder_time || "Choose time"}</span>
                           }
                           <ClockIcon />
                         </Button>
@@ -311,7 +405,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               <FormItem>
                 <FormLabel className="flex gap-1">{t.flexible || "Flexible"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.flexible_min} translations={errT} />
               </FormItem>
@@ -324,7 +418,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               <FormItem>
                 <FormLabel className="flex gap-1">{t.grace_in || "Grace In"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.grace_in_min} translations={errT} />
               </FormItem>
@@ -337,7 +431,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               <FormItem>
                 <FormLabel className="flex gap-1">{t.grace_out || "Grace Out"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.grace_out_min} translations={errT} />
               </FormItem>
@@ -433,7 +527,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      <FormLabel htmlFor="ramadan_flag" className="text-sm font-semibold">{t.ramadan_schedule || "Ramadan Schedule"}</FormLabel>
+                      <FormLabel htmlFor="ramadan_flag" className="text-sm font-semibold">{t.ramadan_name || "Ramadan Schedule"}</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>

@@ -146,7 +146,7 @@
         "working_days": "أيام العمل",
         "total_leaves": "إجمالي الإجازات",
         "leaves_taken": "الإجازات المأخوذة",
-        "leaves_absent": "الإجازات الغيابية",
+        "leaves_absent": "الغيابية",
         "approved_leaves": "الإجازات المعتمدة",
         "pending_leaves": "الإجازات المعلقة",
         "total_perms": "إجمالي الأذونات",
@@ -168,6 +168,8 @@
         "worked_hrs": "ساعات العمل",
         "leave_hrs": "ساعات الإجازات",
         "holiday_hrs": "ساعات العطلات",
+        "missed_hrs": "Missed Hours",
+        "expected_hrs": "Expected Hours",
         "schedule": "الجدول الزمني",
         "exp_work_hrs": "ساعات العمل المتوقعة",
         "worked": "عمل",
@@ -494,7 +496,8 @@
         "Placeholder_days": "أدخل الأيام",
         "leave_type_code_required": "كود نوع الإجازة مطلوب",
         "leave_type_name_required": "اسم نوع الإجازة مطلوب",
-        "auto_cal_duration": "سيتم حساب المدة تلقائيًا"
+        "auto_cal_duration": "سيتم حساب المدة تلقائيًا",
+        "placeholder_mins": "أدخل الدقائق"
       },
       "selfServices": {
         "workflow": "سير العمل",

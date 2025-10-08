@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { LeaveCardData } from './LeaveCardData';
+import LeaveCardData from './LeaveCardData';
 import { LeaveCardHeader } from './LeaveCardHeader';
 
 function LeaveCard() {

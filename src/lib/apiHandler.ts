@@ -485,6 +485,11 @@ export const editScheduleRequest = async (data: {
   return apiRequest(`/schedule/edit/${schedule_id}`, "PUT", payload);
 };
 
+// Function to get a schedules by ID
+export async function getScheduleByID(schedule_id: number) {
+  return apiRequest(`/schedule/get${schedule_id}`, "GET");
+}
+
 // Function to get a schedules by organization ID
 export async function getScheduleByOrganization(organization_id: number) {
   return apiRequest(`/schedule/organization/${organization_id}`, "GET");
@@ -888,7 +893,6 @@ export const editDeviceRequest = async (data: {
 export const getDashboardData = async (action: string) => {
   return apiRequest(`/dashboard/data?action=${action}`, "GET");
 };
-
 // Functions for dashboard - separate endpoints
 export const getAttendanceDetails = async () => {
   return apiRequest('/dashboard/attendance', "GET");
@@ -898,23 +902,32 @@ export const getWorkSchedule = async () => {
   return apiRequest('/dashboard/work-schedule', "GET");
 };
 
-export const getLeaveAnalytics = async () => {
-  return apiRequest('/dashboard/leave-analytics', "GET");
+export const getLeaveAnalytics = async (year?: number) => {
+  const queryParam = year ? `?year=${year}` : '';
+  return apiRequest(`/dashboard/leave-analytics${queryParam}`, "GET");
 };
 
-export const getWorkHourTrends = async () => {
-  return apiRequest('/dashboard/work-hour-trends', "GET");
+export const getWorkHourTrends = async (month?: string) => {
+  const queryParam = month ? `?month=${month}` : '';
+  return apiRequest(`/dashboard/work-hour-trends${queryParam}`, "GET");
 };
 
 // Helper function to fetch all dashboard data
 export const getAllDashboardData = async () => {
-  try {
+  try {    
     const [attendance, schedule, leaves, workHours] = await Promise.all([
       getAttendanceDetails(),
       getWorkSchedule(),
       getLeaveAnalytics(),
       getWorkHourTrends()
     ]);
+    
+    console.log('Dashboard data fetched:', {
+      attendance,
+      schedule,
+      leaves,
+      workHours
+    });
     
     return {
       success: true,

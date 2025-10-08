@@ -21,15 +21,16 @@ function ViolationsCard() {
   const t = translations?.modules?.dashboard || {};
   const { attendanceDetails, loading } = useAttendanceData();
 
-  const missedIn = attendanceDetails?.TotalMissedIn ?? 0;
-  const missedOut = attendanceDetails?.TotalMissedOut ?? 0;
-  const lateIn = attendanceDetails?.MonthlyLate
-    ? Number(attendanceDetails.MonthlyLate)
-    : 0;
-  const earlyOut = attendanceDetails?.MonthlyEarly
-    ? Number(attendanceDetails.MonthlyEarly)
-    : 0;
+  const formatValue = (value: any): number => {
+    if (value === null || value === undefined) return 0;
+    return typeof value === 'string' ? parseInt(value) || 0 : Number(value) || 0;
+  };
 
+  const missedIn = formatValue(attendanceDetails?.TotalMissedIn);
+  const missedOut = formatValue(attendanceDetails?.TotalMissedOut);
+  const lateIn = formatValue(attendanceDetails?.MonthlyLate);
+  const earlyOut = formatValue(attendanceDetails?.MonthlyEarly);
+  
   return (
     <div className="relative shadow-card h-full rounded-[10px] bg-accent px-2 pt-3 pb-10 flex flex-col items-center">
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute left-[50px] top-[50px]"></div>

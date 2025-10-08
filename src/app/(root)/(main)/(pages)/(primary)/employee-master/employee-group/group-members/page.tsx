@@ -147,13 +147,6 @@ export default function MembersTable() {
       };
     });
 
-    if (mergedData.length > 0) {
-      console.log('Sample row data for deletion:', {
-        id: mergedData[0].id,
-        group_member_id: mergedData[0].group_member_id
-      });
-    }
-
     return mergedData;
   }, [groupMembersData, language]);
 

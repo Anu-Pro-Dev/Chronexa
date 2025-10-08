@@ -1,24 +1,24 @@
 "use client";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
 import {
   ChartConfig,
   ChartContainer,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { useAttendanceData } from "../my-attendance/AttendanceData";
-import { useMemo, useState } from "react";
+import { getLeaveAnalytics } from '@/src/lib/apiHandler';
+import { useMemo, useState, useEffect } from "react";
 
 function LeaveAnalyticsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { leaveAnalytics } = useAttendanceData();
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState("this_year");
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [leaveAnalytics, setLeaveAnalytics] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const monthNames = [
     translations.january || "January",
@@ -35,76 +35,146 @@ function LeaveAnalyticsCard() {
     translations.december || "December",
   ];
 
+  useEffect(() => {
+    const fetchLeaveData = async () => {
+      try {
+        setLoading(true);        
+        const response = await getLeaveAnalytics(selectedYear);        
+        if (response?.success && response?.data) {
+          setLeaveAnalytics(response.data);
+        } else {
+          setLeaveAnalytics([]);
+        }
+      } catch (error) {
+        console.error('Error fetching leave analytics:', error);
+        setLeaveAnalytics([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaveData();
+  }, [selectedYear]);
+
   const chartData = useMemo(() => {
-    const year = selectedYear === "this_year" ? currentYear : Number(selectedYear);
     const data = monthNames.map((monthName, index) => {
       const monthNumber = index + 1;
+      
+
       const monthData = leaveAnalytics.find(
-        (l) => l.LeaveMonth === monthNumber && l.LeaveYear === year
+        (item) => item.LVMonth === monthNumber && item.LeaveYear === selectedYear
       );
+
       return {
         month: monthName,
         leaves: monthData?.LeaveCount || 0,
-        absent: 0,
+        absent: monthData?.AbsentCount || 0,
       };
     });
-    return dir === "rtl" ? data.reverse() : data;
-  }, [leaveAnalytics, selectedYear, dir, currentYear, monthNames]);
+
+    return dir === "rtl" ? [...data].reverse() : data;
+  }, [leaveAnalytics, selectedYear, dir, monthNames]);
 
   const chartConfig: ChartConfig = {
-    leaves: { label: t?.leaves_taken, color: "hsl(var(--chart-leaves))" },
-    absent: { label: t?.leaves_absent, color: "hsl(var(--chart-absent))" },
+    leaves: { 
+      label: t?.leaves_taken || "Leaves", 
+      color: "hsl(var(--chart-leaves))"
+    },
+    absent: { 
+      label: t?.leaves_absent || "Absent", 
+      color: "hsl(var(--chart-absent))"
+    },
   };
 
-  const years = [
-    "this_year",
-    ...Array.from({ length: currentYear - 2019 }, (_, i) => (currentYear - i).toString()).slice(1),
-  ];
+  const years = Array.from(
+    { length: currentYear - 2019 }, 
+    (_, i) => currentYear - i
+  );
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex flex-row justify-between p-4">
-        <h5 className="text-lg text-text-primary font-bold">{t?.leave_analytics}</h5>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
+        <h5 className="text-lg text-text-primary font-bold">
+          {t?.leave_analytics || "Leave Analytics"}
+        </h5>
+        <Select 
+          value={selectedYear.toString()} 
+          onValueChange={(value) => setSelectedYear(Number(value))}
+        >
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translations?.select_year}>
-              {selectedYear === "this_year" ? translations?.this_year : selectedYear}
+            <SelectValue placeholder={translations?.select_year || "Select Year"}>
+              {selectedYear}
             </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-accent rounded-md shadow-dropdown">
             {years.map((year) => (
               <SelectItem
                 key={year}
-                value={year}
+                value={year.toString()}
                 className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-primary"
               >
-                {year === "this_year" ? translations?.this_year : year}
+                {year}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <ChartContainer config={chartConfig} className={`relative ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} dir={dir}>
-        <BarChart data={chartData}>
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            tickMargin={2}
-            axisLine={false}
-            tickFormatter={(value) => value.slice(0, 3)}
-            textAnchor={dir === "rtl" ? "end" : "start"}
-            tick={{ dx: dir === "rtl" ? -10 : 0 }}
-          />
-          <YAxis type="number" tickLine={false} tickMargin={2} axisLine={false} orientation={dir === "rtl" ? "right" : "left"} />
-          <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-          <ChartLegendContent className="pb-3" />
-          <Bar dataKey="leaves" stackId="a" fill="var(--color-leaves)" radius={[0, 0, 2, 2]} />
-          <Bar dataKey="absent" stackId="a" fill="var(--color-absent)" radius={[2, 2, 0, 0]} />
-        </BarChart>
-      </ChartContainer>
+      {loading ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <p className="text-text-secondary">Loading...</p>
+        </div>
+      ) : (
+        <ChartContainer 
+          config={chartConfig} 
+          className={`relative ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
+          dir={dir}
+        >
+          <BarChart data={chartData}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => value.slice(0, 3)}
+              interval={0}
+            />
+            <YAxis 
+              type="number" 
+              tickLine={false} 
+              tickMargin={2} 
+              axisLine={false} 
+              orientation={dir === "rtl" ? "right" : "left"} 
+            />
+            <ChartTooltip 
+              cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} 
+              content={<ChartTooltipContent />} 
+            />
+            <Legend 
+              verticalAlign="bottom" 
+              height={36}
+              iconType="circle"
+              wrapperStyle={{ paddingTop: '16px' }}
+            />
+            <Bar 
+              dataKey="leaves" 
+              stackId="a" 
+              fill="var(--color-leaves)" 
+              radius={[0, 0, 2, 2]}
+              name={t?.leaves_taken || "Leaves"}
+            />
+            <Bar 
+              dataKey="absent" 
+              stackId="a" 
+              fill="var(--color-absent)" 
+              radius={[2, 2, 0, 0]}
+              name={t?.leaves_absent || "Absent"}
+            />
+          </BarChart>
+        </ChartContainer>
+      )}
     </div>
   );
 }

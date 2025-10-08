@@ -51,8 +51,6 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.manageApprovals?.items}
-        disableAdd
-        disableDelete
         enableApprove
         enableReject
         filter_modal_component={

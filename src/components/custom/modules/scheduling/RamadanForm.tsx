@@ -95,7 +95,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
               
               return (
                 <FormItem>
-                  <FormLabel className="text-left">Ramadan {t.in_time || "In Time"} <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.ramadan_name || "Ramadan"} {t.in_time || "In Time"} <Required/></FormLabel>
                   <Popover open={popoverStates.ramadanInTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, ramadanInTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
@@ -108,7 +108,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
                         >
                           {displayValue
                             ? format(displayValue, "HH:mm:ss")
-                            : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
+                            : <span className="text-text-secondary">{t.Placeholder_time || "Choose time"}</span>
                           }
                           <ClockIcon />
                         </Button>
@@ -140,7 +140,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
               
               return (
                 <FormItem>
-                  <FormLabel className="text-left">Ramadan {t.out_time || "Out Time"} <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.ramadan_name || "Ramadan"} {t.out_time || "Out Time"} <Required/></FormLabel>
                   <Popover open={popoverStates.ramadanOutTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, ramadanOutTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
@@ -153,7 +153,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
                         >
                           {displayValue
                             ? format(displayValue, "HH:mm:ss")
-                            : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
+                            : <span className="text-text-secondary">{t.Placeholder_time || "Choose time"}</span>
                           }
                           <ClockIcon />
                         </Button>
@@ -185,7 +185,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
               
               return (
                 <FormItem>
-                  <FormLabel className="text-left">Ramadan Prayer Time</FormLabel>
+                  <FormLabel className="text-left">{t.ramadan_name || "Ramadan"} Prayer Time</FormLabel>
                   <Popover open={popoverStates.ramadanPrayerTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, ramadanPrayerTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
@@ -198,7 +198,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
                         >
                           {displayValue
                             ? format(displayValue, "HH:mm:ss")
-                            : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
+                            : <span className="text-text-secondary">{t.Placeholder_time || "Choose time"}</span>
                           }
                           <ClockIcon />
                         </Button>
@@ -223,7 +223,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
             name="ramadan_flexible_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Ramadan {t.flexible || "Flexible"}</FormLabel>
+                <FormLabel className="flex gap-1">{t.ramadan_name || "Ramadan"} {t.flexible || "Flexible"}</FormLabel>
                 <FormControl>
                   <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
@@ -236,7 +236,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
             name="ramadan_grace_in_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Ramadan {t.grace_in || "Grace In"}</FormLabel>
+                <FormLabel className="flex gap-1">{t.ramadan_name || "Ramadan"} {t.grace_in || "Grace In"}</FormLabel>
                 <FormControl>
                   <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>
@@ -249,7 +249,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
             name="ramadan_grace_out_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">Ramadan {t.grace_out || "Grace Out"}</FormLabel>
+                <FormLabel className="flex gap-1">{t.ramadan_name || "Ramadan"} {t.grace_out || "Grace Out"}</FormLabel>
                 <FormControl>
                   <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
                 </FormControl>

@@ -1,24 +1,25 @@
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
+import { apiRequest } from "@/src/lib/apiHandler"; 
 
 export interface ExcelExporterProps {
-  data: any[];
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
+  onProgress?: (progress: number) => void;
 }
 
 export class ExcelExporter {
-  private data: any[];
   private formValues: any;
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
+  private onProgress?: (progress: number) => void;
   
-  constructor({ data, formValues, headerMap, calculateSummaryTotals  }: ExcelExporterProps) {
-    this.data = data;
+  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress }: ExcelExporterProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
+    this.onProgress = onProgress;
   }
 
   private getFilteredHeaders() {   
@@ -39,8 +40,8 @@ export class ExcelExporter {
     ];
   }
 
-  private getEmployeeDetails() {
-    const firstRow = this.data[0];
+  private getEmployeeDetails(data: any[]) {
+    const firstRow = data[0];
     const isSpecificEmployee = this.formValues.employee && this.formValues.employee !== '';
     
     if (isSpecificEmployee) {
@@ -128,19 +129,96 @@ export class ExcelExporter {
     cell.border = baseStyle.border;
   }
 
-  async export(): Promise<void> {
-    if (this.data.length === 0) {
-      toast.error("No data available to export.");
-      return;
+  private async yieldToMain(): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  private async fetchDataInBatches(): Promise<any[]> {
+    const allData: any[] = [];
+    const BATCH_SIZE = 1000;
+    let offset = 0;
+    let hasMore = true;
+
+    this.onProgress?.(5);
+
+    while (hasMore) {
+      try {
+        const params: Record<string, string> = {
+          limit: BATCH_SIZE.toString(),
+          offset: offset.toString(),
+        };
+
+        if (this.formValues.from_date) {
+          params.startDate = format(this.formValues.from_date, 'yyyy-MM-dd');
+        }
+        if (this.formValues.to_date) {
+          params.endDate = format(this.formValues.to_date, 'yyyy-MM-dd');
+        }
+        if (this.formValues.employee) {
+          params.employeeId = this.formValues.employee.toString();
+        }
+        if (this.formValues.organization) {
+          params.organizationId = this.formValues.organization.toString();
+        }
+
+        const queryString = Object.entries(params)
+          .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .join('&');
+
+        const url = `/report/new${queryString ? `?${queryString}` : ''}`;
+        const response = await apiRequest(url, "GET");
+
+        const batch = Array.isArray(response) ? response : (response.data || []);
+
+        if (batch.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        allData.push(...batch);
+        offset += BATCH_SIZE;
+        hasMore = batch.length === BATCH_SIZE;
+
+        const progress = 5 + Math.min(Math.round((offset / 10000) * 35), 35);
+        this.onProgress?.(progress);
+
+        await this.yieldToMain();
+
+      } catch (error) {
+        console.error('Error fetching batch:', error);
+        
+        if (error && typeof error === 'object' && 'requireLogin' in error) {
+          throw new Error('Session expired. Please login again.');
+        }
+        
+        throw new Error('Failed to fetch data from server');
+      }
     }
 
+    return allData;
+  }
+
+  async export(): Promise<void> {
     try {
+      this.onProgress?.(0);
+
+      const allData = await this.fetchDataInBatches();
+
+      if (allData.length === 0) {
+        toast.error("No data available to export.");
+        return;
+      }
+
+      this.onProgress?.(45);
+
       const [{ default: ExcelJS }, fileSaver] = await Promise.all([
         import("exceljs"),
         import("file-saver"),
       ]);
 
       const { saveAs } = fileSaver;
+      this.onProgress?.(50);
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Report");
@@ -149,8 +227,7 @@ export class ExcelExporter {
       workbook.created = new Date();
 
       const filteredHeaders = this.getFilteredHeaders();
-
-      const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails();
+      const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(allData);
       let currentRow = 1;
 
       worksheet.mergeCells(`A${currentRow}:M${currentRow}`);
@@ -181,11 +258,7 @@ export class ExcelExporter {
 
       worksheet.getCell(`A${currentRow}`).value = `Employee ID: ${employeeId}`;
       worksheet.getCell(`A${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-
-      worksheet.getCell(`M${currentRow}`).value = `Generated On: ${format(
-        new Date(),
-        "dd/MM/yyyy"
-      )}`;
+      worksheet.getCell(`M${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
       worksheet.getCell(`M${currentRow}`).font = { name: "Nunito Sans", size: 10 };
       worksheet.getCell(`M${currentRow}`).alignment = { horizontal: "right" };
       currentRow += 2;
@@ -193,38 +266,30 @@ export class ExcelExporter {
       const nameCell = worksheet.getCell(`A${currentRow}`);
       nameCell.value = 'EMPLOYEE NAME';
       this.applyCellStyle(nameCell, 'label');
-
       const nameValueCell = worksheet.getCell(`B${currentRow}`);
       nameValueCell.value = employeeName;
       this.applyCellStyle(nameValueCell, 'value');
-
       const empNoCell = worksheet.getCell(`L${currentRow}`);
       empNoCell.value = 'EMPLOYEE NO';
       this.applyCellStyle(empNoCell, 'label');
-
       const empNoValueCell = worksheet.getCell(`M${currentRow}`);
       empNoValueCell.value = employeeNo;
       this.applyCellStyle(empNoValueCell, 'value');
-
       currentRow++;
 
       if (this.formValues.from_date || this.formValues.to_date) {
         const fromDateCell = worksheet.getCell(`A${currentRow}`);
         fromDateCell.value = 'FROM DATE';
         this.applyCellStyle(fromDateCell, 'label');
-
         const fromDateValueCell = worksheet.getCell(`B${currentRow}`);
         fromDateValueCell.value = this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '01/07/2025';
         this.applyCellStyle(fromDateValueCell, 'value');
-
         const toDateCell = worksheet.getCell(`L${currentRow}`);
         toDateCell.value = 'TO DATE';
         this.applyCellStyle(toDateCell, 'label');
-
         const toDateValueCell = worksheet.getCell(`M${currentRow}`);
         toDateValueCell.value = this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025';
         this.applyCellStyle(toDateValueCell, 'value');
-
         currentRow++;
       }
 
@@ -237,25 +302,42 @@ export class ExcelExporter {
       });
       currentRow++;
 
-      this.data.forEach((row: Record<string, any>) => {
-        filteredHeaders.forEach((header, index) => {
-          const cell = worksheet.getCell(currentRow, index + 1);
-          const cellValue = this.formatCellValue(header, row[header]);
-          cell.value = cellValue;
-          this.applyCellStyle(cell, 'data');
-          if (
-            (header === 'DailyMissedHrs' || header === 'late') &&
-            cellValue &&
-            parseFloat(cellValue) > 0
-          ) {
-            cell.font = { ...cell.font, color: { argb: 'FFFF0000' } };
-          }
+      this.onProgress?.(55);
+
+      const CHUNK_SIZE = 500;
+      const totalRows = allData.length;
+      
+      for (let i = 0; i < totalRows; i += CHUNK_SIZE) {
+        const chunk = allData.slice(i, i + CHUNK_SIZE);
+        
+        chunk.forEach((row: Record<string, any>) => {
+          filteredHeaders.forEach((header, index) => {
+            const cell = worksheet.getCell(currentRow, index + 1);
+            const cellValue = this.formatCellValue(header, row[header]);
+            cell.value = cellValue;
+            this.applyCellStyle(cell, 'data');
+            
+            if (
+              (header === 'DailyMissedHrs' || header === 'late') &&
+              cellValue &&
+              parseFloat(cellValue) > 0
+            ) {
+              cell.font = { ...cell.font, color: { argb: 'FFFF0000' } };
+            }
+          });
+          currentRow++;
         });
-        currentRow++;
-      });
+
+        const progress = 55 + Math.round(((i + CHUNK_SIZE) / totalRows) * 25);
+        this.onProgress?.(Math.min(progress, 80));
+        
+        await this.yieldToMain();
+      }
+
+      this.onProgress?.(85);
 
       currentRow += 2;
-      const summaryTotals = this.calculateSummaryTotals(this.data);
+      const summaryTotals = this.calculateSummaryTotals(allData);
 
       worksheet.mergeCells(`A${currentRow}:F${currentRow}`);
       const summaryTitleCell = worksheet.getCell(`A${currentRow}`);
@@ -278,7 +360,6 @@ export class ExcelExporter {
             const labelCell = worksheet.getCell(`${labelCol}${currentRow}`);
             labelCell.value = rowData[i];
             this.applyCellStyle(labelCell, 'label');
-
             const valueCell = worksheet.getCell(`${valueCol}${currentRow}`);
             valueCell.value = rowData[i + 1];
             this.applyCellStyle(valueCell, 'value');
@@ -286,6 +367,8 @@ export class ExcelExporter {
         }
         currentRow++;
       });
+
+      this.onProgress?.(90);
 
       worksheet.columns = filteredHeaders.map(header => ({
         header: this.headerMap[header] || header,
@@ -295,7 +378,6 @@ export class ExcelExporter {
 
       worksheet.columns.forEach((column, index) => {
         let maxWidth = 0;
-
         for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
           const cell = worksheet.getCell(rowIndex, index + 1);
           if (cell.value) {
@@ -304,18 +386,15 @@ export class ExcelExporter {
             maxWidth = Math.max(maxWidth, textWidth);
           }
         }
-
         column.width = Math.min(Math.max(maxWidth + 1, 6), 40);
       });
 
       for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
         const row = worksheet.getRow(rowIndex);
-        
         if (rowIndex === 1) {
           row.height = 25;
         } else {
           let maxRequiredHeight = 25;
-          
           row.eachCell((cell) => {
             if (cell.value && cell.alignment && cell.alignment.wrapText) {
               const cellText = String(cell.value);
@@ -326,10 +405,11 @@ export class ExcelExporter {
               maxRequiredHeight = Math.max(maxRequiredHeight, requiredHeight);
             }
           });
-          
           row.height = Math.min(Math.max(maxRequiredHeight, 15), 80);
         }
       }
+
+      this.onProgress?.(95);
 
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], {
@@ -342,10 +422,19 @@ export class ExcelExporter {
           : "all"
       }_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
 
+      this.onProgress?.(100);
       saveAs(blob, filename);
+      
+      toast.success(`Excel file generated successfully! (${allData.length.toLocaleString()} records)`);
     } catch (error) {
       console.error("Excel export error:", error);
-      toast.error("Error generating Excel file. Please try again.");
+      
+      if (error instanceof Error && error.message.includes('Session expired')) {
+        toast.error(error.message);
+      } else {
+        toast.error("Error generating Excel file. Please try again.");
+      }
+      throw error;
     }
   }
 }

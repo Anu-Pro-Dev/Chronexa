@@ -564,7 +564,7 @@ export default function AssignPrivileges({
               ))}
             </Accordion>
 
-            <div className="w-full flex gap-2 justify-end items-center py-3 border-t">
+            <div className="w-full flex gap-2 justify-end items-center py-3">
               <Button
                 variant="outline"
                 type="button"

@@ -48,8 +48,6 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.manageApprovals?.items}
-        disableAdd
-        disableDelete
         enableApprove
         enableReject
         size="large"

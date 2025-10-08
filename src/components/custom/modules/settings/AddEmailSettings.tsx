@@ -171,7 +171,7 @@ export default function AddEmailSettings({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-16 gap-y-4">
             <FormField

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { FormProvider } from "react-hook-form";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerMultiStepForm from "@/src/components/custom/power-comps/power-multi-step-form";
@@ -12,15 +12,17 @@ import PolicyForm from "@/src/components/custom/modules/scheduling/PolicyForm";
 import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
 import { getScheduleByID } from "@/src/lib/apiHandler";
 
-export default function ScheduleAddPage() {
+export default function ScheduleEditPage() {
   const { modules, translations } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { form, selectedRowData } = useScheduleForm();
   const clearSelectedRowData = useScheduleEditStore((state) => state.clearSelectedRowData);
   const [currentPage, setCurrentPage] = useState<string>("normal-schedule");
   const t = translations?.modules?.scheduling || {};
   
-  const mode = "add"; // Always add mode for this page
+  const mode = "edit"; // Always edit mode for this page
+  const id = searchParams.get("id");
   
   const isRamadanEnabled = form.watch("ramadan_flag");
 
@@ -29,6 +31,19 @@ export default function ScheduleAddPage() {
       clearSelectedRowData();
     }
   }, [selectedRowData, clearSelectedRowData]);
+
+  useEffect(() => {
+    if (mode === "edit" && id) {
+      getScheduleByID(Number(id)).then(res => {
+        const schedule = res?.data;
+        if (schedule) {
+          form.setValue("organization_id", schedule.organization_id);
+          form.setValue("schedule_location", schedule.schedule_location);
+          // Load other fields as needed
+        }
+      });
+    }
+  }, [mode, id, form]);
 
   useEffect(() => {
     if (!isRamadanEnabled && currentPage === "ramadan-schedule") {

@@ -98,6 +98,7 @@ export default function PowerHeader({
     const specialMappings: Record<string, string> = {
       'workflowType': 'workflow_id',
       'employeeShortPermission': 'single_permissions_id',
+      'emailSetting': 'em_id',
     };
     
     if (specialMappings[entityName]) {

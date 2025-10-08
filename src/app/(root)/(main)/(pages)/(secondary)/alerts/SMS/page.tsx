@@ -60,8 +60,6 @@ export default function Page() {
         props={props}
         selectedRows={selectedRows}
         items={modules?.alerts?.items}
-        disableAdd
-        disableDelete
         isExport
         enableExcel
       />

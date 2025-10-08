@@ -141,6 +141,7 @@ export default function Page() {
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
+        overrideEditIcon={false}
       />
     </div>
   );

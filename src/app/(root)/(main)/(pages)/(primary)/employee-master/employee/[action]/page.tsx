@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useSearchParams } from "next/navigation";
-import ScheduleFormPage from "../EmployeeOnboardingPage";
+import EmployeeFormPage from "../EmployeeOnboardingPage";
 
 export default function ScheduleActionPage() {
   const { action } = useParams<{ action: string }>();
@@ -9,5 +9,5 @@ export default function ScheduleActionPage() {
 
   const mode = action === "edit" ? "edit" : "add";
 
-  return <ScheduleFormPage mode={mode} id={id} />;
+  return <EmployeeFormPage mode={mode} id={id} />;
 }

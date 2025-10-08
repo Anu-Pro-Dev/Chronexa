@@ -6,6 +6,20 @@ import Link from "next/link";
 import ProgressBarChart from "../my-attendance/ProgressBarChart";
 import { useAttendanceData } from "../my-attendance/AttendanceData";
 
+const timeStringToHours = (timeStr: string | null): number => {
+  if (!timeStr) return 0;
+  
+  const cleanStr = timeStr.trim();
+  const parts = cleanStr.split(':');
+  
+  if (parts.length < 2) return 0;
+  
+  const hours = parseInt(parts[0], 10) || 0;
+  const minutes = parseInt(parts[1], 10) || 0;
+  
+  return hours + (minutes / 60);
+};
+
 function ScheduleCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
@@ -16,20 +30,35 @@ function ScheduleCard() {
       return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0 };
     }
 
-    const totalHours = parseFloat(workSchedule.TotalExpectingWrkHrs as any) || 0;
+    const totalHours = timeStringToHours(workSchedule.TotalMonthlyExpectedWrkHrs as string);
+    
+    const workedHours = timeStringToHours(workSchedule.TotalWorkedHrs as string);
+    
+    const pendingHours = timeStringToHours(workSchedule.PendingWorkHrs as string);
+    
+    const overtimeHours = Math.max(0, workedHours - totalHours);
 
-    const workedHours = totalHours;
-    const overtimeHours = 0;
-    const pendingHours = 0;
-
-    return { totalHours, workedHours, overtimeHours, pendingHours };
+    return { 
+      totalHours, 
+      workedHours: Math.min(workedHours, totalHours),
+      overtimeHours, 
+      pendingHours 
+    };
   }, [workSchedule]);
 
   if (loading) {
     return (
-        <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
-            <p className='text-text-secondary'>Loading...</p>
-        </div>
+      <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
+        <p className='text-text-secondary'>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!workSchedule) {
+    return (
+      <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
+        <p className='text-text-secondary'>No schedule data available</p>
+      </div>
     );
   }
 

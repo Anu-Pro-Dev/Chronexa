@@ -16,7 +16,7 @@ const optionalNumber = z.preprocess(
   (val) => {
     if (val === "" || val === null || val === undefined) return undefined;
     const num = Number(val);
-    return isNaN(num) ? val : num;
+    return isNaN(num) ? undefined : num;
   },
   z.number().nonnegative("Must be 0 or greater").optional()
 );
@@ -109,6 +109,11 @@ export const useScheduleForm = () => {
     return "";
   }
 
+  function normalizeNumericField(value: any): string {
+    if (value === null || value === undefined || value === "") return "";
+    return String(value);
+  }
+
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
@@ -122,6 +127,12 @@ export const useScheduleForm = () => {
         ramadan_out_time: normalizeTimeString(selectedRowData.ramadan_out_time),
         ramadan_required_work_hours: normalizeTimeString(selectedRowData.ramadan_required_work_hours),
         inactive_date: selectedRowData.inactive_date ? new Date(selectedRowData.inactive_date) : null,
+        flexible_min: normalizeNumericField(selectedRowData.flexible_min),
+        grace_in_min: normalizeNumericField(selectedRowData.grace_in_min),
+        grace_out_min: normalizeNumericField(selectedRowData.grace_out_min),
+        ramadan_flexible_min: normalizeNumericField(selectedRowData.ramadan_flexible_min),
+        ramadan_grace_in_min: normalizeNumericField(selectedRowData.ramadan_grace_in_min),
+        ramadan_grace_out_min: normalizeNumericField(selectedRowData.ramadan_grace_out_min),
       });
     }
   }, [selectedRowData, form]);

@@ -262,11 +262,9 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={propsWithFullBodyText}
-        disableAdd
         selectedRows={propsWithFullBodyText.selectedRows}
         items={modules?.alerts.items}
         entityName="ta-emails"
-        disableDelete
         isExport
         enableExcel
       />

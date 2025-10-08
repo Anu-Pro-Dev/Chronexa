@@ -1,76 +1,21 @@
 "use client";
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, { useState, useEffect, createContext, useContext, useCallback, useRef } from "react";
 import { getAllDashboardData } from '@/src/lib/apiHandler';
 
 interface AttendanceDetails {
-    TimeIn: string | null;
-    TimeOut: string | null;
-    SchCode: string;
-    Late: string;
-    Early: string;
-    AbsentDays: string;
-    LeaveTaken: number;
-    ApprovedLeaves: number | null;
-    LateMinutes: string;
-    EarlyMinutes: string;
-    AbsentMinutes: string;
-    MonthlyLate: string;
-    MonthlyEarly: string;
-    MonthlyAbsent: string;
-    MonthlyLateMinutes: string;
-    MonthlyEarlyMinutes: string;
-    MonthlyAbsentMinutes: string;
-    GroupLate: string;
-    GroupEarly: string;
-    GroupAbsent: string;
-    GroupLateMinutes: string;
-    GroupEarlyMinutes: string;
-    GroupAbsentMinutes: string;
-    MonthlyGroupLate: string;
-    MonthlyGroupEarly: string;
-    MonthlyGroupAbsent: string;
-    MonthlyGroupLateMinutes: string;
-    MonthlyGroupEarlyMinutes: string;
-    MonthlyGroupAbsentMinutes: string;
-    Flexible: string;
-    GraceIn: string;
-    GraceOut: string;
-    InTime: string;
-    OutTime: string;
-    TotalMissedIn: number;
-    TotalMissedOut: number;
-    TotalWorkingDays: number | null;
-    TotalPermissionCnt: number;
-    ApprovedPermissionHrs: string;
-    UnapprovedPermisions: string;
+    [key: string]: any;
 }
 
 interface WorkSchedule {
-    TimeIn: string | null;
-    TimeOut: string | null;
-    SchCode: string;
-    Flexible: string;
-    GraceIn: string;
-    GraceOut: string;
-    InTime: string;
-    OutTime: string;
-    DayReqdHrs: string;
-    TotalExpectingWrkHrs: number | null;
+    [key: string]: any;
 }
 
 interface LeaveAnalytics {
-    employee_id: number;
-    LeaveMonth: number;
-    LeaveYear: number;
-    LeaveCount: number;
+    [key: string]: any;
 }
 
 interface WorkHourTrends {
-    DayofDate: string;
-    WorkingDay: number;
-    WorkMinutes: number;
-    MissedMinutes: number;
-    ExpectedWork: number;
+    [key: string]: any;
 }
 
 interface DashboardData {
@@ -104,42 +49,60 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
     const [workHourTrends, setWorkHourTrends] = useState<WorkHourTrends[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    const isFetchingRef = useRef(false);
+    const hasFetchedRef = useRef(false);
 
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
+        if (isFetchingRef.current) {
+            console.log('⏳ Fetch already in progress, skipping...');
+            return;
+        }
+
         try {
+            isFetchingRef.current = true;
             setLoading(true);
             setError(null);
             
+            console.log('🔄 Fetching dashboard data...');
             const response = await getAllDashboardData();
-
+            
             if (response.success && response.data) {
                 if (response.data.getMyAttnDetails?.length > 0) {
                     setAttendanceDetails(response.data.getMyAttnDetails[0]);
                 }
-
+                
                 if (response.data.WorkSchedule?.length > 0) {
                     setWorkSchedule(response.data.WorkSchedule[0]);
                 }
-
+                
                 if (response.data.getLeaveAnalytics) {
                     setLeaveAnalytics(response.data.getLeaveAnalytics);
                 }
-
+                
                 if (response.data.WorkHourTrends) {
                     setWorkHourTrends(response.data.WorkHourTrends);
                 }
+                
+                console.log('✅ Dashboard data fetched successfully');
+            } else {
+                console.warn('⚠️ No data returned from API');
             }
         } catch (err) {
-            console.error('Error fetching dashboard data:', err);
+            console.error('❌ Error fetching dashboard data:', err);
             setError('Failed to fetch dashboard data');
         } finally {
             setLoading(false);
+            isFetchingRef.current = false;
+            hasFetchedRef.current = true;
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchDashboardData();
-    }, []);
+        if (!hasFetchedRef.current) {
+            fetchDashboardData();
+        }
+    }, [fetchDashboardData]);
 
     const value: DashboardData = {
         attendanceDetails,

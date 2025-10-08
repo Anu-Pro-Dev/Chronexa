@@ -37,13 +37,13 @@ export default function Page() {
     setColumns([
       { 
         field: "schedule_code", 
-        headerName: "Schedule Code", 
+        headerName: t.code || "Schedule Code", 
         cellRenderer: (row: any) =>
          (row["schedule_code"] || "").toUpperCase(),
       },
       {
         field: "sch_color",
-        headerName: "Color",
+        headerName: t.color || "Color",
         cellRenderer: (row: any) => (
           <div
             className="h-4 w-8"
@@ -55,7 +55,7 @@ export default function Page() {
       },
       { 
         field: "organization_id", 
-        headerName: "Organization",
+        headerName: t.organization || "Organization",
         cellRenderer: (row: any) =>
           row.organizations
             ? (language === "ar"
@@ -63,11 +63,11 @@ export default function Page() {
                 : row.organizations.organization_eng || row.organizations.organization_arb)
             : row.organization_id,
       },
-      { field: "in_time", headerName: "In Time" },
-      { field: "out_time", headerName: "Out Time" },
-      { field: "required_work_hours", headerName: "Duration"},
+      { field: "in_time", headerName: t.in_time || "In Time" },
+      { field: "out_time", headerName: t.out_time || "Out Time" },
+      { field: "required_work_hours", headerName: t.required_work_hrs || "Duration"},
     ]);
-  }, [language]);
+  }, [language, t]);
 
   const { data: scheduleData, isLoading, refetch } = useFetchAllEntity("schedule",{
     searchParams: {
@@ -85,16 +85,16 @@ export default function Page() {
           return timeString.includes('.') ? timeString.split('.')[0] : timeString;
         };
 
-        const formatDateTime = (dateTime: string | null | undefined): string => {
+        const extractTimeFromISO = (dateTime: string | null | undefined): string => {
           if (!dateTime) return '';
           try {
-            return new Date(dateTime).toLocaleTimeString("en-GB", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
+            const timePart = dateTime.split('T')[1];
+            if (timePart) {
+              return timePart.split('.')[0];
+            }
+            return '';
           } catch (error) {
-            console.error('Error formatting time:', dateTime, error);
+            console.error('Error extracting time:', dateTime, error);
             return '';
           }
         };
@@ -102,8 +102,8 @@ export default function Page() {
         return {
           ...schedule,
           id: schedule.schedule_id,
-          in_time: formatDateTime(schedule.in_time),
-          out_time: formatDateTime(schedule.out_time),
+          in_time: extractTimeFromISO(schedule.in_time),
+          out_time: extractTimeFromISO(schedule.out_time),
           required_work_hours: formatTimeString(schedule.required_work_hours),
         };
       });
@@ -116,7 +116,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -124,7 +124,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -160,7 +160,7 @@ export default function Page() {
   const handleEditClick = useCallback(
     (row: any) => {
       setSelectedRowData(row);
-      router.push("/scheduling/schedules/add");
+      router.push(`/scheduling/schedules/edit?id=${row.schedule_id}`);
     },
     [router, setSelectedRowData]
   );
@@ -187,4 +187,3 @@ export default function Page() {
     </div>
   );
 }
-
