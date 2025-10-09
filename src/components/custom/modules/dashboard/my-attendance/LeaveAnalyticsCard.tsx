@@ -9,16 +9,18 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getLeaveAnalytics } from '@/src/lib/apiHandler';
-import { useMemo, useState, useEffect } from "react";
+import { useAttendanceData } from "../my-attendance/AttendanceData";
+import { useMemo, useState } from "react";
 
 function LeaveAnalyticsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
+  
+  // Get data from context instead of fetching separately
+  const { leaveAnalytics, loading } = useAttendanceData();
+  
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [leaveAnalytics, setLeaveAnalytics] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const monthNames = [
     translations.january || "January",
@@ -35,32 +37,11 @@ function LeaveAnalyticsCard() {
     translations.december || "December",
   ];
 
-  useEffect(() => {
-    const fetchLeaveData = async () => {
-      try {
-        setLoading(true);        
-        const response = await getLeaveAnalytics(selectedYear);        
-        if (response?.success && response?.data) {
-          setLeaveAnalytics(response.data);
-        } else {
-          setLeaveAnalytics([]);
-        }
-      } catch (error) {
-        console.error('Error fetching leave analytics:', error);
-        setLeaveAnalytics([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeaveData();
-  }, [selectedYear]);
-
   const chartData = useMemo(() => {
     const data = monthNames.map((monthName, index) => {
       const monthNumber = index + 1;
       
-
+      // Filter data for selected year
       const monthData = leaveAnalytics.find(
         (item) => item.LVMonth === monthNumber && item.LeaveYear === selectedYear
       );
@@ -86,10 +67,17 @@ function LeaveAnalyticsCard() {
     },
   };
 
-  const years = Array.from(
-    { length: currentYear - 2019 }, 
-    (_, i) => currentYear - i
-  );
+  // Generate available years from the data
+  const years = useMemo(() => {
+    if (!leaveAnalytics?.length) {
+      // Default to last 5 years if no data
+      return Array.from({ length: 5 }, (_, i) => currentYear - i);
+    }
+    
+    // Get unique years from the data
+    const uniqueYears = [...new Set(leaveAnalytics.map(item => item.LeaveYear))];
+    return uniqueYears.sort((a, b) => b - a); // Sort descending
+  }, [leaveAnalytics, currentYear]);
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
@@ -124,6 +112,12 @@ function LeaveAnalyticsCard() {
       {loading ? (
         <div className="flex justify-center items-center h-[300px]">
           <p className="text-text-secondary">Loading...</p>
+        </div>
+      ) : !leaveAnalytics?.length ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <p className="text-text-secondary">
+            {t?.no_data || "No leave data available"}
+          </p>
         </div>
       ) : (
         <ChartContainer 

@@ -889,65 +889,6 @@ export const editDeviceRequest = async (data: {
   return apiRequest(`/device/edit/${device_id}`, "PUT", payload);
 };
 
-// Functions for dashboard
-export const getDashboardData = async (action: string) => {
-  return apiRequest(`/dashboard/data?action=${action}`, "GET");
-};
-// Functions for dashboard - separate endpoints
-export const getAttendanceDetails = async () => {
-  return apiRequest('/dashboard/attendance', "GET");
-};
-
-export const getWorkSchedule = async () => {
-  return apiRequest('/dashboard/work-schedule', "GET");
-};
-
-export const getLeaveAnalytics = async (year?: number) => {
-  const queryParam = year ? `?year=${year}` : '';
-  return apiRequest(`/dashboard/leave-analytics${queryParam}`, "GET");
-};
-
-export const getWorkHourTrends = async (month?: string) => {
-  const queryParam = month ? `?month=${month}` : '';
-  return apiRequest(`/dashboard/work-hour-trends${queryParam}`, "GET");
-};
-
-// Helper function to fetch all dashboard data
-export const getAllDashboardData = async () => {
-  try {    
-    const [attendance, schedule, leaves, workHours] = await Promise.all([
-      getAttendanceDetails(),
-      getWorkSchedule(),
-      getLeaveAnalytics(),
-      getWorkHourTrends()
-    ]);
-    
-    console.log('Dashboard data fetched:', {
-      attendance,
-      schedule,
-      leaves,
-      workHours
-    });
-    
-    return {
-      success: true,
-      data: {
-        getMyAttnDetails: attendance?.success ? attendance.data : [],
-        WorkSchedule: schedule?.success ? schedule.data : [],
-        getLeaveAnalytics: leaves?.success ? leaves.data : [],
-        WorkHourTrends: workHours?.success ? workHours.data : []
-      }
-    };
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-    return {
-      success: false,
-      data: null,
-      error: 'Failed to fetch dashboard data'
-    };
-  }
-};
-
 // Function to add a new db setting
 export const addDBSettingRequest = async (data: {
   db_settings_id?: number;

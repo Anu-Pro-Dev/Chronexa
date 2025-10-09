@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, createContext, useContext, useCallback, useRef } from "react";
-import { getAllDashboardData } from '@/src/lib/apiHandler';
+import { getAllDashboardData } from '@/src/lib/dashboardApiHandler';
 
 interface AttendanceDetails {
     [key: string]: any;
@@ -50,22 +50,27 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     
-    const isFetchingRef = useRef(false);
-    const hasFetchedRef = useRef(false);
+    const mountedRef = useRef(false);
+    const hasInitializedRef = useRef(false);
 
     const fetchDashboardData = useCallback(async () => {
-        if (isFetchingRef.current) {
-            console.log('⏳ Fetch already in progress, skipping...');
+        // Skip if component not mounted
+        if (!mountedRef.current) {
             return;
         }
 
         try {
-            isFetchingRef.current = true;
             setLoading(true);
             setError(null);
             
-            console.log('🔄 Fetching dashboard data...');
+            console.log('🔄 Requesting dashboard data...');
             const response = await getAllDashboardData();
+            
+            // Only update state if still mounted
+            if (!mountedRef.current) {
+                console.log('⏭️ Component unmounted, skipping state update');
+                return;
+            }
             
             if (response.success && response.data) {
                 if (response.data.getMyAttnDetails?.length > 0) {
@@ -84,25 +89,35 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
                     setWorkHourTrends(response.data.WorkHourTrends);
                 }
                 
-                console.log('✅ Dashboard data fetched successfully');
+                console.log('✅ Dashboard state updated');
             } else {
                 console.warn('⚠️ No data returned from API');
             }
         } catch (err) {
-            console.error('❌ Error fetching dashboard data:', err);
-            setError('Failed to fetch dashboard data');
+            console.error('❌ Error in fetchDashboardData:', err);
+            if (mountedRef.current) {
+                setError('Failed to fetch dashboard data');
+            }
         } finally {
-            setLoading(false);
-            isFetchingRef.current = false;
-            hasFetchedRef.current = true;
+            if (mountedRef.current) {
+                setLoading(false);
+            }
         }
     }, []);
 
     useEffect(() => {
-        if (!hasFetchedRef.current) {
+        mountedRef.current = true;
+        
+        // Only fetch once on mount
+        if (!hasInitializedRef.current) {
+            hasInitializedRef.current = true;
             fetchDashboardData();
         }
-    }, [fetchDashboardData]);
+
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []); // Empty deps - runs once
 
     const value: DashboardData = {
         attendanceDetails,

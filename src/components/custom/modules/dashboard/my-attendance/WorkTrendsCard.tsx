@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getWorkHourTrends } from '@/src/lib/apiHandler';
+import { useAttendanceData } from "../my-attendance/AttendanceData";
 
 const colorMapping = {
   worked: "#0078D4",
@@ -48,11 +48,12 @@ const CustomLegend = ({ payload }: any) => {
 function WorkTrendsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const currentMonth = new Date().getMonth() + 1; 
   
+  // Get data from context instead of fetching separately
+  const { workHourTrends, loading } = useAttendanceData();
+  
+  const currentMonth = new Date().getMonth() + 1; 
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
-  const [workHourTrends, setWorkHourTrends] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const monthKeys = [
     "january", "february", "march", "april", "may", "june",
@@ -63,30 +64,17 @@ function WorkTrendsCard() {
     (key, i) => translations?.[key] || new Date(0, i).toLocaleString("en", { month: "long" })
   );
 
-  useEffect(() => {
-    const fetchWorkHourData = async () => {
-      try {
-        setLoading(true);
-        const monthParam = selectedMonth.toString().padStart(2, '0');        
-        const response = await getWorkHourTrends(monthParam);        
-        if (response?.success && response?.data) {
-          setWorkHourTrends(response.data);
-        } else {
-          setWorkHourTrends([]);
-        }
-      } catch (error) {
-        console.error('Error fetching work hour trends:', error);
-        setWorkHourTrends([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWorkHourData();
-  }, [selectedMonth]);
-
   const chartDataToRender = useMemo(() => {
     if (!workHourTrends?.length) return [];
+
+    // Filter data for selected month
+    const filteredData = workHourTrends.filter(item => {
+      if (!item.Date) return false;
+      const itemDate = new Date(item.Date);
+      return itemDate.getMonth() + 1 === selectedMonth;
+    });
+
+    if (filteredData.length === 0) return [];
 
     const currentYear = new Date().getFullYear();
     const daysInMonth = new Date(currentYear, selectedMonth, 0).getDate();
@@ -94,7 +82,7 @@ function WorkTrendsCard() {
     const data = Array.from({ length: daysInMonth }, (_, i) => {
       const dayNumber = i + 1;
       
-      const dayData = workHourTrends.find(item => item.DayofDate === dayNumber);
+      const dayData = filteredData.find(item => item.DayofDate === dayNumber);
       
       if (!dayData || dayData.ExpectedWork === null || dayData.ExpectedWork === 0) {
         return {
@@ -124,9 +112,10 @@ function WorkTrendsCard() {
 
   const maxExpectedHours = Math.max(
     ...chartDataToRender.map(d => d.expected),
+    0 // Fallback to 0 if no data
   );
 
-  const yAxisMax = Math.ceil(maxExpectedHours);
+  const yAxisMax = Math.ceil(maxExpectedHours) || 10; // Default to 10 if 0
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4">
@@ -170,6 +159,12 @@ function WorkTrendsCard() {
         <div className="flex justify-center items-center h-[300px]">
           <p className="text-text-secondary">Loading...</p>
         </div>
+      ) : chartDataToRender.length === 0 ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <p className="text-text-secondary">
+            {t?.no_data || "No data available for this month"}
+          </p>
+        </div>
       ) : (
         <ChartContainer
           dir={dir}
@@ -199,13 +194,6 @@ function WorkTrendsCard() {
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <ChartLegend content={<CustomLegend />} />
 
-            {/* <Bar 
-              dataKey="expected" 
-              stackId="a" 
-              fill={colorMapping.expected} 
-              radius={0} 
-              barSize={5} 
-            /> */}
             <Bar 
               dataKey="worked" 
               stackId="b" 
