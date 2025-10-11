@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, createContext, useContext, useCallback, useRef } from "react";
-import { getAllDashboardData } from '@/src/lib/dashboardApiHandler';
+import { getAttendanceDetails, getWorkSchedule, getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
 
 interface AttendanceDetails {
     [key: string]: any;
@@ -10,19 +10,9 @@ interface WorkSchedule {
     [key: string]: any;
 }
 
-interface LeaveAnalytics {
-    [key: string]: any;
-}
-
-interface WorkHourTrends {
-    [key: string]: any;
-}
-
 interface DashboardData {
     attendanceDetails: AttendanceDetails | null;
     workSchedule: WorkSchedule | null;
-    leaveAnalytics: LeaveAnalytics[];
-    workHourTrends: WorkHourTrends[];
     loading: boolean;
     error: string | null;
     refetch: () => Promise<void>;
@@ -45,8 +35,6 @@ interface AttendanceDataProviderProps {
 export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps) => {
     const [attendanceDetails, setAttendanceDetails] = useState<AttendanceDetails | null>(null);
     const [workSchedule, setWorkSchedule] = useState<WorkSchedule | null>(null);
-    const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytics[]>([]);
-    const [workHourTrends, setWorkHourTrends] = useState<WorkHourTrends[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     
@@ -54,7 +42,6 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
     const hasInitializedRef = useRef(false);
 
     const fetchDashboardData = useCallback(async () => {
-        // Skip if component not mounted
         if (!mountedRef.current) {
             return;
         }
@@ -63,36 +50,27 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
             setLoading(true);
             setError(null);
             
-            console.log('🔄 Requesting dashboard data...');
-            const response = await getAllDashboardData();
+            console.log('📄 Requesting dashboard data...');
             
-            // Only update state if still mounted
+            const [attendance, schedule] = await Promise.all([
+                getAttendanceDetails(),
+                getWorkSchedule()
+            ]);
+            
             if (!mountedRef.current) {
-                console.log('⏭️ Component unmounted, skipping state update');
+                console.log('⏹️ Component unmounted, skipping state update');
                 return;
             }
             
-            if (response.success && response.data) {
-                if (response.data.getMyAttnDetails?.length > 0) {
-                    setAttendanceDetails(response.data.getMyAttnDetails[0]);
-                }
-                
-                if (response.data.WorkSchedule?.length > 0) {
-                    setWorkSchedule(response.data.WorkSchedule[0]);
-                }
-                
-                if (response.data.getLeaveAnalytics) {
-                    setLeaveAnalytics(response.data.getLeaveAnalytics);
-                }
-                
-                if (response.data.WorkHourTrends) {
-                    setWorkHourTrends(response.data.WorkHourTrends);
-                }
-                
-                console.log('✅ Dashboard state updated');
-            } else {
-                console.warn('⚠️ No data returned from API');
+            if (attendance?.success && attendance.data?.length > 0) {
+                setAttendanceDetails(attendance.data[0]);
             }
+            
+            if (schedule?.success && schedule.data?.length > 0) {
+                setWorkSchedule(schedule.data[0]);
+            }
+            
+            console.log('✅ Dashboard state updated');
         } catch (err) {
             console.error('❌ Error in fetchDashboardData:', err);
             if (mountedRef.current) {
@@ -108,7 +86,6 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
     useEffect(() => {
         mountedRef.current = true;
         
-        // Only fetch once on mount
         if (!hasInitializedRef.current) {
             hasInitializedRef.current = true;
             fetchDashboardData();
@@ -117,13 +94,11 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
         return () => {
             mountedRef.current = false;
         };
-    }, []); // Empty deps - runs once
+    }, []);
 
     const value: DashboardData = {
         attendanceDetails,
         workSchedule,
-        leaveAnalytics,
-        workHourTrends,
         loading,
         error,
         refetch: fetchDashboardData

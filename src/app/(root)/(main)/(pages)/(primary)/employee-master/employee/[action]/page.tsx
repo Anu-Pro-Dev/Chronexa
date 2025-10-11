@@ -1,13 +1,16 @@
 "use client";
-import { useParams, useSearchParams } from "next/navigation";
-import EmployeeFormPage from "../EmployeeOnboardingPage";
 
-export default function ScheduleActionPage() {
-  const { action } = useParams<{ action: string }>();
+import { useParams, useSearchParams } from "next/navigation";
+import EmployeeOnboardingPage from "../EmployeeOnboardingPage";
+
+export default function EmployeeActionPage() {
+  const params = useParams();
+  const action = (params as { action?: string })?.action ?? "add";
+
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id") ?? null;
 
   const mode = action === "edit" ? "edit" : "add";
 
-  return <EmployeeFormPage mode={mode} id={id} />;
+  return <EmployeeOnboardingPage mode={mode} id={id} />;
 }

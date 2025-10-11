@@ -10,7 +10,6 @@ import NormalForm from "@/src/components/custom/modules/scheduling/NormalForm";
 import RamadanForm from "@/src/components/custom/modules/scheduling/RamadanForm";
 import PolicyForm from "@/src/components/custom/modules/scheduling/PolicyForm";
 import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
-import { getScheduleByID } from "@/src/lib/apiHandler";
 
 export default function ScheduleAddPage() {
   const { modules, translations } = useLanguage();
@@ -20,7 +19,7 @@ export default function ScheduleAddPage() {
   const [currentPage, setCurrentPage] = useState<string>("normal-schedule");
   const t = translations?.modules?.scheduling || {};
   
-  const mode = "add"; // Always add mode for this page
+  const mode = "add";
   
   const isRamadanEnabled = form.watch("ramadan_flag");
 

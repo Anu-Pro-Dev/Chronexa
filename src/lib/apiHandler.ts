@@ -487,7 +487,7 @@ export const editScheduleRequest = async (data: {
 
 // Function to get a schedules by ID
 export async function getScheduleByID(schedule_id: number) {
-  return apiRequest(`/schedule/get${schedule_id}`, "GET");
+  return apiRequest(`/schedule/get/${schedule_id}`, "GET");
 }
 
 // Function to get a schedules by organization ID
@@ -763,6 +763,11 @@ export const getEmployeeTransactionById = async (data: {
   return apiRequest(`/employeeEventTransaction/employee/${employee_id}`, "GET");
 };
 
+// Function to fetch all roles
+export const getAllRoles = async () => {
+  return apiRequest("/secRole/all", "GET");
+};
+
 // Function to add a new role privilege
 export const addRolePrivilegeRequest = async (data: {
   role_id?: number;
@@ -844,6 +849,17 @@ export const addRoletoUser = async (data: {
   role_id: number;
 }) => {
   return apiRequest("/secUserRole/add", "POST", data);
+}
+
+// Function to update a user to role
+export const editRoletoUser = async (data: {
+  user_role_id?: number;
+  user_id?: number;
+  role_id?: number;
+}) => {
+  const { user_role_id, ...payload } = data;
+
+  return apiRequest(`/secUserRole/edit/${user_role_id}`, "PUT", payload);
 }
 
 // Function to add new a transaction

@@ -1,15 +1,13 @@
 import { apiRequest } from './apiHandler';
 
-// Request cache to prevent duplicate simultaneous requests
 const requestCache = new Map<string, {
   promise: Promise<any>;
   timestamp: number;
 }>();
 
-const CACHE_DURATION = 2000; // 2 seconds cache
-const REQUEST_DEBOUNCE = 500; // 500ms debounce
+const CACHE_DURATION = 2000; 
+const REQUEST_DEBOUNCE = 500;
 
-// Cleanup old cache entries periodically
 setInterval(() => {
   const now = Date.now();
   for (const [key, value] of requestCache.entries()) {
@@ -19,21 +17,15 @@ setInterval(() => {
   }
 }, 5000);
 
-// Wrapper to deduplicate requests
 const deduplicatedRequest = async (key: string, requestFn: () => Promise<any>) => {
   const now = Date.now();
   const cached = requestCache.get(key);
   
-  // If there's a recent request in progress or completed, return it
   if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-    console.log(`🔒 Deduplicated request: ${key}`);
     return cached.promise;
   }
   
-  // Create new request
-  console.log(`🚀 New request: ${key}`);
   const promise = requestFn().finally(() => {
-    // Keep in cache for a short time after completion
     setTimeout(() => {
       const current = requestCache.get(key);
       if (current && current.promise === promise) {
@@ -46,7 +38,6 @@ const deduplicatedRequest = async (key: string, requestFn: () => Promise<any>) =
   return promise;
 };
 
-// Functions for dashboard - separate endpoints
 export const getAttendanceDetails = async () => {
   return deduplicatedRequest('attendance', () => 
     apiRequest('/dashboard/attendance', "GET")
@@ -75,57 +66,40 @@ export const getWorkHourTrends = async (month?: string) => {
   );
 };
 
-// Global lock for getAllDashboardData
 let dashboardFetchPromise: Promise<any> | null = null;
 let dashboardFetchTimestamp = 0;
 
-// Helper function to fetch all dashboard data
 export const getAllDashboardData = async () => {
   const now = Date.now();
   
-  // If there's a recent fetch in progress, return it
   if (dashboardFetchPromise && (now - dashboardFetchTimestamp) < CACHE_DURATION) {
-    console.log('🔒 Dashboard fetch already in progress, returning existing promise');
     return dashboardFetchPromise;
   }
   
-  console.log('🚀 Starting new dashboard fetch...');
   dashboardFetchTimestamp = now;
   
   dashboardFetchPromise = (async () => {
     try {    
-      const [attendance, schedule, leaves, workHours] = await Promise.all([
+      const [attendance, schedule] = await Promise.all([
         getAttendanceDetails(),
-        getWorkSchedule(),
-        getLeaveAnalytics(),
-        getWorkHourTrends()
+        getWorkSchedule()
       ]);
-      
-      console.log('✅ Dashboard data fetched:', {
-        attendance: attendance?.success,
-        schedule: schedule?.success,
-        leaves: leaves?.success,
-        workHours: workHours?.success
-      });
-      
+    
       return {
         success: true,
         data: {
           getMyAttnDetails: attendance?.success ? attendance.data : [],
-          WorkSchedule: schedule?.success ? schedule.data : [],
-          getLeaveAnalytics: leaves?.success ? leaves.data : [],
-          WorkHourTrends: workHours?.success ? workHours.data : []
+          WorkSchedule: schedule?.success ? schedule.data : []
         }
       };
     } catch (error) {
-      console.error('❌ Error fetching dashboard data:', error);
+      console.error('Error fetching dashboard data:', error);
       return {
         success: false,
         data: null,
         error: 'Failed to fetch dashboard data'
       };
     } finally {
-      // Clear the promise after a delay
       setTimeout(() => {
         dashboardFetchPromise = null;
       }, CACHE_DURATION);
@@ -135,9 +109,8 @@ export const getAllDashboardData = async () => {
   return dashboardFetchPromise;
 };
 
-// Optional: Manual cache clearing function
 export const clearDashboardCache = () => {
-  console.log('🧹 Clearing dashboard cache');
+  console.log('Clearing dashboard cache');
   dashboardFetchPromise = null;
   dashboardFetchTimestamp = 0;
   requestCache.clear();

@@ -21,7 +21,7 @@ export default function ScheduleEditPage() {
   const [currentPage, setCurrentPage] = useState<string>("normal-schedule");
   const t = translations?.modules?.scheduling || {};
   
-  const mode = "edit"; // Always edit mode for this page
+  const mode = "edit";
   const id = searchParams.get("id");
   
   const isRamadanEnabled = form.watch("ramadan_flag");
@@ -39,7 +39,6 @@ export default function ScheduleEditPage() {
         if (schedule) {
           form.setValue("organization_id", schedule.organization_id);
           form.setValue("schedule_location", schedule.schedule_location);
-          // Load other fields as needed
         }
       });
     }

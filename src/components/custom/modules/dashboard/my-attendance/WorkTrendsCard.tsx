@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { useAttendanceData } from "../my-attendance/AttendanceData";
+import { getWorkHourTrends } from "@/src/lib/dashboardApiHandler";
 
 const colorMapping = {
   worked: "#0078D4",
@@ -49,11 +49,35 @@ function WorkTrendsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
   
-  // Get data from context instead of fetching separately
-  const { workHourTrends, loading } = useAttendanceData();
-  
   const currentMonth = new Date().getMonth() + 1; 
+  const currentYear = new Date().getFullYear();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
+  const [workHourTrends, setWorkHourTrends] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMonthData = async () => {
+      setLoading(true);
+      try {        
+        const response = await getWorkHourTrends(selectedMonth.toString());
+        
+        if (response?.success && response?.data) {
+          console.log('Received data:', response.data);
+          setWorkHourTrends(response.data);
+        } else {
+          console.warn('No data received');
+          setWorkHourTrends([]);
+        }
+      } catch (error) {
+        console.error('Error fetching work hour trends:', error);
+        setWorkHourTrends([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMonthData();
+  }, [selectedMonth, currentYear]);
 
   const monthKeys = [
     "january", "february", "march", "april", "may", "june",
@@ -67,22 +91,12 @@ function WorkTrendsCard() {
   const chartDataToRender = useMemo(() => {
     if (!workHourTrends?.length) return [];
 
-    // Filter data for selected month
-    const filteredData = workHourTrends.filter(item => {
-      if (!item.Date) return false;
-      const itemDate = new Date(item.Date);
-      return itemDate.getMonth() + 1 === selectedMonth;
-    });
-
-    if (filteredData.length === 0) return [];
-
-    const currentYear = new Date().getFullYear();
     const daysInMonth = new Date(currentYear, selectedMonth, 0).getDate();
 
     const data = Array.from({ length: daysInMonth }, (_, i) => {
       const dayNumber = i + 1;
       
-      const dayData = filteredData.find(item => item.DayofDate === dayNumber);
+      const dayData = workHourTrends.find(item => item.DayofDate === dayNumber);
       
       if (!dayData || dayData.ExpectedWork === null || dayData.ExpectedWork === 0) {
         return {
@@ -99,23 +113,23 @@ function WorkTrendsCard() {
       
       return {
         date: dayNumber.toString(),
-        worked: workedHours,
-        missed: missedHours,
-        expected: expectedHours,
+        worked: Number(workedHours.toFixed(2)),
+        missed: Number(missedHours.toFixed(2)),
+        expected: Number(expectedHours.toFixed(2)),
       };
     });
 
     return data;
-  }, [workHourTrends, selectedMonth]);
+  }, [workHourTrends, selectedMonth, currentYear]);
 
   const chartDataFinal = dir === "rtl" ? [...chartDataToRender].reverse() : chartDataToRender;
 
   const maxExpectedHours = Math.max(
     ...chartDataToRender.map(d => d.expected),
-    0 // Fallback to 0 if no data
+    0
   );
 
-  const yAxisMax = Math.ceil(maxExpectedHours) || 10; // Default to 10 if 0
+  const yAxisMax = Math.ceil(maxExpectedHours) || 10;
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4">

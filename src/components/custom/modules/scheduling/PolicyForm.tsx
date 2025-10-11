@@ -56,7 +56,7 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
     mutationFn: addScheduleRequest,
     onSuccess: () => {
       setLoading(false);
-      showToast("success", "data_saved");
+      showToast("success", "addschedule_success");
       clearSelectedRowData();
       router.push("/scheduling/schedules/");
     },
@@ -71,7 +71,7 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
     mutationFn: editScheduleRequest,
     onSuccess: () => {
       setLoading(false);
-      showToast("success", "data_saved");
+      showToast("success", "updateschedule_success");
       clearSelectedRowData();
       router.push("/scheduling/schedules/");
     },

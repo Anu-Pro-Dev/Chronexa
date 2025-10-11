@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { useLanguage } from "@/src/providers/LanguageProvider";
 import { z } from "zod";
+import { useLanguage } from "@/src/providers/LanguageProvider";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerMultiStepCard from "@/src/components/custom/power-comps/power-multi-step-card";
-
 import { usePersonalForm, personalFormSchema } from "@/src/components/custom/modules/employee-master/hooks/usePersonalForm";
 import { useCredentialsForm, credentialsFormSchema } from "@/src/components/custom/modules/employee-master/hooks/useCredentialsForm";
 import { useOfficialForm, officialFormSchema } from "@/src/components/custom/modules/employee-master/hooks/useOfficialForm";
@@ -23,20 +22,20 @@ import {
   editEmployeeRequest,
   addSecUserRequest,
   getSecUserByEmployeeId,
+  getAllRoles,
+  addRoletoUser,
 } from "@/src/lib/apiHandler";
 
 import { useEmployeeEditStore } from "@/src/stores/employeeEditStore";
 import { useShowToast } from "@/src/utils/toastHelper";
 
-type EmployeeData =
-  z.infer<typeof personalFormSchema> &
+type EmployeeData = z.infer<typeof personalFormSchema> &
   z.infer<typeof credentialsFormSchema> &
   z.infer<typeof officialFormSchema> &
   z.infer<typeof flagsFormSchema>;
 
-const transformDatesForAPI = (data: any, language: any) => {
+const transformDatesForAPI = (data: any, language: string) => {
   const transformed = { ...data };
-
   if (data.firstname && data.lastname) {
     if (language === "en") {
       transformed.firstname_eng = data.firstname;
@@ -45,20 +44,25 @@ const transformDatesForAPI = (data: any, language: any) => {
       transformed.firstname_arb = data.firstname;
       transformed.lastname_arb = data.lastname;
     }
-    
     delete transformed.firstname;
     delete transformed.lastname;
   }
-
   return transformed;
 };
 
-export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "edit"; id?: string | null }) {  
+export default function EmployeeOnboardingPage({
+  mode,
+  id,
+}: {
+  mode: "add" | "edit";
+  id?: string | null;
+}) {
   const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const showToast = useShowToast();
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState("personal-form");
+  const [rolesCache, setRolesCache] = useState<any[]>([]);
 
   const { form: personalForm, schema: personalSchema } = usePersonalForm();
   const { form: credentialsForm, schema: credentialsSchema } = useCredentialsForm();
@@ -67,6 +71,18 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
 
   const selectedRowData = useEmployeeEditStore((state) => state.selectedRowData);
   const clearSelectedRowData = useEmployeeEditStore((state) => state.clearSelectedRowData);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const rolesRes = await getAllRoles();
+        setRolesCache(rolesRes?.data || rolesRes || []);
+      } catch (err) {
+        console.error("Failed to preload roles:", err);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const resetAllForms = () => {
     personalForm.reset();
@@ -77,24 +93,33 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
   };
 
   useEffect(() => {
-    if (!selectedRowData) {
+    if (mode === "add") {
+      clearSelectedRowData();
+      resetAllForms();
+    } else if (mode === "edit" && !id) {
       clearSelectedRowData();
       resetAllForms();
     }
-  }, []);
+  }, [mode, id]);
 
   useEffect(() => {
-    if (selectedRowData) {
-      const convertToDate = (val: any) =>
-        val && typeof val === "string" ? new Date(val) : val;
+    if (mode === "add") return;
 
-      const firstName = language === "en" 
-        ? selectedRowData.firstname_eng || selectedRowData.firstname_arb || ""
-        : selectedRowData.firstname_arb || selectedRowData.firstname_eng || "";
-      
-      const lastName = language === "en" 
-        ? selectedRowData.lastname_eng || selectedRowData.lastname_arb || ""
-        : selectedRowData.lastname_arb || selectedRowData.lastname_eng || "";
+    if (selectedRowData) {
+      const convertToDate = (val: string | Date | null | undefined): Date | undefined => {
+        if (!val) return undefined;
+        const date = typeof val === "string" ? new Date(val) : val;
+        return date instanceof Date && !isNaN(date.getTime()) ? date : undefined;
+      };
+
+      const firstName =
+        language === "en"
+          ? selectedRowData.firstname_eng || selectedRowData.firstname_arb || ""
+          : selectedRowData.firstname_arb || selectedRowData.firstname_eng || "";
+      const lastName =
+        language === "en"
+          ? selectedRowData.lastname_eng || selectedRowData.lastname_arb || ""
+          : selectedRowData.lastname_arb || selectedRowData.lastname_eng || "";
 
       personalForm.reset({
         emp_no: selectedRowData.emp_no ?? "",
@@ -134,7 +159,8 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
         inpayroll_flag: selectedRowData.inpayroll_flag ?? false,
         email_notification_flag: selectedRowData.email_notification_flag ?? false,
         open_shift_flag: selectedRowData.open_shift_flag ?? false,
-        calculate_monthly_missed_hrs_flag: selectedRowData.calculate_monthly_missed_hrs_flag ?? false,
+        calculate_monthly_missed_hrs_flag:
+          selectedRowData.calculate_monthly_missed_hrs_flag ?? false,
         exclude_from_integration_flag: selectedRowData.exclude_from_integration_flag ?? false,
         shift_flag: selectedRowData.shift_flag ?? false,
         on_reports_flag: selectedRowData.on_reports_flag ?? true,
@@ -155,40 +181,42 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
               password: res.data.password || "p@ssw0rd",
             });
           })
-          .catch(() => {
+          .catch(() =>
             credentialsForm.reset({
               username: "",
               password: "",
-            });
-          });
-      } else {
-        credentialsForm.reset({
-          username: "",
-          password: "",
-        });
+            })
+          );
       }
     } else {
       resetAllForms();
-      clearSelectedRowData();
     }
-  }, [selectedRowData, language]); 
+  }, [selectedRowData, language, mode]);
 
   const createEmployeeWithCredentials = async (data: EmployeeData) => {
     const transformed = transformDatesForAPI(data, language);
+
     const employeeResponse = await addEmployeeRequest(transformed);
     const employee_id = employeeResponse?.data?.employee_id;
-
     if (!employee_id) throw new Error("Employee ID not returned");
 
-    const login = data.username;
-    const password = data.password;
-
+    const { username: login, password } = data;
     if (!login || !password) throw new Error("Missing credentials");
 
-    await addSecUserRequest({ employee_id, login, password });
+    const secUserRes = await addSecUserRequest({ employee_id, login, password });
+    const user_id = secUserRes?.data?.user_id;
+    if (!user_id) throw new Error("User ID not returned from SecUser creation");
+
+    const managerFlag = data.manager_flag;
+    const roleName = managerFlag ? "MANAGER" : "EMPLOYEE";
+    const matchedRole = rolesCache.find((r: any) => r.role_name === roleName);
+
+    if (!matchedRole?.role_id) throw new Error(`Role '${roleName}' not found`);
+
+    await addRoletoUser({ user_id, role_id: matchedRole.role_id });
 
     return employeeResponse;
-  }
+  };
 
   const addMutation = useMutation({
     mutationFn: createEmployeeWithCredentials,
@@ -201,7 +229,7 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
     },
     onError: (error) => {
       setLoading(false);
-      console.error("Submission Error:", error);
+      console.error("Add Error:", error);
       showToast("error", "formsubmission_error");
     },
   });
@@ -217,79 +245,24 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
     },
     onError: (error) => {
       setLoading(false);
-      clearSelectedRowData();
-      console.error("Submission Error:", error);
+      console.error("Edit Error:", error);
       showToast("error", "employee_update_failed");
     },
   });
 
-  const extractErrorsFromForm = (form: any, formLabel: string) => {
-    const errs = form.formState?.errors || {};
+  const extractErrorsFromForm = (form: any, label: string) => {
+    const errs = form.formState.errors || {};
     const messages: string[] = [];
-
     const traverse = (obj: any, path = "") => {
       for (const key in obj) {
-        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
         const val = obj[key];
         const newPath = path ? `${path}.${key}` : key;
-        if (val?.message) {
-          messages.push(`${formLabel}: ${newPath} — ${String(val.message)}`);
-        } else if (typeof val === "object") {
-          traverse(val, newPath);
-        }
+        if (val?.message) messages.push(`${label}: ${newPath} — ${val.message}`);
+        else if (typeof val === "object") traverse(val, newPath);
       }
     };
-
     traverse(errs);
     return messages;
-  };
-
-  const validateCurrentForm = async () => {
-    const isEdit = !!selectedRowData?.employee_id;
-    let isValid = false;
-
-    switch (activeStep) {
-      case "personal-form":
-        isValid = await personalForm.trigger();
-        if (!isValid) {
-          const msgs = extractErrorsFromForm(personalForm, "Personal");
-          showToast("error", "validation_error", msgs.slice(0, 3).join(" | ") || undefined);
-        }
-        break;
-
-      case "credentials-form":
-        if (isEdit) {
-          isValid = true;
-        } else {
-          isValid = await credentialsForm.trigger();
-          if (!isValid) {
-            const msgs = extractErrorsFromForm(credentialsForm, "Credentials");
-            showToast("error", "validation_error", msgs.slice(0, 3).join(" | ") || undefined);
-          }
-        }
-        break;
-
-      case "official-form":
-        isValid = await officialForm.trigger();
-        if (!isValid) {
-          const msgs = extractErrorsFromForm(officialForm, "Official");
-          showToast("error", "validation_error", msgs.slice(0, 3).join(" | ") || undefined);
-        }
-        break;
-
-      case "flags-form":
-        isValid = await flagsForm.trigger();
-        if (!isValid) {
-          const msgs = extractErrorsFromForm(flagsForm, "Flags");
-          showToast("error", "validation_error", msgs.slice(0, 3).join(" | ") || undefined);
-        }
-        break;
-
-      default:
-        isValid = true;
-    }
-
-    return isValid;
   };
 
   const handleFinalSubmit = async () => {
@@ -302,43 +275,51 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
     const credentialsValid = isEdit ? true : await credentialsForm.trigger();
 
     const isValid = personalValid && officialValid && flagsValid && credentialsValid;
-
+    
     if (!isValid) {
-      const messages: string[] = [];
-      if (!personalValid) messages.push(...extractErrorsFromForm(personalForm, "Personal"));
-      if (!officialValid) messages.push(...extractErrorsFromForm(officialForm, "Official"));
-      if (!flagsValid) messages.push(...extractErrorsFromForm(flagsForm, "Flags"));
-      if (!isEdit && !credentialsValid) messages.push(...extractErrorsFromForm(credentialsForm, "Credentials"));
-
-      const toShow = messages.length ? messages.slice(0, 5).join(" | ") : undefined;
-      showToast("error", "validation_error", toShow);
+      showToast("error", "validation_error", "Please fix highlighted fields.");
       setLoading(false);
       return;
     }
 
-    const personalData = personalForm.getValues();
-    const credentialsData = credentialsForm.getValues();
-    const officialData = officialForm.getValues();
-    const flagsData = flagsForm.getValues();
-
-    let combined = {
-      ...personalData,
-      ...credentialsData,
-      ...officialData,
-      ...flagsData,
+    const combinedData = {
+      ...personalForm.getValues(),
+      ...credentialsForm.getValues(),
+      ...officialForm.getValues(),
+      ...flagsForm.getValues(),
     };
 
-    combined = transformDatesForAPI(combined, language);
+    const transformed = transformDatesForAPI(combinedData, language);
 
-    if (selectedRowData?.employee_id) {
-      const { username, password, ...rest } = combined;
+    const cleanPayload = Object.fromEntries(
+      Object.entries(transformed)
+        .filter(([_, value]) => value !== undefined && value !== null && value !== "")
+        .map(([key, value]) => {
+          if (
+            ["join_date", "active_date", "inactive_date", "passport_expiry_date", "national_id_expiry_date"].includes(key)
+          ) {
+            if (value instanceof Date && !isNaN(value.getTime())) {
+              return [key, value];
+            }
+            return null; // skip invalid dates
+          }
+          return [key, value];
+        })
+        .filter(Boolean) as [string, any][]
+    );
 
-      editMutation.mutate({
-        employee_id: selectedRowData.employee_id,
-        ...rest,
-      });
+    if (isEdit) {
+      if (selectedRowData?.employee_id !== undefined) {
+        const { username, password, ...rest } = cleanPayload;
+        editMutation.mutate({
+          employee_id: selectedRowData.employee_id,
+          ...rest,
+        });
+      } else {
+        showToast("error", "missing_employee_id");
+      }
     } else {
-      addMutation.mutate(combined);
+      addMutation.mutate(cleanPayload as EmployeeData);
     }
   };
 
@@ -346,7 +327,6 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
     {
       title: translations?.modules?.employeeMaster?.personal || "Personal",
       state_route: "personal-form",
-      disable: false,
       component: (
         <PersonalForm
           Page={activeStep}
@@ -359,7 +339,6 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
     {
       title: translations?.modules?.employeeMaster?.credentials || "Credentials",
       state_route: "credentials-form",
-      disable: false,
       component: (
         <CredentialsForm
           Page={activeStep}
@@ -373,7 +352,6 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
     {
       title: translations?.modules?.employeeMaster?.official || "Official",
       state_route: "official-form",
-      disable: false,
       component: (
         <OfficialForm
           Page={activeStep}
@@ -386,7 +364,6 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
     {
       title: translations?.modules?.employeeMaster?.flags || "Flags",
       state_route: "flags-form",
-      disable: false,
       component: (
         <FlagsForm
           flagForm={flagsForm}
@@ -401,12 +378,14 @@ export default function EmployeeOnboardingPage({ mode, id }: { mode: "add" | "ed
 
   return (
     <div className="flex flex-col gap-4">
-      <PowerHeader items={modules?.employeeMaster.items} disableFeatures modal_title="Employee" />
-
+      <PowerHeader
+        items={modules?.employeeMaster.items}
+        disableFeatures
+        modal_title="Employee"
+      />
       <PowerMultiStepCard
         SetPage={setActiveStep}
         Page={activeStep}
-        validateCurrentForm={validateCurrentForm}
         Pages={Pages}
       />
     </div>

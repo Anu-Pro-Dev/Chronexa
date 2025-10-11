@@ -9,18 +9,43 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { useAttendanceData } from "../my-attendance/AttendanceData";
-import { useMemo, useState } from "react";
+import { getLeaveAnalytics } from "@/src/lib/dashboardApiHandler";
+import { useMemo, useState, useEffect } from "react";
 
 function LeaveAnalyticsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
   
-  // Get data from context instead of fetching separately
-  const { leaveAnalytics, loading } = useAttendanceData();
-  
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [leaveAnalytics, setLeaveAnalytics] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchYearData = async () => {
+      setLoading(true);
+      try {
+        console.log('Fetching leave analytics for year:', selectedYear);
+        
+        const response = await getLeaveAnalytics(selectedYear);
+        
+        if (response?.success && response?.data) {
+          console.log('Received leave analytics:', response.data);
+          setLeaveAnalytics(response.data);
+        } else {
+          console.warn('No leave analytics data received');
+          setLeaveAnalytics([]);
+        }
+      } catch (error) {
+        console.error('Error fetching leave analytics:', error);
+        setLeaveAnalytics([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchYearData();
+  }, [selectedYear]);
 
   const monthNames = [
     translations.january || "January",
@@ -41,7 +66,6 @@ function LeaveAnalyticsCard() {
     const data = monthNames.map((monthName, index) => {
       const monthNumber = index + 1;
       
-      // Filter data for selected year
       const monthData = leaveAnalytics.find(
         (item) => item.LVMonth === monthNumber && item.LeaveYear === selectedYear
       );
@@ -67,16 +91,13 @@ function LeaveAnalyticsCard() {
     },
   };
 
-  // Generate available years from the data
   const years = useMemo(() => {
     if (!leaveAnalytics?.length) {
-      // Default to last 5 years if no data
       return Array.from({ length: 5 }, (_, i) => currentYear - i);
     }
     
-    // Get unique years from the data
     const uniqueYears = [...new Set(leaveAnalytics.map(item => item.LeaveYear))];
-    return uniqueYears.sort((a, b) => b - a); // Sort descending
+    return uniqueYears.sort((a, b) => b - a);
   }, [leaveAnalytics, currentYear]);
 
   return (

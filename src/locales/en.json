@@ -800,7 +800,10 @@
       "addappsetting_success": "App Setting added successfully!",
       "updateappsetting_success": "App Setting updated successfully!",
       "test_email_sent": "Test email sent! Please check your inbox.",
-      "test_email_failed": "Failed to send test email. Please check your settings."
+      "test_email_failed": "Failed to send test email. Please check your settings.",
+      "addschedule_success": "Schedule added successfully!",
+      "updateschedule_success": "Schedule updated successfully!",
+      "missing_employee_id": "Employee ID is missing for editing."
     },
     "formErrors": {
       "location_code_required": "Location code is required.",

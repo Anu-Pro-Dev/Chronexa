@@ -527,7 +527,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      <FormLabel htmlFor="ramadan_flag" className="text-sm font-semibold">{t.ramadan_name || "Ramadan Schedule"}</FormLabel>
+                      <FormLabel htmlFor="ramadan_flag" className="text-sm font-semibold">{t.ramadan_dates || "Ramadan Dates"}</FormLabel>
                     </div>
                   </FormControl>
                 </FormItem>
