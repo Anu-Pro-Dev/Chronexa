@@ -18,8 +18,6 @@ export function useRBAC() {
     return role?.role_id ?? null;
   }, [rolesData, userRole]);
 
-  console.log("Determined roleId:", roleId);
-
   const {
     data: rolePrivilegesData,
     isLoading: rolePrivilegesLoading,

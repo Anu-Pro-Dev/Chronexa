@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 import { apiRequest } from "@/src/lib/apiHandler";
+import { formatInTimeZone } from "date-fns-tz";
 
 interface PDFExporterProps {
   formValues: any;
@@ -135,22 +136,20 @@ export class PDFExporter {
   private formatCellValue(header: string, value: any): string {
     if (header === 'transdate' && value) {
       try {
-        const date = new Date(value);
-        return format(date, 'dd-MM-yyyy');
+        return formatInTimeZone(value, 'UTC', 'dd-MM-yyyy');
       } catch {
         return value;
       }
     }
-    
+
     if ((header === 'punch_in' || header === 'punch_out') && value) {
       try {
-        const date = new Date(value);
-        return format(date, 'HH:mm:ss');
+        return formatInTimeZone(value, 'UTC', 'HH:mm:ss');
       } catch {
         return value;
       }
     }
-    
+
     return value || '';
   }
 
