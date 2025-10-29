@@ -110,7 +110,6 @@ export const getAllDashboardData = async () => {
 };
 
 export const clearDashboardCache = () => {
-  console.log('Clearing dashboard cache');
   dashboardFetchPromise = null;
   dashboardFetchTimestamp = 0;
   requestCache.clear();

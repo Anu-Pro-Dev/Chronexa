@@ -89,7 +89,7 @@ body {
     /* Charts Color */
     --chart-leaves: 206 100% 89%;
     --chart-absent: 206 100% 42%;
-    
+    --fullpage: #fff;
   }
 
   /* Dark mode styles */
@@ -103,6 +103,7 @@ body {
     --text-secondary: #9ba9d2;
     --card: #23272e;
     --card-foreground: #fff;
+    --fullpage: #121212;
     /* Add more overrides as needed */
   }
 

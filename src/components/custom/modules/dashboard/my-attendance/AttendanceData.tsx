@@ -48,17 +48,13 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
 
         try {
             setLoading(true);
-            setError(null);
-            
-            console.log('📄 Requesting dashboard data...');
-            
+            setError(null);            
             const [attendance, schedule] = await Promise.all([
                 getAttendanceDetails(),
                 getWorkSchedule()
             ]);
             
             if (!mountedRef.current) {
-                console.log('⏹️ Component unmounted, skipping state update');
                 return;
             }
             
@@ -70,9 +66,8 @@ export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps
                 setWorkSchedule(schedule.data[0]);
             }
             
-            console.log('✅ Dashboard state updated');
         } catch (err) {
-            console.error('❌ Error in fetchDashboardData:', err);
+            console.error('Error in fetchDashboardData:', err);
             if (mountedRef.current) {
                 setError('Failed to fetch dashboard data');
             }

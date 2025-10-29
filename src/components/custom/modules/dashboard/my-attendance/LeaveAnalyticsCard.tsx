@@ -24,13 +24,10 @@ function LeaveAnalyticsCard() {
   useEffect(() => {
     const fetchYearData = async () => {
       setLoading(true);
-      try {
-        console.log('Fetching leave analytics for year:', selectedYear);
-        
+      try {        
         const response = await getLeaveAnalytics(selectedYear);
         
         if (response?.success && response?.data) {
-          console.log('Received leave analytics:', response.data);
           setLeaveAnalytics(response.data);
         } else {
           console.warn('No leave analytics data received');

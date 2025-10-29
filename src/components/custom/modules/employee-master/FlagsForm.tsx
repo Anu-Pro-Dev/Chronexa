@@ -65,7 +65,6 @@ export default function FlagsForm({
     ["local_user_flag", "Local user"],
   ];
 
-  // Helper function to convert various truthy values to boolean
   const toBoolean = (value: any): boolean => {
     if (typeof value === "boolean") return value;
     if (typeof value === "number") return value === 1;

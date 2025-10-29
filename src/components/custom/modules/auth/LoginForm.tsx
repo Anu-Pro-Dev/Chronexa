@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z }from "zod";
+import { z } from "zod";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
@@ -22,6 +22,7 @@ import { loginRequest } from "@/src/lib/apiHandler";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import toast from "react-hot-toast";
 import ThreeDotsLoader from "@/src/animations/ThreeDotsLoader";
+import { UserAxiosInstance } from "@/src/lib/axios";
 
 export const useFormSchema = () => {
   const { translations } = useLanguage();
@@ -61,23 +62,23 @@ export default function LoginForm() {
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
       loginRequest(values.username, values.password, values.remember_me),
-      onSuccess: (response) => {
-        if (response?.token) {
-          toast.success(translations?.toastNotifications?.login_success || "Login successful!");
-          router.push("/dashboard");
-        } else {
-          form.setError("username", {
-            type: "manual",
-            message: t.error_login
-          });
-        }
-      },
-      onError: (error: any) => {
+    onSuccess: (response) => {
+      if (response?.token) {
+        toast.success(translations?.toastNotifications?.login_success || "Login successful!");
+        router.push("/dashboard");
+      } else {
         form.setError("username", {
           type: "manual",
           message: t.error_login
         });
-      },
+      }
+    },
+    onError: (error: any) => {
+      form.setError("username", {
+        type: "manual",
+        message: t.error_login
+      });
+    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -91,6 +92,15 @@ export default function LoginForm() {
   const handleForgotPasswordClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setForgotPasswordModalOpen(true);
+  };
+  
+  const handleAdLogin = () => {
+   try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+    window.location.href = `${baseUrl}/auth/azure`;
+  } catch (error) {
+    console.error("Azure AD redirect failed:", error);
+  }
   };
 
   return (
@@ -133,7 +143,7 @@ export default function LoginForm() {
                         type={showPassword ? "text" : "password"}
                         {...field}
                       />
-                    </FormControl>        
+                    </FormControl>
                     <button
                       type="button"
                       tabIndex={-1}
@@ -179,10 +189,10 @@ export default function LoginForm() {
               </button>
             </div>
 
-            <Button 
-              type="submit" 
-              size={"lg"} 
-              className="w-full min-w-[300px] mx-auto mt-4" 
+            <Button
+              type="submit"
+              size={"lg"}
+              className="w-full min-w-[300px] mx-auto mt-2"
               disabled={loginMutation.status === "pending"}
             >
               {loginMutation.status === "pending" ? (
@@ -192,7 +202,34 @@ export default function LoginForm() {
                 </div>
               ) : (
                 translations?.buttons?.login || "Login"
-              )}          
+              )}
+            </Button>
+
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border-grey" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-fullpage px-2 text-muted-foreground">
+                  {t.or || "Or"}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full min-w-[300px] mx-auto"
+              onClick={handleAdLogin}
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0H10.9091V10.9091H0V0Z" fill="#F25022"/>
+                <path d="M12.0909 0H23V10.9091H12.0909V0Z" fill="#7FBA00"/>
+                <path d="M0 12.0909H10.9091V23H0V12.0909Z" fill="#00A4EF"/>
+                <path d="M12.0909 12.0909H23V23H12.0909V12.0909Z" fill="#FFB900"/>
+              </svg>
+              {t.login_with_azure || "Sign in with Azure AD"}
             </Button>
           </div>
         </form>

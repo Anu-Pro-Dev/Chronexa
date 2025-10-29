@@ -301,7 +301,7 @@ export default function EmployeeOnboardingPage({
             if (value instanceof Date && !isNaN(value.getTime())) {
               return [key, value];
             }
-            return null; // skip invalid dates
+            return null;
           }
           return [key, value];
         })

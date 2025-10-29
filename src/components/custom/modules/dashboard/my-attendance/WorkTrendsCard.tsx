@@ -62,7 +62,6 @@ function WorkTrendsCard() {
         const response = await getWorkHourTrends(selectedMonth.toString());
         
         if (response?.success && response?.data) {
-          console.log('Received data:', response.data);
           setWorkHourTrends(response.data);
         } else {
           console.warn('No data received');

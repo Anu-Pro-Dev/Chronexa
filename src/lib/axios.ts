@@ -1,34 +1,7 @@
 import axios from "axios";
+import { getAuthToken, setAuthToken } from "@/src/utils/authToken";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-export const USER_TOKEN = "userToken";
-
-export const getStoredToken = () => {
-  if (typeof window !== "undefined" && window.localStorage) {
-    try {
-      return localStorage.getItem(USER_TOKEN);
-    } catch (error) {
-      console.warn('localStorage not available:', error);
-      return null;
-    }
-  }
-  return null;
-};
-
-export const setAuthToken = (newToken: string | null) => {
-  if (typeof window !== "undefined" && window.localStorage) {
-    try {
-      if (newToken) {
-        localStorage.setItem(USER_TOKEN, newToken);
-      } else {
-        localStorage.removeItem(USER_TOKEN);
-      }
-    } catch (error) {
-      console.warn('localStorage not available:', error);
-    }
-  }
-};
 
 export const PublicAxiosInstance = axios.create({
   baseURL: API_URL,
@@ -55,11 +28,9 @@ export const UserFormAxiosInstance = axios.create({
 });
 
 const authInterceptor = (config: any) => {
-  if (typeof window !== "undefined") {
-    const token = getStoredToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 };
@@ -70,7 +41,7 @@ if (typeof window !== "undefined") {
 
   const authErrorInterceptor = (error: any) => {
     if (error.response?.status === 401 || error.response?.data?.auth === "invalid") {
-      setAuthToken(null);
+      setAuthToken(null, false);
       if (window.location.pathname !== "/") {
         window.location.href = "/";
       }

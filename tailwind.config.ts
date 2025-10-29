@@ -27,6 +27,7 @@ export default {
   				transparent: 'var(--background-transparent)'
   			},
   			foreground: 'var(--foreground)',
+			fullpage: 'var(--fullpage)',
   			accent: 'var(--accent)',
   			primary: {
   				'100': 'var(--primary-100)',
