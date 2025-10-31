@@ -17,7 +17,6 @@ export default function Page() {
     clickable?: boolean;
     onCellClick?: (data: any) => void;
   };
-
   const [columns, setColumns] = useState<Columns[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
