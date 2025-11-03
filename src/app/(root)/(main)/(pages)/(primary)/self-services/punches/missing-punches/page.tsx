@@ -3,7 +3,11 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
@@ -16,7 +20,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/src/animations/hourglass-blue.json";
 import MissingPunchModal from "@/src/components/custom/modules/self-services/MissingPunchModal";
@@ -54,7 +58,7 @@ export default function Page() {
   });
 
   const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }));
+    setPopoverStates((prev) => ({ ...prev, [key]: false }));
   };
   const offset = useMemo(() => {
     return currentPage;
@@ -67,17 +71,17 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { 
-        field: "emp_no", 
+      {
+        field: "emp_no",
         headerName: t.employee_no || "Employee No",
       },
-      { 
-        field: "employee_name", 
+      {
+        field: "employee_name",
         headerName: t.employee_name || "Employee Name",
       },
-      { 
-        field: "transaction_date", 
-        headerName: "Date"
+      {
+        field: "transaction_date",
+        headerName: "Date",
       },
       {
         field: "transaction_time",
@@ -90,119 +94,153 @@ export default function Page() {
       {
         field: "remarks",
         headerName: "Applied In",
-        clickable: true, 
-        onCellClick: handleCellClick 
+        clickable: true,
+        onCellClick: handleCellClick,
       },
       {
         field: "reason",
-        headerName: "Staus"
+        headerName: "Staus",
       },
       {
         field: "remarks",
         headerName: "Applied Out",
-        clickable: true, 
-        onCellClick: handleCellClick 
+        clickable: true,
+        onCellClick: handleCellClick,
       },
       {
         field: "reason",
-        headerName: "Staus"
-      }
+        headerName: "Staus",
+      },
     ]);
   }, [language, t]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
-  const { data: punchesData, isLoading: isLoadingTransactions, error, refetch } = useFetchAllEntity(
-    "employeeEventTransaction", 
-    {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(fromDate && { startDate: formatDateForAPI(fromDate) }),
-        ...(toDate && { endDate: formatDateForAPI(toDate) }),
-        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeEventTransaction/all`,
-    }
-  );
+  const {
+    data: punchesData,
+    isLoading: isLoadingTransactions,
+    error,
+    refetch,
+  } = useFetchAllEntity("missing-movements", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(fromDate && { startDate: formatDateForAPI(fromDate) }),
+      ...(toDate && { endDate: formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+      ...(employeeId !== undefined && { employeeId: String(employeeId) }), // <--- stringify here
+    },
+    enabled: !!employeeId && isAuthenticated && !isChecking,
+    endpoint: `/missing-movements/all`,
+  });
 
   const getEmployeeName = (transaction: any) => {
-    if (userInfo && transaction.employee_id === employeeId) {
-      const name = language === "ar" 
-        ? `${userInfo.employeename?.firstarb || ""}`.trim()
-        : `${userInfo.employeename?.firsteng || ""}`.trim();
-      
+    const txEmployeeId = transaction.employee_id ?? transaction.Employee_Id;
+
+    if (userInfo && txEmployeeId === employeeId) {
+      const name =
+        language === "ar"
+          ? `${userInfo.employeename?.firstarb || ""}`.trim()
+          : `${userInfo.employeename?.firsteng || ""}`.trim();
+
       if (name) return name;
     }
-    
+
     const employee = transaction.employee_master;
-    
-    if (!employee) {
-      return `Emp ${transaction.employee_id}`;
+
+    if (employee) {
+      const fullName =
+        language === "ar"
+          ? `${employee.firstname_arb || ""} ${
+              employee.lastname_arb || ""
+            }`.trim()
+          : `${employee.firstname_eng || ""} ${
+              employee.lastname_eng || ""
+            }`.trim();
+
+      if (fullName) return fullName;
     }
-    
-    const fullName = language === "ar"
-      ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
-      : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
-    
-    return fullName || `Emp ${transaction.employee_id}`;
+
+    return `Emp ${txEmployeeId ?? "-"}`;
   };
 
   const data = useMemo(() => {
-    if (Array.isArray(punchesData?.data)) {
-      const filteredData = punchesData.data.filter((transaction: any) => 
-        transaction.employee_id !== employeeId
-      );
+    console.log("punchesData", punchesData);
+    if (!Array.isArray(punchesData?.data)) return [];
 
-      const processedData = filteredData.map((transaction: any) => {
-        const transactionTimeStr = transaction.transaction_time;
-        
-        let formattedTime = '';
-        let formattedDate = '';
-        
-        if (transactionTimeStr) {
-          const date = new Date(transactionTimeStr);
-          formattedTime = date.toISOString().substr(11, 8);
-          formattedDate = date.toISOString().substr(0, 10);
-        }
+    const filteredData = punchesData.data; 
 
-        return {
-          ...transaction,
-          id: transaction.transaction_id,
-          emp_no: transaction.employee_master?.emp_no || `EMP${transaction.employee_id}`,
-          employee_name: getEmployeeName(transaction),
-          transaction_date: formattedDate,
-          transaction_time: formattedTime,
-          remarks: "Apply",
-        };
-      });
+    const processedData = filteredData.map((transaction: any) => {
+      const id =
+        transaction.transaction_id ?? transaction.Emp_Missing_Movements_Id;
+      const txEmployeeId = transaction.employee_id ?? transaction.Employee_Id;
+      let formattedDate = "";
+      const dateSource = transaction.transaction_date ?? transaction.TransDate;
+      if (dateSource) {
+        const d = new Date(dateSource);
+        if (!isNaN(d.getTime())) formattedDate = d.toISOString().substr(0, 10);
+      }
+      let formattedTime = "";
+      const timeSource =
+        transaction.transaction_time ??
+        transaction.Trans_IN ??
+        transaction.Trans_OUT;
+      if (timeSource) {
+        const t = new Date(timeSource);
+        if (!isNaN(t.getTime())) formattedTime = t.toISOString().substr(11, 8);
+        else if (typeof timeSource === "string") formattedTime = timeSource;
+      }
 
-      return processedData;
-    }
-    return [];
+      const empNo =
+        transaction.employee_master?.emp_no ||
+        transaction.emp_no ||
+        `EMP${txEmployeeId}`;
+      const normalized = {
+        ...transaction,
+        id,
+        employee_id: txEmployeeId,
+        Employee_Id: txEmployeeId,
+        emp_no: empNo,
+        transaction_date: formattedDate,
+        transaction_time: formattedTime,
+      };
+
+      return {
+        ...normalized,
+        employee_name: getEmployeeName(normalized),
+        remarks: "Apply",
+      };
+    });
+
+    return processedData;
   }, [punchesData, language, userInfo, employeeId, error]);
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setCurrentPage(newPage);
+      if (refetch) {
+        setTimeout(() => refetch(), 100);
+      }
+    },
+    [refetch]
+  );
 
-  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1);
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
+  const handleRowsPerPageChange = useCallback(
+    (newRowsPerPage: number) => {
+      setRowsPerPage(newRowsPerPage);
+      setCurrentPage(1);
+      if (refetch) {
+        setTimeout(() => refetch(), 100);
+      }
+    },
+    [refetch]
+  );
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -226,11 +264,12 @@ export default function Page() {
     handleFilterChange();
   };
 
-  const handleEmployeeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEmployeeFilterChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setEmployeeFilter(event.target.value);
     setCurrentPage(1);
   };
-  
   const props = {
     Data: data,
     Columns: columns,
@@ -256,22 +295,24 @@ export default function Page() {
   };
 
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction", employeeId] });
+    queryClient.invalidateQueries({
+      queryKey: ["employeeEventTransaction", employeeId],
+    });
   };
- 
+
   const handleEditClick = (rowData: any) => {
     try {
       const editData = {
         ...rowData,
       };
-      
-      sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
+
+      sessionStorage.setItem("editTransactionsData", JSON.stringify(editData));
     } catch (error) {
       console.error("Error setting edit data:", error);
       toast.error("Failed to load transaction data for editing");
     }
   };
- 
+
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -280,7 +321,7 @@ export default function Page() {
     if (isChecking) {
       return (
         <div className="flex justify-center items-center p-8">
-          <div style={{ width: 50}}>
+          <div style={{ width: 50 }}>
             <Lottie animationData={loadingAnimation} loop={true} />
           </div>
         </div>
@@ -333,17 +374,26 @@ export default function Page() {
           </div>
         </div>
         <div>
-          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, fromDate: open }))
+            }
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button
+                size={"lg"}
+                variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     {t.from_date || "From Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
-                    {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  <span className="px-1 text-sm text-text-primary">
+                    {fromDate
+                      ? format(fromDate, "dd/MM/yy")
+                      : t.placeholder_date || "Choose date"}
                   </span>
                 </p>
                 <CalendarIcon />
@@ -355,36 +405,45 @@ export default function Page() {
                 selected={fromDate}
                 onSelect={(date) => {
                   handleFromDateChange(date);
-                  closePopover('fromDate');
+                  closePopover("fromDate");
                 }}
               />
             </PopoverContent>
           </Popover>
         </div>
         <div>
-          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, toDate: open }))
+            }
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button
+                size={"lg"}
+                variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     {t.to_date || "To Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
-                    {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  <span className="px-1 text-sm text-text-primary">
+                    {toDate
+                      ? format(toDate, "dd/MM/yy")
+                      : t.placeholder_date || "Choose date"}
                   </span>
                 </p>
                 <CalendarIcon />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar 
-                mode="single" 
-                selected={toDate} 
+              <Calendar
+                mode="single"
+                selected={toDate}
                 onSelect={(date) => {
                   handleToDateChange(date);
-                  closePopover('toDate');
+                  closePopover("toDate");
                 }}
               />
             </PopoverContent>
@@ -393,7 +452,9 @@ export default function Page() {
       </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">Manage Missing Punches</h1>
+          <h1 className="font-bold text-xl text-primary">
+            Manage Missing Punches
+          </h1>
         </div>
         <div className="px-6">
           <PowerTabs />
