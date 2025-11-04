@@ -228,14 +228,13 @@ export default function AssignPrivileges({
                 if (!tabPrivs[module.module_name][subModule.sub_module_name]) {
                   tabPrivs[module.module_name][subModule.sub_module_name] = {};
                 }
-                
                 tabPrivs[module.module_name][subModule.sub_module_name][tab.tab_name] = {
                   role_tab_privilege_id: privilege.role_tab_privilege_id,
-                  access: privilege.access_flag || false,
-                  view: privilege.view_flag || false,
-                  create: privilege.create_flag || false,
-                  edit: privilege.edit_flag || false,
-                  delete: privilege.delete_flag || false,
+                  access: privilege.access_flag === true,
+                  view: privilege.view_flag === true,
+                  create: privilege.create_flag === true,
+                  edit: privilege.edit_flag === true,
+                  delete: privilege.delete_flag === true,
                 };
               }
             }

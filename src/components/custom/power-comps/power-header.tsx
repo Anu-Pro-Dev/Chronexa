@@ -99,6 +99,8 @@ export default function PowerHeader({
       'workflowType': 'workflow_id',
       'employeeShortPermission': 'single_permissions_id',
       'emailSetting': 'em_id',
+      'secRole': 'role_id',
+      'secUserRole': 'user_role_id',
     };
     
     if (specialMappings[entityName]) {

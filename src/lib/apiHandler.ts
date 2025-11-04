@@ -768,6 +768,26 @@ export const getAllRoles = async () => {
   return apiRequest("/secRole/all", "GET");
 };
 
+//Function to add a new Role
+export const addRoleRequest = async (data: {
+  role_id?: number;
+  role_name: string;
+  editable_flag?: boolean;
+}) => {
+  return apiRequest("/secRole/add", "POST", data);
+}
+
+//Function to add a new Role
+export const editRoleRequest = async (data: {
+  role_id?: number;
+  role_name?: string;
+  editable_flag?: boolean;
+}) => {
+  const { role_id, ...payload } = data;
+
+  return apiRequest(`/secRole/edit/${role_id}`, "PUT", payload);
+}
+
 // Function to add a new role privilege
 export const addRolePrivilegeRequest = async (data: {
   role_id?: number;

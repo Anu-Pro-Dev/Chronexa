@@ -245,6 +245,13 @@ export default function AddGroupMembers({
     return [];
   }, [employeeData, existingEmployeeIds]);
 
+  // Calculate the actual total by subtracting existing members from total employee count
+  const totalAvailableEmployees = useMemo(() => {
+    const totalEmployees = employeeData?.total || 0;
+    const existingCount = existingEmployeeIds.size;
+    return Math.max(0, totalEmployees - existingCount);
+  }, [employeeData?.total, existingEmployeeIds.size]);
+
   const tableProps = {
     Data: data,
     Columns: columns,
@@ -259,7 +266,7 @@ export default function AddGroupMembers({
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: data.length,
+    total: employeeData?.total || 0, // Use API total for proper pagination
     hasNext: employeeData?.hasNext || false,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
@@ -309,6 +316,7 @@ export default function AddGroupMembers({
           props={tableProps} 
           ispageValue5={true}
           onRowSelection={handleRowSelection}
+          overrideEditIcon={false}
         />
       </div>
     </> 

@@ -4,33 +4,21 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/src/utils/utils";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
 import { Checkbox } from "@/src/components/ui/checkbox";
-import Link from "next/link";
-import { USER_TOKEN } from "@/src/utils/constants";
-import { useRouter } from "next/navigation";
 import Required from "@/src/components/ui/required";
-import { RefreshIcon } from "@/src/icons/icons";
-import { IoMdRefresh } from "react-icons/io";
-import { Textarea } from "@/src/components/ui/textarea";
-import toast from "react-hot-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addRoleRequest, editRoleRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
 
 const formSchema = z.object({
-  name_en: z
+  role_name: z
     .string()
-    .min(1, {
-      message: "Required",
-    })
+    .min(1, { message: "Role name is required" })
     .max(100),
-  name_ar: z
-    .string()
-    .min(1, {
-      message: "Required",
-    })
-    .max(100),
+  editable_flag: z.boolean().default(true),
 });
 
 export default function AddRole({ 
@@ -43,49 +31,82 @@ export default function AddRole({
   onSave: (id: string | null, newData: any) => void;
 }) {
   const { translations } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const showToast = useShowToast();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name_en: "",
-      name_ar: "",
+      role_name: "",
+      editable_flag: true,
     },
   });
 
   useEffect(() => {
-    if (!selectedRowData) {
-      form.reset();
+    if (selectedRowData) {
+      form.reset({
+        role_name: selectedRowData.role_name || "",
+        editable_flag: selectedRowData.editable_flag ?? true,
+      });
     } else {
       form.reset({
-        name_en: selectedRowData.name_en,
-        name_ar: selectedRowData.name_ar,
-      }); 
+        role_name: "",
+        editable_flag: true,
+      });
     }
   }, [selectedRowData, form]);
 
-  const handleSave = () => {
-    const formData = form.getValues();
-    if (selectedRowData) {
-      onSave(selectedRowData.id, formData);
-    } else {
-      onSave(null, formData);
-    }
-    on_open_change(false);
-  };
-
-  const router = useRouter();
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      if (selectedRowData) {
-        onSave(selectedRowData.id, values);
-        toast.success("Updating region!");
+  const addMutation = useMutation({
+    mutationFn: addRoleRequest,
+    onSuccess: (data) => {
+      showToast("success", "addrole_success");
+      queryClient.invalidateQueries({ queryKey: ["secRole"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
       } else {
-        onSave(null, values);
-        toast.success("Creating region!");
+        showToast("error", "formsubmission_error");
       }
-      on_open_change(false); 
-    } catch (error) {
-      console.error("Form submission error", error);
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: editRoleRequest,
+    onSuccess: () => {
+      showToast("success", "updaterole_success");
+      queryClient.invalidateQueries({ queryKey: ["secRole"] });
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
+      } else {
+        showToast("error", "formsubmission_error");
+      }
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      const payload: any = {
+        role_name: values.role_name,
+        editable_flag: values.editable_flag,
+      };
+
+      if (selectedRowData) {
+        const roleId = selectedRowData.role_id || selectedRowData.id;
+        editMutation.mutate({ role_id: roleId, ...payload });
+      } else {
+        addMutation.mutate(payload);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -95,14 +116,14 @@ export default function AddRole({
         <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="name_en"
+            name="role_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Name (English) <Required />
+                  Role Name <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the name in english" type="text" {...field} />
+                  <Input placeholder="Enter the role name" type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -111,17 +132,18 @@ export default function AddRole({
 
           <FormField
             control={form.control}
-            name="name_ar"
+            name="editable_flag"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Name (العربية) <Required />
-                </FormLabel>
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                 <FormControl>
-                  <Input placeholder="Enter the name in arabic" type="text" {...field} />
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
-
-                <FormMessage />
+                <FormLabel className="font-normal">
+                  Editable
+                </FormLabel>
               </FormItem>
             )}
           />
@@ -136,8 +158,19 @@ export default function AddRole({
             >
               {translations.buttons.cancel}
             </Button>
-            <Button type="submit" size={"lg"} className="w-full">
-              {selectedRowData ? "Update" : "Save"}
+            <Button 
+              type="submit" 
+              size={"lg"} 
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? selectedRowData
+                  ? translations.buttons.updating || "Updating..."
+                  : translations.buttons.saving || "Saving..."
+                : selectedRowData
+                ? translations.buttons.update || "Update"
+                : translations.buttons.save || "Save"}
             </Button>
           </div>
         </div>

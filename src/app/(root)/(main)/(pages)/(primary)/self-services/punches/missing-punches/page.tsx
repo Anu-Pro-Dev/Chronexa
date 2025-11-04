@@ -120,26 +120,25 @@ export default function Page() {
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-
-  const {
+const {
     data: punchesData,
     isLoading: isLoadingTransactions,
     error,
     refetch,
   } = useFetchAllEntity("missing-movements", {
     searchParams: {
+      ...(employeeId && { employeeId: String(employeeId) }),
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
       ...(fromDate && { startDate: formatDateForAPI(fromDate) }),
       ...(toDate && { endDate: formatDateForAPI(toDate) }),
       ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      ...(employeeId !== undefined && { employeeId: String(employeeId) }), // <--- stringify here
     },
     enabled: !!employeeId && isAuthenticated && !isChecking,
     endpoint: `/missing-movements/all`,
   });
-
+  
   const getEmployeeName = (transaction: any) => {
     const txEmployeeId = transaction.employee_id ?? transaction.Employee_Id;
 
@@ -171,7 +170,6 @@ export default function Page() {
   };
 
   const data = useMemo(() => {
-    console.log("punchesData", punchesData);
     if (!Array.isArray(punchesData?.data)) return [];
 
     const filteredData = punchesData.data; 

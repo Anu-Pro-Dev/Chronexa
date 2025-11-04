@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 import React, { useEffect } from 'react';
 import Sidebar from '@/src/components/custom/common/app-sidebar';
 import Navbar from '@/src/components/ui/navbar';

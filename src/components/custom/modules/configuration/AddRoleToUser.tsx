@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { AddIcon, CancelIcon2 } from "@/src/icons/icons";
 
 const addRoletoUser = async (data: {
@@ -39,11 +40,16 @@ export default function AddRoleToUser({
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
+
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
 
   const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
 
@@ -57,7 +63,25 @@ export default function AddRoleToUser({
     return foundRole?.id || foundRole?.role_id || null;
   }, [role, rolesData]);
 
-  const { data: employeeData, isLoading: isLoadingEmployees } = useFetchAllEntity("employee");
+  const userSearchParams = useMemo(() => {
+    const params: Record<string, string> = {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+    };
+    
+    if (debouncedSearchValue) {
+      params.search = debouncedSearchValue;
+    }
+    
+    if (sortField) params.sort_by = sortField;
+    if (sortDirection) params.sort_order = sortDirection;
+    
+    return params;
+  }, [rowsPerPage, offset, debouncedSearchValue, sortField, sortDirection]);
+
+  const { data: userData, isLoading: isLoadingUsers, refetch: refetchUsers } = useFetchAllEntity("secUser", {
+    searchParams: userSearchParams,
+  });
 
   const { data: existingUserRoles, isLoading: isLoadingUserRoles } = useQuery({
     queryKey: ["secUserRole", "byRole", roleId],
@@ -77,9 +101,9 @@ export default function AddRoleToUser({
 
   const assignedUserIds = useMemo(() => {
     if (!existingUserRoles?.data || !Array.isArray(existingUserRoles.data)) {
-      return [];
+      return new Set<number>();
     }
-    return existingUserRoles.data.map((ur: any) => ur.user_id).filter(Boolean);
+    return new Set(existingUserRoles.data.map((ur: any) => ur.user_id).filter(Boolean));
   }, [existingUserRoles]);
 
   const addMutation = useMutation({
@@ -114,7 +138,7 @@ export default function AddRoleToUser({
     try {
       for (const row of selectedRows) {
         const payload = {
-          user_id: row.employee_id, 
+          user_id: row.user_id, 
           role_id: roleId,
         };
 
@@ -132,15 +156,43 @@ export default function AddRoleToUser({
     }
   };
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetchUsers) {
+      setTimeout(() => refetchUsers(), 100);
+    }
+  }, [refetchUsers]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetchUsers) {
+      setTimeout(() => refetchUsers(), 100);
+    }
+  }, [refetchUsers]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
+  const handleSortChange = useCallback((field: string, direction: "asc" | "desc") => {
+    setSortField(field);
+    setSortDirection(direction);
+    setCurrentPage(1);
+    if (refetchUsers) {
+      setTimeout(() => refetchUsers(), 100);
+    }
+  }, [refetchUsers]);
+
   useEffect(() => {
     setColumns([
-        { field: "employee_id", headerName: "Emp ID" },
-        { field: "emp_no", headerName: "Emp No" },
-        {
-        field: language === "ar" ? "firstname_arb" : "firstname_eng",
-        headerName: language === "ar" ? "اسم الموظف" : "Employee Name",
-        },
-        { field: "manager_flag", headerName: "Manager" },   
+      { field: "user_id", headerName: "User ID" },
+      { field: "employee_id", headerName: "Employee ID" },
+      {
+        field: "login",
+        headerName: "Username",
+      },
     ]);
   }, [language]);
 
@@ -148,30 +200,28 @@ export default function AddRoleToUser({
     setSelectedRows(rows);
   }, []);
 
-  const handleSearchChange = (searchValue: string) => {
-    setSearchTerm(searchValue);
-  };
-
-  const availableEmployees = useMemo(() => {
-    if (!Array.isArray(employeeData?.data)) {
+  const availableUsers = useMemo(() => {
+    if (!Array.isArray(userData?.data)) {
       return [];
     }
 
-    return employeeData.data
-      .filter((emp: any) => {
-        const empId = emp.employee_id;
-        return empId && !assignedUserIds.includes(empId);
+    return userData.data
+      .filter((user: any) => {
+        const userId = user.user_id;
+        return userId && !assignedUserIds.has(userId);
       })
-      .map((emp: any) => ({
-        ...emp,
-        id: emp.employee_id,
+      .map((user: any) => ({
+        ...user,
+        id: user.user_id,
+        email: user.email || user.email_address || "N/A",
+        employee_no: user.employee_no || user.emp_no || "N/A",
       }));
-  }, [employeeData, assignedUserIds]);
+  }, [userData, assignedUserIds]);
 
-  const isLoading = isLoadingRoles || isLoadingEmployees || isLoadingUserRoles;
+  const isLoading = isLoadingRoles || isLoadingUsers || isLoadingUserRoles;
 
   const tableProps = {
-    Data: availableEmployees,
+    Data: availableUsers,
     Columns: columns,
     open: true,
     selectedRows,
@@ -179,12 +229,17 @@ export default function AddRoleToUser({
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: userData?.total || 0,
+    hasNext: userData?.hasNext || false,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
+    onSortChange: handleSortChange,
   };
 
   return (
@@ -193,23 +248,19 @@ export default function AddRoleToUser({
         <div className="flex flex-col gap-3">
           <div className="flex gap-2 items-center justify-between">
             <div className="flex">
-              <h1 className="font-bold text-xl text-primary">
-                Available Users
-              </h1>
-            </div>
-            <div className="flex gap-4">
               <PowerSearch 
                 props={{
-                  ...props,
-                  onSearchChange: handleSearchChange,
-                  placeholder: "Search employees..."
+                  SearchValue: searchValue,
+                  SetSearchValue: handleSearchChange,
                 }} 
               />
+            </div>
+            <div className="flex gap-4">
               <Button 
                 type="button" 
                 variant={"success"} 
                 size={"sm"}
-                disabled={isSubmitting || !roleId}
+                disabled={isSubmitting || !roleId || selectedRows.length === 0}
                 onClick={handleAdd}
                 className="flex items-center space-y-0.5 border border-success"
               >
@@ -222,7 +273,7 @@ export default function AddRoleToUser({
                 className="flex items-center gap-1 p-0 pl-1 pr-2 bg-[#F3F3F3] border-[#E7E7E7]"
                 onClick={() => on_open_change(false)}
               >
-                <CancelIcon2 /> Cancel
+                <CancelIcon2 /> {translations.buttons.cancel}
               </Button>
             </div>
           </div>
@@ -230,7 +281,12 @@ export default function AddRoleToUser({
       </form>
 
       <div className="border border-[#E5E7EB] mt-6">
-        <PowerTable props={tableProps} ispageValue5={true} onRowSelection={handleRowSelection} />
+        <PowerTable 
+          props={tableProps} 
+          ispageValue5={true} 
+          onRowSelection={handleRowSelection}
+          overrideEditIcon={false}
+        />
       </div>
     </> 
   );
