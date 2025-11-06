@@ -17,8 +17,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
-import Lottie from "lottie-react";
-import loadingAnimation from "@/src/animations/hourglass-blue.json";
+import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -249,9 +248,7 @@ export default function Page() {
     if (isChecking) {
       return (
         <div className="flex justify-center items-center p-8">
-          <div style={{ width: 50}}>
-            <Lottie animationData={loadingAnimation} loop={true} />
-          </div>
+          <InlineLoading />
         </div>
       );
     }

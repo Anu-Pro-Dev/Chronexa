@@ -6,7 +6,7 @@ import { useState, useRef, useCallback, type KeyboardEvent } from "react"
 import { Check } from "lucide-react"
 import { CommandGroup, CommandInput, CommandItem, CommandList } from "./command"
 import { Skeleton } from "./skeleton"
-import { cn } from "@/src/utils/utils"
+import { cn } from "@/src/lib/utils";
 
 
 export type Option = Record<"value" | "label", string> & Record<string, string>

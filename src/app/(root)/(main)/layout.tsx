@@ -9,8 +9,7 @@ import { PrivilegeProvider, usePrivileges } from "@/src/providers/PrivilegeProvi
 import ProtectedLayout from "@/src/components/layouts/ProtectedLayout";
 import { useRouter } from 'next/navigation';
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import Lottie from "lottie-react";
-import loadingAnimation from "@/src/animations/hourglass-blue.json";
+import Loading from "@/src/app/loading";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { privilegeMap, isLoading } = usePrivileges();
@@ -31,14 +30,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div style={{ width: 50 }} className="mx-auto mb-4">
-            <Lottie animationData={loadingAnimation} loop={true} />
-          </div>
-          <p className="text-text-secondary">Loading...</p>
-        </div>
-      </div>
+      <Loading />
     );
   }
 

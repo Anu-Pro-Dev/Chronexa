@@ -165,7 +165,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1">
-                  {t.mobile || "Mobile"} <Required />
+                  {t.mobile || "Mobile"} 
                 </FormLabel>
                 <FormControl>
                   <Input 

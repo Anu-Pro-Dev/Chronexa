@@ -632,7 +632,7 @@ export const editPermissionTypeRequest = async (data: {
 
 // Function to add a new permission application
 export const addShortPermissionRequest = async (data: {
-  single_permission_id?: number;
+  short_permission_id?: number;
   permission_type_id: number;
   employee_id: number;
   remarks?: string;
@@ -647,7 +647,7 @@ export const addShortPermissionRequest = async (data: {
 
 // Function to edit a permission application
 export const editShortPermissionRequest = async (data: {
-  single_permission_id: number;
+  short_permission_id: number;
   permission_type_id?: number;
   employee_id?: number;
   remarks?: string;
@@ -657,9 +657,9 @@ export const editShortPermissionRequest = async (data: {
   to_time?: string;
   perm_minutes?: number;
 }) => {
-  const { single_permission_id, ...payload } = data;
+  const { short_permission_id, ...payload } = data;
 
-  return apiRequest(`/employeeShortPermission/edit/${single_permission_id}`, "PUT", payload);
+  return apiRequest(`/employeeShortPermission/edit/${short_permission_id}`, "PUT", payload);
 };
 
 // Function to get pending permissions
@@ -669,12 +669,12 @@ export const getPendingPermission= async () => {
 
 // Function to approve or reject permissions
 export const approvePermissionRequest= async (data: {
-  single_permissions_id?: number;
+  short_permission_id?: number;
   approve_reject_flag: number;
 }) => {
-  const { single_permissions_id, ...payload } = data;
+  const { short_permission_id, ...payload } = data;
 
-  return apiRequest(`/employeeShortPermission/approve/${single_permissions_id}`, "PUT", payload);
+  return apiRequest(`/employeeShortPermission/approve/${short_permission_id}`, "PUT", payload);
 };
 
 // Function to fetch permission for a specific employee

@@ -3,7 +3,7 @@ import React, {
   ReactNode,
   MemoExoticComponent,
 } from "react";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import { DropDownIcon } from "@/src/icons/icons";
 import toast from "react-hot-toast";
 

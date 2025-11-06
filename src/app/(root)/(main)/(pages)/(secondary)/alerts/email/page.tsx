@@ -267,6 +267,8 @@ export default function Page() {
         entityName="ta-emails"
         isExport
         enableExcel
+        disableAdd
+        disableDelete
       />
       
       <div className="grid grid-cols-3 gap-4">

@@ -6,7 +6,7 @@ export const personalFormSchema = z.object({
   emp_no: z.string().min(1, { message: "emp_no_required" }).max(100),
   firstname: z.string().min(1, { message: "firstname_required" }),
   lastname: z.string().min(1, { message: "lastname_required" }),
-  mobile: z.string().min(1, { message: "mobile_required" }),
+  mobile: z.string().optional(),
   email: z
     .string()
     .min(1, { message: "email_required" })

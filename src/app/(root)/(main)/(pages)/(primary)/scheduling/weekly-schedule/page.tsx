@@ -2,10 +2,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
-import Lottie from "lottie-react";
-import loadingAnimation from "@/src/animations/hourglass-blue.json";
+import { InlineLoading } from "@/src/app/loading";
 
-export default function PermissionsRedirectPage() {
+export default function SchedulesRedirectPage() {
   const router = useRouter();
   const { privilegeMap, isLoading } = usePrivileges();
 
@@ -61,10 +60,7 @@ export default function PermissionsRedirectPage() {
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="text-center">
-        <div style={{ width: 50 }} className="mx-auto mb-4">
-          <Lottie animationData={loadingAnimation} loop={true} />
-        </div>
-        <p className="text-text-secondary">Loading weekly schedule...</p>
+        <InlineLoading message="Loading weekly schedule..."/>
       </div>
     </div>
   );

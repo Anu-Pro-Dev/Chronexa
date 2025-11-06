@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import {
   ResponsiveModal,
   ResponsiveModalContent,

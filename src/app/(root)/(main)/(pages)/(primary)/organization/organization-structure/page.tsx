@@ -4,8 +4,7 @@ import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { ExclamationIcon } from "@/src/icons/icons";
-import Lottie from "lottie-react";
-import loadingAnimation from "@/src/animations/hourglass-blue.json";
+import { InlineLoading } from "@/src/app/loading";
 
 interface Organization {
   organization_id: number;
@@ -130,10 +129,7 @@ export default function Page() {
         <PowerHeader items={modules?.organization?.items} disableAdd disableDelete disableSearch />
         <div className="flex justify-center items-center p-8">
           <div className="text-center">
-            <div style={{ width: 50 }} className="mx-auto mb-4">
-              <Lottie animationData={loadingAnimation} loop={true} />
-            </div>
-            <p className="text-text-secondary">Loading organization structure...</p>
+            <InlineLoading message="Loading organization structure..."/>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { Button } from "@/src/components/ui/button";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PowerTablePaginationProps {

@@ -4,7 +4,7 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import { SearchIcon } from "@/src/icons/icons";
 
 interface Employee {

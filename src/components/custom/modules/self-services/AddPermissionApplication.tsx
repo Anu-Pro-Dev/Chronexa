@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import { useRouter } from "next/navigation";
 import { Input } from "@/src/components/ui/input";
 import { Textarea } from "@/src/components/ui/textarea";
@@ -144,7 +144,7 @@ export default function AddPermissionApplication({
     onSuccess: (_data, variables) => {
       toast.success("Permission application updated successfully!");
       if (onSave) {
-        onSave(variables.single_permission_id?.toString() ?? null, variables);
+        onSave(variables.short_permission_id?.toString() ?? null, variables);
       }
       queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
       router.push("/self-services/permissions/my-request");
@@ -320,7 +320,7 @@ export default function AddPermissionApplication({
 
       if (selectedRowData) {
         editMutation.mutate({
-          single_permission_id: selectedRowData.single_permission_id,
+          short_permission_id: selectedRowData.short_permission_id,
           ...payload,
         });
       } else {

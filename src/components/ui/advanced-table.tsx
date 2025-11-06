@@ -18,7 +18,7 @@ import { Button } from "@/src/components/ui/button";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Badge } from "@/src/components/ui/badge";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 
 type SortDirection = "asc" | "desc";
 

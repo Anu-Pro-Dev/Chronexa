@@ -5,7 +5,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { DropDownIcon } from "@/src/icons/icons";
 import { Search, X } from "lucide-react";
 
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;

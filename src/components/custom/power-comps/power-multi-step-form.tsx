@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 
 interface PageType {
   state_route: string;

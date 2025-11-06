@@ -9,9 +9,8 @@ import { themeQuartz } from "ag-grid-community";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { FaPen } from "react-icons/fa";
 import { CheckCircle, XCircle } from "lucide-react";
-import Lottie from "lottie-react";
-import loadingAnimation from "@/src/animations/hourglass-blue.json";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
+import { InlineLoading } from "@/src/app/loading";
 
 const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data: any) => void }) => {
   const handleClick = () => {
@@ -316,7 +315,7 @@ export default function PowerTable({
       <div style={{ width: "100%" }}>
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
-            <Lottie animationData={loadingAnimation} style={{ width: 48, height: 48 }} />
+            <InlineLoading />
           </div>
         ) : (
           <AgGridReact

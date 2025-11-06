@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import MyAttendancePage from "@/src/components/custom/modules/dashboard/my-attendance/MAPage";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { PunchButton } from "@/src/components/custom/common/punch-button";
@@ -15,47 +15,53 @@ from "@/src/icons/icons";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import React, { useEffect, useState } from "react";
 import CurrentDate from "@/src/components/ui/currentdate";
+import { InlineLoading } from "@/src/app/loading";
 
 export default function Dashboard() {
   const { modules } = useLanguage();
   const [LeaveAndAttendanceElements, SetLeaveAndAttendance] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    SetLeaveAndAttendance([
-      {
+    const loadData = () => {
+      SetLeaveAndAttendance([
+        {
+          label: "Working Days",
+          icon: <WorkingDaysIcon />,
+          value: "212",
+        },
+        {
+          label: "Total leaves",
+          icon: <TotalLeavesIcon />,
+          value: "09",
+        },
+        {
+          label: "Leaves Taken",
+          icon: <LeaveTakenIcon />,
+          value: "06",
+        },
+        {
+          label: "Leaves Absent",
+          icon: <AbsentIcon />,
+          value: "03",
+        },
+        {
+          label: "Approved leaves",
+          icon: <ApprovedIcon />,
+          value: "02",
+        },
+        {
+          label: "Pending leaves",
+          icon: <PendingIcon />,
+          value: "01",
+        },
+      ]);
+      
+      setIsLoading(false);
+    };
 
-        label: "Working Days",
-        icon: <WorkingDaysIcon />,
-        value: "212",
-
-      },
-      {
-        label: "Total leaves",
-        icon: <TotalLeavesIcon />,
-        value: "09",
-      },
-      {
-        label: "Leaves Taken",
-        icon: <LeaveTakenIcon />,
-        value: "06",
-      },
-      {
-        label: "Leaves Absent",
-        icon: <AbsentIcon />,
-        value: "03",
-      },
-      {
-        label: "Approved leaves",
-        icon: <ApprovedIcon />,
-        value: "02",
-      },
-      {
-        label: "Pending leaves",
-        icon: <PendingIcon />,
-        value: "01",
-      },
-    ])
-  }, [])
+    loadData();
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -71,7 +77,11 @@ export default function Dashboard() {
           <PunchButton />
         </div>
       </div>
-      <MyAttendancePage />
+      {isLoading ? (
+        <InlineLoading message="Loading attendance data..." />
+      ) : (
+        <MyAttendancePage />
+      )}
     </div>
   );
 }

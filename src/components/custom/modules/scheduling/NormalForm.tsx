@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { debounce } from "lodash";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";

@@ -17,8 +17,7 @@ import toast from "react-hot-toast";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
-import Lottie from "lottie-react";
-import loadingAnimation from "@/src/animations/hourglass-blue.json";
+import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
   const router = useRouter();
@@ -26,7 +25,7 @@ export default function Page() {
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [sortField, setSortField] = useState<string>("single_permissions_id");
+  const [sortField, setSortField] = useState<string>("short_permission_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -160,7 +159,7 @@ export default function Page() {
       
       return {
         ...permission,
-        id: permission.single_permissions_id,
+        id: permission.short_permission_id,
         emp_no: employeeInfo.emp_no,
         employee_name: employeeInfo.employee_name,
         firstName: employeeInfo.firstName,
@@ -279,9 +278,7 @@ export default function Page() {
     if (isChecking) {
       return (
         <div className="flex justify-center items-center p-8">
-          <div style={{ width: 50}}>
-            <Lottie animationData={loadingAnimation} loop={true} />
-          </div>
+          <InlineLoading />
         </div>
       );
     }

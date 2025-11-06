@@ -2,9 +2,11 @@
 import { useState, useCallback, useEffect } from "react";
 import * as z from "zod";
 import { debounce } from "lodash";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import Required from "@/src/components/ui/required";
 import { useRouter } from "next/navigation";
@@ -14,6 +16,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { cn } from "@/src/lib/utils";
 
 export default function OfficialForm({
   Page,
@@ -33,187 +36,54 @@ export default function OfficialForm({
   const errT = translations?.formErrors || {};
   
   const managerFlagChecked = officialForm.watch("manager_flag");
-  const [step, setStep] = useState(1);
 
-  const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
-  const [locationSearchTerm, setLocationSearchTerm] = useState("");
-  const [citizenshipSearchTerm, setCitizenshipSearchTerm] = useState("");
-  const [designationSearchTerm, setDesignationSearchTerm] = useState("");
-  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
-  const [gradeSearchTerm, setGradeSearchTerm] = useState("");
-  const [managerSearchTerm, setManagerSearchTerm] = useState("");
+  const [openEmployeeType, setOpenEmployeeType] = useState(false);
+  const [openLocation, setOpenLocation] = useState(false);
+  const [openCitizenship, setOpenCitizenship] = useState(false);
+  const [openDesignation, setOpenDesignation] = useState(false);
+  const [openOrganization, setOpenOrganization] = useState(false);
+  const [openGrade, setOpenGrade] = useState(false);
+  const [openManager, setOpenManager] = useState(false);
 
-  const [showEmployeeTypeSearch, setShowEmployeeTypeSearch] = useState(false);
-  const [showLocationSearch, setShowLocationSearch] = useState(false);
-  const [showCitizenshipSearch, setShowCitizenshipSearch] = useState(false);
-  const [showDesignationSearch, setShowDesignationSearch] = useState(false);
-  const [showOrganizationSearch, setShowOrganizationSearch] = useState(false);
-  const [showGradeSearch, setShowGradeSearch] = useState(false);
-  const [showManagerSearch, setShowManagerSearch] = useState(false);
+  const { data: employeeTypes, isLoading: loadingEmployeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
+  const { data: locations, isLoading: loadingLocations } = useFetchAllEntity("location", { removeAll: true });
+  const { data: citizenships, isLoading: loadingCitizenships } = useFetchAllEntity("citizenship", { removeAll: true });
+  const { data: designations, isLoading: loadingDesignations } = useFetchAllEntity("designation", { removeAll: true });
+  const { data: organizations, isLoading: loadingOrganizations } = useFetchAllEntity("organization", { removeAll: true });
+  const { data: grades, isLoading: loadingGrades } = useFetchAllEntity("grade", { removeAll: true });
 
-  const { data: employeeTypes } = useFetchAllEntity("employeeType",{ removeAll: true });
-  const { data: locations } = useFetchAllEntity("location",{ removeAll: true });
-  const { data: citizenships } = useFetchAllEntity("citizenship",{ removeAll: true });
-  const { data: designations } = useFetchAllEntity("designation",{ removeAll: true });
-  const { data: organizations } = useFetchAllEntity("organization",{ removeAll: true });
-  const { data: grades } = useFetchAllEntity("grade",{ removeAll: true });
-
-  const { data: managerEmployees } = useQuery({
+  const { data: managerEmployees, isLoading: loadingManagers } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
   });
 
-  const debouncedEmployeeTypeSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setEmployeeTypeSearchTerm(searchTerm);
-    }, 300),
-    []
+  const getEmployeeTypesData = () => (employeeTypes?.data || []).filter((item: any) => 
+    item.employee_type_id && item.employee_type_id.toString().trim() !== ''
   );
-
-  const debouncedLocationSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setLocationSearchTerm(searchTerm);
-    }, 300),
-    []
+  
+  const getLocationsData = () => (locations?.data || []).filter((item: any) => 
+    item.location_id && item.location_id.toString().trim() !== ''
   );
-
-  const debouncedCitizenshipSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setCitizenshipSearchTerm(searchTerm);
-    }, 300),
-    []
+  
+  const getCitizenshipsData = () => (citizenships?.data || []).filter((item: any) => 
+    item.citizenship_id && item.citizenship_id.toString().trim() !== ''
   );
-
-  const debouncedDesignationSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setDesignationSearchTerm(searchTerm);
-    }, 300),
-    []
+  
+  const getDesignationsData = () => (designations?.data || []).filter((item: any) => 
+    item.designation_id && item.designation_id.toString().trim() !== ''
   );
-
-  const debouncedOrganizationSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setOrganizationSearchTerm(searchTerm);
-    }, 300),
-    []
+  
+  const getOrganizationsData = () => (organizations?.data || []).filter((item: any) => 
+    item.organization_id && item.organization_id.toString().trim() !== ''
   );
-
-  const debouncedGradeSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setGradeSearchTerm(searchTerm);
-    }, 300),
-    []
+  
+  const getGradesData = () => (grades?.data || []).filter((item: any) => 
+    item.grade_id && item.grade_id.toString().trim() !== ''
   );
-
-  const debouncedManagerSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setManagerSearchTerm(searchTerm);
-    }, 300),
-    []
+  
+  const getManagersData = () => (managerEmployees?.data || []).filter((emp: any) => 
+    emp.employee_id != null
   );
-
-  const getFilteredEmployeeTypes = () => {
-    const baseData = employeeTypes?.data || [];
-    
-    if (employeeTypeSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.employee_type_id && 
-      item.employee_type_id.toString().trim() !== '' &&
-      item.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
-    );
-  };
-
-  const getFilteredLocations = () => {
-    const baseData = locations?.data || [];
-    
-    if (locationSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.location_id && 
-      item.location_id.toString().trim() !== '' &&
-      item.location_eng?.toLowerCase().includes(locationSearchTerm.toLowerCase())
-    );
-  };
-
-  const getFilteredCitizenships = () => {
-    const baseData = citizenships?.data || [];
-    
-    if (citizenshipSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.citizenship_id && 
-      item.citizenship_id.toString().trim() !== '' &&
-      item.citizenship_eng?.toLowerCase().includes(citizenshipSearchTerm.toLowerCase())
-    );
-  };
-
-  const getFilteredDesignations = () => {
-    const baseData = designations?.data || [];
-    
-    if (designationSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.designation_id && 
-      item.designation_id.toString().trim() !== '' &&
-      item.designation_eng?.toLowerCase().includes(designationSearchTerm.toLowerCase())
-    );
-  };
-
-  const getFilteredOrganizations = () => {
-    const baseData = organizations?.data || [];
-    
-    if (organizationSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.organization_id && 
-      item.organization_id.toString().trim() !== '' &&
-      item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
-    );
-  };
-
-  const getFilteredGrades = () => {
-    const baseData = grades?.data || [];
-    
-    if (gradeSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.grade_id && 
-      item.grade_id.toString().trim() !== '' &&
-      (item.grade_eng || item.grade_name)?.toLowerCase().includes(gradeSearchTerm.toLowerCase())
-    );
-  };
-
-  const getFilteredManagers = () => {
-    const baseData = managerEmployees?.data || [];
-    
-    if (managerSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((emp: any) => 
-      emp.employee_id != null &&
-      emp.firstname_eng?.toLowerCase().includes(managerSearchTerm.toLowerCase())
-    );
-  };
-
-  useEffect(() => {
-    return () => {
-      debouncedEmployeeTypeSearch.cancel();
-      debouncedLocationSearch.cancel();
-      debouncedCitizenshipSearch.cancel();
-      debouncedDesignationSearch.cancel();
-      debouncedOrganizationSearch.cancel();
-      debouncedGradeSearch.cancel();
-      debouncedManagerSearch.cancel();
-    };
-  }, [
-    debouncedEmployeeTypeSearch,
-    debouncedLocationSearch,
-    debouncedCitizenshipSearch,
-    debouncedDesignationSearch,
-    debouncedOrganizationSearch,
-    debouncedGradeSearch,
-    debouncedManagerSearch
-  ]);
 
   function onSubmit(values: z.infer<typeof officialFormSchema>) {
     try {
@@ -256,41 +126,61 @@ export default function OfficialForm({
             control={officialForm.control}
             name="employee_type_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel className="flex gap-1">
                   {t.employee_type || "Employee Type"} <Required />
                 </FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
-                  onOpenChange={(open) => setShowEmployeeTypeSearch(open)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
-                      <SelectValue placeholder={t.placeholder_emp_type || "Choose employee type"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search || "Search employee types..."}
-                    onSearchChange={debouncedEmployeeTypeSearch}
-                    className="mt-1"
-                  >
-                    {getFilteredEmployeeTypes().length === 0 && employeeTypeSearchTerm.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_results || "No employee types found"}
-                      </div>
-                    )}
-                    {getFilteredEmployeeTypes().map((item: any) => {
-                      if (!item.employee_type_id || item.employee_type_id.toString().trim() === '') return null;
-                      return (
-                        <SelectItem key={item.employee_type_id} value={item.employee_type_id.toString()}>
-                          {item.employee_type_eng}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <Popover open={openEmployeeType} onOpenChange={setOpenEmployeeType}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openEmployeeType}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingEmployeeTypes}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getEmployeeTypesData().find(
+                                (item: any) => item.employee_type_id === field.value
+                              )?.employee_type_eng
+                            : t.placeholder_emp_type || "Choose employee type"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                    <Command>
+                      <CommandInput placeholder={t.search || "Search employee type..."} className="border-none" />
+                      <CommandEmpty>{t.no_results || "No employee type found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getEmployeeTypesData().map((item: any) => (
+                          <CommandItem
+                            key={item.employee_type_id}
+                            value={item.employee_type_eng}
+                            onSelect={() => {
+                              field.onChange(item.employee_type_id);
+                              setOpenEmployeeType(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === item.employee_type_id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {item.employee_type_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.employee_type_id} translations={errT} />
               </FormItem>
             )}
@@ -300,41 +190,61 @@ export default function OfficialForm({
             control={officialForm.control}
             name="location_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel className="flex gap-1">
                   {t.locations || "Location"} <Required />
                 </FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
-                  onOpenChange={(open) => setShowLocationSearch(open)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
-                      <SelectValue placeholder={t.placeholder_location || "Choose location"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search || "Search locations..."}
-                    onSearchChange={debouncedLocationSearch}
-                    className="mt-1 max-w-[350px]"
-                  >
-                    {getFilteredLocations().length === 0 && locationSearchTerm.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_results || "No locations found"}
-                      </div>
-                    )}
-                    {getFilteredLocations().map((item: any) => {
-                      if (!item.location_id || item.location_id.toString().trim() === '') return null;
-                      return (
-                        <SelectItem key={item.location_id} value={item.location_id.toString()}>
-                          {item.location_eng}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <Popover open={openLocation} onOpenChange={setOpenLocation}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openLocation}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingLocations}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getLocationsData().find(
+                                (item: any) => item.location_id === field.value
+                              )?.location_eng
+                            : t.placeholder_location || "Choose location"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                    <Command>
+                      <CommandInput placeholder={t.search || "Search location..."} className="border-none" />
+                      <CommandEmpty>{t.no_results || "No location found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getLocationsData().map((item: any) => (
+                          <CommandItem
+                            key={item.location_id}
+                            value={item.location_eng}
+                            onSelect={() => {
+                              field.onChange(item.location_id);
+                              setOpenLocation(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === item.location_id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {item.location_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.location_id} translations={errT} />
               </FormItem>
             )}
@@ -344,41 +254,61 @@ export default function OfficialForm({
             control={officialForm.control}
             name="citizenship_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel className="flex gap-1">
                   {t.citizenship || "Citizenship"} <Required />
                 </FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
-                  onOpenChange={(open) => setShowCitizenshipSearch(open)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
-                      <SelectValue placeholder={t.placeholder_citizenship || "Choose citizenship"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search || "Search citizenships..."}
-                    onSearchChange={debouncedCitizenshipSearch}
-                    className="mt-1"
-                  >
-                    {getFilteredCitizenships().length === 0 && citizenshipSearchTerm.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_results || "No citizenships found"}
-                      </div>
-                    )}
-                    {getFilteredCitizenships().map((item: any) => {
-                      if (!item.citizenship_id || item.citizenship_id.toString().trim() === '') return null;
-                      return (
-                        <SelectItem key={item.citizenship_id} value={item.citizenship_id.toString()}>
-                          {item.citizenship_eng}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <Popover open={openCitizenship} onOpenChange={setOpenCitizenship}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openCitizenship}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingCitizenships}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getCitizenshipsData().find(
+                                (item: any) => item.citizenship_id === field.value
+                              )?.citizenship_eng
+                            : t.placeholder_citizenship || "Choose citizenship"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                    <Command>
+                      <CommandInput placeholder={t.search || "Search citizenship..."} className="border-none" />
+                      <CommandEmpty>{t.no_results || "No citizenship found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getCitizenshipsData().map((item: any) => (
+                          <CommandItem
+                            key={item.citizenship_id}
+                            value={item.citizenship_eng}
+                            onSelect={() => {
+                              field.onChange(item.citizenship_id);
+                              setOpenCitizenship(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === item.citizenship_id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {item.citizenship_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.citizenship_id} translations={errT} />
               </FormItem>
             )}
@@ -388,41 +318,61 @@ export default function OfficialForm({
             control={officialForm.control}
             name="designation_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel className="flex gap-1">
                   {t.designation || "Designation"} <Required />
                 </FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
-                  onOpenChange={(open) => setShowDesignationSearch(open)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
-                      <SelectValue placeholder={t.placeholder_designation || "Choose designation"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search || "Search designations..."}
-                    onSearchChange={debouncedDesignationSearch}
-                    className="mt-1"
-                  >
-                    {getFilteredDesignations().length === 0 && designationSearchTerm.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_results || "No designations found"}
-                      </div>
-                    )}
-                    {getFilteredDesignations().map((item: any) => {
-                      if (!item.designation_id || item.designation_id.toString().trim() === '') return null;
-                      return (
-                        <SelectItem key={item.designation_id} value={item.designation_id.toString()}>
-                          {item.designation_eng}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <Popover open={openDesignation} onOpenChange={setOpenDesignation}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openDesignation}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingDesignations}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getDesignationsData().find(
+                                (item: any) => item.designation_id === field.value
+                              )?.designation_eng
+                            : t.placeholder_designation || "Choose designation"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="max-w-[350px] p-0">
+                    <Command>
+                      <CommandInput placeholder={t.search || "Search designation..."} />
+                      <CommandEmpty>{t.no_results || "No designation found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getDesignationsData().map((item: any) => (
+                          <CommandItem
+                            key={item.designation_id}
+                            value={item.designation_eng}
+                            onSelect={() => {
+                              field.onChange(item.designation_id);
+                              setOpenDesignation(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === item.designation_id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {item.designation_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.designation_id} translations={errT} />
               </FormItem>
             )}
@@ -432,41 +382,61 @@ export default function OfficialForm({
             control={officialForm.control}
             name="organization_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel className="flex gap-1">
                   {t.organization || "Organization"} <Required />
                 </FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
-                  onOpenChange={(open) => setShowOrganizationSearch(open)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
-                      <SelectValue placeholder={t.placeholder_organization || "Choose organization"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search || "Search organizations..."}
-                    onSearchChange={debouncedOrganizationSearch}
-                    className="mt-1"
-                  >
-                    {getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_results || "No organizations found"}
-                      </div>
-                    )}
-                    {getFilteredOrganizations().map((item: any) => {
-                      if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
-                      return (
-                        <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                          {item.organization_eng}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <Popover open={openOrganization} onOpenChange={setOpenOrganization}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openOrganization}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingOrganizations}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getOrganizationsData().find(
+                                (item: any) => item.organization_id === field.value
+                              )?.organization_eng
+                            : t.placeholder_organization || "Choose organization"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="max-w-[350px] p-0">
+                    <Command>
+                      <CommandInput placeholder={t.search || "Search organization..."} />
+                      <CommandEmpty>{t.no_results || "No organization found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getOrganizationsData().map((item: any) => (
+                          <CommandItem
+                            key={item.organization_id}
+                            value={item.organization_eng}
+                            onSelect={() => {
+                              field.onChange(item.organization_id);
+                              setOpenOrganization(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === item.organization_id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {item.organization_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.organization_id} translations={errT} />
               </FormItem>
             )}
@@ -476,39 +446,61 @@ export default function OfficialForm({
             control={officialForm.control}
             name="grade_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel className="flex gap-1">{t.grade || "Grade"}</FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
-                  onOpenChange={(open) => setShowGradeSearch(open)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
-                      <SelectValue placeholder={t.placeholder_grade || "Choose grade"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search || "Search grades..."}
-                    onSearchChange={debouncedGradeSearch}
-                    className="mt-1"
-                  >
-                    {getFilteredGrades().length === 0 && gradeSearchTerm.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_results || "No grades found"}
-                      </div>
-                    )}
-                    {getFilteredGrades().map((item: any) => {
-                      if (!item.grade_id || item.grade_id.toString().trim() === '') return null;
-                      return (
-                        <SelectItem key={item.grade_id} value={item.grade_id.toString()}>
-                          {item.grade_eng || item.grade_name}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <Popover open={openGrade} onOpenChange={setOpenGrade}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openGrade}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingGrades}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? (getGradesData().find(
+                                (item: any) => item.grade_id === field.value
+                              )?.grade_eng || getGradesData().find(
+                                (item: any) => item.grade_id === field.value
+                              )?.grade_name)
+                            : t.placeholder_grade || "Choose grade"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="max-w-[350px] p-0">
+                    <Command>
+                      <CommandInput placeholder={t.search || "Search grade..."} />
+                      <CommandEmpty>{t.no_results || "No grade found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getGradesData().map((item: any) => (
+                          <CommandItem
+                            key={item.grade_id}
+                            value={item.grade_eng || item.grade_name}
+                            onSelect={() => {
+                              field.onChange(item.grade_id);
+                              setOpenGrade(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === item.grade_id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {item.grade_eng || item.grade_name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.grade_id} translations={errT} />
               </FormItem>
             )}
@@ -518,38 +510,59 @@ export default function OfficialForm({
             control={officialForm.control}
             name="manager_id"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel className="flex gap-1">{t.manager || "Manager"}</FormLabel>
-                <Select
-                  onValueChange={(val) => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
-                  onOpenChange={(open) => setShowManagerSearch(open)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
-                      <SelectValue placeholder={t.placeholder_manager || "Choose manager"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search || "Search managers..."}
-                    onSearchChange={debouncedManagerSearch}
-                    className="mt-1"
-                  >
-                    {getFilteredManagers().length === 0 && managerSearchTerm.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_results || "No managers found"}
-                      </div>
-                    )}
-                    {getFilteredManagers()
-                      .filter((emp: any) => emp.employee_id != null)
-                      .map((emp: any) => (
-                        <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
-                          {emp.firstname_eng}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openManager} onOpenChange={setOpenManager}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openManager}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingManagers}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getManagersData().find(
+                                (emp: any) => emp.employee_id === field.value
+                              )?.firstname_eng
+                            : t.placeholder_manager || "Choose manager"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="max-w-[350px] p-0">
+                    <Command>
+                      <CommandInput placeholder={t.search || "Search manager..."} />
+                      <CommandEmpty>{t.no_results || "No manager found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getManagersData().map((emp: any) => (
+                          <CommandItem
+                            key={emp.employee_id}
+                            value={emp.firstname_eng}
+                            onSelect={() => {
+                              field.onChange(emp.employee_id);
+                              setOpenManager(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === emp.employee_id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {emp.firstname_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.manager_id} translations={errT} />
               </FormItem>
             )}
@@ -558,11 +571,11 @@ export default function OfficialForm({
 
         <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-5">
-            <Button variant="outline" type="button" size="lg" className="w-full" onClick={() => setStep((prev) => prev - 1)}>
-              {translations.buttons.back || "Back"}
+            <Button variant="outline" type="button" size="lg" className="w-full" onClick={() => router.back()}>
+              {translations.buttons?.back || "Back"}
             </Button>
             <Button type="submit" size="lg" className="w-full">
-              {translations.buttons.next || "Next"}
+              {translations.buttons?.next || "Next"}
             </Button>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/pop
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { Button } from "@/src/components/ui/button";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import { format } from "date-fns";
 import {
   Select,

@@ -1,32 +1,34 @@
 'use client'
-import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { ReactNode, useEffect, useState } from 'react';
 import { useAuthGuard } from '@/src/hooks/useAuthGuard';
-import Lottie from "lottie-react";
-import loadingAnimation from "@/src/animations/hourglass-blue.json";
+import Loading from '@/src/app/loading';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const { userInfo, isChecking } = useAuthGuard();
   const router = useRouter();
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isChecking && !userInfo) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || isChecking) return;
+
+    if (pathname?.includes('/auth/azure/success')) return;
+
+    if (!userInfo) {
       router.replace("/");
     }
-  }, [isChecking, userInfo, router]);
+  }, [isChecking, userInfo, router, pathname, mounted]);
 
-  if (isChecking) {
+  if (!mounted || isChecking) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <div style={{ width: 50 }} className="mx-auto mb-4">
-            <Lottie animationData={loadingAnimation} loop={true} />
-          </div>
-          <p className="text-text-secondary">Loading...</p>
-        </div>
-      </div>
+      <Loading />
     );
-  };
+  }
 
   if (!userInfo) return null;
 

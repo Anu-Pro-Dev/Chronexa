@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 import { useRBAC } from "@/src/hooks/useRBAC";
-import { cn } from "@/src/utils/utils";
+import { cn } from "@/src/lib/utils";
 import {
   AlertsIcon,
   CompanyMasterIcon,

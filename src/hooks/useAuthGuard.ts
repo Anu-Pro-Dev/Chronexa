@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { USER_TOKEN } from "@/src/utils/constants";
 
 const decodeJWT = (token: string) => {
@@ -22,6 +22,7 @@ const decodeJWT = (token: string) => {
 
 export function useAuthGuard() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [employeeId, setEmployeeId] = useState<number | null>(null);
@@ -30,13 +31,24 @@ export function useAuthGuard() {
   const [isGeofenceEnabled, setIsGeofenceEnabled] = useState(false);
 
   useEffect(() => {    
-    const checkAuth = () => {      
+    const checkAuth = () => {
+      if (pathname?.includes('/auth/azure/success')) {
+        setIsChecking(false);
+        return;
+      }
+
       const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);      
       
       if (!token) {
-        router.replace("/");
-        setIsChecking(false);
-        return;
+        const recheckTimer = setTimeout(() => {
+          const recheckToken = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);
+          if (!recheckToken) {
+            router.replace("/");
+          }
+          setIsChecking(false);
+        }, 500);
+        
+        return () => clearTimeout(recheckTimer);
       }
 
       try {
@@ -107,8 +119,9 @@ export function useAuthGuard() {
       setIsChecking(false);
     };
 
-    checkAuth();
-  }, []);
+    const initTimer = setTimeout(checkAuth, 100);
+    return () => clearTimeout(initTimer);
+  }, [pathname, router]);
 
   return { 
     isAuthenticated, 

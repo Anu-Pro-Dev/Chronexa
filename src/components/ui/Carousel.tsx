@@ -5,7 +5,7 @@ import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
 import { CarouselLeftIcon, CarouselRightIcon } from "@/src/icons/icons"
-import { cn } from "@/src/utils/utils"
+import { cn } from "@/src/lib/utils";
 import CustomButton from "@/src/components/ui/CustomButton"
 
 type CarouselApi = UseEmblaCarouselType[1]

@@ -63,6 +63,7 @@ export default function EmployeeOnboardingPage({
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState("personal-form");
   const [rolesCache, setRolesCache] = useState<any[]>([]);
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   const { form: personalForm, schema: personalSchema } = usePersonalForm();
   const { form: credentialsForm, schema: credentialsSchema } = useCredentialsForm();
@@ -90,6 +91,7 @@ export default function EmployeeOnboardingPage({
     officialForm.reset();
     flagsForm.reset();
     setActiveStep("personal-form");
+    setCompletedSteps([]);
   };
 
   useEffect(() => {
@@ -173,6 +175,8 @@ export default function EmployeeOnboardingPage({
         local_user_flag: selectedRowData.local_user_flag ?? false,
       });
 
+      setCompletedSteps(["personal-form", "credentials-form", "official-form"]);
+
       if (selectedRowData.employee_id) {
         getSecUserByEmployeeId(selectedRowData.employee_id)
           .then((res) => {
@@ -192,6 +196,50 @@ export default function EmployeeOnboardingPage({
       resetAllForms();
     }
   }, [selectedRowData, language, mode]);
+
+  const validateAndNavigate = async (targetStep: string) => {
+    const stepOrder = ["personal-form", "credentials-form", "official-form", "flags-form"];
+    const currentIndex = stepOrder.indexOf(activeStep);
+    const targetIndex = stepOrder.indexOf(targetStep);
+
+    if (targetIndex < currentIndex) {
+      setActiveStep(targetStep);
+      return;
+    }
+
+    let isValid = true;
+
+    if (activeStep === "personal-form") {
+      isValid = await personalForm.trigger();
+      if (!isValid) {
+        showToast("error", "validation_error", "Please complete all required personal fields.");
+        return;
+      }
+      if (!completedSteps.includes("personal-form")) {
+        setCompletedSteps([...completedSteps, "personal-form"]);
+      }
+    } else if (activeStep === "credentials-form") {
+      isValid = await credentialsForm.trigger();
+      if (!isValid) {
+        showToast("error", "validation_error", "Please complete all required credential fields.");
+        return;
+      }
+      if (!completedSteps.includes("credentials-form")) {
+        setCompletedSteps([...completedSteps, "credentials-form"]);
+      }
+    } else if (activeStep === "official-form") {
+      isValid = await officialForm.trigger();
+      if (!isValid) {
+        showToast("error", "validation_error", "Please complete all required official fields.");
+        return;
+      }
+      if (!completedSteps.includes("official-form")) {
+        setCompletedSteps([...completedSteps, "official-form"]);
+      }
+    }
+
+    setActiveStep(targetStep);
+  };
 
   const createEmployeeWithCredentials = async (data: EmployeeData) => {
     const transformed = transformDatesForAPI(data, language);
@@ -249,21 +297,6 @@ export default function EmployeeOnboardingPage({
       showToast("error", "employee_update_failed");
     },
   });
-
-  const extractErrorsFromForm = (form: any, label: string) => {
-    const errs = form.formState.errors || {};
-    const messages: string[] = [];
-    const traverse = (obj: any, path = "") => {
-      for (const key in obj) {
-        const val = obj[key];
-        const newPath = path ? `${path}.${key}` : key;
-        if (val?.message) messages.push(`${label}: ${newPath} — ${val.message}`);
-        else if (typeof val === "object") traverse(val, newPath);
-      }
-    };
-    traverse(errs);
-    return messages;
-  };
 
   const handleFinalSubmit = async () => {
     setLoading(true);
@@ -330,7 +363,7 @@ export default function EmployeeOnboardingPage({
       component: (
         <PersonalForm
           Page={activeStep}
-          SetPage={setActiveStep}
+          SetPage={validateAndNavigate}
           personalFormSchema={personalSchema}
           personalForm={personalForm}
         />
@@ -342,7 +375,7 @@ export default function EmployeeOnboardingPage({
       component: (
         <CredentialsForm
           Page={activeStep}
-          SetPage={setActiveStep}
+          SetPage={validateAndNavigate}
           credentialsFormSchema={credentialsSchema}
           credentialsForm={credentialsForm}
           selectedRowData={selectedRowData}
@@ -355,7 +388,7 @@ export default function EmployeeOnboardingPage({
       component: (
         <OfficialForm
           Page={activeStep}
-          SetPage={setActiveStep}
+          SetPage={validateAndNavigate}
           officialFormSchema={officialSchema}
           officialForm={officialForm}
         />
@@ -384,7 +417,7 @@ export default function EmployeeOnboardingPage({
         modal_title="Employee"
       />
       <PowerMultiStepCard
-        SetPage={setActiveStep}
+        SetPage={validateAndNavigate}
         Page={activeStep}
         Pages={Pages}
       />

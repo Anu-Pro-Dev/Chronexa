@@ -97,7 +97,7 @@ export default function PowerHeader({
   const getEntityIdField = (entityName: string) => {
     const specialMappings: Record<string, string> = {
       'workflowType': 'workflow_id',
-      'employeeShortPermission': 'single_permissions_id',
+      'employeeShortPermission': 'short_permission_id',
       'emailSetting': 'em_id',
       'secRole': 'role_id',
       'secUserRole': 'user_role_id',
