@@ -1,22 +1,22 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddOrganizationSchedule from "@/src/components/custom/modules/scheduling/AddOrganizationSchedule";
 import { useQueryClient } from "@tanstack/react-query";
+import { useOrgScheduleEditStore } from "@/src/stores/orgScheduleEditStore";
 
-export default function Page() {  
+export default function OrgScheduleAddPage() {  
   const { modules } = useLanguage();
-  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const queryClient = useQueryClient();
+  const clearSelectedRowData = useOrgScheduleEditStore((state) => state.clearSelectedRowData);
+  const selectedRowData = useOrgScheduleEditStore((state) => state.selectedRowData);
 
   useEffect(() => {
-    const storedData = sessionStorage.getItem('editOrgSchedule');
-    if (storedData) {
-      setSelectedRowData(JSON.parse(storedData));
-      sessionStorage.removeItem('editOrgSchedule');
+    if (!selectedRowData?.id) {
+      clearSelectedRowData();
     }
-  }, []);
+  }, [selectedRowData, clearSelectedRowData]);
 
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
@@ -30,8 +30,8 @@ export default function Page() {
       />
       <div className="pt-4">
         <AddOrganizationSchedule 
-            selectedRowData={selectedRowData}
-            onSave={handleSave}
+          selectedRowData={null}
+          onSave={handleSave}
         />
       </div>
     </div>

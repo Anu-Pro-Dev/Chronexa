@@ -33,7 +33,7 @@ export default function PowerTabs() {
   const allowedTabs = useMemo(
     () =>
       activeSubmodule?.tabs
-        ?.filter((t) => t.allowed)
+        ?.filter((t) => t.hasView)
         .map((t) => ({
           url: `/${normalize(activeModuleKey!)}/${normalize(
             activeSubmodule.sub_module_name

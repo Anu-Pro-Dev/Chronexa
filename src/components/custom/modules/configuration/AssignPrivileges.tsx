@@ -28,7 +28,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { addRolePrivilegeRequest, editRolePrivilegeRequest, addRoleTabPrivilegeRequest, editRoleTabPrivilegeRequest } from "@/src/lib/apiHandler";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 
-const privilegeKeys = ["access", "view", "create", "edit", "delete"] as const;
+const privilegeKeys = ["view", "create", "edit", "delete"] as const;
 type PrivilegeKey = typeof privilegeKeys[number];
 
 const privilegeObject = z.object({
@@ -516,14 +516,38 @@ export default function AssignPrivileges({
                                       <FormField
                                         control={form.control}
                                         name={`${module}.${subModule}.subModule.${perm}` as any}
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <Checkbox
-                                              checked={field.value}
-                                              onCheckedChange={field.onChange}
-                                            />
-                                          </FormItem>
-                                        )}
+                                        render={({ field }) => {
+                                          const subModuleView = form.getValues(`${module}.${subModule}.subModule.view` as any);
+                                          const isDisabled = perm !== 'view' && !subModuleView;
+                                          
+                                          return (
+                                            <FormItem>
+                                              <Checkbox
+                                                checked={field.value}
+                                                disabled={isDisabled}
+                                                onCheckedChange={(checked) => {
+                                                  field.onChange(checked);
+                                                  
+                                                  if (perm === 'view' && checked) {
+                                                    tabs.forEach((tab) => {
+                                                      form.setValue(`${module}.${subModule}.tabs.${tab}.view` as any, true);
+                                                    });
+                                                  }
+                                                  else if (checked) {
+                                                    tabs.forEach((tab) => {
+                                                      form.setValue(`${module}.${subModule}.tabs.${tab}.${perm}` as any, true);
+                                                    });
+                                                  }
+                                                  else if (!checked) {
+                                                    tabs.forEach((tab) => {
+                                                      form.setValue(`${module}.${subModule}.tabs.${tab}.${perm}` as any, false);
+                                                    });
+                                                  }
+                                                }}
+                                              />
+                                            </FormItem>
+                                          );
+                                        }}
                                       />
                                     </td>
                                   ))}
@@ -539,14 +563,35 @@ export default function AssignPrivileges({
                                         <FormField
                                           control={form.control}
                                           name={`${module}.${subModule}.tabs.${tab}.${perm}` as any}
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormItem>
-                                          )}
+                                          render={({ field }) => {
+                                            const tabView = form.getValues(`${module}.${subModule}.tabs.${tab}.view` as any);
+                                            const isDisabled = perm !== 'view' && !tabView;
+                                            
+                                            return (
+                                              <FormItem>
+                                                <Checkbox
+                                                  checked={field.value}
+                                                  disabled={isDisabled}
+                                                  onCheckedChange={(checked) => {
+                                                    field.onChange(checked);
+                                                    
+                                                    if (checked) {
+                                                      form.setValue(`${module}.${subModule}.subModule.${perm}` as any, true);
+                                                    } else {
+                                                      const hasOtherTabWithPerm = tabs.some((t) => {
+                                                        if (t === tab) return false;
+                                                        return form.getValues(`${module}.${subModule}.tabs.${t}.${perm}` as any) === true;
+                                                      });
+                                                      
+                                                      if (!hasOtherTabWithPerm) {
+                                                        form.setValue(`${module}.${subModule}.subModule.${perm}` as any, false);
+                                                      }
+                                                    }
+                                                  }}
+                                                />
+                                              </FormItem>
+                                            );
+                                          }}
                                         />
                                       </td>
                                     ))}

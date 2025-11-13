@@ -233,10 +233,10 @@ export default function PowerTable({
   const showEdit = overrideEditIcon !== undefined 
     ? overrideEditIcon 
     : effectivePrivileges.edit;
-
+    
   const showCheckbox = overrideCheckbox !== undefined 
     ? overrideCheckbox 
-    : (effectivePrivileges.create || effectivePrivileges.edit || effectivePrivileges.delete);
+    : effectivePrivileges.delete;
 
   const columnDefs = [
     ...(showCheckbox

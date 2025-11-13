@@ -67,7 +67,7 @@ export default function AppSidebar() {
   };
 
   const accessibleModules = Object.keys(privilegeMap || {}).filter(
-    key => privilegeMap[key].allowed && privilegeMap[key].subModules.some(sub => sub.allowed)
+    key => privilegeMap[key].hasView && privilegeMap[key].subModules.some(sub => sub.hasView)
   );
 
   React.useEffect(() => {
@@ -140,13 +140,13 @@ export default function AppSidebar() {
                 const module = privilegeMap[key];
                 const Icon = getModuleIcon(key);
 
-                const firstSub = module.subModules.find((s: any) => s.allowed);
+                const firstSub = module.subModules.find((s: any) => s.hasView);
                 if (!firstSub?.sub_module_name) return null;
 
                 let fullPath = `/${normalizePathSegment(key)}/${firstSub.path}`;
                 
                 if (firstSub.tabs && firstSub.tabs.length > 0) {
-                  const firstAllowedTab = firstSub.tabs.find((tab: any) => tab.allowed);
+                  const firstAllowedTab = firstSub.tabs.find((tab: any) => tab.hasView);
                   if (firstAllowedTab) {
                     const normalizedTabName = firstAllowedTab.tab_name.toLowerCase().replace(/\s+/g, "-");
                     fullPath += `/${normalizedTabName}`;

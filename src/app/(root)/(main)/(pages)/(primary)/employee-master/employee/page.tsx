@@ -69,14 +69,14 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "emp_no", headerName: "Emp No" },
+      { field: "emp_no", headerName: t.emp_no },
       {
         field: language === "ar" ? "firstname_arb" : "firstname_eng",
-        headerName: "Employee Name",
+        headerName: t.employee_name,
       },
       {
         field: "email",
-        headerName: "Email ID",
+        headerName: t.email_id,
       },
       {
         field: "join_date",
@@ -84,13 +84,13 @@ export default function Page() {
       },
       {
         field: "designation_name",
-        headerName: "Designation",
+        headerName: t.designation,
       },
       {
         field: "organization_name",
-        headerName: "Organization",
+        headerName: t.organization,
       },
-      { field: "manager_flag", headerName: "Manager" },
+      { field: "manager_flag", headerName: t.manager },
     ]);
   }, [language]);
 
@@ -174,7 +174,6 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <PowerHeader
         props={props}
-        disableDelete
         selectedRows={selectedRows}
         items={modules?.employeeMaster.items}
         entityName="employee"
@@ -182,7 +181,6 @@ export default function Page() {
       />
       <PowerTable
         props={props}
-        onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
       />

@@ -3,12 +3,6 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
-import { CalendarIcon } from "@/src/icons/icons";
-import { Calendar } from "@/src/components/ui/calendar";
-import { format } from "date-fns";
-import { Label } from "@/src/components/ui/label";
-import { Button } from "@/src/components/ui/button";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -16,6 +10,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
 import { InlineLoading } from "@/src/app/loading";
+import { useEmpScheduleEditStore } from "@/src/stores/empScheduleEditStore";
 
 type Column = {
   field: string;
@@ -26,7 +21,7 @@ type Column = {
 export default function Page() {
     const router = useRouter();
     const { modules, language, translations } = useLanguage();
-    const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+    const { isAuthenticated, isChecking, employeeId } = useAuthGuard();
     const [columns, setColumns] = useState<Column[]>([]);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [sortField, setSortField] = useState<string>("employee_schedule_id");
@@ -34,23 +29,11 @@ export default function Page() {
     const [searchValue, setSearchValue] = useState<string>("");
     const [selectedRows, setSelectedRows] = useState<any[]>([]);
     const queryClient = useQueryClient();
-    const [open, setOpen] = useState<boolean>(false);
-    const [filter_open, filter_on_open_change] = useState<boolean>(false);
-    const [selectedRowData, setSelectedRowData] = useState<any>(null);
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-    const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
-    const [toDate, setToDate] = useState<Date | undefined>(undefined);
-    const [selectedOption, setSelectedOption] = useState<string>("all");
     const debouncedSearchValue = useDebounce(searchValue, 300);
     const t = translations?.modules?.scheduling || {};
-    const [popoverStates, setPopoverStates] = useState({
-        fromDate: false,
-        toDate: false,
-    });
-
-    const closePopover = (key: string) => {
-        setPopoverStates(prev => ({ ...prev, [key]: false }));
-    };
+    
+    const setSelectedRowData = useEmpScheduleEditStore((state) => state.setSelectedRowData);
 
     const offset = useMemo(() => {
         return currentPage;
@@ -58,71 +41,65 @@ export default function Page() {
 
     useEffect(() => {
         setColumns([
-        { field: "from_date", headerName: "From date" },
-        { field: "to_date", headerName: "To date" },
-        { 
-            field: "monday_schedule_id", 
-            headerName: "Monday",
-            cellRenderer: (row: any) => (
-            <span style={{ color: row.monday_schedule_color }}>
-                {row.monday_schedule_id}
-            </span>
-            ),
-        },
-        { 
-            field: "tuesday_schedule_id", 
-            headerName: "Tuesday",
-            cellRenderer: (row: any) => (
-            <span style={{ color: row.tuesday_schedule_color }}>
-                {row.tuesday_schedule_id}
-            </span>
-            ),
-        },
-        { 
-            field: "wednesday_schedule_id", 
-            headerName: "Wednesday",
-            cellRenderer: (row: any) => (
-            <span style={{ color: row.wednesday_schedule_color }}>
-                {row.wednesday_schedule_id}
-            </span>
-            ),
-        },
-        { 
-            field: "thursday_schedule_id", 
-            headerName: "Thursday",
-            cellRenderer: (row: any) => (
-            <span style={{ color: row.thursday_schedule_color }}>
-                {row.thursday_schedule_id}
-            </span>
-            ),
-        },
-        { 
-            field: "friday_schedule_id", 
-            headerName: "Friday",
-            cellRenderer: (row: any) => (
-            <span style={{ color: row.friday_schedule_color }}>
-                {row.friday_schedule_id}
-            </span>
-            ),
-        },
+            { 
+                field: "employee_name", 
+                headerName: "Employee",
+            },
+            { field: "from_date", headerName: "From" },
+            { field: "to_date", headerName: "To" },
+            { 
+                field: "monday_schedule_id", 
+                headerName: "Mon",
+                cellRenderer: (row: any) => (
+                    <span style={{ color: row.monday_schedule_color }}>
+                        {row.monday_schedule_id}
+                    </span>
+                ),
+            },
+            { 
+                field: "tuesday_schedule_id", 
+                headerName: "Tue",
+                cellRenderer: (row: any) => (
+                    <span style={{ color: row.tuesday_schedule_color }}>
+                        {row.tuesday_schedule_id}
+                    </span>
+                ),
+            },
+            { 
+                field: "wednesday_schedule_id", 
+                headerName: "Wed",
+                cellRenderer: (row: any) => (
+                    <span style={{ color: row.wednesday_schedule_color }}>
+                        {row.wednesday_schedule_id}
+                    </span>
+                ),
+            },
+            { 
+                field: "thursday_schedule_id", 
+                headerName: "Thu",
+                cellRenderer: (row: any) => (
+                    <span style={{ color: row.thursday_schedule_color }}>
+                        {row.thursday_schedule_id}
+                    </span>
+                ),
+            },
+            { 
+                field: "friday_schedule_id", 
+                headerName: "Fri",
+                cellRenderer: (row: any) => (
+                    <span style={{ color: row.friday_schedule_color }}>
+                        {row.friday_schedule_id}
+                    </span>
+                ),
+            },
         ]);
     }, [language]);
 
-    
-    const formatDateForAPI = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const { data: employeeScheduleData, isLoading, refetch } = useFetchAllEntity("employeeSchedule",{
+    const { data: employeeScheduleData, isLoading, refetch } = useFetchAllEntity("employeeSchedule", {
         searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
+            limit: String(rowsPerPage),
+            offset: String(offset),
+            ...(debouncedSearchValue && { search: debouncedSearchValue }),
         },
     });
 
@@ -131,19 +108,19 @@ export default function Page() {
     const scheduleMap = useMemo(() => {
         const map: Record<number, string> = {};
         if (Array.isArray(scheduleData?.data)) {
-        scheduleData.data.forEach((schedule: any) => {
-            map[schedule.schedule_id] = schedule.schedule_code;
-        });
+            scheduleData.data.forEach((schedule: any) => {
+                map[schedule.schedule_id] = schedule.schedule_code;
+            });
         }
         return map;
     }, [scheduleData]);
 
     const scheduleColorMap = useMemo(() => {
-    const map: Record<number, string> = {};
+        const map: Record<number, string> = {};
         if (Array.isArray(scheduleData?.data)) {
-        scheduleData.data.forEach((schedule: any) => {
-            map[schedule.schedule_id] = schedule.sch_color;
-        });
+            scheduleData.data.forEach((schedule: any) => {
+                map[schedule.schedule_id] = schedule.sch_color;
+            });
         }
         return map;
     }, [scheduleData]);
@@ -151,33 +128,49 @@ export default function Page() {
     const data = useMemo(() => {
         if (!Array.isArray(employeeScheduleData?.data)) return [];
 
-            return employeeScheduleData.data.map((orgSch: any) => ({
-                id: orgSch.employee_schedule_id,
-                from_date: new Date(orgSch.from_date).toISOString().split('T')[0],
-                to_date: orgSch.to_date ? new Date(orgSch.to_date).toISOString().split('T')[0] : "-",
-                monday_schedule_id: scheduleMap[orgSch.monday_schedule_id]?.trim() ?? "-",
-                tuesday_schedule_id: scheduleMap[orgSch.tuesday_schedule_id]?.trim() ?? "-",
-                wednesday_schedule_id: scheduleMap[orgSch.wednesday_schedule_id]?.trim() ?? "-",
-                thursday_schedule_id: scheduleMap[orgSch.thursday_schedule_id]?.trim() ?? "-",
-                friday_schedule_id: scheduleMap[orgSch.friday_schedule_id]?.trim() ?? "-",
-                saturday_schedule_id: scheduleMap[orgSch.saturday_schedule_id]?.trim() ?? "-",
-                sunday_schedule_id: scheduleMap[orgSch.sunday_schedule_id]?.trim() ?? "-",
-            }));
-        }, [employeeScheduleData, scheduleMap, scheduleColorMap]);
+        return employeeScheduleData.data.map((empSch: any) => {
+            const employeeName = language === 'ar'
+                ? `${empSch.employee_master?.firstname_arb || ''}`.trim()
+                : `${empSch.employee_master?.firstname_eng || ''}`.trim();
 
-        const handlePageChange = useCallback((newPage: number) => {
-            setCurrentPage(newPage);
-            if (refetch) {
+            return {
+                id: empSch.employee_schedule_id,
+                employee_schedule_id: empSch.employee_schedule_id,
+                from_date: new Date(empSch.from_date).toISOString().split('T')[0],
+                to_date: empSch.to_date ? new Date(empSch.to_date).toISOString().split('T')[0] : "-",
+                monday_schedule_id: scheduleMap[empSch.monday_schedule_id]?.trim() ?? "-",
+                tuesday_schedule_id: scheduleMap[empSch.tuesday_schedule_id]?.trim() ?? "-",
+                wednesday_schedule_id: scheduleMap[empSch.wednesday_schedule_id]?.trim() ?? "-",
+                thursday_schedule_id: scheduleMap[empSch.thursday_schedule_id]?.trim() ?? "-",
+                friday_schedule_id: scheduleMap[empSch.friday_schedule_id]?.trim() ?? "-",
+                saturday_schedule_id: scheduleMap[empSch.saturday_schedule_id]?.trim() ?? "-",
+                sunday_schedule_id: scheduleMap[empSch.sunday_schedule_id]?.trim() ?? "-",
+                monday_schedule_color: scheduleColorMap[empSch.monday_schedule_id] ?? "#000",
+                tuesday_schedule_color: scheduleColorMap[empSch.tuesday_schedule_id] ?? "#000",
+                wednesday_schedule_color: scheduleColorMap[empSch.wednesday_schedule_id] ?? "#000",
+                thursday_schedule_color: scheduleColorMap[empSch.thursday_schedule_id] ?? "#000",
+                friday_schedule_color: scheduleColorMap[empSch.friday_schedule_id] ?? "#000",
+                saturday_schedule_color: scheduleColorMap[empSch.saturday_schedule_id] ?? "#000",
+                sunday_schedule_color: scheduleColorMap[empSch.sunday_schedule_id] ?? "#000",
+                employee_name: employeeName || "-",
+                // Store original data for edit
+                _original: empSch,
+            };
+        });
+    }, [employeeScheduleData, scheduleMap, scheduleColorMap, language]);
+
+    const handlePageChange = useCallback((newPage: number) => {
+        setCurrentPage(newPage);
+        if (refetch) {
             setTimeout(() => refetch(), 100);
-            }
+        }
     }, [refetch]);
-
 
     const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
         setRowsPerPage(newRowsPerPage);
         setCurrentPage(1);
         if (refetch) {
-        setTimeout(() => refetch(), 100);
+            setTimeout(() => refetch(), 100);
         }
     }, [refetch]);
 
@@ -186,29 +179,9 @@ export default function Page() {
         setCurrentPage(1);
     }, []);
 
-        const handleFilterChange = useCallback(() => {
-        setCurrentPage(1);
-        if (refetch) {
-            setTimeout(() => refetch(), 100);
-        }
-        }, [refetch]);
-
-        const handleFromDateChange = (date: Date | undefined) => {
-            setFromDate(date);
-            handleFilterChange();
-        };
-
-        const handleToDateChange = (date: Date | undefined) => {
-            setToDate(date);
-            handleFilterChange();
-        };
-
-
     const props = {
         Data: data,
         Columns: columns,
-        open,
-        on_open_change: setOpen,
         selectedRows,
         setSelectedRows,
         isLoading: isLoading || isChecking,
@@ -224,21 +197,35 @@ export default function Page() {
         hasNext: employeeScheduleData?.hasNext,
         rowsPerPage,
         setRowsPerPage: handleRowsPerPageChange,
-        filter_open,
-        filter_on_open_change,
     };
 
-    const handleSave = () => {
+    const handleSave = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ["employeeSchedule"] });
-    };
+    }, [queryClient]);
 
-    const handleEditClick = useCallback(
-        (row: any) => {
-        setSelectedRowData(row);
-        router.push("/scheduling/weekly-schedule/employee-schedule/add");
-        },
-        [router, setSelectedRowData]
-    );
+    const handleEditClick = useCallback((row: any) => {
+        const originalData = row._original;
+        
+        if (originalData) {
+            setSelectedRowData({
+                id: originalData.employee_schedule_id,
+                employee_schedule_id: originalData.employee_schedule_id,
+                employee_id: originalData.employee_id,
+                schedule_id: originalData.schedule_id,
+                from_date: originalData.from_date,
+                to_date: originalData.to_date,
+                monday_schedule_id: originalData.monday_schedule_id,
+                tuesday_schedule_id: originalData.tuesday_schedule_id,
+                wednesday_schedule_id: originalData.wednesday_schedule_id,
+                thursday_schedule_id: originalData.thursday_schedule_id,
+                friday_schedule_id: originalData.friday_schedule_id,
+                saturday_schedule_id: originalData.saturday_schedule_id,
+                sunday_schedule_id: originalData.sunday_schedule_id,
+            });
+        }
+        
+        router.push(`/scheduling/weekly-schedule/employee-schedule/edit?id=${row.id}`);
+    }, [router, setSelectedRowData]);
 
     const handleRowSelection = useCallback((rows: any[]) => {
         setSelectedRows(rows);
@@ -246,32 +233,32 @@ export default function Page() {
 
     const renderPowerTable = () => {
         if (isChecking) {
-        return (
-            <div className="flex justify-center items-center p-8">
-                <InlineLoading />
-            </div>
-        );
+            return (
+                <div className="flex justify-center items-center p-8">
+                    <InlineLoading />
+                </div>
+            );
         }
 
         if (!isAuthenticated || !employeeId) {
-        return (
-            <div className="p-8">
-            <div className="bg-backdrop rounded-md p-3">
-                <div className="text-center">
-                <p>Unable to load employee data. Please try logging in again.</p>
+            return (
+                <div className="p-8">
+                    <div className="bg-backdrop rounded-md p-3">
+                        <div className="text-center">
+                            <p>Unable to load employee data. Please try logging in again.</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            </div>
-        );
+            );
         }
 
         return (
-        <PowerTable
-            props={props}
-            onEditClick={handleEditClick}
-            onRowSelection={handleRowSelection}
-            isLoading={isLoading || isChecking}
-        />
+            <PowerTable
+                props={props}
+                onEditClick={handleEditClick}
+                onRowSelection={handleRowSelection}
+                isLoading={isLoading || isChecking}
+            />
         );
     };
 
@@ -284,63 +271,6 @@ export default function Page() {
                 entityName="employeeSchedule"
                 isAddNewPagePath="/scheduling/weekly-schedule/employee-schedule/add"
             />
-            <div className="grid grid-cols-3 gap-4">
-                <div>
-                    <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
-                        <PopoverTrigger asChild>
-                        <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-accent px-4 flex justify-between border-grey"
-                        >
-                            <p>
-                            <Label className="font-normal text-secondary">
-                                {t.from_date || "From Date"} :
-                            </Label>
-                            <span className="px-1 text-sm text-text-primary"> 
-                                {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
-                            </span>
-                            </p>
-                            <CalendarIcon />
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={fromDate}
-                            onSelect={(date) => {
-                                handleFromDateChange(date);
-                                closePopover('fromDate');
-                            }}
-                        />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-                <div>
-                    <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
-                        <PopoverTrigger asChild>
-                        <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-accent px-4 flex justify-between border-grey"
-                        >
-                            <p>
-                            <Label className="font-normal text-secondary">
-                                {t.to_date || "To Date"} : 
-                            </Label>
-                            <span className="px-1 text-sm text-text-primary"> 
-                                {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
-                            </span>
-                            </p>
-                            <CalendarIcon />
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={toDate} onSelect={(date) => {
-                            handleToDateChange(date);
-                            closePopover('toDate');
-                            }} 
-                        />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-            </div>
             <div className="bg-accent rounded-2xl">
                 <div className="col-span-2 p-6 pb-6">
                     <h1 className="font-bold text-xl text-primary">

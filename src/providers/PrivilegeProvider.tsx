@@ -6,6 +6,7 @@ export interface TabPrivilege {
   tab_id: number;
   tab_name: string;
   allowed: boolean;
+  hasView: boolean;
   privileges: {
     access: boolean;
     view: boolean;
@@ -18,6 +19,7 @@ export interface TabPrivilege {
 export interface SubModulePrivilege {
   path: string;
   allowed: boolean;
+  hasView: boolean;
   sub_module_name: string;
   privileges: {
     access: boolean;
@@ -31,8 +33,16 @@ export interface SubModulePrivilege {
 
 export interface ModulePrivilege {
   allowed: boolean;
+  hasView: boolean;
   subModules: SubModulePrivilege[];
   module_type?: "primary" | "secondary";
+  privileges: {
+    access: boolean;
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
 }
 
 export type PrivilegeMap = Record<string, ModulePrivilege>;

@@ -97,7 +97,7 @@ function WorkTrendsCard() {
       
       const dayData = workHourTrends.find(item => item.DayofDate === dayNumber);
       
-      if (!dayData || dayData.ExpectedWork === null || dayData.ExpectedWork === 0) {
+      if (!dayData) {
         return {
           date: dayNumber.toString(),
           worked: 0,
@@ -106,7 +106,14 @@ function WorkTrendsCard() {
         };
       }
 
-      const expectedHours = dayData.ExpectedWork / 60;
+      console.log("Day Data:", dayData);
+
+      // Use 12 hours (720 minutes) as default if ExpectedWork is null or 0
+      const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0) 
+        ? 720 
+        : dayData.ExpectedWork;
+      
+      const expectedHours = expectedMinutes / 60;
       const workedHours = (dayData.WorkMinutes || 0) / 60;
       const missedHours = Math.max(0, expectedHours - workedHours);
       
@@ -129,6 +136,8 @@ function WorkTrendsCard() {
   );
 
   const yAxisMax = Math.ceil(maxExpectedHours) || 10;
+
+  const hasAnyData = chartDataToRender.some(d => d.worked > 0 || d.missed > 0 || d.expected > 0);
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4">
@@ -172,7 +181,7 @@ function WorkTrendsCard() {
         <div className="flex justify-center items-center h-[300px]">
           <p className="text-text-secondary">Loading...</p>
         </div>
-      ) : chartDataToRender.length === 0 ? (
+      ) : chartDataToRender.length === 0 || !hasAnyData ? (
         <div className="flex justify-center items-center h-[300px]">
           <p className="text-text-secondary">
             {t?.no_data || "No data available for this month"}

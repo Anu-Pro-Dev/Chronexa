@@ -8,18 +8,20 @@ import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQuery } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addOrgScheduleRequest, editOrgScheduleRequest, getScheduleByOrganization } from "@/src/lib/apiHandler";
+import { addOrgScheduleRequest, editOrgScheduleRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
+import { cn } from "@/src/lib/utils";
 
 const formSchema = z.object({
   from_date: z.date({ required_error: "from_date_required" }).optional(),
@@ -72,14 +74,25 @@ export default function AddOrganizationSchedule({
   const showToast = useShowToast();
   const t = translations?.modules?.schedulingModule || {};
   const errT = translations?.formErrors || {};
+  
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
+    organization: false,
+    schedule: false,
+    monday: false,
+    tuesday: false,
+    wednesday: false,
+    thursday: false,
+    friday: false,
+    saturday: false,
+    sunday: false,
   });
 
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -101,6 +114,43 @@ export default function AddOrganizationSchedule({
   const organizationId = form.watch("organization_id");
   const prevOrgIdRef = useRef(organizationId);
 
+  const { data: organizations, isLoading: isSearchingOrganizations } = useFetchAllEntity("organization", {
+    searchParams: {
+      ...(organizationSearchTerm && { search: organizationSearchTerm }),
+    },
+    removeAll: true,
+  });
+
+  const { data: schedules, isLoading: isSearchingSchedules } = useFetchAllEntity("schedule", {
+    searchParams: {
+      ...(scheduleSearchTerm && { search: scheduleSearchTerm }),
+    },
+    removeAll: true,
+  });
+
+  const getFilteredOrganizations = () => {
+    return (organizations?.data || []).filter((item: any) => 
+      item.organization_id && item.organization_id.toString().trim() !== ''
+    );
+  };
+
+  const getFilteredSchedules = () => {
+    return (schedules?.data || []).filter((item: any) => 
+      item.schedule_id && item.schedule_id.toString().trim() !== ''
+    );
+  };
+
+  const getOrganizationName = (orgId: number) => {
+    const org = organizations?.data?.find((o: any) => o.organization_id === orgId);
+    if (!org) return "";
+    return language === 'ar' ? org.organization_arb : org.organization_eng;
+  };
+
+  const getScheduleCode = (schedId: number) => {
+    const sched = schedules?.data?.find((s: any) => s.schedule_id === schedId);
+    return sched?.schedule_code || "";
+  };
+
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
@@ -117,15 +167,13 @@ export default function AddOrganizationSchedule({
         sunday_schedule_id: selectedRowData.sunday_schedule_id,
       });
     }
-  }, [selectedRowData, form]);
+  }, [selectedRowData]);
 
   useEffect(() => {
-    if (!scheduleId) return;
+    if (!scheduleId || selectedRowData) return;
 
     const currentValues = form.getValues();
-
     const updatedFields: Partial<typeof currentValues> = {};
-
     const days: (keyof typeof currentValues)[] = [
       "monday_schedule_id",
       "tuesday_schedule_id",
@@ -154,7 +202,7 @@ export default function AddOrganizationSchedule({
       form.setValue("saturday_schedule_id", updatedFields.saturday_schedule_id ?? currentValues.saturday_schedule_id);
       form.setValue("sunday_schedule_id", updatedFields.sunday_schedule_id ?? currentValues.sunday_schedule_id);
     }
-  }, [scheduleId, form]);
+  }, [scheduleId, form, selectedRowData]);
 
   useEffect(() => {
     if (prevOrgIdRef.current !== organizationId && prevOrgIdRef.current !== undefined) {
@@ -169,32 +217,7 @@ export default function AddOrganizationSchedule({
     }
     prevOrgIdRef.current = organizationId;
   }, [organizationId, form]);
-
-  const { data: organizations, isLoading: isSearchingOrganizations } = useFetchAllEntity("organization", {
-    searchParams: {
-      ...(organizationSearchTerm && { search: organizationSearchTerm }),
-    },
-    removeAll: true,
-  });
-
-  const { data: schedules, isLoading: isSearchingSchedules } = useFetchAllEntity("schedule", {
-    searchParams: {
-      ...(scheduleSearchTerm && { search: scheduleSearchTerm }),
-    },
-    removeAll: true,
-  });
-
-  const getFilteredOrganizations = () => {
-    return (organizations?.data || []).filter((item: any) => 
-      item.organization_id && item.organization_id.toString().trim() !== ''
-    );
-  };
-
-  const getFilteredSchedules = () => {
-    return (schedules?.data || []).filter((item: any) => 
-      item.schedule_id && item.schedule_id.toString().trim() !== ''
-    );
-  };
+  
   const addMutation = useMutation({
     mutationFn: addOrgScheduleRequest,
     onSuccess: (data) => {
@@ -218,6 +241,7 @@ export default function AddOrganizationSchedule({
       showToast("success", "updateorgschedule_success");
       onSave(variables.organization_schedule_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
+      router.push("/scheduling/weekly-schedule/organization-schedule");
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -269,10 +293,14 @@ export default function AddOrganizationSchedule({
     }
   }
   
+  const isEditMode = !!selectedRowData;
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <h1 className="text-primary text-lg font-bold">{t.organization_schedule || "Organization Schedule"}</h1>
+        <h1 className="text-primary text-lg font-bold mb-4">
+          {isEditMode ? t.edit_organization_schedule || "Edit Organization Schedule" : t.organization_schedule || "Organization Schedule"}
+        </h1>
         <div className="flex flex-col gap-6 px-5">
           <div className="p-5 grid grid-cols-2 gap-y-5 gap-x-20">
             <FormField
@@ -380,43 +408,70 @@ export default function AddOrganizationSchedule({
               control={form.control}
               name="organization_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.organization || "Organization"} <Required/> </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_organization || "Choose organization"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent
-                      showSearch={true}
-                      searchPlaceholder={t.search_organizations || "Search organizations..."}
-                      onSearchChange={setOrganizationSearchTerm}
-                      className="mt-5"
-                    >
-                      {isSearchingOrganizations && organizationSearchTerm.length > 0 && (
-                        <div className="p-3 text-sm text-text-secondary">
-                          {t.searching || "Searching..."}
-                        </div>
-                      )}
-                      {getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 && !isSearchingOrganizations && (
-                        <div className="p-3 text-sm text-text-secondary">
-                          {t.no_organization_found || "No organization found"}
-                        </div>
-                      )}
-                      {getFilteredOrganizations().map((item: any) => {
-                        if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                            {item.organization_eng}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">
+                    {t.organization || "Organization"} <Required />
+                  </FormLabel>
+                  <Popover open={popoverStates.organization} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, organization: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.organization}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                          disabled={isSearchingOrganizations}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getOrganizationName(field.value)
+                              : t.placeholder_organization || "Choose organization"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput 
+                          placeholder={t.search_organizations || "Search organizations..."} 
+                          className="border-none"
+                          onValueChange={setOrganizationSearchTerm}
+                        />
+                        <CommandEmpty>
+                          {isSearchingOrganizations && organizationSearchTerm.length > 0
+                            ? t.searching || "Searching..."
+                            : t.no_organization_found || "No organization found"}
+                        </CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredOrganizations().map((item: any) => {
+                            const name = language === 'ar' ? item.organization_arb : item.organization_eng;
+                            return (
+                              <CommandItem
+                                key={item.organization_id}
+                                value={name}
+                                onSelect={() => {
+                                  field.onChange(item.organization_id);
+                                  closePopover('organization');
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === item.organization_id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {name}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.organization_id}
                     translations={errT}
@@ -424,80 +479,134 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="schedule_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.schedule || "Schedule"} <Required/> </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent
-                      showSearch={true}
-                      searchPlaceholder={t.search_schedules || "Search schedules..."}
-                      onSearchChange={setScheduleSearchTerm}
-                      className="mt-5"
-                    >
-                      {isSearchingSchedules && scheduleSearchTerm.length > 0 && (
-                        <div className="p-3 text-sm text-text-secondary">
-                          {t.searching || "Searching..."}
-                        </div>
-                      )}
-                      {(schedules?.data || []).length === 0 && scheduleSearchTerm.length > 0 && !isSearchingSchedules && (
-                        <div className="p-3 text-sm text-text-secondary">
-                          {t.no_schedules_found || "No schedules found"}
-                        </div>
-                      )}
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <TranslatedError
-                    fieldError={form.formState.errors.schedule_id}
-                    translations={errT}
-                  />
-                </FormItem>
-              )}
-            />
+            {!isEditMode && (
+              <FormField
+                control={form.control}
+                name="schedule_id"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="flex gap-1">
+                      {t.schedule || "Schedule"} <Required />
+                    </FormLabel>
+                    <Popover open={popoverStates.schedule} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, schedule: open }))}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={popoverStates.schedule}
+                            className={cn(
+                              "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                              !field.value && "text-text-secondary"
+                            )}
+                            disabled={isSearchingSchedules}
+                          >
+                            <span className="truncate">
+                              {field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
+                            </span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                        <Command>
+                          <CommandInput 
+                            placeholder={t.search_schedules || "Search schedules..."} 
+                            className="border-none"
+                            onValueChange={setScheduleSearchTerm}
+                          />
+                          <CommandEmpty>
+                            {isSearchingSchedules && scheduleSearchTerm.length > 0
+                              ? t.searching || "Searching..."
+                              : t.no_schedules_found || "No schedules found"}
+                          </CommandEmpty>
+                          <CommandGroup className="max-h-64 overflow-auto">
+                            {getFilteredSchedules().map((item: any) => (
+                              <CommandItem
+                                key={item.schedule_id}
+                                value={item.schedule_code}
+                                onSelect={() => {
+                                  field.onChange(item.schedule_id);
+                                  closePopover('schedule');
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {item.schedule_code}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <TranslatedError
+                      fieldError={form.formState.errors.schedule_id}
+                      translations={errT}
+                    />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="monday_schedule_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.monday || "Monday"} </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">{t.monday || "Monday"}</FormLabel>
+                  <Popover open={popoverStates.monday} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, monday: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.monday}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getScheduleCode(field.value)
+                              : t.placeholder_schedule || "Choose schedule"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+                        <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredSchedules().map((item: any) => (
+                            <CommandItem
+                              key={item.schedule_id}
+                              value={item.schedule_code}
+                              onSelect={() => {
+                                field.onChange(item.schedule_id);
+                                closePopover('monday');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.schedule_code}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.monday_schedule_id}
                     translations={errT}
@@ -505,32 +614,61 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="tuesday_schedule_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.tuesday || "Tuesday"} </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">{t.tuesday || "Tuesday"}</FormLabel>
+                  <Popover open={popoverStates.tuesday} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, tuesday: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.tuesday}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getScheduleCode(field.value)
+                              : t.placeholder_schedule || "Choose schedule"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+                        <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredSchedules().map((item: any) => (
+                            <CommandItem
+                              key={item.schedule_id}
+                              value={item.schedule_code}
+                              onSelect={() => {
+                                field.onChange(item.schedule_id);
+                                closePopover('tuesday');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.schedule_code}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.tuesday_schedule_id}
                     translations={errT}
@@ -538,32 +676,61 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="wednesday_schedule_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.wednesday || "Wednesday"} </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">{t.wednesday || "Wednesday"}</FormLabel>
+                  <Popover open={popoverStates.wednesday} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, wednesday: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.wednesday}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getScheduleCode(field.value)
+                              : t.placeholder_schedule || "Choose schedule"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+                        <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredSchedules().map((item: any) => (
+                            <CommandItem
+                              key={item.schedule_id}
+                              value={item.schedule_code}
+                              onSelect={() => {
+                                field.onChange(item.schedule_id);
+                                closePopover('wednesday');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.schedule_code}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.wednesday_schedule_id}
                     translations={errT}
@@ -575,28 +742,56 @@ export default function AddOrganizationSchedule({
               control={form.control}
               name="thursday_schedule_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.thursday || "Thursday"} </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">{t.thursday || "Thursday"}</FormLabel>
+                  <Popover open={popoverStates.thursday} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, thursday: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.thursday}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getScheduleCode(field.value)
+                              : t.placeholder_schedule || "Choose schedule"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+                        <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredSchedules().map((item: any) => (
+                            <CommandItem
+                              key={item.schedule_id}
+                              value={item.schedule_code}
+                              onSelect={() => {
+                                field.onChange(item.schedule_id);
+                                closePopover('thursday');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.schedule_code}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.thursday_schedule_id}
                     translations={errT}
@@ -604,32 +799,61 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="friday_schedule_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.friday || "Friday"} </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">{t.friday || "Friday"}</FormLabel>
+                  <Popover open={popoverStates.friday} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, friday: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.friday}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getScheduleCode(field.value)
+                              : t.placeholder_schedule || "Choose schedule"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+                        <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredSchedules().map((item: any) => (
+                            <CommandItem
+                              key={item.schedule_id}
+                              value={item.schedule_code}
+                              onSelect={() => {
+                                field.onChange(item.schedule_id);
+                                closePopover('friday');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.schedule_code}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.friday_schedule_id}
                     translations={errT}
@@ -637,32 +861,61 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="saturday_schedule_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.saturday || "Saturday"} </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">{t.saturday || "Saturday"}</FormLabel>
+                  <Popover open={popoverStates.saturday} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, saturday: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.saturday}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getScheduleCode(field.value)
+                              : t.placeholder_schedule || "Choose schedule"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+                        <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredSchedules().map((item: any) => (
+                            <CommandItem
+                              key={item.schedule_id}
+                              value={item.schedule_code}
+                              onSelect={() => {
+                                field.onChange(item.schedule_id);
+                                closePopover('saturday');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.schedule_code}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.saturday_schedule_id}
                     translations={errT}
@@ -670,32 +923,61 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="sunday_schedule_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex gap-1">{t.sunday || "Sunday"} </FormLabel>
-                  <Select
-                    onValueChange={val => field.onChange(Number(val))}
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
-                        <SelectValue placeholder={t.placeholder_schedule || "Choose schedule"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(schedules?.data || []).map((item: any) => {
-                        if (!item.schedule_id || item.schedule_id.toString().trim() === '') return null;
-                        return (
-                          <SelectItem key={item.schedule_id} value={item.schedule_id.toString()}>
-                            {item.schedule_code}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="flex gap-1">{t.sunday || "Sunday"}</FormLabel>
+                  <Popover open={popoverStates.sunday} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, sunday: open }))}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={popoverStates.sunday}
+                          className={cn(
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            !field.value && "text-text-secondary"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? getScheduleCode(field.value)
+                              : t.placeholder_schedule || "Choose schedule"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                      <Command>
+                        <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+                        <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {getFilteredSchedules().map((item: any) => (
+                            <CommandItem
+                              key={item.schedule_id}
+                              value={item.schedule_code}
+                              onSelect={() => {
+                                field.onChange(item.schedule_id);
+                                closePopover('sunday');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.schedule_code}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <TranslatedError
                     fieldError={form.formState.errors.sunday_schedule_id}
                     translations={errT}
@@ -703,6 +985,7 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="attachment"
@@ -715,7 +998,10 @@ export default function AddOrganizationSchedule({
                     <Input
                       className="border-0 p-0 rounded-none h-auto text-text-secondary"
                       type="file"
-                      {...field}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        field.onChange(file);
+                      }}
                     />
                   </FormControl>
                   <TranslatedError

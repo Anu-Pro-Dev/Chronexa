@@ -92,7 +92,7 @@ export default function AddGroupMembers({
   const employeeSearchParams = useMemo(() => {
     const params: Record<string, string> = {
       limit: String(rowsPerPage),
-      offset: String(offset),
+      offset: String(currentPage),
     };
     
     if (debouncedSearchValue) {
@@ -103,7 +103,7 @@ export default function AddGroupMembers({
     if (sortDirection) params.sort_order = sortDirection;
     
     return params;
-  }, [rowsPerPage, offset, debouncedSearchValue, sortField, sortDirection]);
+  }, [rowsPerPage, currentPage, debouncedSearchValue, sortField, sortDirection]);
 
   const { data: employeeData, isLoading, refetch: refetchEmployees } = useFetchAllEntity("employee", {
     searchParams: employeeSearchParams,
@@ -245,7 +245,6 @@ export default function AddGroupMembers({
     return [];
   }, [employeeData, existingEmployeeIds]);
 
-  // Calculate the actual total by subtracting existing members from total employee count
   const totalAvailableEmployees = useMemo(() => {
     const totalEmployees = employeeData?.total || 0;
     const existingCount = existingEmployeeIds.size;
@@ -266,7 +265,7 @@ export default function AddGroupMembers({
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: employeeData?.total || 0, // Use API total for proper pagination
+    total: employeeData?.total || 0,
     hasNext: employeeData?.hasNext || false,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,

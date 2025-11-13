@@ -314,7 +314,7 @@ export default function AddLeaveApplication({
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pt-8">
+            <div className="grid grid-cols-2 gap-y-5 gap-10 pt-8">
               <FormField
                 control={form.control}
                 name="employee"
