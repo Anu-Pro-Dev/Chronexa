@@ -10,20 +10,32 @@ import {
   CopyIcon,
   ExportIcon,
   ImportIcon,
-  LockIcon,
-  UnlockIcon,
-  DeleteIcon,
   PasteIcon,
-  SaveIcon,
 } from "@/src/icons/icons";
+import toast from "react-hot-toast";
+import { importMonthlyRosterRequest } from "@/src/lib/apiHandler";
 
 export default function Page() {
   const { translations, modules } = useLanguage();
   const [SearchValue, SetSearchValue] = useState<string>("");
+  const [filterData, setFilterData] = useState<any>(null);
   
   const props = {
     SearchValue,
     SetSearchValue,
+  };
+
+  const handleFilterSubmit = (data: any) => {
+    setFilterData(data);
+  };
+
+  const handleImport = async (file: File) => {
+      try {
+      const result = await importMonthlyRosterRequest(file);
+      toast.success('Import successful');
+    } catch (error) {
+      toast.error('Import failed');
+    }
   };
   
   return (
@@ -35,8 +47,10 @@ export default function Page() {
 
       <div className="flex flex-col justify-between bg-accent rounded-[15px] items-center px-5 py-3">
         <div className="w-full py-3">
-          <FilterForm />
+          <FilterForm onFilterSubmit={handleFilterSubmit} />
         </div>
+      </div>
+      <div className="flex flex-col justify-between bg-accent rounded-[15px] items-center px-5 py-3">
         <div className="w-full flex py-3 justify-between items-center">
           <Input
             className="border-0 p-0 h-auto rounded-none text-text-secondary"
@@ -61,22 +75,11 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <div className="justify-end gap-4 flex">
-        <Button size={"sm"} type="button">
-          <SaveIcon /> {translations?.buttons?.save}
-        </Button>
-        <Button size={"sm"} type="button" variant="success">
-          <LockIcon /> {translations?.buttons?.finalize}
-        </Button>
-        <Button size={"sm"} type="button" className="text-[#979797] bg-[#F3F3F3] border border-[#E7E7E7]">
-          <UnlockIcon /> {translations?.buttons?.un_finalize}
-        </Button>
-        <Button size={"sm"} type="button" variant="destructive">
-          <DeleteIcon /> {translations?.buttons?.clear}
-        </Button>
-      </div>
       <div className="relative">
-        <MonthlyScheduleTable />
+        <MonthlyScheduleTable 
+          groupFilter={filterData?.employee_group_id} 
+          filterData={filterData}
+        />
       </div>
     </div>
   );

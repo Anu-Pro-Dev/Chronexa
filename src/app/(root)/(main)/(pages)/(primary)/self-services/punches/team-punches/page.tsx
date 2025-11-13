@@ -98,7 +98,7 @@ export default function Page() {
         ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeEventTransaction/all`,
+      endpoint: `/employeeEventTransaction/team/all`,
     }
   );
 
@@ -126,11 +126,7 @@ export default function Page() {
 
   const data = useMemo(() => {
     if (Array.isArray(punchesData?.data)) {
-      const filteredData = punchesData.data.filter((transaction: any) => 
-        transaction.employee_id !== employeeId
-      );
-
-      const processedData = filteredData.map((transaction: any) => {
+      const processedData = punchesData.data.map((transaction: any) => {
         const transactionTimeStr = transaction.transaction_time;
         
         let formattedTime = '';

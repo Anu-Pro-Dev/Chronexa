@@ -528,10 +528,6 @@ export default function LanguageProvider({
     }
   };
 
-  // if (isLoading) {
-  //   return <LanguageLoader />;
-  // }
-
   return (
     <LanguageContext.Provider
       value={{

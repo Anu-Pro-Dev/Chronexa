@@ -21,7 +21,6 @@ export default function MembersTable() {
     { field: "user_id", headerName: "User ID" },
     { field: "employee_no", headerName: "Employee No" },
     { field: "user_name", headerName: "Employee Name" },
-    // { field: "email", headerName: "Email" },
     { field: "designation", headerName: "Designation" },
     { field: "organization", headerName: "Organization" },
     { field: "created_date", headerName: "Assigned Date" },
@@ -98,17 +97,14 @@ export default function MembersTable() {
           (r.id || r.role_id) === userRole.role_id
         );
 
-        // Get employee name based on language
         const employeeName = language === 'ar' 
           ? employeeMaster?.firstname_arb || employeeMaster?.firstname_eng || "N/A"
           : employeeMaster?.firstname_eng || "N/A";
 
-        // Get designation based on language
         const designation = language === 'ar'
           ? employeeMaster?.designation?.designation_arb || employeeMaster?.designation?.designation_eng || "N/A"
           : employeeMaster?.designation?.designation_eng || "N/A";
 
-        // Get organization based on language
         const organization = language === 'ar'
           ? employeeMaster?.organization?.organization_arb || employeeMaster?.organization?.organization_eng || "N/A"
           : employeeMaster?.organization?.organization_eng || "N/A";

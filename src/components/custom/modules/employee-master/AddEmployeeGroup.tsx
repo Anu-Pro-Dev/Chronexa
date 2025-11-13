@@ -15,7 +15,6 @@ import {
 import Required from "@/src/components/ui/required";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
@@ -24,6 +23,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addEmployeeGroupRequest, editEmployeeGroupRequest, getManagerEmployees } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/src/lib/utils";
 
 const formSchema = z.object({
   group_code: z
@@ -65,6 +67,7 @@ export default function AddEmployeeGroups({
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
+    manager: false,
   });
 
   const closePopover = (key: string) => {
@@ -86,10 +89,14 @@ export default function AddEmployeeGroups({
 
   const reportingGroupChecked = form.watch("reporting_group_flag");
 
-  const { data: managerEmployees } = useQuery({
+  const { data: managerEmployees, isLoading: loadingManagers } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
   });
+
+  const getManagersData = () => (managerEmployees?.data || []).filter((emp: any) => 
+    emp.employee_id != null
+  );
 
   useEffect(() => {
     if (selectedRowData) {
@@ -399,43 +406,75 @@ export default function AddEmployeeGroups({
                   )}
                 />
                 {reportingGroupChecked && (
-                  <div className="pt-2">
-                    <FormField
-                      control={form.control}
-                      name="reporting_person_id"
-                      render={({ field }) => (
-                        <FormItem className="min-w-0">
-                          <FormLabel className="flex gap-1">
-                            {t.reporting} <Required />
-                          </FormLabel>
-                          <Select
-                            onValueChange={(val) => field.onChange(Number(val))}
-                            value={field.value !== undefined ? String(field.value) : ""}
-                          >
+                  <FormField
+                    control={form.control}
+                    name="reporting_person_id"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col min-w-0">
+                        <FormLabel className="flex gap-1">
+                          {t.reporting} <Required />
+                        </FormLabel>
+                        <Popover 
+                          open={popoverStates.manager} 
+                          onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, manager: open }))}
+                        >
+                          <PopoverTrigger asChild>
                             <FormControl>
-                              <SelectTrigger className="max-w-[350px]">
-                                <SelectValue placeholder={t.placeholder_manager} />
-                              </SelectTrigger>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={popoverStates.manager}
+                                className={cn(
+                                  "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                                  !field.value && "text-text-secondary"
+                                )}
+                                disabled={loadingManagers}
+                              >
+                                <span className="truncate">
+                                  {field.value
+                                    ? getManagersData().find(
+                                        (emp: any) => emp.employee_id === field.value
+                                      )?.firstname_eng
+                                    : t.placeholder_manager || "Choose reporting person"}
+                                </span>
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
                             </FormControl>
-                            <SelectContent>
-                              {managerEmployees?.data?.length > 0 &&
-                                managerEmployees.data
-                                  .filter((emp: any) => emp.employee_id != null)
-                                  .map((emp: any) => (
-                                    <SelectItem key={emp.employee_id} value={emp.employee_id.toString()}>
-                                      {emp.firstname_eng}
-                                    </SelectItem>
-                                  ))}
-                            </SelectContent>
-                          </Select>
-                          <TranslatedError
-                            fieldError={form.formState.errors.reporting_person_id}
-                            translations={errT}
-                          />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[350px] p-0">
+                            <Command>
+                              <CommandInput placeholder={t.search || "Search reporting person..."} />
+                              <CommandEmpty>{t.no_results || "No reporting person found"}</CommandEmpty>
+                              <CommandGroup className="max-h-64 overflow-y-auto overscroll-contain">
+                                {getManagersData().map((emp: any) => (
+                                  <CommandItem
+                                    key={emp.employee_id}
+                                    value={emp.firstname_eng}
+                                    onSelect={() => {
+                                      field.onChange(emp.employee_id);
+                                      closePopover('manager');
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === emp.employee_id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {emp.firstname_eng}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <TranslatedError
+                          fieldError={form.formState.errors.reporting_person_id}
+                          translations={errT}
+                        />
+                      </FormItem>
+                    )}
+                  />
                 )}
               </div>
             </div>

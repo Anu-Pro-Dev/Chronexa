@@ -19,7 +19,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoading) {
       const hasAccess = Object.values(privilegeMap).some(
-        mod => mod.allowed && mod.subModules.some(sub => sub.allowed)
+        mod => mod.hasView && mod.subModules.some(sub => sub.hasView)
       );
 
       if (!hasAccess) {

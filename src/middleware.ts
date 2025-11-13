@@ -17,19 +17,16 @@ export function middleware(req: NextRequest) {
     });
   }
 
-  // Redirect /auth/callback to Azure success page
   if (req.nextUrl.pathname === "/auth/callback") {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/azure/success";
     return NextResponse.redirect(url);
   }
 
-  // Don't apply auth checks to the success page - let it handle auth itself
   if (req.nextUrl.pathname === "/auth/azure/success") {
     return res;
   }
 
-  // Handle CORS for API routes
   if (req.nextUrl.pathname.startsWith("/api/")) {
     if (req.method === "OPTIONS") {
       return new Response(null, {

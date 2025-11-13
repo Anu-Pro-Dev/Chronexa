@@ -168,14 +168,15 @@ export default function PowerHeader({
 
     if (isAtTabLevel) {
       const currentSubmodule = allowedSubModules.find(
-        (sub: any) => sub.module_name === activeModuleKey && sub.path === currentSubmodulePath
+        (sub: any) => sub.module_name === activeModuleKey && sub.path === currentSubmodulePath && sub.hasView
       );
       
       if (currentSubmodule) {
         return allowedTabs
           .filter((tab: any) => 
             tab.module_name === activeModuleKey && 
-            tab.sub_module_path === currentSubmodulePath
+            tab.sub_module_path === currentSubmodulePath &&
+            tab.hasView
           )
           .map((tab: any) => ({
             path: `/${currentModulePath}/${currentSubmodulePath}?tab=${tab.tab_name.toLowerCase().replace(/\s+/g, "-")}`,
@@ -184,7 +185,7 @@ export default function PowerHeader({
       }
     } else {
       return allowedSubModules
-        .filter((sub: any) => sub.module_name === activeModuleKey)
+        .filter((sub: any) => sub.module_name === activeModuleKey && sub.hasView)
         .map((sub: any) => ({
           path: `/${currentModulePath}/${sub.path}`,
           label: sub.sub_module_name,
@@ -204,22 +205,24 @@ export default function PowerHeader({
         (tab: any) => 
           tab.module_name === activeModuleKey && 
           tab.sub_module_path === currentSubmodulePath &&
-          tab.tab_name.toLowerCase().replace(/\s+/g, "-") === currentTabFromQuery
+          tab.tab_name.toLowerCase().replace(/\s+/g, "-") === currentTabFromQuery &&
+          tab.hasView
       );
       return currentTab?.privileges || null;
     } else {
       const currentSubmodule = allowedSubModules.find(
         (sub: any) => 
           sub.module_name === activeModuleKey && 
-          sub.path === currentSubmodulePath
+          sub.path === currentSubmodulePath &&
+          sub.hasView
       );
       return currentSubmodule?.privileges || null;
     }
   };
 
   const currentPrivileges = getCurrentPrivileges();
-  const canAdd = currentPrivileges?.create && currentPrivileges?.access;
-  const canDelete = currentPrivileges?.delete && currentPrivileges?.access;
+  const canAdd = currentPrivileges?.create === true;
+  const canDelete = currentPrivileges?.delete  === true;
 
   return (
     <div className="flex flex-col">

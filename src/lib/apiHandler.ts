@@ -15,7 +15,7 @@ const apiInstance = axios.create({
 });
 
 // Function to handle API requests
-export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE", data?: any) => {
+export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", data?: any) => {
   try {
     const token = getAuthToken();
 
@@ -381,7 +381,7 @@ export const getEmployeeByID = async (employee_id: number) => {
 
 // Function to get a employees who is manager
 export async function getManagerEmployees() {
-  return apiRequest("/employee/all?manager_flag=true", "GET");
+  return apiRequest("/employee/all?manager_flag=true&limit=1000&offset=1", "GET");
 }
 
 // Function to add a new user creditnals
@@ -519,6 +519,11 @@ export const editOrgScheduleRequest = async (data: {
   return apiRequest(`/organizationSchedule/edit/${organization_schedule_id}`, "PUT", payload);
 };
 
+// Function to get a schedules by ID
+export async function getOrgScheduleByID(id: number) {
+  return apiRequest(`/organizationSchedule/get/${id}`, "GET");
+};
+
 // Function to get a schedules by organization ID
 export async function getScheduleByEmployee(employee_id: number) {
   return apiRequest(`/schedule/employee/${employee_id}`, "GET");
@@ -547,6 +552,12 @@ export const editEmpScheduleRequest = async (data: {
 
   return apiRequest(`/employeeSchedule/edit/${employee_schedule_id}`, "PUT", payload);
 };
+
+// Function to get a schedules by ID
+export async function getEmpScheduleByID(id: number) {
+  return apiRequest(`/employeeSchedule/get/${id}`, "GET");
+};
+
 
 // Function to add a new workflow type
 export const addWorkflowTypeRequest = async (data: {
@@ -1001,4 +1012,46 @@ export const sendTestEmailRequest = async (data: {
   bcc?: string;
 }) => {
   return apiRequest(`/emailSetting/test`, "POST", data);
+};
+
+export const filterMonthlyRosterRequest = async (data: {
+  organization_id: number;
+  month: number;
+  year: number;
+  day?: number;
+  employee_id?: number;
+  manager_id?: number;
+  employee_group_id?: number;
+  schedule_id?: number;
+  finalize_flag?: boolean;
+}) => {
+  return apiRequest("/employeeMonthlyRoster/filter", "POST", data);
+};
+
+// Function to edit an monthly roster by ID
+export const editMonthlyRosterRequest = async (data: {
+  schedule_roster_id: number;
+  [key: string]: any;
+}) => {
+  const { schedule_roster_id, ...payload } = data;
+
+  return apiRequest(`/employeeMonthlyRoster/edit/${schedule_roster_id}`, "PUT", payload);
+};
+
+// Function to Finalize an monthly roster by ID
+export const finalizeMonthlyRosterRequest = async (data: {
+  schedule_roster_id: number;
+}) => {
+  const { schedule_roster_id, ...payload } = data;
+
+  return apiRequest(`/employeeMonthlyRoster/finalize/${schedule_roster_id}`, "PATCH", payload);
+};
+
+
+// Function to import monthly roster from file
+export const importMonthlyRosterRequest = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  return apiRequest("/employeeMonthlyRoster/import", "POST", formData);
 };

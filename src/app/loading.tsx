@@ -1,7 +1,9 @@
 "use client";
-import React from "react";
-import Lottie from "lottie-react";
+import dynamic from "next/dynamic";
+import React, { useState, useEffect } from "react";
 import loadingAnimation from "@/src/animations/hourglass-blue.json";
+
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 interface LoadingProps {
   message?: string;

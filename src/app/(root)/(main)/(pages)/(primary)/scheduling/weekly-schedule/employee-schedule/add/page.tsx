@@ -1,16 +1,22 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddEmployeeSchedule from "@/src/components/custom/modules/scheduling/AddEmployeeSchedule";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useEmpScheduleEditStore } from "@/src/stores/empScheduleEditStore";
 
-export default function Page() {
+export default function EmpScheduleAddPage() {  
   const { modules } = useLanguage();
-  const [Data, SetData] = useState<any>([]);
-  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const queryClient = useQueryClient();
+  const clearSelectedRowData = useEmpScheduleEditStore((state) => state.clearSelectedRowData);
+  const selectedRowData = useEmpScheduleEditStore((state) => state.selectedRowData);
+
+  useEffect(() => {
+    if (!selectedRowData?.id) {
+      clearSelectedRowData();
+    }
+  }, [selectedRowData, clearSelectedRowData]);
 
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["employeeSchedule"] });
@@ -24,8 +30,8 @@ export default function Page() {
       />
       <div className="pt-4">
         <AddEmployeeSchedule 
-            selectedRowData={selectedRowData}
-            onSave={handleSave}
+          selectedRowData={null}
+          onSave={handleSave}
         />
       </div>
     </div>

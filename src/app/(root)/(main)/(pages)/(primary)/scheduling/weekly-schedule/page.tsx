@@ -2,15 +2,40 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
+import { useLanguage } from "@/src/providers/LanguageProvider";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function SchedulesRedirectPage() {
   const router = useRouter();
   const { privilegeMap, isLoading } = usePrivileges();
+  const { translations } = useLanguage();
+
+  const t = translations?.modules?.scheduling || {};
+  const commonT = translations?.buttons || {};
 
   const tabPathMapping: Record<string, string> = {
     'Organization Schedule': 'organization-schedule',
     'Employee Schedule': 'employee-schedule',
+  };
+
+  const getTabPath = (tabName: string): string => {
+    if (tabPathMapping[tabName]) {
+      return tabPathMapping[tabName];
+    }
+    
+    const normalizedTabName = tabName.toLowerCase().trim();
+    
+    if (normalizedTabName === t.organization_schedule?.toLowerCase() || 
+        normalizedTabName.includes('organization')) {
+      return 'organization-schedule';
+    }
+    
+    if (normalizedTabName === t.employee_schedule?.toLowerCase() || 
+        normalizedTabName.includes('employee')) {
+      return 'employee-schedule';
+    }
+    
+    return tabName.toLowerCase().replace(/\s+/g, "-");
   };
 
   useEffect(() => {
@@ -41,8 +66,7 @@ export default function SchedulesRedirectPage() {
     const firstAllowedTab = weeklyscheduleSubmodule.tabs?.find((tab: any) => tab.allowed);
     
     if (firstAllowedTab) {
-      const actualPath = tabPathMapping[firstAllowedTab.tab_name] || 
-                         firstAllowedTab.tab_name.toLowerCase().replace(/\s+/g, "-");
+      const actualPath = getTabPath(firstAllowedTab.tab_name);
       
       router.replace(`/scheduling/weekly-schedule/${actualPath}`);
     } else {
@@ -60,7 +84,7 @@ export default function SchedulesRedirectPage() {
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="text-center">
-        <InlineLoading message="Loading weekly schedule..."/>
+        <InlineLoading message={`${commonT.loading || "Loading"} ${t.weekly_schedule || "weekly schedule"}...`}/>
       </div>
     </div>
   );

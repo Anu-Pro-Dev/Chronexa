@@ -16,16 +16,21 @@ interface Schedule {
 
 interface StatusSelectorProps {
   status: string | null;
-  onStatusChange: (newStatusCode: string) => void;
+  scheduleId?: number | null;
+  onStatusChange: (scheduleId: number, statusCode: string) => void;
 }
 
 export function StatusSelector({
   status,
+  scheduleId,
   onStatusChange,
 }: StatusSelectorProps) {
   const { language, translations } = useLanguage();
   const { data: scheduleListData } = useFetchAllEntity("schedule");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [popoverStates, setPopoverStates] = useState({
+    statusColor: false,
+  });
 
   useEffect(() => {
     if (scheduleListData?.data?.length) {
@@ -33,13 +38,9 @@ export function StatusSelector({
     }
   }, [scheduleListData]);
 
-  if (!schedules.length) return null;
-
-  const activeSchedule = schedules.find(
-    (s) => s.schedule_code.toLowerCase().startsWith(status?.toLowerCase() || "")
-  );
-
-  const bgColor = activeSchedule?.sch_color;
+  const closePopover = (key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
 
   const formatStatusCode = (code: string | null): string => {
     if (!code) return "+";
@@ -49,13 +50,26 @@ export function StatusSelector({
       : trimmed;
   };
 
-  const [popoverStates, setPopoverStates] = useState({
-    statusColor: false,
-  });
+  if (!schedules.length) {
+    return (
+      <Button
+        size="sm"
+        variant="ghost"
+        className="w-10 h-7 rounded text-xs font-semibold mx-1 my-3"
+        style={{
+          backgroundColor: "transparent",
+          color: "#9ba9d2",
+        }}
+        disabled
+      >
+        +
+      </Button>
+    );
+  }
 
-  const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }));
-  };
+  const activeSchedule = schedules.find(
+    (s) => s.schedule_id === scheduleId
+  );
 
   return (
     <Popover open={popoverStates.statusColor} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, statusColor: open }))}>
@@ -79,15 +93,18 @@ export function StatusSelector({
         <div className="grid grid-cols-2 gap-2">
           {schedules.map((schedule) => (
             <Button
-              key={schedule.schedule_code}
+              key={schedule.schedule_id}
               size="sm"
-              onClick={() => onStatusChange(schedule.schedule_code)}
+              onClick={() => {
+                onStatusChange(schedule.schedule_id, schedule.schedule_code);
+                closePopover("statusColor");
+              }}
               className="w-full rounded-md text-white text-xs capitalize"
               style={{
                 backgroundColor: schedule.sch_color,
               }}
             >
-              {schedule.schedule_code}
+              {formatStatusCode(schedule.schedule_code)}
             </Button>
           ))}
         </div>

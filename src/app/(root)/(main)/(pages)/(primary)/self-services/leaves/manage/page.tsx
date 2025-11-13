@@ -35,10 +35,6 @@ export default function Page() {
         field: language === "ar" ? "leave_type_arb" : "leave_type_eng",
         headerName: t.leave_name,
       },
-      { 
-        field: "need_approval_flag", 
-        headerName: t.need_approval || "Need Approval"
-      },
     ]);
   }, [language]);
 
@@ -136,7 +132,7 @@ export default function Page() {
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">{t.manage_perms}</h1>
+          <h1 className="font-bold text-xl text-primary">{t.manage_leaves}</h1>
         </div>
         <div className="px-6">
           <PowerTabs />

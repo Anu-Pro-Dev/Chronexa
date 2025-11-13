@@ -79,15 +79,15 @@ export default function Page() {
         headerName: t.employee_name || "Employee Name",
       },
       {
-        field: "transaction_date",
+        field: "TransDate",
         headerName: "Date",
       },
       {
-        field: "transaction_time",
+        field: "Trans_IN",
         headerName: "Time In",
       },
       {
-        field: "transaction_time",
+        field: "Trans_OUT",
         headerName: "Time Out",
       },
       {
@@ -126,7 +126,7 @@ const {
     refetch,
   } = useFetchAllEntity("missing-movements", {
     searchParams: {
-      ...(employeeId && { employeeId: String(employeeId) }),
+      ...(employeeId && { employee_id: String(employeeId) }),
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
@@ -353,7 +353,7 @@ const {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
-      <div className="grid grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-3 gap-4">
         <div>
           <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
             <Label className="font-normal text-secondary whitespace-nowrap mr-2">
@@ -444,7 +444,7 @@ const {
             </PopoverContent>
           </Popover>
         </div>
-      </div>
+      </div> */}
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
