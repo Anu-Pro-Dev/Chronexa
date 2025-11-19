@@ -16,7 +16,7 @@ export default function MembersTable() {
   const { modules, language } = useLanguage();
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
-  
+
   const [columns, setColumns] = useState([
     { field: "user_id", headerName: "User ID" },
     { field: "employee_no", headerName: "Employee No" },
@@ -25,7 +25,7 @@ export default function MembersTable() {
     { field: "organization", headerName: "Organization" },
     { field: "created_date", headerName: "Assigned Date" },
   ]);
-  
+
   const [open, setOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -34,41 +34,40 @@ export default function MembersTable() {
   const [searchValue, setSearchValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+  const offset = useMemo(() => currentPage, [currentPage]);
 
   const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
 
   const roleId = useMemo(() => {
     if (!role || !rolesData?.data) return null;
-    
-    const foundRole = rolesData.data.find((r: any) => 
-      r.role_name === role || r.name === role || r.roleName === role
+    const foundRole = rolesData.data.find(
+      (r: any) => r.role_name === role || r.name === role || r.roleName === role
     );
-    
     return foundRole?.id || foundRole?.role_id || null;
   }, [role, rolesData]);
 
-  const { data: userRolesData, isLoading: isLoadingUserRoles, refetch } = useQuery({
+  const {
+    data: userRolesData,
+    isLoading: isLoadingUserRoles,
+    refetch,
+  } = useQuery({
     queryKey: ["secUserRole", "byRole", roleId, offset, rowsPerPage, debouncedSearchValue],
     queryFn: async () => {
       if (!roleId) return { data: [], total: 0, hasNext: false };
-      
+
+      const params = new URLSearchParams({
+        role_id: String(roleId),
+        limit: String(rowsPerPage),
+        offset: String(offset),
+      });
+
+      if (debouncedSearchValue) params.append("search", debouncedSearchValue);
+
       try {
-        const params = new URLSearchParams({
-          role_id: String(roleId),
-          limit: String(rowsPerPage),
-          offset: String(offset),
-        });
-
-        if (debouncedSearchValue) {
-          params.append('search', debouncedSearchValue);
-        }
-
         const response = await apiRequest(`/secUserRole/all?${params.toString()}`, "GET");
         return {
           data: response?.data || [],
@@ -83,31 +82,43 @@ export default function MembersTable() {
     enabled: !!roleId,
   });
 
+  // ⛑️ NULL-SAFE MAPPING FIX
   const data = useMemo(() => {
-    if (!userRolesData?.data || !Array.isArray(userRolesData.data)) {
-      return [];
-    }
+    if (!userRolesData?.data || !Array.isArray(userRolesData.data)) return [];
 
-    const mappedData = userRolesData.data
+    return userRolesData.data
       .filter((userRole: any) => userRole.user_role_id)
       .map((userRole: any) => {
         const secUser = userRole.sec_users;
         const employeeMaster = secUser?.employee_master;
-        const roleInfo = rolesData?.data?.find((r: any) => 
-          (r.id || r.role_id) === userRole.role_id
+
+        const roleInfo = rolesData?.data?.find(
+          (r: any) => (r.id || r.role_id) === userRole.role_id
         );
 
-        const employeeName = language === 'ar' 
-          ? employeeMaster?.firstname_arb || employeeMaster?.firstname_eng || "N/A"
-          : employeeMaster?.firstname_eng || "N/A";
+        // SAFE EMPLOYEE NAME
+        const employeeName =
+          language === "ar"
+            ? employeeMaster?.firstname_arb ||
+              employeeMaster?.firstname_eng ||
+              "N/A"
+            : employeeMaster?.firstname_eng || "N/A";
 
-        const designation = language === 'ar'
-          ? employeeMaster?.designation?.designation_arb || employeeMaster?.designation?.designation_eng || "N/A"
-          : employeeMaster?.designation?.designation_eng || "N/A";
+        // SAFE DESIGNATION
+        const designation =
+          language === "ar"
+            ? employeeMaster?.designation?.designation_arb ||
+              employeeMaster?.designation?.designation_eng ||
+              "N/A"
+            : employeeMaster?.designation?.designation_eng || "N/A";
 
-        const organization = language === 'ar'
-          ? employeeMaster?.organization?.organization_arb || employeeMaster?.organization?.organization_eng || "N/A"
-          : employeeMaster?.organization?.organization_eng || "N/A";
+        // SAFE ORGANIZATION
+        const organization =
+          language === "ar"
+            ? employeeMaster?.organization?.organization_arb ||
+              employeeMaster?.organization?.organization_eng ||
+              "N/A"
+            : employeeMaster?.organization?.organization_eng || "N/A";
 
         return {
           id: Number(userRole.user_role_id),
@@ -115,28 +126,34 @@ export default function MembersTable() {
           user_id: secUser?.user_id || userRole.user_id,
           role_id: userRole.role_id,
           employee_id: secUser?.employee_id,
+
           user_name: employeeName,
           email: employeeMaster?.email || "N/A",
           employee_no: employeeMaster?.emp_no || "N/A",
-          designation: employeeMaster.designation.designation_eng || "N/A",
-          organization: employeeMaster.organization.organization_eng || "N/A",
+
+          designation,
+          organization,
+
           role_name: roleInfo?.role_name || roleInfo?.name || "N/A",
-          created_date: userRole.created_date ? new Date(userRole.created_date).toLocaleDateString() : "N/A",
-          last_updated_date: userRole.last_updated_date ? new Date(userRole.last_updated_date).toLocaleDateString() : "N/A",
+
+          created_date: userRole.created_date
+            ? new Date(userRole.created_date).toLocaleDateString()
+            : "N/A",
+
+          last_updated_date: userRole.last_updated_date
+            ? new Date(userRole.last_updated_date).toLocaleDateString()
+            : "N/A",
+
           created_id: userRole.created_id,
           last_updated_id: userRole.last_updated_id,
         };
       });
-
-    return mappedData;
   }, [userRolesData, rolesData, language]);
 
   const isLoading = isLoadingRoles || isLoadingUserRoles;
 
   useEffect(() => {
-    if (!open) {
-      setSelectedRowData(null);
-    }
+    if (!open) setSelectedRowData(null);
   }, [open]);
 
   const handleSave = useCallback(() => {
@@ -152,22 +169,22 @@ export default function MembersTable() {
     setSelectedRows(rows);
   }, []);
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
-    
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setCurrentPage(newPage);
+      refetch && setTimeout(() => refetch(), 100);
+    },
+    [refetch]
+  );
 
-  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1);
-    
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
+  const handleRowsPerPageChange = useCallback(
+    (newRowsPerPage: number) => {
+      setRowsPerPage(newRowsPerPage);
+      setCurrentPage(1);
+      refetch && setTimeout(() => refetch(), 100);
+    },
+    [refetch]
+  );
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);

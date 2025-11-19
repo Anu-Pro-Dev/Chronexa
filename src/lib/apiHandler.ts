@@ -893,6 +893,17 @@ export const editRoletoUser = async (data: {
   return apiRequest(`/secUserRole/edit/${user_role_id}`, "PUT", payload);
 }
 
+// Function to create or update a user to role
+export const patchRoletoUser = async (data: {
+  user_role_id?: number;
+  user_id?: number;
+  role_id?: number;
+}) => {
+  const { user_role_id, ...payload } = data;
+
+  return apiRequest(`/secUserRole/update-roles`, "PATCH", payload);
+}
+
 // Function to add new a transaction
 export const addEventTransaction = async (data: {
   transaction_id?: number;
