@@ -30,9 +30,10 @@ const columnNumbers = Array.from({ length: 31 }, (_, i) => i + 1);
 interface ScheduleGridProps {
   groupFilter?: number | null;
   filterData?: any;
+  onSelectionChange?: (selectedIds: Set<number>) => void;
 }
 
-export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridProps = {}) {
+export default function ScheduleGrid({ groupFilter, filterData, onSelectionChange }: ScheduleGridProps = {}) {
   const { language, translations } = useLanguage();
   const showToast = useShowToast();
   
@@ -40,42 +41,44 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [data, setData] = useState<any[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setCurrentPage(1);
     setSelectedRows(new Set());
   }, [filterData]);
 
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
-
-  const searchParams = useMemo(() => {
-    const params: any = {
-      limit: String(rowsPerPage),
-      offset: String(offset),
-    };
-
-    if (filterData) {
-      if (filterData.organization_id) params.organization_id = String(filterData.organization_id);
-      if (filterData.month) params.month = String(filterData.month);
-      if (filterData.year) params.year = String(filterData.year);
-      if (filterData.day) params.day = String(filterData.day);
-      if (filterData.employee_id) params.employee_id = String(filterData.employee_id);
-      if (filterData.manager_id) params.manager_id = String(filterData.manager_id);
-      if (filterData.employee_group_id) params.employee_group_id = String(filterData.employee_group_id);
-      if (filterData.schedule_id) params.schedule_id = String(filterData.schedule_id);
+  useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(selectedRows);
     }
-
-    return params;
-  }, [rowsPerPage, offset, filterData]);
-
-  const { data: monthlyScheduleData, isLoading, refetch } = useFetchAllEntity("employeeMonthlyRoster", {
-    searchParams,
-  });
+  }, [selectedRows]);
 
   const { data: scheduleListData } = useFetchAllEntity("schedule");
   const { data: employeeListData } = useFetchAllEntity("employee");
+
+  const paginatedFilterData = useMemo(() => {
+    if (!filterData?.data || !Array.isArray(filterData.data)) {
+      return {
+        data: [],
+        total: 0,
+        hasNext: false,
+        hasPrevious: false,
+      };
+    }
+
+    const allData = filterData.data;
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedData = allData.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      total: allData.length,
+      hasNext: endIndex < allData.length,
+      hasPrevious: currentPage > 1,
+    };
+  }, [filterData, currentPage, rowsPerPage]);
 
   const handleStatusChange = (
     rowId: number,
@@ -134,20 +137,12 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
-    
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
+  }, []);
 
   const handleRowsPerPageChange = useCallback((value: string) => {
     setRowsPerPage(Number(value));
     setCurrentPage(1);
-    
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
+  }, []);
 
   const handlePreviousPage = useCallback(() => {
     if (currentPage > 1) {
@@ -156,18 +151,24 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
   }, [currentPage, handlePageChange]);
 
   const handleNextPage = useCallback(() => {
-    if (monthlyScheduleData?.hasNext) {
+    if (paginatedFilterData.hasNext) {
       handlePageChange(currentPage + 1);
     }
-  }, [currentPage, monthlyScheduleData?.hasNext, handlePageChange]);
+  }, [currentPage, paginatedFilterData.hasNext, handlePageChange]);
 
   useEffect(() => {
-    if (
-      !monthlyScheduleData?.data ||
-      !scheduleListData?.data ||
-      !employeeListData?.data
-    )
+    if (!scheduleListData?.data || !employeeListData?.data) {
+      setIsLoading(false);
       return;
+    }
+
+    if (!paginatedFilterData.data || paginatedFilterData.data.length === 0) {
+      setData([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
 
     async function processData() {
       const processedRows = [];
@@ -175,7 +176,7 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
       if (groupFilter) {
         const groupCache: Record<number, string> = {};
         const employeesInSchedule: number[] = Array.from(
-          new Set<number>(monthlyScheduleData.data.map((item: any) => item.employee_id))
+          new Set<number>(paginatedFilterData.data.map((item: any) => item.employee_id))
         );
 
         const groupPromises = employeesInSchedule.map(async (empId: number) => {
@@ -198,7 +199,7 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
         await Promise.all(groupPromises);
 
         const groupedData: Record<string, any[]> = {};
-        monthlyScheduleData.data.forEach((item: any) => {
+        paginatedFilterData.data.forEach((item: any) => {
           const groupName = groupCache[item.employee_id] || "Unknown Group";
           if (!groupedData[groupName]) groupedData[groupName] = [];
           groupedData[groupName].push(item);
@@ -215,12 +216,13 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
           }
         }
       } else {
-        for (const item of monthlyScheduleData.data) {
+        for (const item of paginatedFilterData.data) {
           processedRows.push(createRowData(item));
         }
       }
 
       setData(processedRows);
+      setIsLoading(false);
     }
 
     function createRowData(item: any) {
@@ -228,10 +230,12 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
       
       let empName = "";
       if (language === "ar") {
-        empName = item.employee_master?.firstname_arb || 
+        empName = item.employee_name_arb || 
+                  item.employee_master?.firstname_arb || 
                   "";
       } else {
-        empName = item.employee_master?.firstname_eng || 
+        empName = item.employee_name || 
+                  item.employee_master?.firstname_eng || 
                   "";
       }
       
@@ -272,9 +276,9 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
     }
 
     processData();
-  }, [monthlyScheduleData, scheduleListData, employeeListData, language, groupFilter]);
+  }, [paginatedFilterData, scheduleListData, employeeListData, language, groupFilter]);
 
-  const totalRecords = monthlyScheduleData?.total || 0;
+  const totalRecords = paginatedFilterData.total || 0;
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
   const allRowsSelected = data.filter(item => item.type === "row").length > 0 && 
     data.filter(item => item.type === "row").every(item => selectedRows.has(item.id));
@@ -299,7 +303,6 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
         await editMonthlyRosterRequest(payload);
       }
       showToast("success", "saveroster_success");
-      refetch();
     } catch (err) {
       console.error(err);
       showToast("error", "saveroster_error");
@@ -320,7 +323,6 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
       }
       showToast("success", "finalizeroster_success");
       setSelectedRows(new Set());
-      refetch();
     } catch (err) {
       console.error(err);
       showToast("error", "finalizeroster_error");
@@ -342,7 +344,6 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
       }
       showToast("success", "unfinalizeroster_success");
       setSelectedRows(new Set());
-      refetch();
     } catch (err) {
       console.error(err);
       showToast("error", "unfinalizeroster_error");
@@ -365,7 +366,6 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
 
       showToast("success", "clearroster_success");
       setSelectedRows(new Set());
-      refetch();
     } catch (err) {
       console.error(err);
       showToast("error", "clearroster_error");
@@ -549,7 +549,7 @@ export default function ScheduleGrid({ groupFilter, filterData }: ScheduleGridPr
             size="pagination" 
             className="h-6 w-6 flex justify-center items-center bg-backdrop"
             onClick={handleNextPage}
-            disabled={!monthlyScheduleData?.hasNext || isLoading}
+            disabled={!paginatedFilterData.hasNext || isLoading}
           >
             <ChevronRight className="h-4 w-4 text-secondary" />
           </Button>

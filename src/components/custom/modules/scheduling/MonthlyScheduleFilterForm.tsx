@@ -3,8 +3,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useLanguage } from "@/src/providers/LanguageProvider";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
@@ -35,6 +36,7 @@ const formSchema = z.object({
 
 interface FilterFormProps {
   onFilterSubmit?: (data: any) => void;
+  onFilterParamsChange?: (params: any) => void;
 }
 
 const monthOptions = [
@@ -63,8 +65,11 @@ const dayOptions = Array.from({ length: 31 }, (_, i) => ({
   label: String(i + 1),
 }));
 
-export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
+export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: FilterFormProps) {
+  const { translations, language } = useLanguage();
+  const t = translations?.modules?.scheduling || {};
   const [isLoading, setIsLoading] = useState(false);
+  const [autoFilter, setAutoFilter] = useState(true); 
   const [openOrganization, setOpenOrganization] = useState(false);
   const [openMonth, setOpenMonth] = useState(false);
   const [openYear, setOpenYear] = useState(false);
@@ -84,6 +89,11 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
   const selectedOrganization = form.watch("organization");
   const selectedEmployee = form.watch("employee");
   const selectedManager = form.watch("manager");
+  const selectedMonth = form.watch("month");
+  const selectedYear = form.watch("year");
+  const selectedDay = form.watch("day");
+  const selectedGroup = form.watch("group");
+  const selectedSchedule = form.watch("schedule");
 
   const { data: organizations, isLoading: loadingOrganizations } = useFetchAllEntity("organization", { removeAll: true });
   const { data: employees, isLoading: loadingEmployees } = useFetchAllEntity("employee/all", { removeAll: true });
@@ -120,50 +130,97 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
     item.schedule_id && item.schedule_id.toString().trim() !== ''
   );
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  useEffect(() => {
+    if (!autoFilter) return; 
+    
+    const triggerFilter = async () => {
+      if (selectedOrganization && selectedMonth && selectedYear) {
+        try {
+          setIsLoading(true);
+
+          const requestBody = {
+            organization_id: parseInt(selectedOrganization),
+            month: parseInt(selectedMonth),
+            year: parseInt(selectedYear),
+            ...(selectedDay && { day: parseInt(selectedDay) }),
+            ...(selectedEmployee && { employee_id: parseInt(selectedEmployee) }),
+            ...(selectedManager && { manager_id: parseInt(selectedManager) }),
+            ...(selectedGroup && { employee_group_id: parseInt(selectedGroup) }),
+            ...(selectedSchedule && { schedule_id: parseInt(selectedSchedule) }),
+          };
+
+          if (onFilterParamsChange) {
+            onFilterParamsChange(requestBody);
+          }
+
+          const data = await filterMonthlyRosterRequest(requestBody);
+          
+          if (onFilterSubmit) {
+            onFilterSubmit(data);
+          }
+          
+        } catch (error: any) {
+          console.error("Filter error", error);
+          const errorMessage = error?.response?.data?.message || "Failed to apply filters";
+          toast.error(errorMessage);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    triggerFilter();
+  }, [selectedOrganization, selectedMonth, selectedYear, selectedDay, selectedEmployee, selectedManager, selectedGroup, selectedSchedule, autoFilter]);
+
+  const handleApplyFilters = async () => {
+    if (!selectedOrganization || !selectedMonth || !selectedYear) {
+      toast.error("Please select Organization, Month and Year");
+      return;
+    }
+
     try {
       setIsLoading(true);
 
       const requestBody = {
-        organization_id: parseInt(values.organization),
-        month: parseInt(values.month),
-        year: parseInt(values.year),
-        ...(values.day && { day: parseInt(values.day) }),
-        ...(values.employee && { employee_id: parseInt(values.employee) }),
-        ...(values.manager && { manager_id: parseInt(values.manager) }),
-        ...(values.group && { employee_group_id: parseInt(values.group) }),
-        ...(values.schedule && { schedule_id: parseInt(values.schedule) }),
-        finalize_flag: false,
+        organization_id: parseInt(selectedOrganization),
+        month: parseInt(selectedMonth),
+        year: parseInt(selectedYear),
+        ...(selectedDay && { day: parseInt(selectedDay) }),
+        ...(selectedEmployee && { employee_id: parseInt(selectedEmployee) }),
+        ...(selectedManager && { manager_id: parseInt(selectedManager) }),
+        ...(selectedGroup && { employee_group_id: parseInt(selectedGroup) }),
+        ...(selectedSchedule && { schedule_id: parseInt(selectedSchedule) }),
       };
+
+      if (onFilterParamsChange) {
+        onFilterParamsChange(requestBody);
+      }
 
       const data = await filterMonthlyRosterRequest(requestBody);
       
       if (onFilterSubmit) {
         onFilterSubmit(data);
       }
-
-      toast.success("Filters applied successfully");
-      console.log('Filter results:', data);
       
     } catch (error: any) {
-      console.error("Form submission error", error);
+      console.error("Filter error", error);
       const errorMessage = error?.response?.data?.message || "Failed to apply filters";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <div className="">
         <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-3">
           <FormField
             control={form.control}
             name="organization"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Organization <Required /></FormLabel>
+                <FormLabel>{t.organization || "Organization"} <Required /></FormLabel>
                 <Popover open={openOrganization} onOpenChange={setOpenOrganization}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -180,7 +237,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         <span className="truncate">
                           {field.value
                             ? getOrganizationsData().find((item: any) => String(item.organization_id) === field.value)?.organization_eng
-                            : "Choose organization"}
+                            : t.placeholder_org || "Choose organization"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -218,7 +275,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
             name="month"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Month <Required /></FormLabel>
+                <FormLabel>{t.month || "Month"} <Required /></FormLabel>
                 <Popover open={openMonth} onOpenChange={setOpenMonth}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -232,7 +289,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         )}
                       >
                         <span className="truncate">
-                          {field.value ? monthOptions.find((item) => item.value === field.value)?.label : "Choose month"}
+                          {field.value ? monthOptions.find((item) => item.value === field.value)?.label : t.placeholder_month || "Choose month"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -272,7 +329,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
             name="year"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Year <Required /></FormLabel>
+                <FormLabel>{t.year || "Year"} <Required /></FormLabel>
                 <Popover open={openYear} onOpenChange={setOpenYear}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -286,7 +343,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         )}
                       >
                         <span className="truncate">
-                          {field.value || "Choose year"}
+                          {field.value || t.placeholder_year || "Choose year"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -326,7 +383,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
             name="day"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Day</FormLabel>
+                <FormLabel>{t.day || "Day"}</FormLabel>
                 <Popover open={openDay} onOpenChange={setOpenDay}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -340,7 +397,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         )}
                       >
                         <span className="truncate">
-                          {field.value || "Choose day"}
+                          {field.value || t.placeholder_day || "Choose day"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -380,7 +437,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
             name="employee"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Employee</FormLabel>
+                <FormLabel>{t.employee || "Employee"}</FormLabel>
                 <Popover open={openEmployee} onOpenChange={setOpenEmployee}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -397,7 +454,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         <span className="truncate">
                           {field.value
                             ? getEmployeesData().find((item: any) => String(item.employee_id) === field.value)?.firstname_eng
-                            : selectedManager ? "Manager selected" : "Choose employee"}
+                            : selectedManager ? "Manager selected" : t.placeholder_emp || "Choose employee"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -435,7 +492,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
             name="group"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Group</FormLabel>
+                <FormLabel>{t.group || "Group"}</FormLabel>
                 <Popover open={openGroup} onOpenChange={setOpenGroup}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -452,7 +509,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         <span className="truncate">
                           {field.value
                             ? getGroupsData().find((item: any) => String(item.employee_group_id) === field.value)?.group_name_eng
-                            : "Choose group"}
+                            : t.placeholder_group || "Choose group"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -490,7 +547,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
             name="manager"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Manager</FormLabel>
+                <FormLabel>{t.manager || "Manager"}</FormLabel>
                 <Popover open={openManager} onOpenChange={setOpenManager}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -507,7 +564,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         <span className="truncate">
                           {field.value
                             ? getManagersData().find((emp: any) => String(emp.employee_id) === field.value)?.firstname_eng
-                            : selectedEmployee ? "Employee selected" : "Choose manager"}
+                            : selectedEmployee ? "Employee selected" : t.placeholder_manager || "Choose manager"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -545,7 +602,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
             name="schedule"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Schedule</FormLabel>
+                <FormLabel>{t.schedule || "Schedule"}</FormLabel>
                 <Popover open={openSchedule} onOpenChange={setOpenSchedule}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -562,7 +619,7 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
                         <span className="truncate">
                           {field.value
                             ? getSchedulesData().find((item: any) => String(item.schedule_id) === field.value)?.schedule_code
-                            : selectedOrganization ? "Choose schedule" : "Select organization first"}
+                            : selectedOrganization ? t.placeholder_schedule || "Choose schedule" : "Select organization first"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -597,14 +654,25 @@ export default function FilterForm({ onFilterSubmit }: FilterFormProps) {
         </div>
         
         <div className="flex justify-end gap-2 items-center pt-4">
-          <Button variant={"outline"} type="button" size={"sm"} onClick={() => form.reset()} disabled={isLoading}>
-            Clear Filters
+          <Button 
+            variant={"outline"} 
+            type="button" 
+            size={"sm"} 
+            onClick={() => form.reset()} 
+            disabled={isLoading}
+          >
+            {translations?.buttons?.clear_filters || "Clear Filters"}
           </Button>
-          <Button size={"sm"} type="submit" disabled={isLoading}>
-            <FiltersIcon /> {isLoading ? "Filtering..." : "Apply Filters"}
+          <Button 
+            size={"sm"} 
+            type="button" 
+            onClick={handleApplyFilters}
+            disabled={isLoading}
+          >
+            <FiltersIcon /> {isLoading ? (translations?.buttons?.filtering || "Filtering...") : (translations?.buttons?.apply_filters || "Apply Filters")}
           </Button>
         </div>
-      </form>
+      </div>
     </Form>
   );
 }

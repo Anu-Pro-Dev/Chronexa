@@ -29,6 +29,7 @@ export class CSVExporter {
       'employee_number',     
       'firstname_eng',
       'organization_eng',
+      'department_name_eng',
       'transdate',
       'punch_in',
       'punch_out',

@@ -1047,11 +1047,63 @@ export const finalizeMonthlyRosterRequest = async (data: {
   return apiRequest(`/employeeMonthlyRoster/finalize/${schedule_roster_id}`, "PATCH", payload);
 };
 
-
 // Function to import monthly roster from file
 export const importMonthlyRosterRequest = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
   
   return apiRequest("/employeeMonthlyRoster/import", "POST", formData);
+};
+
+// Function to export monthly roster to file
+export const exportMonthlyRosterRequest = async (
+  filterData: any = null, 
+  selectedIds: number[] = []
+) => {
+  const body: any = {};
+
+  if (selectedIds && selectedIds.length > 0) {
+    body.ids = selectedIds;
+  } else if (filterData) {
+    if (filterData.organization_id) body.organization_id = filterData.organization_id;
+    if (filterData.month) body.month = filterData.month;
+    if (filterData.year) body.year = filterData.year;
+    if (filterData.day) body.day = filterData.day;
+    if (filterData.employee_id) body.employee_id = filterData.employee_id;
+    if (filterData.employee_group_id) body.employee_group_id = filterData.employee_group_id;
+    if (filterData.manager_id) body.manager_id = filterData.manager_id;
+    if (filterData.schedule_id) body.schedule_id = filterData.schedule_id;
+    if (filterData.finalize_flag !== undefined) body.finalize_flag = filterData.finalize_flag;
+  }
+
+  const token = getAuthToken();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+  const response = await fetch(`${API_URL}/employeeMonthlyRoster/export`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+      'ngrok-skip-browser-warning': 'true',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error('Export failed');
+  }
+
+  const blob = await response.blob();
+  
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `employee_monthly_rosters_${Date.now()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+
+  return { success: true };
 };

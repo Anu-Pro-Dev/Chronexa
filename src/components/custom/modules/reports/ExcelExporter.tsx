@@ -27,6 +27,7 @@ export class ExcelExporter {
       'employee_number',     
       'firstname_eng',
       'organization_eng',
+      'department_name_eng',
       'transdate',
       'punch_in',
       'punch_out',
@@ -66,25 +67,61 @@ export class ExcelExporter {
   }
 
   private formatCellValue(header: string, value: any): string {
+    if (!value) return '';
+    
     if (header === 'transdate' && value) {
-      try {
-        const date = new Date(value);
-        return format(date, 'dd-MM-yyyy');
-      } catch {
-        return value;
+      if (typeof value === 'string') {
+        const datePart = value.split(' ')[0].split('T')[0];
+        if (datePart.includes('-')) {
+          const [year, month, day] = datePart.split('-');
+          return `${day}-${month}-${year}`;
+        }
       }
+      return value;
     }
-    
+
     if ((header === 'punch_in' || header === 'punch_out') && value) {
-      try {
-        const date = new Date(value);
-        return format(date, 'HH:mm:ss');
-      } catch {
-        return value;
+      if (typeof value === 'string') {
+        if (value.includes('T')) {
+          const timePart = value.split('T')[1];
+          return timePart.split('.')[0];
+        }
+        if (value.includes(' ')) {
+          const timePart = value.split(' ')[1];
+          return timePart.split('.')[0]; 
+        }
+        if (value.includes(':')) {
+          return value.split('.')[0];
+        }
       }
+      return value;
     }
-    
-    return value || '';
+
+    if (['late', 'early', 'dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
+      if (value === '0' || value === 0) return '00:00:00';
+      
+      if (typeof value === 'string') {
+        let timeOnly = value;
+        if (value.includes('T')) {
+          timeOnly = value.split('T')[1];
+        } else if (value.includes(' ')) {
+          timeOnly = value.split(' ')[1];
+        }
+        return timeOnly.split('.')[0];
+      }
+      
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return '00:00:00';
+      
+      const totalSeconds = Math.round(Math.abs(numValue) * 3600);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    return value;
   }
 
   private applyCellStyle(cell: any, styleType: 'header' | 'data' | 'title' | 'label' | 'value') {
@@ -230,7 +267,7 @@ export class ExcelExporter {
       const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(allData);
       let currentRow = 1;
 
-      worksheet.mergeCells(`A${currentRow}:M${currentRow}`);
+      worksheet.mergeCells(`A${currentRow}:N${currentRow}`);
       const dailyReportsCell = worksheet.getCell(`A${currentRow}`);
       dailyReportsCell.value = "NULL";
       dailyReportsCell.font = {
@@ -243,7 +280,7 @@ export class ExcelExporter {
       worksheet.getRow(currentRow).height = 35;
       currentRow += 2;
 
-      worksheet.mergeCells(`A${currentRow}:M${currentRow}`);
+      worksheet.mergeCells(`A${currentRow}:N${currentRow}`);
       const titleCell = worksheet.getCell(`A${currentRow}`);
       titleCell.value = "EMPLOYEE DAILY MOVEMENT REPORT";
       titleCell.font = {
@@ -258,9 +295,9 @@ export class ExcelExporter {
 
       worksheet.getCell(`A${currentRow}`).value = `Employee ID: ${employeeId}`;
       worksheet.getCell(`A${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-      worksheet.getCell(`M${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
-      worksheet.getCell(`M${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-      worksheet.getCell(`M${currentRow}`).alignment = { horizontal: "right" };
+      worksheet.getCell(`N${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
+      worksheet.getCell(`N${currentRow}`).font = { name: "Nunito Sans", size: 10 };
+      worksheet.getCell(`N${currentRow}`).alignment = { horizontal: "right" };
       currentRow += 2;
       
       const nameCell = worksheet.getCell(`A${currentRow}`);
@@ -272,7 +309,7 @@ export class ExcelExporter {
       const empNoCell = worksheet.getCell(`L${currentRow}`);
       empNoCell.value = 'EMPLOYEE NO';
       this.applyCellStyle(empNoCell, 'label');
-      const empNoValueCell = worksheet.getCell(`M${currentRow}`);
+      const empNoValueCell = worksheet.getCell(`N${currentRow}`);
       empNoValueCell.value = employeeNo;
       this.applyCellStyle(empNoValueCell, 'value');
       currentRow++;
@@ -287,7 +324,7 @@ export class ExcelExporter {
         const toDateCell = worksheet.getCell(`L${currentRow}`);
         toDateCell.value = 'TO DATE';
         this.applyCellStyle(toDateCell, 'label');
-        const toDateValueCell = worksheet.getCell(`M${currentRow}`);
+        const toDateValueCell = worksheet.getCell(`N${currentRow}`);
         toDateValueCell.value = this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025';
         this.applyCellStyle(toDateValueCell, 'value');
         currentRow++;

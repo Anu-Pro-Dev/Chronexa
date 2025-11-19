@@ -96,6 +96,7 @@ export default function EmployeeReports() {
     employee_number: "Emp No",
     firstname_eng: "Employee Name",
     organization_eng: "Organization",
+    department_name_eng: "Department",
     transdate: "Date",
     punch_in: "Time In",
     punch_out: "Time Out",
@@ -108,36 +109,52 @@ export default function EmployeeReports() {
     isabsent: "Absent"
   };
 
-  const calculateSummaryTotals = (dataArray: any[]) => {
+ const calculateSummaryTotals = (dataArray: any[]) => {
+    const parseTimeToMinutes = (value: any) => {
+      if (!value) return 0;
+      
+      const strValue = String(value).trim();
+      
+      if (strValue.includes(':')) {
+        const parts = strValue.split(':').map(Number);
+        const hours = parts[0] || 0;
+        const minutes = parts[1] || 0;
+        const seconds = parts[2] || 0;
+        return hours * 60 + minutes + (seconds / 60);
+      }
+      
+      const hours = parseFloat(strValue) || 0;
+      return hours * 60;
+    };
+
     const totals = {
-      totalLateInHours: 0,
-      totalWorkedHours: 0,
-      totalEarlyOutHours: 0,
-      totalMissedHours: 0,
-      totalExtraHours: 0,
-      totalAbsents: 0,
+      totalLateInMinutes: 0,
+      totalWorkedMinutes: 0,
+      totalEarlyOutMinutes: 0,
+      totalMissedMinutes: 0,
+      totalExtraMinutes: 0,
     };
 
     dataArray.forEach((row: any) => {
-      totals.totalLateInHours += parseFloat(row.late || 0) / 60;
-      totals.totalWorkedHours += parseFloat(row.dailyworkhrs || 0);
-      totals.totalEarlyOutHours += parseFloat(row.early || 0) / 60;
-      totals.totalMissedHours += parseFloat(row.DailyMissedHrs || 0);
-      totals.totalExtraHours += parseFloat(row.dailyextrawork || 0);
+      totals.totalLateInMinutes += parseTimeToMinutes(row.late);
+      totals.totalWorkedMinutes += parseTimeToMinutes(row.dailyworkhrs);
+      totals.totalEarlyOutMinutes += parseTimeToMinutes(row.early);
+      totals.totalMissedMinutes += parseTimeToMinutes(row.DailyMissedHrs);
+      totals.totalExtraMinutes += parseTimeToMinutes(row.dailyextrawork);
     });
 
-    const formatToHoursMinutes = (hours: number) => {
-      const h = Math.floor(Math.abs(hours));
-      const m = Math.round((Math.abs(hours) - h) * 60);
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    const formatMinutesToHHMM = (totalMinutes: number) => {
+      const hours = Math.floor(Math.abs(totalMinutes) / 60);
+      const minutes = Math.round(Math.abs(totalMinutes) % 60);
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     };
 
     return {
-      totalLateInHours: formatToHoursMinutes(totals.totalLateInHours),
-      totalWorkedHours: formatToHoursMinutes(totals.totalWorkedHours),
-      totalEarlyOutHours: formatToHoursMinutes(totals.totalEarlyOutHours),
-      totalMissedHours: formatToHoursMinutes(totals.totalMissedHours),
-      totalExtraHours: formatToHoursMinutes(totals.totalExtraHours),
+      totalLateInHours: formatMinutesToHHMM(totals.totalLateInMinutes),
+      totalWorkedHours: formatMinutesToHHMM(totals.totalWorkedMinutes),
+      totalEarlyOutHours: formatMinutesToHHMM(totals.totalEarlyOutMinutes),
+      totalMissedHours: formatMinutesToHHMM(totals.totalMissedMinutes),
+      totalExtraHours: formatMinutesToHHMM(totals.totalExtraMinutes),
       totalAbsents: "00:00",
     };
   };

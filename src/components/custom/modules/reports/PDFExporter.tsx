@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 import { apiRequest } from "@/src/lib/apiHandler";
-import { formatInTimeZone } from "date-fns-tz";
 
 interface PDFExporterProps {
   formValues: any;
@@ -24,6 +23,44 @@ export class PDFExporter {
     this.calculateSummaryTotals = calculateSummaryTotals;
     this.logoUrl = logoUrl;
     this.onProgress = onProgress;
+  }
+
+  private async loadLogoAsBase64(): Promise<string | null> {
+    if (!this.logoUrl) {
+      return null;
+    }
+    
+    try {
+      
+      const logoPath = this.logoUrl.startsWith('/') 
+        ? window.location.origin + this.logoUrl 
+        : this.logoUrl;
+            
+      const response = await fetch(logoPath);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch logo:', response.status, response.statusText);
+        return null;
+      }
+      
+      const blob = await response.blob();
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = (error) => {
+          console.error('FileReader error:', error);
+          reject(error);
+        };
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error loading logo:', error);
+      return null;
+    }
   }
 
   private async yieldToMain(): Promise<void> {
@@ -120,6 +157,7 @@ export class PDFExporter {
       'employee_number',
       'firstname_eng',
       'organization_eng',
+      'department_name_eng',
       'transdate',
       'punch_in',
       'punch_out',
@@ -134,134 +172,141 @@ export class PDFExporter {
   }
 
   private formatCellValue(header: string, value: any): string {
+    if (!value) return '';
+    
     if (header === 'transdate' && value) {
-      try {
-        return formatInTimeZone(value, 'UTC', 'dd-MM-yyyy');
-      } catch {
-        return value;
+      if (typeof value === 'string') {
+        const datePart = value.split(' ')[0].split('T')[0];
+        if (datePart.includes('-')) {
+          const [year, month, day] = datePart.split('-');
+          return `${day}-${month}-${year}`;
+        }
       }
+      return value;
     }
 
     if ((header === 'punch_in' || header === 'punch_out') && value) {
-      try {
-        return formatInTimeZone(value, 'UTC', 'HH:mm:ss');
-      } catch {
-        return value;
+      if (typeof value === 'string') {
+        if (value.includes('T')) {
+          const timePart = value.split('T')[1];
+          return timePart.split('.')[0];
+        }
+        if (value.includes(' ')) {
+          const timePart = value.split(' ')[1];
+          return timePart.split('.')[0];
+        }
+        if (value.includes(':')) {
+          return value.split('.')[0];
+        }
       }
+      return value;
     }
 
-    return value || '';
+    if (['late', 'early', 'dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
+      if (value === '0' || value === 0) return '00:00:00';
+      
+      if (typeof value === 'string') {
+        let timeOnly = value;
+        if (value.includes('T')) {
+          timeOnly = value.split('T')[1];
+        } else if (value.includes(' ')) {
+          timeOnly = value.split(' ')[1];
+        }
+        return timeOnly.split('.')[0];
+      }
+      
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return '00:00:00';
+      
+      const totalSeconds = Math.round(Math.abs(numValue) * 3600);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    return value;
   }
 
-  private generateHTMLContent(data: any[]): string {
-    const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(data);
+  private generateHTMLContent(displayData: any[], allData?: any[], logoBase64?: string | null): string {
+    const dataForSummary = allData || displayData;
+    const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(dataForSummary);
     const filteredHeaders = this.getFilteredHeaders();
     const displayHeaders = filteredHeaders.map(header => 
       (this.headerMap[header] || header).toUpperCase()
     );
-    const summaryTotals = this.calculateSummaryTotals(data);
+    const summaryTotals = this.calculateSummaryTotals(dataForSummary);
     
     const MAX_PDF_ROWS = 1000;
-    const dataToShow = data.length > MAX_PDF_ROWS 
-      ? data.slice(-MAX_PDF_ROWS) 
-      : data;
-    
-    const reversedDataArray = [...dataToShow].reverse();
+    const showingLimitedData = allData && allData.length > MAX_PDF_ROWS;
+    const reversedDataArray = [...displayData].reverse();
 
     return `
-      <div style="padding: 15px; font-family: 'Nunito Sans', sans-serif; width: 100%; box-sizing: border-box;">
-        ${data.length > MAX_PDF_ROWS ? `
-          <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
-            <strong>Note:</strong> PDF showing last ${MAX_PDF_ROWS.toLocaleString()} of ${data.length.toLocaleString()} records. 
-            Summary totals reflect all ${data.length.toLocaleString()} records. Use Excel export for complete dataset.
+      <div style="padding: 15px; font-family: Arial, sans-serif; width: 100%;">
+        ${showingLimitedData ? `
+          <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin-bottom: 15px;">
+            <strong>Note:</strong> PDF showing first ${MAX_PDF_ROWS.toLocaleString()} of ${allData!.length.toLocaleString()} records. 
+            Summary totals reflect all ${allData!.length.toLocaleString()} records. Use Excel export for complete dataset.
           </div>
         ` : ''}
         
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; width: 100%;">
-          ${this.logoUrl ? `
-            <div style="flex: 0 0 auto;">
-              <img src="${this.logoUrl}" alt="Company Logo" style="height: 50px; width: auto; object-fit: contain;" />
-            </div>
-          ` : ''}
-
-          <div style="flex: 1; text-align: center;">
-            <h1 style="margin: 0; font-size: 16px; font-weight: 700; font-family: 'Nunito Sans', sans-serif; color: #333;">
-              EMPLOYEE DAILY MOVEMENT REPORT
-            </h1>
+        ${logoBase64 ? `
+          <div style="text-align: center; margin-bottom: 10px;">
+            <img src="${logoBase64}" alt="Logo" style="height: 50px;" />
           </div>
+        ` : ''}
+        
+        <h1 style="text-align: center; font-size: 16px; font-weight: bold; margin: 10px 0;">
+          EMPLOYEE DAILY MOVEMENT REPORT
+        </h1>
 
-          <div style="flex: 0 0 50px;"></div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; width: 100%;">
-          <div style="flex: 1;">
-            <p style="margin: 2px 0; font-size: 12px; font-family: 'Nunito Sans', sans-serif;">
-              <span style="font-weight: bold;">Employee ID:</span> ${employeeId}
-            </p>
-          </div>
-          <div style="flex: 1; text-align: right;">
-            <p style="margin: 2px 0; font-size: 12px; font-family: 'Nunito Sans', sans-serif;">
-              <span style="font-weight: bold;">Generated On:</span> ${format(new Date(), 'dd/MM/yyyy')}
-            </p>
-          </div>
-        </div>
-         
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: avoid;">
+        <table style="width: 100%; margin-bottom: 10px;">
           <tr>
-            <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; width: 25%; text-align: center; vertical-align: middle;">EMPLOYEE NAME</td>
-            <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; width: 25%; vertical-align: middle;">${employeeName}</td>
-            <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; width: 25%; text-align: center; vertical-align: middle;">EMPLOYEE NO</td>
-            <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; width: 25%; vertical-align: middle;">${employeeNo}</td>
+            <td style="font-size: 12px;">
+              <strong>Employee ID:</strong> ${employeeId}
+            </td>
+            <td style="text-align: right; font-size: 12px;">
+              <strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}
+            </td>
+          </tr>
+        </table>
+         
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+          <tr>
+            <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; width: 25%; text-align: center;">EMPLOYEE NAME</td>
+            <td style="border: 1px solid black; padding: 8px; font-size: 11px; width: 25%;">${employeeName}</td>
+            <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; width: 25%; text-align: center;">EMPLOYEE NO</td>
+            <td style="border: 1px solid black; padding: 8px; font-size: 11px; width: 25%;">${employeeNo}</td>
           </tr>
           ${this.formValues.from_date || this.formValues.to_date ? 
             `<tr>
-              <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; text-align: center; vertical-align: middle;">FROM DATE</td>
-              <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; vertical-align: middle;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '01/07/2025'}</td>
-              <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; text-align: center; vertical-align: middle;">TO DATE</td>
-              <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; vertical-align: middle;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025'}</td>
+              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">FROM DATE</td>
+              <td style="border: 1px solid black; padding: 8px; font-size: 11px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '01/07/2025'}</td>
+              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">TO DATE</td>
+              <td style="border: 1px solid black; padding: 8px; font-size: 11px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025'}</td>
             </tr>`
           : ''}
         </table>
       
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: auto; min-width: 100%; page-break-inside: auto;">
-          <thead style="display: table-header-group;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <thead>
             <tr style="background-color: #0078D4;">
               ${displayHeaders.map(header => `
-                <th style="
-                  border: 1px solid #ddd; 
-                  padding: 8px 6px; 
-                  text-align: center; 
-                  vertical-align: middle;
-                  color: #FFFFFF; 
-                  font-family: 'Nunito Sans', sans-serif; 
-                  font-weight: bold; 
-                  font-size: 11px;
-                  white-space: nowrap;
-                  min-width: fit-content;
-                ">${header}</th>
+                <th style="border: 1px solid black; padding: 8px; text-align: center; color: white; font-weight: bold; font-size: 10px;">${header}</th>
               `).join('')}
             </tr>
           </thead>
-          <tbody style="page-break-inside: auto;">
-            ${reversedDataArray.map((row: Record<string, any>, rowIndex: number) => `
-              <tr style="page-break-inside: avoid; ${rowIndex > 0 && rowIndex % 20 === 0 ? 'page-break-before: auto;' : ''}">
+          <tbody>
+            ${reversedDataArray.map((row: Record<string, any>) => `
+              <tr>
                 ${filteredHeaders.map(header => {
                   const cellValue = this.formatCellValue(header, row[header]);
                   const isLateOrMissed = header === 'late' || header === 'DailyMissedHrs';
-                  const textColor = isLateOrMissed && parseFloat(cellValue) > 0 ? 'color: #FF0000;' : '';
+                  const textColor = isLateOrMissed && parseFloat(cellValue) > 0 ? 'color: red;' : '';
                   
                   return `
-                    <td style="
-                      border: 1px solid #ddd; 
-                      padding: 6px 4px; 
-                      font-family: 'Nunito Sans', sans-serif; 
-                      font-size: 10px;
-                      word-wrap: break-word;
-                      overflow-wrap: break-word;
-                      min-width: fit-content;
-                      vertical-align: middle;
-                      ${textColor}
-                    ">${String(cellValue)}</td>
+                    <td style="border: 1px solid black; padding: 6px; font-size: 9px; ${textColor}">${String(cellValue)}</td>
                   `;
                 }).join('')}
               </tr>
@@ -269,26 +314,26 @@ export class PDFExporter {
           </tbody>
         </table>
 
-        <div style="margin-top: 30px; page-break-inside: avoid;">
-          <h2 style="text-align: center; color: #333; font-family: 'Nunito Sans', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 15px;">
-            SUMMARY TOTALS ${data.length > MAX_PDF_ROWS ? `(All ${data.length.toLocaleString()} Records)` : ''}
+        <div style="margin-top: 30px;">
+          <h2 style="text-align: center; font-size: 14px; font-weight: bold; margin-bottom: 15px;">
+            SUMMARY TOTALS ${showingLimitedData ? `(All ${allData!.length.toLocaleString()} Records)` : ''}
           </h2>
           
-          <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <table style="width: 100%; border-collapse: collapse;">
             <tr>
-              <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; text-align: center; vertical-align: middle; width: 16.66%;">Total Late In Hours</td>
-              <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; text-align: center; vertical-align: middle; width: 16.66%;">${summaryTotals.totalLateInHours}</td>
-              <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; text-align: center; vertical-align: middle; width: 16.66%;">Total Early Out Hours</td>
-              <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; text-align: center; vertical-align: middle; width: 16.66%;">${summaryTotals.totalEarlyOutHours}</td>
-              <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; text-align: center; vertical-align: middle; width: 16.66%;">Total Missed Hours</td>
-              <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; text-align: center; vertical-align: middle; width: 16.66%;">${summaryTotals.totalMissedHours}</td>
+              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center; width: 16.66%;">Total Late In Hours</td>
+              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center; width: 16.66%;">${summaryTotals.totalLateInHours}</td>
+              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center; width: 16.66%;">Total Early Out Hours</td>
+              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center; width: 16.66%;">${summaryTotals.totalEarlyOutHours}</td>
+              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center; width: 16.66%;">Total Missed Hours</td>
+              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center; width: 16.66%;">${summaryTotals.totalMissedHours}</td>
             </tr>
             <tr>
-              <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; text-align: center; vertical-align: middle;">Total Worked Hours</td>
-              <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; text-align: center; vertical-align: middle;">${summaryTotals.totalWorkedHours}</td>
-              <td style="border: 1px solid #ddd; padding: 8px; background-color: #0078D4; color: #FFFFFF; font-family: 'Nunito Sans', sans-serif; font-weight: bold; font-size: 11px; text-align: center; vertical-align: middle;">Total Extra Hours</td>
-              <td style="border: 1px solid #ddd; padding: 8px; font-family: 'Nunito Sans', sans-serif; font-size: 11px; text-align: center; vertical-align: middle;">${summaryTotals.totalExtraHours}</td>
-              <td colspan="2" style="border: 1px solid #ddd; padding: 8px;"></td>
+              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">Total Worked Hours</td>
+              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center;">${summaryTotals.totalWorkedHours}</td>
+              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">Total Extra Hours</td>
+              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center;">${summaryTotals.totalExtraHours}</td>
+              <td colspan="2" style="border: 1px solid black; padding: 8px;"></td>
             </tr>
           </table>
         </div>
@@ -309,9 +354,14 @@ export class PDFExporter {
 
       this.onProgress?.(45);
 
-      if (allData.length > 5000) {
+      const MAX_PDF_ROWS = 1000;
+      const dataToExport = allData.length > MAX_PDF_ROWS 
+        ? allData.slice(0, MAX_PDF_ROWS)
+        : allData;
+
+      if (allData.length > MAX_PDF_ROWS) {
         toast.loading(
-          `Processing ${allData.length.toLocaleString()} records. PDF will show last 1,000 rows. Consider using Excel export for complete data.`,
+          `Dataset has ${allData.length.toLocaleString()} records. PDF will show first ${MAX_PDF_ROWS.toLocaleString()} rows. Summary totals include all records.`,
           { duration: 4000 }
         );
       }
@@ -320,7 +370,11 @@ export class PDFExporter {
       
       this.onProgress?.(55);
       
-      const htmlContent = this.generateHTMLContent(allData);
+      const logoBase64 = await this.loadLogoAsBase64();
+      
+      const htmlContent = allData.length > MAX_PDF_ROWS 
+        ? this.generateHTMLContent(dataToExport, allData, logoBase64)
+        : this.generateHTMLContent(dataToExport, allData, logoBase64);
 
       this.onProgress?.(65);
 
@@ -367,7 +421,11 @@ export class PDFExporter {
 
       this.onProgress?.(100);
       
-      toast.success(`PDF generated successfully! (${allData.length > 1000 ? 'Last 1,000 of ' : ''}${allData.length.toLocaleString()} records)`);
+      const recordMessage = allData.length > MAX_PDF_ROWS 
+        ? `First ${MAX_PDF_ROWS.toLocaleString()} of ${allData.length.toLocaleString()} records`
+        : `${allData.length.toLocaleString()} records`;
+      
+      toast.success(`PDF generated successfully! (${recordMessage})`);
 
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -402,13 +460,15 @@ export class PDFExporter {
       toast.loading(`Generating ${numPDFs} PDF files...`, { duration: 3000 });
 
       const html2pdf = await import('html2pdf.js').then(module => module.default);
+      
+      const logoBase64 = await this.loadLogoAsBase64();
 
       for (let i = 0; i < numPDFs; i++) {
         const start = i * RECORDS_PER_PDF;
         const end = Math.min(start + RECORDS_PER_PDF, allData.length);
         const chunk = allData.slice(start, end);
 
-        const htmlContent = this.generateHTMLContent(chunk);
+        const htmlContent = this.generateHTMLContent(chunk, allData, logoBase64);
 
         const opt = {
           margin: [0.3, 0.3, 0.3, 0.3],

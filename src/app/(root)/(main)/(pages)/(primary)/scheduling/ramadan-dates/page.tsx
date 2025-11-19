@@ -163,36 +163,6 @@ export default function Page() {
         }
         size="large"
       />
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-accent border-grey border-[1px] rounded-full flex items-center max-w-[350px]">
-          <Label className="font-normal text-secondary w-auto px-3 min-w-[100px]">
-            {t.year} :
-          </Label>
-          <Input
-            placeholder="Enter year"
-            value={year}
-            onChange={handleYearChange}
-            className="bg-accent border-none"
-          />
-        </div>
-        <div>
-          <Select onValueChange={handleMonthChange} value={month || ""}>
-            <SelectTrigger className="bg-accent border-grey">
-              <Label className="font-normal text-secondary">
-                {t.month} :
-              </Label>
-              <SelectValue placeholder="Select month" />
-            </SelectTrigger>
-            <SelectContent>
-              {monthOptions.map((m) => (
-                <SelectItem key={m} value={String(m)}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
       <PowerTable
         props={props}
         onEditClick={handleEditClick}

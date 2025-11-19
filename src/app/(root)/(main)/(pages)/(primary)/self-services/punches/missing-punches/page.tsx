@@ -10,7 +10,6 @@ import {
 } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
-import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -32,6 +31,7 @@ export default function Page() {
     headerName?: string;
     clickable?: boolean;
     onCellClick?: (data: any) => void;
+    cellRenderer?: (data: any) => any;
   };
   const [columns, setColumns] = useState<Columns[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -59,14 +59,52 @@ export default function Page() {
   const closePopover = (key: string) => {
     setPopoverStates((prev) => ({ ...prev, [key]: false }));
   };
+  
+  const formatDate = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
+  };
+
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
-  const handleCellClick = useCallback((data: any) => {
-    setSelectedRowData(data);
+  const handleCellClick = useCallback((data: any, field: string) => {
+    setSelectedRowData({ ...data, punchType: field });
     setIsModalOpen(true);
   }, []);
+
+  const TimeInCellRenderer = useCallback((data: any) => {
+    const value = data.Trans_IN;
+    if (value === "Apply") {
+      return (
+        <button 
+          onClick={() => handleCellClick(data, "IN")}
+          className="text-primary hover:underline cursor-pointer"
+        >
+          Apply
+        </button>
+      );
+    }
+    return <span>{value}</span>;
+  }, [handleCellClick]);
+
+  const TimeOutCellRenderer = useCallback((data: any) => {
+    const value = data.Trans_OUT;
+    if (value === "Apply") {
+      return (
+        <button 
+          onClick={() => handleCellClick(data, "OUT")}
+          className="text-primary hover:underline cursor-pointer"
+        >
+          Apply
+        </button>
+      );
+    }
+    return <span>{value}</span>;
+  }, [handleCellClick]);
 
   useEffect(() => {
     setColumns([
@@ -85,33 +123,19 @@ export default function Page() {
       {
         field: "Trans_IN",
         headerName: "Time In",
+        cellRenderer: TimeInCellRenderer,
       },
       {
         field: "Trans_OUT",
         headerName: "Time Out",
+        cellRenderer: TimeOutCellRenderer,
       },
       {
-        field: "remarks",
-        headerName: "Applied In",
-        clickable: true,
-        onCellClick: handleCellClick,
-      },
-      {
-        field: "reason",
-        headerName: "Staus",
-      },
-      {
-        field: "remarks",
-        headerName: "Applied Out",
-        clickable: true,
-        onCellClick: handleCellClick,
-      },
-      {
-        field: "reason",
-        headerName: "Staus",
+        field: "Status",
+        headerName: "Status",
       },
     ]);
-  }, [language, t]);
+  }, [language, t, TimeInCellRenderer, TimeOutCellRenderer]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
@@ -119,12 +143,13 @@ export default function Page() {
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-const {
+
+  const {
     data: punchesData,
     isLoading: isLoadingTransactions,
     error,
     refetch,
-  } = useFetchAllEntity("missing-movements", {
+  } = useFetchAllEntity("missingMovement", {
     searchParams: {
       ...(employeeId && { employee_id: String(employeeId) }),
       limit: String(rowsPerPage),
@@ -135,11 +160,11 @@ const {
       ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
     },
     enabled: !!employeeId && isAuthenticated && !isChecking,
-    endpoint: `/missing-movements/all`,
+    endpoint: `/missingMovement/all`,
   });
   
   const getEmployeeName = (transaction: any) => {
-    const txEmployeeId = transaction.employee_id ?? transaction.Employee_Id;
+    const txEmployeeId = transaction.Employee_Id;
 
     if (userInfo && txEmployeeId === employeeId) {
       const name =
@@ -155,12 +180,8 @@ const {
     if (employee) {
       const fullName =
         language === "ar"
-          ? `${employee.firstname_arb || ""} ${
-              employee.lastname_arb || ""
-            }`.trim()
-          : `${employee.firstname_eng || ""} ${
-              employee.lastname_eng || ""
-            }`.trim();
+          ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
+          : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
 
       if (fullName) return fullName;
     }
@@ -168,55 +189,69 @@ const {
     return `Emp ${txEmployeeId ?? "-"}`;
   };
 
+  const formatTime = (timeString: string | null) => {
+    if (!timeString) return null;
+    try {
+      const date = new Date(timeString);
+      if (!isNaN(date.getTime())) {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
+      }
+      return timeString;
+    } catch {
+      return timeString;
+    }
+  };
+
+  const formatDateDisplay = (dateString: string | null) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
+      return dateString;
+    } catch {
+      return dateString;
+    }
+  };
+
   const data = useMemo(() => {
     if (!Array.isArray(punchesData?.data)) return [];
 
-    const filteredData = punchesData.data; 
-
-    const processedData = filteredData.map((transaction: any) => {
-      const id =
-        transaction.transaction_id ?? transaction.Emp_Missing_Movements_Id;
-      const txEmployeeId = transaction.employee_id ?? transaction.Employee_Id;
-      let formattedDate = "";
-      const dateSource = transaction.transaction_date ?? transaction.TransDate;
-      if (dateSource) {
-        const d = new Date(dateSource);
-        if (!isNaN(d.getTime())) formattedDate = d.toISOString().substr(0, 10);
+    return punchesData.data.map((transaction: any) => {
+      const empNo = transaction.employee_master?.emp_no || `EMP${transaction.Employee_Id}`;
+      const timeIn = formatTime(transaction.Trans_IN);
+      const timeOut = formatTime(transaction.Trans_OUT);
+      
+      // Determine combined status
+      let status = "-";
+      if (transaction.Status_IN && transaction.Status_OUT) {
+        status = `${transaction.Status_IN} / ${transaction.Status_OUT}`;
+      } else if (transaction.Status_IN) {
+        status = transaction.Status_IN;
+      } else if (transaction.Status_OUT) {
+        status = transaction.Status_OUT;
       }
-      let formattedTime = "";
-      const timeSource =
-        transaction.transaction_time ??
-        transaction.Trans_IN ??
-        transaction.Trans_OUT;
-      if (timeSource) {
-        const t = new Date(timeSource);
-        if (!isNaN(t.getTime())) formattedTime = t.toISOString().substr(11, 8);
-        else if (typeof timeSource === "string") formattedTime = timeSource;
-      }
-
-      const empNo =
-        transaction.employee_master?.emp_no ||
-        transaction.emp_no ||
-        `EMP${txEmployeeId}`;
-      const normalized = {
-        ...transaction,
-        id,
-        employee_id: txEmployeeId,
-        Employee_Id: txEmployeeId,
-        emp_no: empNo,
-        transaction_date: formattedDate,
-        transaction_time: formattedTime,
-      };
-
+      
       return {
-        ...normalized,
-        employee_name: getEmployeeName(normalized),
-        remarks: "Apply",
+        ...transaction,
+        id: transaction.Emp_Missing_Movements_Id,
+        emp_no: empNo,
+        employee_name: getEmployeeName(transaction),
+        TransDate: formatDateDisplay(transaction.TransDate),
+        Trans_IN: timeIn || "Apply",
+        Trans_OUT: timeOut || "Apply",
+        Status: status,
       };
     });
-
-    return processedData;
-  }, [punchesData, language, userInfo, employeeId, error]);
+  }, [punchesData, language, userInfo, employeeId]);
 
   const handlePageChange = useCallback(
     (newPage: number) => {
@@ -267,6 +302,7 @@ const {
     setEmployeeFilter(event.target.value);
     setCurrentPage(1);
   };
+
   const props = {
     Data: data,
     Columns: columns,
@@ -353,7 +389,7 @@ const {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
-      {/* <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
             <Label className="font-normal text-secondary whitespace-nowrap mr-2">
@@ -387,7 +423,7 @@ const {
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {fromDate
-                      ? format(fromDate, "dd/MM/yy")
+                      ? formatDate(fromDate)
                       : t.placeholder_date || "Choose date"}
                   </span>
                 </p>
@@ -425,7 +461,7 @@ const {
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {toDate
-                      ? format(toDate, "dd/MM/yy")
+                      ? formatDate(toDate)
                       : t.placeholder_date || "Choose date"}
                   </span>
                 </p>
@@ -444,7 +480,7 @@ const {
             </PopoverContent>
           </Popover>
         </div>
-      </div> */}
+      </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
@@ -460,6 +496,7 @@ const {
         <MissingPunchModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
+          // rowData={selectedRowData}
           size="large"
         />
       )}

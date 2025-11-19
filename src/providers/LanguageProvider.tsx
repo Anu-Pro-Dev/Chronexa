@@ -147,6 +147,11 @@ export default function LanguageProvider({
           path: "/organization/delegation/",
           value: "delegation",
         },
+        {
+          label: "Department",
+          path: "/organization/department/",
+          value: "department",
+        },
       ],
     };
 

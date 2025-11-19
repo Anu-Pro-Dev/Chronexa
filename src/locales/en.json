@@ -78,7 +78,10 @@
       "back": "Back",
       "loading": "Loading",
       "delete_all": "Delete All",
-      "processing": "Processing"
+      "processing": "Processing",
+      "clear_filters": "Clear Filters",
+      "apply_filters": "Apply Filters",
+      "filtering": "Filtering..."
     },
     "actions": {
       "add": "Add",

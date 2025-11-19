@@ -78,7 +78,10 @@
       "back": "رجوع",
       "loading": "جارٍ التحميل",
       "delete_all": "حذف الكل",
-      "processing": "جارٍ المعالجة"
+      "processing": "جارٍ المعالجة",
+      "clear_filters": "Clear Filters",
+      "apply_filters": "Apply Filters",
+      "filtering": "Filtering..."
     },
     "actions": {
       "add": "إضافة",

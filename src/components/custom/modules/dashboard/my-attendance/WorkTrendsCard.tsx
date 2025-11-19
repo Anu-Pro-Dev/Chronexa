@@ -106,8 +106,6 @@ function WorkTrendsCard() {
         };
       }
 
-      console.log("Day Data:", dayData);
-
       // Use 12 hours (720 minutes) as default if ExpectedWork is null or 0
       const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0) 
         ? 720 

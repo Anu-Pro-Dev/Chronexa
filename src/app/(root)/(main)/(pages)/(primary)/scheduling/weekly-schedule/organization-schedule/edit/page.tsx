@@ -28,7 +28,6 @@ export default function OrgScheduleEditPage() {
   
   if (storedSelectedRowData?.id) {
     selectedRowData = storedSelectedRowData;
-    console.log("Using stored data:", selectedRowData);
   } else if (apiData) {
     if (apiData.data) {
       selectedRowData = {
