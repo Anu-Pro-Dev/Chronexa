@@ -23,7 +23,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader items={modules?.organization.items} disableFeatures />
-      <AddDepartment />
+      {/* <AddDepartment /> */}
     </div>
   );
 }
