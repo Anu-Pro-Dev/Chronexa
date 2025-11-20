@@ -6,6 +6,8 @@ import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
@@ -40,14 +42,18 @@ export default function Page() {
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
   const debouncedLeaveTypeFilter = useDebounce(leaveTypeFilter, 300);
   const t = translations?.modules?.selfServices || {};
+  
+  const [selectedOrganization, setSelectedOrganization] = useState<string>("");
+  const [selectedEmployeeType, setSelectedEmployeeType] = useState<string>("");
+  const [selectedVertical, setSelectedVertical] = useState<string>("");
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
+    vertical: false,
+    organization: false,
+    employeeType: false,
   });
-
-  const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }));
-  };
+  
   const options = [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
@@ -55,6 +61,69 @@ export default function Page() {
     { value: "2", label: t.rejected || "Rejected" },
   ];
 
+  const closePopover = (key: 'fromDate'| 'toDate' |'organization' | 'employeeType' | 'vertical' ) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  };
+
+  const handleOrganizationChange = (value: string) => {
+    setSelectedOrganization(value);
+    setCurrentPage(1);
+    closePopover('organization');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  };
+
+  const handleEmployeeTypeChange = (value: string) => {
+    setSelectedEmployeeType(value);
+    setCurrentPage(1);
+    closePopover('employeeType');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  };
+
+  const { data: organizationData } = useFetchAllEntity("organization", {
+    // removeAll: true,
+    searchParams: {
+      limit: "1000",
+    },
+  });
+
+  const { data: employeeTypeData } = useFetchAllEntity("employeeType", {
+    removeAll: true,
+  });
+
+  const getVerticalData = () => {
+    if (!organizationData?.data) return [];
+
+    const parentMap = new Map();
+
+    organizationData.data.forEach((item: any) => {
+      if (item.organizations) {
+        parentMap.set(item.organizations.organization_id, {
+          organization_id: item.organizations.organization_id,
+          organization_eng: item.organizations.organization_eng,
+          organization_arb: item.organizations.organization_arb,
+        });
+      }
+    });
+
+    return Array.from(parentMap.values());
+  };
+
+  const getOrganizationsData = () => {
+    if (!organizationData?.data) return [];
+
+    return organizationData.data.filter(
+      (item: any) => String(item.parent_id) === selectedVertical
+    );
+  };
+
+  const getEmployeeTypesData = () =>
+    (employeeTypeData?.data || []).filter(
+      (item: any) => item.employee_type_id
+  );
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
@@ -151,7 +220,7 @@ export default function Page() {
         ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/all`,
+      endpoint: `/employeeLeave/team/all`,
     }
   );
 
@@ -306,7 +375,7 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeLeave"
       />
-      <div className="grid grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-3 gap-4">
         <div>
           <Select onValueChange={handleStatusChange} value={selectedOption}>
             <SelectTrigger className="bg-accent border-grey">
@@ -410,6 +479,133 @@ export default function Page() {
             />
           </div>
         </div>
+      </div> */}
+      <div className="grid grid-cols-3 gap-4">
+        {/* Filter 1: VERTICAL ORGANIZATION */}
+        <Popover
+          open={popoverStates.vertical}
+          onOpenChange={(open) =>
+            setPopoverStates((prev) => ({ ...prev, vertical: open }))
+          }
+        >
+          <PopoverTrigger asChild>
+            <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
+              <p>
+                <Label className="font-normal text-secondary">Vertical :</Label>
+                <span className="px-1 text-sm text-text-primary">
+                  {selectedVertical
+                    ? getVerticalData().find((item: any) =>
+                        String(item.organization_id) === selectedVertical
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                    : "Choose Vertical"}
+                </span>
+              </p>
+              <ChevronsUpDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+            <Command>
+              <CommandInput placeholder="Search vertical..." />
+              <CommandGroup className="max-h-64 overflow-auto">
+                {getVerticalData().map((item: any) => (
+                  <CommandItem
+                    key={item.organization_id}
+                    onSelect={() => {
+                      setSelectedVertical(String(item.organization_id));
+                      setSelectedOrganization(""); // reset child organization
+                      closePopover("vertical");
+                    }}
+                  >
+                    {language === "ar" ? item.organization_arb : item.organization_eng}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Filter 2: ORGANIZATION (Filtered by parent_id = selectedVertical) */}
+        <Popover
+          open={popoverStates.organization}
+          onOpenChange={(open) =>
+            setPopoverStates((prev) => ({ ...prev, organization: open }))
+          }
+        >
+          <PopoverTrigger asChild>
+            <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
+              <p className="truncate w-64">
+                <Label className="font-normal text-secondary">Organization :</Label>
+                <span className="px-1 text-sm text-text-primary">
+                  {selectedOrganization
+                    ? getOrganizationsData().find((item: any) =>
+                        String(item.organization_id) === selectedOrganization
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                    : "Choose Organization"}
+                </span>
+              </p>
+              <ChevronsUpDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+            <Command>
+              <CommandInput placeholder="Search organization..." />
+              <CommandGroup className="max-h-64 overflow-auto">
+                {getOrganizationsData().map((item: any) => (
+                  <CommandItem
+                    key={item.organization_id}
+                    onSelect={() => handleOrganizationChange(String(item.organization_id))}
+                  >
+                    {language === "ar" ? item.organization_arb : item.organization_eng}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Filter 3: EMPLOYEE TYPE (Already existed - no change except position) */}
+        <Popover 
+          open={popoverStates.employeeType} 
+          onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
+        >
+          <PopoverTrigger asChild>
+            <Button 
+              size={"lg"} 
+              variant={"outline"}
+              className="w-full bg-accent px-4 flex justify-between border-grey"
+            >
+              <p>
+                <Label className="font-normal text-secondary">Employee Type :</Label>
+                <span className="px-1 text-sm text-text-primary">
+                  {selectedEmployeeType
+                    ? getEmployeeTypesData().find((item: any) => 
+                        String(item.employee_type_id) === selectedEmployeeType
+                      )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
+                    : "Choose type"}
+                </span>
+              </p>
+              <ChevronsUpDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+            <Command>
+              <CommandInput placeholder="Search employee type..." />
+              <CommandGroup className="max-h-64 overflow-auto">
+                {getEmployeeTypesData().map((item: any) => (
+                  <CommandItem
+                    key={item.employee_type_id}
+                    onSelect={() => handleEmployeeTypeChange(String(item.employee_type_id))}
+                  >
+                    {language === "ar" ? item.employee_type_arb : item.employee_type_eng}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>   
       </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">

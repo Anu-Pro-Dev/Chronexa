@@ -760,6 +760,8 @@
       "updateorgtype_success": "تم تحديث نوع المنظمة بنجاح",
       "addorg_success": "Organization added successfully!",
       "updateorg_success": "تم تحديث المنظمة بنجاح",
+      "adddept_success": "Department added successfully!",
+      "updatedept_success": "Department updated successfully!",
       "addemptype_success": "Employee type added successfully!",
       "updateemptype_success": "تم تحديث نوع الموظف بنجاح",
       "addempgrp_success": "Employee group added successfully!",

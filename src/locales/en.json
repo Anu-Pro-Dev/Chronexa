@@ -756,6 +756,8 @@
       "updateorgtype_success": "Organization type updated successfully!",
       "addorg_success": "Organization added successfully!",
       "updateorg_success": "Organization updated successfully!",
+      "adddept_success": "Department added successfully!",
+      "updatedept_success": "Department updated successfully!",
       "addemptype_success": "Employee type added successfully!",
       "updateemptype_success": "Employee type updated successfully!",
       "addempgrp_success": "Employee group added successfully!",

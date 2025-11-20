@@ -390,7 +390,7 @@ export default function Page() {
         entityName="employeeEventTransaction"
       />
       <div className="grid grid-cols-3 gap-4">
-        <div>
+        {/* <div>
           <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
             <Label className="font-normal text-secondary whitespace-nowrap mr-2">
               {t.employee_id || "Employee ID"} :
@@ -403,7 +403,7 @@ export default function Page() {
               className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
             />
           </div>
-        </div>
+        </div> */}
         <div>
           <Popover
             open={popoverStates.fromDate}

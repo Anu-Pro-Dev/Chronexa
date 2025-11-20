@@ -279,6 +279,28 @@ export const getOrganizationById = async (organization_id: number) => {
   return apiRequest(`/organization/get/${organization_id}`, "GET");
 };
 
+// Function to add a new organization type
+export const addDepartmentRequest = async (data: {
+  department_id?: number;
+  department_code?: string;
+  department_name_eng?: string;
+  department_name_arb?: string;
+}) => {
+  return apiRequest("/department/add", "POST", data);
+};
+
+// Function to edit a organization type by ID
+export const editDepartmentRequest = async (data: {
+  department_id: number;
+  department_code?: string;
+  department_name_eng?: string;
+  department_name_arb?: string;
+}) => {
+  const { department_id, ...payload } = data;
+
+  return apiRequest(`/department/edit/${department_id}`, "PUT", payload);
+};
+
 // Function to add a new designation
 export const addEmployeeTypeRequest = async (data: {
   employee_type_id?: number;

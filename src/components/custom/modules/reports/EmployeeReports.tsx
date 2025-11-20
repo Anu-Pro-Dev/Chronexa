@@ -94,19 +94,22 @@ export default function EmployeeReports() {
 
   const headerMap: Record<string, string> = {
     employee_number: "Emp No",
-    firstname_eng: "Employee Name",
+    firstname_eng: "Name",
     organization_eng: "Organization",
     department_name_eng: "Department",
+    employee_type: "Emp Type",
     transdate: "Date",
     punch_in: "Time In",
+    geolocation_in: "Geo In",
     punch_out: "Time Out",
-    late: "Late",
-    early: "Early",
-    dailyworkhrs: "Total Work Hrs",
+    geolocation_out: "Geo Out",
+    dailyworkhrs: "TotalWork Hrs",
     DailyMissedHrs: "Missed Hrs",
     dailyextrawork: "Overtime",
-    remarks: "Missed Punch",
-    isabsent: "Absent"
+    // late: "Late",
+    // early: "Early",
+    MissedPunch: "Missed Punch",
+    isabsent: "Status"
   };
 
  const calculateSummaryTotals = (dataArray: any[]) => {

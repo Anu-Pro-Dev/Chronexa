@@ -154,19 +154,20 @@ export class PDFExporter {
 
   private getFilteredHeaders() {
     return [
-      'employee_number',
+      'employee_number',     
       'firstname_eng',
       'organization_eng',
       'department_name_eng',
+      'employee_type',
       'transdate',
       'punch_in',
+      // 'geolocation_in',
       'punch_out',
-      'late',
-      'early',
+      // 'geolocation_out',
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
-      'remarks',
+      'MissedPunch',
       'isabsent'
     ];
   }

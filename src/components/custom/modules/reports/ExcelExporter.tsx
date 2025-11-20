@@ -28,15 +28,16 @@ export class ExcelExporter {
       'firstname_eng',
       'organization_eng',
       'department_name_eng',
+      'employee_type',
       'transdate',
       'punch_in',
+      'geolocation_in',
       'punch_out',
-      'late',
-      'early',
+      'geolocation_out',
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
-      'remarks',
+      'MissedPunch',
       'isabsent'
     ];
   }
@@ -267,7 +268,7 @@ export class ExcelExporter {
       const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(allData);
       let currentRow = 1;
 
-      worksheet.mergeCells(`A${currentRow}:N${currentRow}`);
+      worksheet.mergeCells(`A${currentRow}:O${currentRow}`);
       const dailyReportsCell = worksheet.getCell(`A${currentRow}`);
       dailyReportsCell.value = "NULL";
       dailyReportsCell.font = {
@@ -280,7 +281,7 @@ export class ExcelExporter {
       worksheet.getRow(currentRow).height = 35;
       currentRow += 2;
 
-      worksheet.mergeCells(`A${currentRow}:N${currentRow}`);
+      worksheet.mergeCells(`A${currentRow}:O${currentRow}`);
       const titleCell = worksheet.getCell(`A${currentRow}`);
       titleCell.value = "EMPLOYEE DAILY MOVEMENT REPORT";
       titleCell.font = {
@@ -295,9 +296,9 @@ export class ExcelExporter {
 
       worksheet.getCell(`A${currentRow}`).value = `Employee ID: ${employeeId}`;
       worksheet.getCell(`A${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-      worksheet.getCell(`N${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
-      worksheet.getCell(`N${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-      worksheet.getCell(`N${currentRow}`).alignment = { horizontal: "right" };
+      worksheet.getCell(`O${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
+      worksheet.getCell(`O${currentRow}`).font = { name: "Nunito Sans", size: 10 };
+      worksheet.getCell(`O${currentRow}`).alignment = { horizontal: "right" };
       currentRow += 2;
       
       const nameCell = worksheet.getCell(`A${currentRow}`);
@@ -306,10 +307,10 @@ export class ExcelExporter {
       const nameValueCell = worksheet.getCell(`B${currentRow}`);
       nameValueCell.value = employeeName;
       this.applyCellStyle(nameValueCell, 'value');
-      const empNoCell = worksheet.getCell(`L${currentRow}`);
+      const empNoCell = worksheet.getCell(`N${currentRow}`);
       empNoCell.value = 'EMPLOYEE NO';
       this.applyCellStyle(empNoCell, 'label');
-      const empNoValueCell = worksheet.getCell(`N${currentRow}`);
+      const empNoValueCell = worksheet.getCell(`O${currentRow}`);
       empNoValueCell.value = employeeNo;
       this.applyCellStyle(empNoValueCell, 'value');
       currentRow++;
@@ -321,10 +322,10 @@ export class ExcelExporter {
         const fromDateValueCell = worksheet.getCell(`B${currentRow}`);
         fromDateValueCell.value = this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '01/07/2025';
         this.applyCellStyle(fromDateValueCell, 'value');
-        const toDateCell = worksheet.getCell(`L${currentRow}`);
+        const toDateCell = worksheet.getCell(`N${currentRow}`);
         toDateCell.value = 'TO DATE';
         this.applyCellStyle(toDateCell, 'label');
-        const toDateValueCell = worksheet.getCell(`N${currentRow}`);
+        const toDateValueCell = worksheet.getCell(`O${currentRow}`);
         toDateValueCell.value = this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025';
         this.applyCellStyle(toDateValueCell, 'value');
         currentRow++;
