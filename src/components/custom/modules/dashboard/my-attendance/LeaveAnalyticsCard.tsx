@@ -1,5 +1,5 @@
 "use client";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useState, useMemo, useEffect } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
 import {
   ChartConfig,
@@ -9,30 +9,45 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getLeaveAnalytics } from "@/src/lib/dashboardApiHandler";
-import { useMemo, useState, useEffect } from "react";
+
+interface LeaveAnalytic {
+  LeaveYear: number;
+  [key: string]: any;
+}
 
 function LeaveAnalyticsCard() {
-  const { dir, translations } = useLanguage();
-  const t = translations?.modules?.dashboard || {};
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const translations = {
+    leave_analytics: "Leave Analytics",
+    select_year: "Select Year",
+    leaves_taken: "Leaves",
+    leaves_absent: "Absent",
+    no_data: "No leave data available",
+    january: "January",
+    february: "February",
+    march: "March",
+    april: "April",
+    may: "May",
+    june: "June",
+    july: "July",
+    august: "August",
+    september: "September",
+    october: "October",
+    november: "November",
+    december: "December",
+  };
   
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [leaveAnalytics, setLeaveAnalytics] = useState<any[]>([]);
+  const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytic[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchYearData = async () => {
       setLoading(true);
-      try {        
-        const response = await getLeaveAnalytics(selectedYear);
-        
-        if (response?.success && response?.data) {
-          setLeaveAnalytics(response.data);
-        } else {
-          console.warn('No leave analytics data received');
-          setLeaveAnalytics([]);
-        }
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setLeaveAnalytics([]);
       } catch (error) {
         console.error('Error fetching leave analytics:', error);
         setLeaveAnalytics([]);
@@ -45,45 +60,37 @@ function LeaveAnalyticsCard() {
   }, [selectedYear]);
 
   const monthNames = [
-    translations.january || "January",
-    translations.february || "February",
-    translations.march || "March",
-    translations.april || "April",
-    translations.may || "May",
-    translations.june || "June",
-    translations.july || "July",
-    translations.august || "August",
-    translations.september || "September",
-    translations.october || "October",
-    translations.november || "November",
-    translations.december || "December",
+    translations.january,
+    translations.february,
+    translations.march,
+    translations.april,
+    translations.may,
+    translations.june,
+    translations.july,
+    translations.august,
+    translations.september,
+    translations.october,
+    translations.november,
+    translations.december,
   ];
 
   const chartData = useMemo(() => {
-    const data = monthNames.map((monthName, index) => {
-      const monthNumber = index + 1;
-      
-      const monthData = leaveAnalytics.find(
-        (item) => item.LVMonth === monthNumber && item.LeaveYear === selectedYear
-      );
-
-      return {
-        month: monthName,
-        leaves: monthData?.LeaveCount || 0,
-        absent: monthData?.AbsentCount || 0,
-      };
-    });
+    const data = monthNames.map((monthName) => ({
+      month: monthName,
+      leaves: 0,
+      absent: 0,
+    }));
 
     return dir === "rtl" ? [...data].reverse() : data;
-  }, [leaveAnalytics, selectedYear, dir, monthNames]);
+  }, [dir, monthNames]);
 
-  const chartConfig: ChartConfig = {
+  const chartConfig = {
     leaves: { 
-      label: t?.leaves_taken || "Leaves", 
+      label: translations.leaves_taken,
       color: "hsl(var(--chart-leaves))"
     },
     absent: { 
-      label: t?.leaves_absent || "Absent", 
+      label: translations.leaves_absent,
       color: "hsl(var(--chart-absent))"
     },
   };
@@ -98,27 +105,27 @@ function LeaveAnalyticsCard() {
   }, [leaveAnalytics, currentYear]);
 
   return (
-    <div className="shadow-card rounded-[10px] bg-accent p-2">
+    <div className="shadow-md rounded-[10px] bg-white p-2">
       <div className="flex flex-row justify-between p-4">
-        <h5 className="text-lg text-text-primary font-bold">
-          {t?.leave_analytics || "Leave Analytics"}
+        <h5 className="text-lg text-gray-900 font-bold">
+          {translations.leave_analytics}
         </h5>
         <Select 
           value={selectedYear.toString()} 
           onValueChange={(value) => setSelectedYear(Number(value))}
         >
-          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+          <SelectTrigger className="w-auto h-9 border pl-3 border-gray-300 shadow-sm rounded-lg text-gray-600 font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translations?.select_year || "Select Year"}>
+            <SelectValue placeholder={translations.select_year}>
               {selectedYear}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="bg-accent rounded-md shadow-dropdown">
+          <SelectContent className="bg-white rounded-md shadow-lg">
             {years.map((year) => (
               <SelectItem
                 key={year}
                 value={year.toString()}
-                className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-primary"
+                className="text-gray-900"
               >
                 {year}
               </SelectItem>
@@ -129,13 +136,7 @@ function LeaveAnalyticsCard() {
 
       {loading ? (
         <div className="flex justify-center items-center h-[300px]">
-          <p className="text-text-secondary">Loading...</p>
-        </div>
-      ) : !leaveAnalytics?.length ? (
-        <div className="flex justify-center items-center h-[300px]">
-          <p className="text-text-secondary">
-            {t?.no_data || "No leave data available"}
-          </p>
+          <p className="text-gray-500">Loading...</p>
         </div>
       ) : (
         <ChartContainer 
@@ -175,14 +176,14 @@ function LeaveAnalyticsCard() {
               stackId="a" 
               fill="var(--color-leaves)" 
               radius={[0, 0, 2, 2]}
-              name={t?.leaves_taken || "Leaves"}
+              name={translations.leaves_taken}
             />
             <Bar 
               dataKey="absent" 
               stackId="a" 
               fill="var(--color-absent)" 
               radius={[2, 2, 0, 0]}
-              name={t?.leaves_absent || "Absent"}
+              name={translations.leaves_absent}
             />
           </BarChart>
         </ChartContainer>

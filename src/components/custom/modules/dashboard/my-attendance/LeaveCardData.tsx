@@ -64,7 +64,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
         },
         { 
             label: t?.leaves_absent, 
-            value: formatValue(parseInt(attendanceDetails?.AbsentDays || "0")),
+            value: formatValue(parseInt(attendanceDetails?.MonthlyAbsent || "0")),
             color: "text-[#DA153E]", 
             icon: AbsentIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]" 
@@ -78,7 +78,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
         },
         { 
             label: t?.pending_leaves, 
-            value: formatValue(attendanceDetails?.PendingLeaves),
+            value: formatValue(attendanceDetails?.BalanceLeaves),
             color: "text-[#FF6347]", 
             icon: PendingIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(255,99,71,0.1)]" 
@@ -87,18 +87,20 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
 
     const permissionsData = [
         { 
-            label: t?.working_days, 
-            value: formatValue(attendanceDetails?.TotalWorkingDays),
-            color: "text-primary", 
-            icon: WorkingDaysIcon(), 
-            shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]" 
-        },
-        { 
             label: t?.total_perms, 
             value: formatValue(attendanceDetails?.TotalPermissionCnt),
             color: "text-[#6741CA]", 
             icon: TotalLeavesIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]" 
+        },
+        { 
+            label: "Applied Permission", 
+            value: attendanceDetails?.PermAppliedHrs 
+                ? `${parsePermissionHours(attendanceDetails.PermAppliedHrs).toFixed(1)} hrs`
+                : "0.0 hrs",
+            color: "text-primary", 
+            icon: WorkingDaysIcon(), 
+            shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]" 
         },
         { 
             label: t?.prems_taken, 
@@ -125,8 +127,8 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
         },
         { 
             label: t?.pending_perms, 
-            value: attendanceDetails?.PendingPermissions 
-                ? `${parsePermissionHours(attendanceDetails.PendingPermissions).toFixed(1)} hrs`
+            value: attendanceDetails?.PermBalanceHrs 
+                ? `${parsePermissionHours(attendanceDetails.PermBalanceHrs).toFixed(1)} hrs`
                 : "0.0 hrs",
             color: "text-[#FF6347]", 
             icon: PendingIcon(), 
