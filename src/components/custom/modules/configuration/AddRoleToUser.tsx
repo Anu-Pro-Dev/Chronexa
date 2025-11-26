@@ -7,18 +7,11 @@ import PowerSearch from "@/src/components/custom/power-comps/power-search";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/src/lib/apiHandler";
+import { apiRequest, addOrUpdateUserRole } from "@/src/lib/apiHandler";
 import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import { AddIcon, CancelIcon2 } from "@/src/icons/icons";
-
-const addRoletoUser = async (data: {
-  user_id: number;
-  role_id: number;
-}) => {
-  return apiRequest("/secUserRole/add", "POST", data);
-};
 
 export default function AddRoleToUser({
   on_open_change,
@@ -83,6 +76,19 @@ export default function AddRoleToUser({
     searchParams: userSearchParams,
   });
 
+  const { data: allUserRoles, isLoading: isLoadingAllUserRoles } = useQuery({
+    queryKey: ["secUserRole", "all"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest(`/secUserRole/all`, "GET");
+        return response;
+      } catch (error) {
+        console.error("Error fetching all user roles:", error);
+        return { data: [] };
+      }
+    },
+  });
+
   const { data: existingUserRoles, isLoading: isLoadingUserRoles } = useQuery({
     queryKey: ["secUserRole", "byRole", roleId],
     queryFn: async () => {
@@ -106,19 +112,27 @@ export default function AddRoleToUser({
     return new Set(existingUserRoles.data.map((ur: any) => ur.user_id).filter(Boolean));
   }, [existingUserRoles]);
 
+  const userRoleMap = useMemo(() => {
+    const map = new Map<number, number>();
+    if (allUserRoles?.data && Array.isArray(allUserRoles.data)) {
+      allUserRoles.data.forEach((ur: any) => {
+        if (ur.user_id && ur.user_role_id) {
+          map.set(ur.user_id, ur.user_role_id);
+        }
+      });
+    }
+    return map;
+  }, [allUserRoles]);
+
   const addMutation = useMutation({
-    mutationFn: addRoletoUser,
+    mutationFn: addOrUpdateUserRole,
     onSuccess: (data) => {
       toast.success("User role assigned successfully!");
       onSave(null, data.data);
       queryClient.invalidateQueries({ queryKey: ["secUserRole"] });
     },
     onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        toast.error("User already has this role assigned.");
-      } else {
-        toast.error("Failed to assign role to user.");
-      }
+      toast.error(error?.message || "Failed to assign role to user.");
     },
   });
 
@@ -137,10 +151,20 @@ export default function AddRoleToUser({
 
     try {
       for (const row of selectedRows) {
-        const payload = {
-          user_id: row.user_id, 
+        const existingUserRoleId = userRoleMap.get(row.user_id);
+        
+        const payload: {
+          user_role_id?: number;
+          user_id: number[];
+          role_id: number;
+        } = {
+          user_id: [row.user_id],
           role_id: roleId,
         };
+
+        if (existingUserRoleId) {
+          payload.user_role_id = existingUserRoleId;
+        }
 
         await addMutation.mutateAsync(payload);
       }
@@ -218,7 +242,7 @@ export default function AddRoleToUser({
       }));
   }, [userData, assignedUserIds]);
 
-  const isLoading = isLoadingRoles || isLoadingUsers || isLoadingUserRoles;
+  const isLoading = isLoadingRoles || isLoadingUsers || isLoadingUserRoles || isLoadingAllUserRoles;
 
   const tableProps = {
     Data: availableUsers,
@@ -264,7 +288,7 @@ export default function AddRoleToUser({
                 onClick={handleAdd}
                 className="flex items-center space-y-0.5 border border-success"
               >
-                <AddIcon/> Add to Role
+                <AddIcon/> Assign Role
               </Button>
               <Button
                 variant={"outlineGrey"}

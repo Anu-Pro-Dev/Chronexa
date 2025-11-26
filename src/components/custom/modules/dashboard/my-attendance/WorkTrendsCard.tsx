@@ -88,9 +88,17 @@ function WorkTrendsCard() {
   );
 
   const chartDataToRender = useMemo(() => {
-    if (!workHourTrends?.length) return [];
-
     const daysInMonth = new Date(currentYear, selectedMonth, 0).getDate();
+
+    if (!workHourTrends?.length) {
+      // Return empty data structure for the chart
+      return Array.from({ length: daysInMonth }, (_, i) => ({
+        date: (i + 1).toString(),
+        worked: 0,
+        missed: 0,
+        expected: 0,
+      }));
+    }
 
     const data = Array.from({ length: daysInMonth }, (_, i) => {
       const dayNumber = i + 1;
@@ -179,57 +187,61 @@ function WorkTrendsCard() {
         <div className="flex justify-center items-center h-[300px]">
           <p className="text-text-secondary">Loading...</p>
         </div>
-      ) : chartDataToRender.length === 0 || !hasAnyData ? (
-        <div className="flex justify-center items-center h-[300px]">
-          <p className="text-text-secondary">
-            {t?.no_data || "No data available for this month"}
-          </p>
-        </div>
       ) : (
-        <ChartContainer
-          dir={dir}
-          className={`relative w-full flex justify-center ${dir === "rtl" ? "-right-[45px]" : "-left-[35px]"}`}
-          config={{
-            type: { label: "Bar Chart", icon: undefined, color: "#0078D4" },
-            options: {},
-          }}
-        >
-          <BarChart accessibilityLayer data={chartDataFinal}>
-            <CartesianGrid vertical={false} />
-            <XAxis 
-              dataKey="date" 
-              tickLine={false} 
-              tickMargin={2} 
-              axisLine={false} 
-              interval={0} 
-            />
-            <YAxis
-              type="number"
-              tickLine={false}
-              tickMargin={2}
-              axisLine={false}
-              domain={[0, yAxisMax]}
-              orientation={dir === "rtl" ? "right" : "left"}
-            />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <ChartLegend content={<CustomLegend />} />
+        <div className="relative">
+          <ChartContainer
+            dir={dir}
+            className={`relative w-full flex justify-center ${dir === "rtl" ? "-right-[45px]" : "-left-[35px]"}`}
+            config={{
+              type: { label: "Bar Chart", icon: undefined, color: "#0078D4" },
+              options: {},
+            }}
+          >
+            <BarChart accessibilityLayer data={chartDataFinal}>
+              <CartesianGrid vertical={false} />
+              <XAxis 
+                dataKey="date" 
+                tickLine={false} 
+                tickMargin={2} 
+                axisLine={false} 
+                interval={0} 
+              />
+              <YAxis
+                type="number"
+                tickLine={false}
+                tickMargin={2}
+                axisLine={false}
+                domain={[0, yAxisMax]}
+                orientation={dir === "rtl" ? "right" : "left"}
+              />
+              {hasAnyData && <ChartTooltip cursor={false} content={<ChartTooltipContent />} />}
+              <ChartLegend content={<CustomLegend />} />
 
-            <Bar 
-              dataKey="worked" 
-              stackId="b" 
-              fill={colorMapping.worked} 
-              radius={0} 
-              barSize={5} 
-            />
-            <Bar 
-              dataKey="missed" 
-              stackId="b" 
-              fill={colorMapping.missed} 
-              radius={0} 
-              barSize={5} 
-            />
-          </BarChart>
-        </ChartContainer>
+              <Bar 
+                dataKey="worked" 
+                stackId="b" 
+                fill={colorMapping.worked} 
+                radius={0} 
+                barSize={5} 
+              />
+              <Bar 
+                dataKey="missed" 
+                stackId="b" 
+                fill={colorMapping.missed} 
+                radius={0} 
+                barSize={5} 
+              />
+            </BarChart>
+          </ChartContainer>
+          
+          {!hasAnyData && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <p className="text-text-secondary font-medium text-center">
+                  {t?.no_data || "No data available for this month"}
+                </p>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

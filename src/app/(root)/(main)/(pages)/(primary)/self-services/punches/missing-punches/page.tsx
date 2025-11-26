@@ -72,7 +72,12 @@ export default function Page() {
   }, [currentPage]);
 
   const handleCellClick = useCallback((data: any, field: string) => {
-    setSelectedRowData({ ...data, punchType: field });
+    const completeData = {
+      rowData: data,
+      punchType: field,
+    };
+    
+    setSelectedRowData(completeData);
     setIsModalOpen(true);
   }, []);
 
@@ -230,7 +235,6 @@ export default function Page() {
       const timeIn = formatTime(transaction.Trans_IN);
       const timeOut = formatTime(transaction.Trans_OUT);
       
-      // Determine combined status
       let status = "-";
       if (transaction.Status_IN && transaction.Status_OUT) {
         status = `${transaction.Status_IN} / ${transaction.Status_OUT}`;
@@ -496,7 +500,8 @@ export default function Page() {
         <MissingPunchModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          // rowData={selectedRowData}
+          rowData={selectedRowData.rowData}
+          punchType={selectedRowData.punchType}
           size="large"
         />
       )}

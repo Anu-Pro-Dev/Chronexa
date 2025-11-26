@@ -144,7 +144,7 @@ export default function Page() {
         ...(debouncedSearchValue && { search: debouncedSearchValue }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeShortPermission/all`,
+      endpoint: `/employeeShortPermission/team/all`,
     }
   );
 

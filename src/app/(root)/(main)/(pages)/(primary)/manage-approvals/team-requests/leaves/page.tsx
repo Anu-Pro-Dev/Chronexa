@@ -59,7 +59,7 @@ export default function Page() {
   }, [currentPage]);
 
   const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
-    const employeeMaster = leave.employee_master;
+    const employeeMaster = leave.employee_master_employee_leaves_employee_idToemployee_master;
     
     if (!employeeMaster) {
       return {
@@ -129,6 +129,7 @@ export default function Page() {
     "employeeLeave", 
     {
       searchParams: {
+        pending: "true", 
         limit: String(rowsPerPage),
         offset: String(offset),
         ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
@@ -138,7 +139,7 @@ export default function Page() {
         ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/pending`,
+      endpoint: `/employeeLeave/team/all`,
     }
   );
 
@@ -155,7 +156,7 @@ export default function Page() {
             
       return {
         ...leave,
-        id: leave.employee_leave_id,
+        id: leave.employee_leave_id, 
         emp_no: employeeInfo.emp_no,
         employee_name: employeeInfo.employee_name,
         firstName: employeeInfo.firstName,
@@ -167,7 +168,7 @@ export default function Page() {
         from_time: leave.from_time ? leave.from_time.substring(11, 19) : leave.from_time,
         to_time: leave.to_time ? leave.to_time.substring(11, 19) : leave.to_time,
         raw_employee_id: leave.employee_id,
-        employee_master: leave.employee_master,
+        employee_master: leave.employee_master_employee_leaves_employee_idToemployee_master,
       };
     });
 
@@ -344,6 +345,7 @@ export default function Page() {
         props={props}
         onRowSelection={handleRowSelection}
         isLoading={isLoadingLeaves || isChecking}
+        overrideCheckbox={true}
       />
     );
   };
@@ -420,34 +422,6 @@ export default function Page() {
               />
             </PopoverContent>
           </Popover>
-        </div>
-        <div>
-          <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
-            <Label className="font-normal text-secondary whitespace-nowrap mr-2">
-              {t.employee_id || "Employee ID"} :
-            </Label>
-            <Input
-              type="text"
-              value={employeeFilter}
-              onChange={handleEmployeeFilterChange}
-              placeholder={t.placeholder_employee_id || "Enter Employee ID"}
-              className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
-            />
-          </div>
-        </div>
-        <div>
-          <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
-            <Label className="font-normal text-secondary whitespace-nowrap mr-2">
-              {t.leavetype_id || "Leave Type ID"} :
-            </Label>
-            <Input
-              type="text"
-              value={leaveTypeFilter}
-              onChange={handleLeaveTypeFilterChange}
-              placeholder={t.placeholder_leavetype_id || "Enter leave type ID"}
-              className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
-            />
-          </div>
         </div>
       </div>
       <div className="bg-accent rounded-2xl">

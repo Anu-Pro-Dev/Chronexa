@@ -8,6 +8,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -29,9 +30,21 @@ export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  const { data: rolesData, isLoading } = useFetchAllEntity("secRole");
+  const offset = useMemo(() => {
+    return currentPage;
+  }, [currentPage]);
+
+  const { data: rolesData, isLoading, refetch } = useFetchAllEntity("secRole", {
+    searchParams: {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+    },
+  });
 
   const handleCellClick = useCallback((data: any) => {
     setSelectedRowData(data);
@@ -78,6 +91,28 @@ export default function Page() {
     ]);
   }, [language, handleCellClick, handleCellClickPath]);
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleSearchChange = useCallback((newSearchValue: string) => {
+    setSearchValue(newSearchValue);
+    setCurrentPage(1);
+  }, []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -88,12 +123,16 @@ export default function Page() {
     isLoading,
     SortField: sortField,
     CurrentPage: currentPage,
-    SetCurrentPage: setCurrentPage,
+    SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
-    SetSearchValue: setSearchValue,
+    SetSearchValue: handleSearchChange,
+    total: rolesData?.total || 0,
+    hasNext: rolesData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
   };
 
   const handleModalClose = () => {

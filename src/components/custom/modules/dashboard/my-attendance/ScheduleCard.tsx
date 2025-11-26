@@ -23,7 +23,7 @@ const timeStringToHours = (timeStr: string | null): number => {
 function ScheduleCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { workSchedule, loading } = useAttendanceData();
+  const { workSchedule, loading, error } = useAttendanceData();
 
   const { totalHours, workedHours, overtimeHours, pendingHours } = useMemo(() => {
     if (!workSchedule) {
@@ -46,15 +46,7 @@ function ScheduleCard() {
     };
   }, [workSchedule]);
 
-  if (loading) {
-    return (
-      <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
-        <p className='text-text-secondary'>Loading...</p>
-      </div>
-    );
-  }
-
-  if (!workSchedule) {
+  if (error) {
     return (
       <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
         <p className='text-text-secondary'>No schedule data available</p>

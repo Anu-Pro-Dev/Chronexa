@@ -9,19 +9,16 @@ import { Input } from "@/src/components/ui/input";
 import { Textarea } from "@/src/components/ui/textarea";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
-import { CalendarIcon, ClockIcon, ExclamationIcon, RefreshIcon } from "@/src/icons/icons";
+import { CalendarIcon, ClockIcon, ExclamationIcon } from "@/src/icons/icons";
 import { format } from "date-fns";
 import { TimePicker } from "@/src/components/ui/time-picker";
 import Required from "@/src/components/ui/required";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { addLeaveRequest } from "@/src/lib/apiHandler";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
+import { addManualPunchRequest } from "@/src/lib/apiHandler";
 
 const formSchema = z.object({
   employee: z
@@ -30,141 +27,102 @@ const formSchema = z.object({
       message: "Employee is required.",
     })
     .max(100),
-  leave_types: z
+  reason: z
     .string()
     .min(1, {
-      message: "Leave type is required.",
+      message: "Reason is required.",
     })
     .max(100),
   from_date: z.date({
-    required_error: "From Date is required.",
-  }),
-  to_date: z.date({
-    required_error: "To Date is required.",
+    required_error: "Date is required.",
   }),
   time: z.date({
     required_error: "Time is required.",
   }),
-  leave_doc_filename_path: z.custom<any>(
-    (value) => {
-      if (value === "" || value === null || value === undefined) {
-        return true;
-      }
-      
-      if (!(value instanceof File)) {
-        return false;
-      }
-      
-      const maxSize = 5 * 1024 * 1024; 
-      if (value.size > maxSize) {
-        return false;
-      }
-
-      const allowedTypes = [
-        "application/pdf",
-        "image/jpeg", 
-        "image/jpg",
-        "image/png"
-      ];
-      if (!allowedTypes.includes(value.type)) {
-        return false;
-      }
-
-      return true;
-    },
-    {
-      message: "Invalid file. Ensure it's a document/image (PDF/JPG/JPEG/PNG) and less than 5MB.",
-    }
-  ).optional(),
   employee_remarks: z.string().optional(),
 });
 
-export default function AddLeaveApplication({
+export default function ApplyMissingPunch({
   on_open_change,
+  rowData,
+  punchType,
 }: {
   on_open_change?: any;
+  rowData?: any;
+  punchType?: string;
 }) {
   const { employeeId, userInfo, isAuthenticated, isChecking } = useAuthGuard();
-  const { data: leaveTypesData, isLoading: isLeaveTypesLoading, error: leaveTypesError } = useFetchAllEntity("leaveType");
   const { language, translations } = useLanguage();
-  const router = useRouter();
   const [remarksLength, setRemarksLength] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [calculatedDays, setCalculatedDays] = useState<number>(0);
   const queryClient = useQueryClient();
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
-    toDate: false,
     fromTime: false,
   });
 
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       employee: "",
-      leave_types: "",
-      leave_doc_filename_path: undefined,
+      reason: "",
       employee_remarks: "",
     },
   });
 
-  const calculateLeaveDays = useCallback((fromDate: Date, toDate: Date) => {
-    if (!fromDate || !toDate) return 0;
-    
-    const startDate = new Date(fromDate);
-    startDate.setHours(0, 0, 0, 0);
-    
-    const endDate = new Date(toDate);
-    endDate.setHours(0, 0, 0, 0);
-    
-    const timeDifference = endDate.getTime() - startDate.getTime();
-    
-    const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
-    
-    return Math.max(0, dayDifference); 
-  }, []);
-
-  const watchFromDate = form.watch("from_date");
-  const watchToDate = form.watch("to_date");
-
-  useEffect(() => {
-    if (watchFromDate && watchToDate) {
-      const days = calculateLeaveDays(watchFromDate, watchToDate);
-      setCalculatedDays(days);
-    } else {
-      setCalculatedDays(0);
-    }
-  }, [watchFromDate, watchToDate, calculateLeaveDays]);
-
-  const addMutation = useMutation({
-    mutationFn: addLeaveRequest,
+  const applyMissingPunchMutation = useMutation({
+    mutationFn: addManualPunchRequest,
     onSuccess: (data) => {
-      toast.success("Leave application submitted successfully!");
-      queryClient.invalidateQueries({ queryKey: ["employeeLeave"] });
-      router.push("/self-services/leaves/my-request");
-    },
-    onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate leave request detected. Please use different values.");
-      } else {
-        toast.error("Failed to submit leave application. Please try again.");
+      toast.success("Missing punch applied successfully!");
+      queryClient.invalidateQueries({ queryKey: ["missingMovement"] });
+      setIsSubmitting(false);
+      if (on_open_change) {
+        on_open_change(false);
       }
     },
+    onError: (error: any) => {
+      console.error("API Error:", error);
+      toast.error(error?.response?.data?.message || "Failed to apply missing punch. Please try again.");
+      setIsSubmitting(false); 
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    }
   });
 
-  useEffect(() => {
-    if (userInfo && employeeId) {
-      const employeeDisplayInfo = getEmployeeDisplayInfoWithLanguage(); 
-      form.setValue("employee", employeeDisplayInfo.displayName);
-    } else if (employeeId) {
-      const fallbackName = `Employee ${employeeId}`;
-      form.setValue("employee", fallbackName);
+  const parseTransDate = useCallback((dateString: string) => {
+    if (!dateString) return new Date();
+    
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; 
+      const year = parseInt(parts[2], 10);
+      return new Date(year, month, day);
     }
-  }, [userInfo, employeeId, form, language]);
+    
+    return new Date(dateString);
+  }, []);
 
+  useEffect(() => {
+    if (rowData && punchType) {
+      
+      const employeeDisplay = `${rowData.employee_name} (${rowData.Employee_Id})`;
+      form.setValue("employee", employeeDisplay);
+      
+      form.setValue("reason", punchType);
+      
+      if (rowData.TransDate) {
+        const parsedDate = parseTransDate(rowData.TransDate);
+        form.setValue("from_date", parsedDate);
+      }
+      
+    }
+  }, [rowData, punchType, form, parseTransDate]);
   if (isChecking) {
     return <div>Loading...</div>;
   }
@@ -173,132 +131,53 @@ export default function AddLeaveApplication({
     return <div>Unauthorized access</div>;
   }
 
-  const getEmployeeDisplayInfo = () => {
-    if (userInfo) {
-      let employeeName = "Unknown Employee";
-      let employeeCode = employeeId?.toString() || "Unknown Code";
-      
-      if (userInfo.employeename) {
-        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
-          employeeName = `${userInfo.employeename.firsteng}`.trim();
-        }
-        else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
-          employeeName = `${userInfo.employeename.firstarb}`.trim();
-        }
-        else if (userInfo.employeename.firsteng) {
-          employeeName = userInfo.employeename.firsteng;
-        }
-        else if (userInfo.employeename.firstarb) {
-          employeeName = userInfo.employeename.firstarb;
-        }
-      }
-      
-      if (userInfo.employeenumber) {
-        employeeCode = userInfo.employeenumber.toString();
-      }
-      
-      const result = {
-        displayName: `${employeeName} (${employeeCode})`,
-        name: employeeName,
-        code: employeeCode
-      };
-      
-      return result;
-    }
-    
-    const fallbackResult = {
-      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
-      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee", 
-      code: employeeId ? employeeId.toString() : "Unknown"
-    };
-    
-    return fallbackResult;
-  };
-
-  const getEmployeeDisplayInfoWithLanguage = () => {
-    if (userInfo && userInfo.employeename) {
-      let employeeName = "Unknown Employee";
-      let employeeCode = userInfo.employeenumber?.toString() || employeeId?.toString() || "Unknown Code";
-      
-      if (language === "ar") {
-        if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
-          employeeName = `${userInfo.employeename.firstarb}`.trim();
-        } else if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
-          employeeName = `${userInfo.employeename.firsteng}`.trim();
-        } else if (userInfo.employeename.firstarb) {
-          employeeName = userInfo.employeename.firstarb;
-        } else if (userInfo.employeename.firsteng) {
-          employeeName = userInfo.employeename.firsteng;
-        }
-      } else {
-        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
-          employeeName = `${userInfo.employeename.firsteng}`.trim();
-        } else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
-          employeeName = `${userInfo.employeename.firstarb}`.trim();
-        } else if (userInfo.employeename.firsteng) {
-          employeeName = userInfo.employeename.firsteng;
-        } else if (userInfo.employeename.firstarb) {
-          employeeName = userInfo.employeename.firstarb;
-        }
-      }
-            
-      return {
-        displayName: `${employeeName} (${employeeCode})`,
-        name: employeeName,
-        code: employeeCode
-      };
-    }
-    
-    return {
-      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
-      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee", 
-      code: employeeId ? employeeId.toString() : "Unknown"
-    };
-  };
-
-  const employeeDisplayInfo = getEmployeeDisplayInfo();
-
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
 
     setIsSubmitting(true);
 
     try {
-      const selectedLeaveType = leaveTypesData?.data?.find(
-        (leaveType: any) => leaveType.leave_type_id.toString() === values.leave_types
-      );
+      const combinedDateTime = new Date(values.from_date);
+      combinedDateTime.setHours(values.time.getHours());
+      combinedDateTime.setMinutes(values.time.getMinutes());
+      combinedDateTime.setSeconds(values.time.getSeconds());
+      combinedDateTime.setMilliseconds(0);
+      
+      const year = combinedDateTime.getFullYear();
+      const month = String(combinedDateTime.getMonth() + 1).padStart(2, '0');
+      const day = String(combinedDateTime.getDate()).padStart(2, '0');
+      const hours = String(combinedDateTime.getHours()).padStart(2, '0');
+      const minutes = String(combinedDateTime.getMinutes()).padStart(2, '0');
+      const seconds = String(combinedDateTime.getSeconds()).padStart(2, '0');
+      
+      const transaction_time = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
 
-      const fromDate = new Date(values.from_date);
-      fromDate.setHours(0, 0, 0, 0);
-      const fromDateISO = fromDate.toISOString();
-
-      const toDate = new Date(values.to_date);
-      toDate.setHours(23, 59, 59, 999);
-      const toDateISO = toDate.toISOString();
-
-      const numberOfLeaveDays = calculateLeaveDays(values.from_date, values.to_date);
-
-      const payload: any = {
-        leave_type_id: selectedLeaveType?.leave_type_id || null,
-        employee_id: employeeId,
-        from_date: fromDateISO,
-        to_date: toDateISO,
-        number_of_leaves: numberOfLeaveDays,
-        employee_remarks: values.employee_remarks,
+      const payload = {
+        employee_id: Number(rowData?.Employee_Id),
+        transaction_time: transaction_time,
+        Emp_Missing_Movements_Id: Number(rowData?.emp_missing_Movements_Id),
+        reason: values.reason,
+        remarks: values.employee_remarks || "",
+        transaction_status: "Pending",
       };
 
-      if (values.leave_doc_filename_path && values.leave_doc_filename_path instanceof File) {
-        payload.leave_doc_filename_path = values.leave_doc_filename_path;
-      }
-
-      addMutation.mutate(payload);
+      console.log('Selected time:', format(values.time, "HH:mm:ss"));
+      console.log('Transaction time (ISO):', transaction_time);
+      
+      applyMissingPunchMutation.mutate(payload);
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   }
+
+  const handleCancel = () => {
+    form.reset();
+    if (on_open_change) {
+      on_open_change(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -326,7 +205,6 @@ export default function AddLeaveApplication({
                     <FormControl>
                       <Input
                         {...field}
-                        value={employeeDisplayInfo.displayName}
                         readOnly
                         className="bg-gray-50 cursor-not-allowed"
                       />
@@ -337,42 +215,18 @@ export default function AddLeaveApplication({
               />
               <FormField
                 control={form.control}
-                name="leave_types"
+                name="reason"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Reason <Required /></FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={isLeaveTypesLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="max-w-[350px]">
-                          <SelectValue 
-                            placeholder={
-                              isLeaveTypesLoading 
-                                ? "Loading leave types..." 
-                                : leaveTypesError 
-                                ? "Error loading leave types" 
-                                : "Choose leave types"
-                            }
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {leaveTypesData?.data?.map((leaveType: any) => (
-                          <SelectItem
-                            key={leaveType.leave_type_id}
-                            value={leaveType.leave_type_id.toString()}
-                          >
-                            {language === "ar" && leaveType.leave_type_arb 
-                              ? leaveType.leave_type_arb 
-                              : leaveType.leave_type_eng || leaveType.leave_type_name
-                            }
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        readOnly
+                        className="bg-gray-50 cursor-not-allowed"
+                        placeholder="Punch Type"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -407,12 +261,6 @@ export default function AddLeaveApplication({
                           onSelect={(date) => {
                             field.onChange(date)
                             closePopover('fromDate')
-                          }}
-                          disabled={(date) => {
-                            const tomorrow = new Date();
-                            tomorrow.setDate(tomorrow.getDate() + 1);
-                            tomorrow.setHours(0, 0, 0, 0);
-                            return date < tomorrow;
                           }}
                         />
                       </PopoverContent>
@@ -458,40 +306,15 @@ export default function AddLeaveApplication({
               />
               <FormField
                 control={form.control}
-                name="leave_doc_filename_path"
-                render={({ field: { value, onChange, ...fieldProps } }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Attachment
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...fieldProps}
-                        className="border-0 p-0 rounded-none h-auto text-text-secondary"
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/jpg,image/png"
-                        onChange={(event) => {
-                          const file = event.target.files?.[0];
-                          onChange(file || undefined);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="employee_remarks"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="col-span-2">
                     <FormLabel>Remarks </FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Add your remarks here"
-                        className="max-w-[350px]" 
                         {...field} 
-                        rows={4}
+                        rows={3}
                         onChange={(e) => {
                           field.onChange(e);
                           setRemarksLength(e.target.value.length);
@@ -503,16 +326,16 @@ export default function AddLeaveApplication({
                 )}
               />
             </div>
-            <div className="flex justify-end gap-2 items-center py-5 pt-8">
-              <div className="flex gap-4 px-5">
+            <div className="flex justify-end gap-2 items-center py-3 pt-8">
+              <div className="flex gap-4">
                 <Button
                   variant={"outline"}
                   type="button"
                   size={"lg"}
                   className="w-full"
-                  onClick={() => router.push("/self-services/punches/missing-punches")}
+                  onClick={handleCancel}
                 >
-                  {translations.buttons.cancel}
+                  {translations.buttons?.cancel || "Cancel"}
                 </Button>
                 <Button 
                   type="submit" 

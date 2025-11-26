@@ -344,7 +344,7 @@ export default function AddPermissionApplication({
           <div>
             {selectedPermission === "Personal" && ( 
               <p className="text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 ">
-                Note: Personal permission is allowed for a maximum of 8 hours per month.
+                Note: Personal permission is allowed for a maximum of 6 hours per month.
               </p>
             )}
             {remarksLength > 500 && (

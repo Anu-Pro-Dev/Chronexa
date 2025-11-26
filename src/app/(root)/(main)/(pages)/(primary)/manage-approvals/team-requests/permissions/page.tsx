@@ -120,6 +120,7 @@ export default function Page() {
     "employeeShortPermission", 
     {
       searchParams: {
+        pending: "true",
         limit: String(rowsPerPage),
         offset: String(offset),
         ...(selectedOption && selectedOption !== "all" && { status: selectedOption }),
@@ -128,7 +129,7 @@ export default function Page() {
         ...(debouncedSearchValue && { search: debouncedSearchValue }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeShortPermission/pending`,
+      endpoint: `/employeeShortPermission/team/all`,
     }
   );
 
@@ -322,6 +323,7 @@ export default function Page() {
         props={props}
         onRowSelection={handleRowSelection}
         isLoading={isLoadingPermissions || isChecking}
+        overrideCheckbox={true}
       />
     );
   };

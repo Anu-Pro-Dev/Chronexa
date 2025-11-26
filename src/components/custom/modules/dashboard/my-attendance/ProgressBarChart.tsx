@@ -18,15 +18,49 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
 }) => {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
+  
+  const [animatedValues, setAnimatedValues] = React.useState({
+    totalHours: 0,
+    workedHours: 0,
+    overtimeHours: 0,
+    pendingHours: 0,
+  });
+
+  React.useEffect(() => {
+    if (totalHours === 0 && workedHours === 0 && overtimeHours === 0 && pendingHours === 0) {
+      return;
+    }
+
+    const startTime = Date.now();
+    const duration = 800;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      setAnimatedValues({
+        totalHours: totalHours * progress,
+        workedHours: workedHours * progress,
+        overtimeHours: overtimeHours * progress,
+        pendingHours: pendingHours * progress,
+      });
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  }, [totalHours, workedHours, overtimeHours, pendingHours]);
 
   const today = new Date();
   const year = today.getFullYear();
-  const month = today.getMonth(); 
-  const barCount = new Date(year, month + 1, 0).getDate(); 
+  const month = today.getMonth();
+  const barCount = new Date(year, month + 1, 0).getDate();
 
-  const workedBars = totalHours ? Math.round((workedHours / totalHours) * barCount) : 0;
-  const overtimeBars = totalHours ? Math.round((overtimeHours / totalHours) * barCount) : 0;
-  const pendingBars = totalHours ? Math.round((pendingHours / totalHours) * barCount) : 0;
+  const workedBars = animatedValues.totalHours ? Math.round((animatedValues.workedHours / animatedValues.totalHours) * barCount) : 0;
+  const overtimeBars = animatedValues.totalHours ? Math.round((animatedValues.overtimeHours / animatedValues.totalHours) * barCount) : 0;
+  const pendingBars = animatedValues.totalHours ? Math.round((animatedValues.pendingHours / animatedValues.totalHours) * barCount) : 0;
 
   const colors = { worked: "#0078D4", overtime: "#80BBE9", pending: "#D9EBF9" };
 
@@ -42,7 +76,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
   return (
     <div>
       <div className="flex items-center mt-5 mb-2 font-bold text-3xl">
-        {totalHours.toFixed(2)}
+        {animatedValues.totalHours.toFixed(2)}
         <span className="pl-2 font-medium text-sm text-text-secondary">
           {t?.exp_work_hrs || "Expected working hours"}
         </span>
@@ -71,7 +105,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
               borderRightColor: dir === "rtl" ? "#0078D4" : "transparent",
             }}
           >
-            {workedHours.toFixed(2)}
+            {animatedValues.workedHours.toFixed(2)}
           </p>
         </div>
 
@@ -87,7 +121,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
               borderRightColor: dir === "rtl" ? "#80BBE9" : "transparent",
             }}
           >
-            {overtimeHours.toFixed(2)}
+            {animatedValues.overtimeHours.toFixed(2)}
           </p>
         </div>
 
@@ -103,7 +137,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
               borderRightColor: dir === "rtl" ? "#D9EBF9" : "transparent",
             }}
           >
-            {pendingHours.toFixed(2)}
+            {animatedValues.pendingHours.toFixed(2)}
           </p>
         </div>
       </div>

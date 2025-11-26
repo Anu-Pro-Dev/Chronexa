@@ -3,30 +3,26 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
-import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
-import { approveLeaveRequest } from "@/src/lib/apiHandler";
+import { useDebounce } from "@/src/hooks/useDebounce";
+import { approveManualPunchRequest, rejectManualPunchRequest } from "@/src/lib/apiHandler";
 import toast from "react-hot-toast";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
-  const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [sortField, setSortField] = useState<string>("leave_id");
+  const [sortField, setSortField] = useState<string>("transaction_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -35,159 +31,146 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [selectedOption, setSelectedOption] = useState<string>("all");
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
-  const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("");
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
-  const debouncedLeaveTypeFilter = useDebounce(leaveTypeFilter, 300);
   const [approveOpen, setApproveOpen] = useState<boolean>(false);
   const [rejectOpen, setRejectOpen] = useState<boolean>(false);
   const t = translations?.modules?.manageApprovals || {};
-  
+
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
 
   const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }));
+    setPopoverStates((prev) => ({ ...prev, [key]: false }));
   };
 
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
-  const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
-    const employeeMaster = leave.employee_master;
-    
-    if (!employeeMaster) {
-      return {
-        emp_no: `EMP${leave.employee_id}`,
-        employee_name: `Employee ${leave.employee_id}`,
-        firstName: '',
-        lastName: '',
-        fullName: `Employee ${leave.employee_id}`
-      };
+  const getEmployeeName = useCallback((transaction: any) => {
+    const employee = transaction.employee_master;
+
+    if (!employee) {
+      return `Employee ${transaction.employee_id || "-"}`;
     }
 
-    const firstNameEn = employeeMaster.firstname_eng || '';
-    const lastNameEn = employeeMaster.lastname_eng || '';
-    const firstNameAr = employeeMaster.firstname_arb || '';
-    const lastNameAr = employeeMaster.lastname_arb || '';
+    const fullName =
+      language === "ar"
+        ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
+        : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
 
-    const firstName = language === 'ar' ? firstNameAr : firstNameEn;
-    const lastName = language === 'ar' ? lastNameAr : lastNameEn;
-    
-    const fullName = language === 'ar' 
-      ? `${firstNameAr} ${lastNameAr}`.trim()
-      : `${firstNameEn} ${lastNameEn}`.trim();
-
-    return {
-      emp_no: employeeMaster.emp_no || `EMP${leave.employee_id}`,
-      employee_name: fullName || firstName || `Employee ${leave.employee_id}`,
-      firstName: firstName,
-      lastName: lastName,
-      fullName: fullName || firstName || `Employee ${leave.employee_id}`,
-      employee_id: leave.employee_id
-    };
-  }, [language]);
-
-  const getLeaveTypeName = useCallback((leaveTypes: any) => {
-    if (!leaveTypes) {
-      return language === "ar" ? "غير معروف" : "Unknown";
-    }
-    
-    return language === "ar" 
-      ? leaveTypes.leave_type_arb || leaveTypes.leave_type_eng || "غير معروف"
-      : leaveTypes.leave_type_eng || leaveTypes.leave_type_arb || "Unknown";
+    return fullName || `Employee ${transaction.employee_id}`;
   }, [language]);
 
   useEffect(() => {
     setColumns([
-      { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
-      { field: "firstName", headerName: t.employee_name || "Employee Name" },
-      { field: "from_date", headerName: t.from_date || "From Date" },
-      { field: "to_date", headerName: t.to_date || "To Date" },
-      { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
+      { field: "emp_no", headerName: t.employee_no || "Employee No" },
+      { field: "employee_name", headerName: t.employee_name || "Employee Name" },
+      { field: "transaction_date", headerName: "Date" },
+      { field: "transaction_time", headerName: "Time" },
+      { field: "reason", headerName: "Reason" },
+      { field: "remarks", headerName: "Remarks" },
+      { field: "transaction_status", headerName: "Status" },
     ]);
   }, [language, t]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
-  const formatDateForDisplay = (dateString: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toISOString().split('T')[0];
+  const formatDateDisplay = (dateString: string | null) => {
+    if (!dateString) return "-";
+    try {
+      const datePart = dateString.split('T')[0];
+      if (datePart) {
+        const [year, month, day] = datePart.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      return dateString;
+    } catch {
+      return dateString;
+    }
   };
 
-  const { data: leavesData, isLoading: isLoadingLeaves, error, refetch } = useFetchAllEntity(
-    "employeeLeave", 
-    {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
-        ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/pending`,
+  const formatTime = (timeString: string | null) => {
+    if (!timeString) return "-";
+    try {
+      const timePart = timeString.split('T')[1];
+      if (timePart) {
+        return timePart.substring(0, 8);
+      }
+      return timeString;
+    } catch {
+      return timeString;
     }
-  );
+  };
+
+  const {
+    data: punchesData,
+    isLoading: isLoadingPunches,
+    error,
+    refetch,
+  } = useFetchAllEntity("employeeManualTransaction", {
+    searchParams: {
+      status: "Pending",
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
+    },
+    enabled: !!employeeId && isAuthenticated && !isChecking,
+    endpoint: `/employeeManualTransaction/team/all`,
+  });
 
   const data = useMemo(() => {
-    if (!Array.isArray(leavesData?.data)) {
-      return [];
-    }
+    if (!Array.isArray(punchesData?.data)) return [];
 
-    const processedData = leavesData.data.map((leave: any) => {
-      const employeeInfo = getEmployeeDisplayInfo(leave, language);
-      
-      const formattedFromDate = formatDateForDisplay(leave.from_date);
-      const formattedToDate = formatDateForDisplay(leave.to_date);
-            
+    return punchesData.data.map((transaction: any) => {
+      const empNo = transaction.employee_master?.emp_no || `EMP${transaction.employee_id}`;
+
       return {
-        ...leave,
-        id: leave.employee_leave_id,
-        emp_no: employeeInfo.emp_no,
-        employee_name: employeeInfo.employee_name,
-        firstName: employeeInfo.firstName,
-        lastName: employeeInfo.lastName,
-        fullName: employeeInfo.fullName,
-        leave_type_name: getLeaveTypeName(leave.leave_types),
-        from_date: formattedFromDate,
-        to_date: formattedToDate,
-        from_time: leave.from_time ? leave.from_time.substring(11, 19) : leave.from_time,
-        to_time: leave.to_time ? leave.to_time.substring(11, 19) : leave.to_time,
-        raw_employee_id: leave.employee_id,
-        employee_master: leave.employee_master,
+        ...transaction,
+        id: transaction.employee_manual_transaction_id,
+        emp_no: empNo,
+        employee_name: getEmployeeName(transaction),
+        transaction_date: formatDateDisplay(transaction.transaction_time),
+        transaction_time: formatTime(transaction.transaction_time),
+        reason: transaction.reason || "-",
+        transaction_status: transaction.transaction_status || "Pending",
+        raw_transaction_time: transaction.transaction_time,
       };
     });
+  }, [punchesData, language, getEmployeeName]);
 
-    return processedData;
-  }, [leavesData, language, getEmployeeDisplayInfo, getLeaveTypeName]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setCurrentPage(newPage);
+      if (refetch) {
+        setTimeout(() => refetch(), 100);
+      }
+    },
+    [refetch]
+  );
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
-
-  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1);
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch]);
+  const handleRowsPerPageChange = useCallback(
+    (newRowsPerPage: number) => {
+      setRowsPerPage(newRowsPerPage);
+      setCurrentPage(1);
+      if (refetch) {
+        setTimeout(() => refetch(), 100);
+      }
+    },
+    [refetch]
+  );
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -200,11 +183,6 @@ export default function Page() {
       setTimeout(() => refetch(), 100);
     }
   }, [refetch]);
-
-  const handleStatusChange = (value: string) => {
-    setSelectedOption(value);
-    handleFilterChange();
-  };
 
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
@@ -221,11 +199,6 @@ export default function Page() {
     setCurrentPage(1);
   };
 
-  const handleLeaveTypeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLeaveTypeFilter(event.target.value);
-    setCurrentPage(1);
-  };
-
   const handleApprove = async () => {
     if (selectedRows.length === 0) {
       toast.error("No row selected");
@@ -235,15 +208,18 @@ export default function Page() {
     try {
       const results = await Promise.all(
         selectedRows.map((row) =>
-          approveLeaveRequest({
-            employee_leave_id: row.id,
-            approve_reject_flag: 1,
+          approveManualPunchRequest({
+            employee_manual_transaction_id: row.id,
+            employee_id: row.employee_id,
+            transaction_time: row.raw_transaction_time,
+            reason: row.reason,
+            remarks: row.remarks || "",
           })
         )
       );
 
       results.forEach((res) => {
-        toast.success(res?.message || "Approved successfully");
+        toast.success(res?.data?.message || "Approved successfully");
       });
 
       setSelectedRows([]);
@@ -264,19 +240,22 @@ export default function Page() {
     try {
       const results = await Promise.all(
         selectedRows.map((row) =>
-          approveLeaveRequest({
-            employee_leave_id: row.id,
-            approve_reject_flag: 2, 
+          rejectManualPunchRequest({
+            employee_manual_transaction_id: row.id,
+            employee_id: row.employee_id,
+            transaction_time: row.raw_transaction_time,
+            reason: row.reason,
+            remarks: row.remarks || "",
           })
         )
       );
 
       results.forEach((res) => {
-        toast.success(res?.message || "Rejected successfully");
+        toast.success(res?.data?.message || "Rejected successfully");
       });
 
       setSelectedRows([]);
-      setRejectOpen(false); 
+      setRejectOpen(false);
       await refetch();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Rejection failed");
@@ -291,7 +270,7 @@ export default function Page() {
     on_open_change: setOpen,
     selectedRows,
     setSelectedRows,
-    isLoading: isLoadingLeaves || isChecking,
+    isLoading: isLoadingPunches || isChecking,
     SortField: sortField,
     CurrentPage: currentPage,
     SetCurrentPage: handlePageChange,
@@ -300,8 +279,8 @@ export default function Page() {
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: leavesData?.total || 0,
-    hasNext: leavesData?.hasNext,
+    total: punchesData?.total || 0,
+    hasNext: punchesData?.hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
@@ -343,7 +322,8 @@ export default function Page() {
       <PowerTable
         props={props}
         onRowSelection={handleRowSelection}
-        isLoading={isLoadingLeaves || isChecking}
+        isLoading={isLoadingPunches || isChecking}
+        overrideCheckbox={true}
       />
     );
   };
@@ -355,26 +335,35 @@ export default function Page() {
         enableApprove
         enableReject
         selectedRows={selectedRows}
-        items={modules?.manageApprovals.items}
-        entityName="employeeLeave"
-        approve_modal_title="Approve Leave"
-        approve_modal_description="Are you sure you want to approve the selected leave request(s)?"
-        reject_modal_title="Reject Leave"
-        reject_modal_description="Are you sure you want to reject the selected leave request(s)?"
+        items={modules?.manageApprovals?.items}
+        entityName="employeeManualTransaction"
+        approve_modal_title="Approve Missing Punch"
+        approve_modal_description="Are you sure you want to approve the selected missing punch request(s)?"
+        reject_modal_title="Reject Missing Punch"
+        reject_modal_description="Are you sure you want to reject the selected missing punch request(s)?"
       />
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, fromDate: open }))
+            }
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button
+                size={"lg"}
+                variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     {t.from_date || "From Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
-                    {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  <span className="px-1 text-sm text-text-primary">
+                    {fromDate
+                      ? format(fromDate, "dd/MM/yy")
+                      : t.placeholder_date || "Choose date"}
                   </span>
                 </p>
                 <CalendarIcon />
@@ -386,74 +375,55 @@ export default function Page() {
                 selected={fromDate}
                 onSelect={(date) => {
                   handleFromDateChange(date);
-                  closePopover('fromDate');
+                  closePopover("fromDate");
                 }}
               />
             </PopoverContent>
           </Popover>
         </div>
         <div>
-          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, toDate: open }))
+            }
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button
+                size={"lg"}
+                variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
-                    {t.to_date || "To Date"} : 
+                    {t.to_date || "To Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
-                    {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  <span className="px-1 text-sm text-text-primary">
+                    {toDate
+                      ? format(toDate, "dd/MM/yy")
+                      : t.placeholder_date || "Choose date"}
                   </span>
                 </p>
                 <CalendarIcon />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar 
-                mode="single" 
-                selected={toDate} 
+              <Calendar
+                mode="single"
+                selected={toDate}
                 onSelect={(date) => {
                   handleToDateChange(date);
-                  closePopover('toDate');
-                }} 
+                  closePopover("toDate");
+                }}
               />
             </PopoverContent>
           </Popover>
-        </div>
-        <div>
-          <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
-            <Label className="font-normal text-secondary whitespace-nowrap mr-2">
-              {t.employee_id || "Employee ID"} :
-            </Label>
-            <Input
-              type="text"
-              value={employeeFilter}
-              onChange={handleEmployeeFilterChange}
-              placeholder={t.placeholder_employee_id || "Enter Employee ID"}
-              className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
-            />
-          </div>
-        </div>
-        <div>
-          <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
-            <Label className="font-normal text-secondary whitespace-nowrap mr-2">
-              {t.leavetype_id || "Leave Type ID"} :
-            </Label>
-            <Input
-              type="text"
-              value={leaveTypeFilter}
-              onChange={handleLeaveTypeFilterChange}
-              placeholder={t.placeholder_leavetype_id || "Enter leave type ID"}
-              className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
-            />
-          </div>
         </div>
       </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Punches Approval
+            Missing Punches Approval
           </h1>
         </div>
         <div className="px-6">

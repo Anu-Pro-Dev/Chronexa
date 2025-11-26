@@ -9,6 +9,7 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
+import { getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
 
 interface LeaveAnalytic {
   LeaveYear: number;
@@ -36,28 +37,6 @@ function LeaveAnalyticsCard() {
     november: "November",
     december: "December",
   };
-  
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytic[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchYearData = async () => {
-      setLoading(true);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setLeaveAnalytics([]);
-      } catch (error) {
-        console.error('Error fetching leave analytics:', error);
-        setLeaveAnalytics([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchYearData();
-  }, [selectedYear]);
 
   const monthNames = [
     translations.january,
@@ -73,16 +52,47 @@ function LeaveAnalyticsCard() {
     translations.november,
     translations.december,
   ];
+  
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytic[]>([]);
+
+  useEffect(() => {
+    const fetchYearData = async () => {
+      try {
+        const response = await getLeaveAnalytics(selectedYear);
+        if (response?.success && response.data?.length > 0) {
+          setLeaveAnalytics(response.data);
+        } else {
+          setLeaveAnalytics([]);
+        }
+      } catch (error) {
+        console.error('Error fetching leave analytics:', error);
+        setLeaveAnalytics([]);
+      }
+    };
+
+    fetchYearData();
+  }, [selectedYear]);
 
   const chartData = useMemo(() => {
-    const data = monthNames.map((monthName) => ({
+    const monthDataMap = new Map();
+    
+    leaveAnalytics.forEach((item: any) => {
+      monthDataMap.set(item.LVMonth, {
+        leaves: item.LeaveCount || 0,
+        absent: item.AbsentCount || 0,
+      });
+    });
+
+    const data = monthNames.map((monthName, index) => ({
       month: monthName,
-      leaves: 0,
-      absent: 0,
+      leaves: monthDataMap.get(index + 1)?.leaves || 0,
+      absent: monthDataMap.get(index + 1)?.absent || 0,
     }));
 
     return dir === "rtl" ? [...data].reverse() : data;
-  }, [dir, monthNames]);
+  }, [dir, monthNames, leaveAnalytics]);
 
   const chartConfig = {
     leaves: { 
@@ -96,13 +106,8 @@ function LeaveAnalyticsCard() {
   };
 
   const years = useMemo(() => {
-    if (!leaveAnalytics?.length) {
-      return Array.from({ length: 5 }, (_, i) => currentYear - i);
-    }
-    
-    const uniqueYears = [...new Set(leaveAnalytics.map(item => item.LeaveYear))];
-    return uniqueYears.sort((a, b) => b - a);
-  }, [leaveAnalytics, currentYear]);
+    return Array.from({ length: 5 }, (_, i) => currentYear - i);
+  }, [currentYear]);
 
   return (
     <div className="shadow-md rounded-[10px] bg-white p-2">
@@ -134,60 +139,54 @@ function LeaveAnalyticsCard() {
         </Select>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-[300px]">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      ) : (
-        <ChartContainer 
-          config={chartConfig} 
-          className={`relative ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
-          dir={dir}
-        >
-          <BarChart data={chartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-              interval={0}
-            />
-            <YAxis 
-              type="number" 
-              tickLine={false} 
-              tickMargin={2} 
-              axisLine={false} 
-              orientation={dir === "rtl" ? "right" : "left"} 
-            />
-            <ChartTooltip 
-              cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} 
-              content={<ChartTooltipContent />} 
-            />
-            <Legend 
-              verticalAlign="bottom" 
-              height={36}
-              iconType="circle"
-              wrapperStyle={{ paddingTop: '16px' }}
-            />
-            <Bar 
-              dataKey="leaves" 
-              stackId="a" 
-              fill="var(--color-leaves)" 
-              radius={[0, 0, 2, 2]}
-              name={translations.leaves_taken}
-            />
-            <Bar 
-              dataKey="absent" 
-              stackId="a" 
-              fill="var(--color-absent)" 
-              radius={[2, 2, 0, 0]}
-              name={translations.leaves_absent}
-            />
-          </BarChart>
-        </ChartContainer>
-      )}
+      <ChartContainer 
+        config={chartConfig} 
+        className={`relative ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
+        dir={dir}
+      >
+        <BarChart data={chartData}>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+            tickFormatter={(value) => value.slice(0, 3)}
+            interval={0}
+          />
+          <YAxis 
+            type="number" 
+            tickLine={false} 
+            tickMargin={2} 
+            axisLine={false} 
+            orientation={dir === "rtl" ? "right" : "left"} 
+          />
+          <ChartTooltip 
+            cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} 
+            content={<ChartTooltipContent />} 
+          />
+          <Legend 
+            verticalAlign="bottom" 
+            height={36}
+            iconType="circle"
+            wrapperStyle={{ paddingTop: '16px' }}
+          />
+          <Bar 
+            dataKey="leaves" 
+            stackId="a" 
+            fill="var(--color-leaves)" 
+            radius={[0, 0, 2, 2]}
+            name={translations.leaves_taken}
+          />
+          <Bar 
+            dataKey="absent" 
+            stackId="a" 
+            fill="var(--color-absent)" 
+            radius={[2, 2, 0, 0]}
+            name={translations.leaves_absent}
+          />
+        </BarChart>
+      </ChartContainer>
     </div>
   );
 }

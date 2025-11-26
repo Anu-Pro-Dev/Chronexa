@@ -84,7 +84,6 @@ export default function Page() {
   };
 
   const { data: organizationData } = useFetchAllEntity("organization", {
-    // removeAll: true,
     searchParams: {
       limit: "1000",
     },
@@ -129,7 +128,7 @@ export default function Page() {
   }, [currentPage]);
 
   const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
-    const employeeMaster = leave.employee_master;
+    const employeeMaster = leave.employee_master_employee_leaves_employee_idToemployee_master;
     
     if (!employeeMaster) {
       return {
@@ -189,7 +188,6 @@ export default function Page() {
       { field: "from_date", headerName: t.from_date || "From Date" },
       { field: "to_date", headerName: t.to_date || "To Date" },
       { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
-      { field: "employee_remarks", headerName: t.justification || "Justification" },
       { field: "leave_status", headerName: t.status || "Status" },
     ]);
   }, [language, t]);
@@ -237,7 +235,7 @@ export default function Page() {
             
       return {
         ...leave,
-        id: leave.leave_id,
+        id: leave.employee_leave_id,
         emp_no: employeeInfo.emp_no,
         employee_name: employeeInfo.employee_name,
         firstName: employeeInfo.firstName,
@@ -250,7 +248,7 @@ export default function Page() {
         to_time: leave.to_time ? leave.to_time.substring(11, 19) : leave.to_time,
         leave_status: getStatusLabel(leave.approve_reject_flag),
         raw_employee_id: leave.employee_id,
-        employee_master: leave.employee_master,
+        employee_master: leave.employee_master_employee_leaves_employee_idToemployee_master,
       };
     });
 
@@ -513,7 +511,7 @@ export default function Page() {
                     key={item.organization_id}
                     onSelect={() => {
                       setSelectedVertical(String(item.organization_id));
-                      setSelectedOrganization(""); // reset child organization
+                      setSelectedOrganization("");
                       closePopover("vertical");
                     }}
                   >

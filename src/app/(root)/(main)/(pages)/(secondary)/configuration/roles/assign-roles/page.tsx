@@ -1,5 +1,4 @@
 "use client";
-
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
@@ -50,6 +49,14 @@ export default function MembersTable() {
     return foundRole?.id || foundRole?.role_id || null;
   }, [role, rolesData]);
 
+  const currentRoleName = useMemo(() => {
+    if (!roleId || !rolesData?.data) return role || "Role";
+    const foundRole = rolesData.data.find(
+      (r: any) => (r.id || r.role_id) === roleId
+    );
+    return foundRole?.role_name || foundRole?.name || role || "Role";
+  }, [roleId, rolesData, role]);
+
   const {
     data: userRolesData,
     isLoading: isLoadingUserRoles,
@@ -82,7 +89,6 @@ export default function MembersTable() {
     enabled: !!roleId,
   });
 
-  // ⛑️ NULL-SAFE MAPPING FIX
   const data = useMemo(() => {
     if (!userRolesData?.data || !Array.isArray(userRolesData.data)) return [];
 
@@ -96,7 +102,6 @@ export default function MembersTable() {
           (r: any) => (r.id || r.role_id) === userRole.role_id
         );
 
-        // SAFE EMPLOYEE NAME
         const employeeName =
           language === "ar"
             ? employeeMaster?.firstname_arb ||
@@ -104,7 +109,6 @@ export default function MembersTable() {
               "N/A"
             : employeeMaster?.firstname_eng || "N/A";
 
-        // SAFE DESIGNATION
         const designation =
           language === "ar"
             ? employeeMaster?.designation?.designation_arb ||
@@ -112,7 +116,6 @@ export default function MembersTable() {
               "N/A"
             : employeeMaster?.designation?.designation_eng || "N/A";
 
-        // SAFE ORGANIZATION
         const organization =
           language === "ar"
             ? employeeMaster?.organization?.organization_arb ||
@@ -220,7 +223,7 @@ export default function MembersTable() {
         selectedRows={selectedRows}
         items={modules?.configuration?.items}
         entityName="secUserRole"
-        modal_title="Add User to Role"
+        modal_title={`Add User to ${currentRoleName}`}
         modal_component={
           <AddRoleToUser
             on_open_change={setOpen}
@@ -231,13 +234,21 @@ export default function MembersTable() {
         }
         size="large"
       />
-      <PowerTable
-        props={props}
-        onEditClick={handleEditClick}
-        onRowSelection={handleRowSelection}
-        isLoading={isLoading}
-        overrideEditIcon={false}
-      />
+      <div className="bg-accent rounded-2xl">
+        <div className="col-span-2 p-6 pb-0">
+            <h1 className="font-bold text-xl text-primary">
+              {`${currentRoleName} USERS`}
+            </h1>
+        </div>
+        <PowerTable
+          props={props}
+          onEditClick={handleEditClick}
+          onRowSelection={handleRowSelection}
+          isLoading={isLoading}
+          overrideCheckbox={false}
+          overrideEditIcon={false}
+        />
+      </div>
     </div>
   );
 }

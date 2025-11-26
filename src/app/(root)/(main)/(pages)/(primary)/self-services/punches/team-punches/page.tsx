@@ -52,10 +52,6 @@ export default function Page() {
     employeeType: false,
   });
   
-    // const closePopover = (key: string) => {
-    //   setPopoverStates(prev => ({ ...prev, [key]: false }));
-    // };
-  
     const closePopover = (key: 'fromDate'| 'toDate' |'organization' | 'employeeType' | 'vertical' ) => {
       setPopoverStates(prev => ({ ...prev, [key]: false }));
     };
@@ -79,7 +75,6 @@ export default function Page() {
     };
 
     const { data: organizationData } = useFetchAllEntity("organization", {
-        // removeAll: true,
         searchParams: {
           limit: "1000",
         },
@@ -386,7 +381,7 @@ export default function Page() {
                     key={item.organization_id}
                     onSelect={() => {
                       setSelectedVertical(String(item.organization_id));
-                      setSelectedOrganization(""); // reset child organization
+                      setSelectedOrganization("");
                       closePopover("vertical");
                     }}
                   >

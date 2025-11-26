@@ -697,7 +697,7 @@ export const editShortPermissionRequest = async (data: {
 
 // Function to get pending permissions
 export const getPendingPermission= async () => {
-  return apiRequest('/employeeShortPermission/pending', "GET");
+  return apiRequest('/employeeShortPermission/team/all?pending=true', "GET");
 };
 
 // Function to approve or reject permissions
@@ -916,14 +916,11 @@ export const editRoletoUser = async (data: {
 }
 
 // Function to create or update a user to role
-export const patchRoletoUser = async (data: {
-  user_role_id?: number;
-  user_id?: number;
-  role_id?: number;
-}) => {
-  const { user_role_id, ...payload } = data;
-
-  return apiRequest(`/secUserRole/update-roles`, "PATCH", payload);
+export const addOrUpdateUserRole = async (data: {
+  user_id: number[];
+  role_id: number;
+}) => { 
+  return apiRequest(`/secUserRole/update-roles`, "PATCH", data);
 }
 
 // Function to add new a transaction
@@ -1139,4 +1136,59 @@ export const exportMonthlyRosterRequest = async (
   document.body.removeChild(a);
 
   return { success: true };
+};
+
+export const addManualPunchRequest = async (data: {
+  employee_id: number;
+  transaction_time: string;
+  Emp_Missing_Movements_Id: number;
+  reason: string;
+  remarks?: string;
+  transaction_status?: string;
+}) => {
+  return apiRequest("/employeeManualTransaction/add", "POST", data);
+};
+
+export const approveManualPunchRequest = async (data: {
+  employee_manual_transaction_id: number;
+  employee_id: number;
+  transaction_time: string;
+  reason: string;
+  remarks?: string;
+}) => {
+  const payload = {
+    employee_id: data.employee_id,
+    transaction_time: data.transaction_time,
+    employee_manual_transaction_id: data.employee_manual_transaction_id,
+    reason: data.reason,
+    remarks: data.remarks || "",
+  };
+
+  return apiRequest(
+    `/employeeManualTransaction/approve?id=${data.employee_manual_transaction_id}`, 
+    "PUT", 
+    payload
+  );
+};
+
+export const rejectManualPunchRequest = async (data: {
+  employee_manual_transaction_id: number;
+  employee_id: number;
+  transaction_time: string;
+  reason: string;
+  remarks?: string;
+}) => {
+  const payload = {
+    employee_id: data.employee_id,
+    transaction_time: data.transaction_time,
+    employee_manual_transaction_id: data.employee_manual_transaction_id,
+    reason: data.reason,
+    remarks: data.remarks || "",
+  };
+
+  return apiRequest(
+    `/employeeManualTransaction/reject?id=${data.employee_manual_transaction_id}`, 
+    "PUT", 
+    payload
+  );
 };
