@@ -49,7 +49,13 @@ export default function EmployeeReports() {
   };
 
   const { data: organizations } = useFetchAllEntity("organization", { removeAll: true });
-  const { data: employees } = useFetchAllEntity("employee");
+  
+  const selectedOrganization = form.watch("organization");
+  
+  const { data: employees } = useFetchAllEntity(
+    "employee",
+    selectedOrganization ? { searchParams: { organization_id: selectedOrganization } } : undefined
+  );
 
   const debouncedEmployeeSearch = useCallback(
     debounce((searchTerm: string) => {
@@ -277,7 +283,10 @@ export default function EmployeeReports() {
                     <FormItem>
                       <FormLabel className="flex gap-1">Organization</FormLabel>
                       <Select
-                        onValueChange={(val) => field.onChange(Number(val))}
+                        onValueChange={(val) => {
+                          field.onChange(Number(val));
+                          form.setValue("employee", undefined);
+                        }}
                         value={field.value !== undefined ? String(field.value) : ""}
                       >
                         <FormControl>

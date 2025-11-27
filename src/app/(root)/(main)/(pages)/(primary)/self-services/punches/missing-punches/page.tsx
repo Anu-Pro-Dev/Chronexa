@@ -83,7 +83,19 @@ export default function Page() {
 
   const TimeInCellRenderer = useCallback((data: any) => {
     const value = data.Trans_IN;
+    const status = data.Status_IN;
+    
+    const isPending = status && (status.toUpperCase() === 'PENDING' || status.toUpperCase() === 'APPLIED');
+    const isRejected = status && status.toUpperCase() === 'REJECTED';
+    
     if (value === "Apply") {
+      if (isPending || isRejected) {
+        return (
+          <span className="text-gray-400 cursor-not-allowed">
+            Applied
+          </span>
+        );
+      }
       return (
         <button 
           onClick={() => handleCellClick(data, "IN")}
@@ -98,7 +110,19 @@ export default function Page() {
 
   const TimeOutCellRenderer = useCallback((data: any) => {
     const value = data.Trans_OUT;
+    const status = data.Status_OUT;
+    
+    const isPending = status && (status.toUpperCase() === 'PENDING' || status.toUpperCase() === 'APPLIED');
+    const isRejected = status && status.toUpperCase() === 'REJECTED';
+    
     if (value === "Apply") {
+      if (isPending || isRejected) {
+        return (
+          <span className="text-gray-400 cursor-not-allowed">
+            Applied
+          </span>
+        );
+      }
       return (
         <button 
           onClick={() => handleCellClick(data, "OUT")}
@@ -160,8 +184,8 @@ export default function Page() {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
-      ...(fromDate && { startDate: formatDateForAPI(fromDate) }),
-      ...(toDate && { endDate: formatDateForAPI(toDate) }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
       ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
     },
     enabled: !!employeeId && isAuthenticated && !isChecking,
@@ -196,12 +220,17 @@ export default function Page() {
 
   const formatTime = (timeString: string | null) => {
     if (!timeString) return null;
+    
+    if (/^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
+      return timeString;
+    }
+    
     try {
       const date = new Date(timeString);
       if (!isNaN(date.getTime())) {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
+        const hours = String(date.getUTCHours()).padStart(2, '0');
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(date.getUTCSeconds()).padStart(2, '0');
         return `${hours}:${minutes}:${seconds}`;
       }
       return timeString;

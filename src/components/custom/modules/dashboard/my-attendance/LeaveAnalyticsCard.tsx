@@ -110,27 +110,27 @@ function LeaveAnalyticsCard() {
   }, [currentYear]);
 
   return (
-    <div className="shadow-md rounded-[10px] bg-white p-2">
+    <div className="shadow-md rounded-[10px] bg-accent p-2">
       <div className="flex flex-row justify-between p-4">
-        <h5 className="text-lg text-gray-900 font-bold">
+        <h5 className="text-lg text-text-primary font-bold">
           {translations.leave_analytics}
         </h5>
         <Select 
           value={selectedYear.toString()} 
           onValueChange={(value) => setSelectedYear(Number(value))}
         >
-          <SelectTrigger className="w-auto h-9 border pl-3 border-gray-300 shadow-sm rounded-lg text-gray-600 font-semibold text-sm flex gap-2">
+          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translations.select_year}>
+            <SelectValue placeholder={translations?.select_year || "Select Year"}>
               {selectedYear}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="bg-white rounded-md shadow-lg">
+          <SelectContent className="bg-accent rounded-md shadow-dropdown">
             {years.map((year) => (
               <SelectItem
                 key={year}
                 value={year.toString()}
-                className="text-gray-900"
+                className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-primary"
               >
                 {year}
               </SelectItem>

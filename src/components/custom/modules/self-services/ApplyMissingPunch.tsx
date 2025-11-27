@@ -33,7 +33,7 @@ const formSchema = z.object({
       message: "Reason is required.",
     })
     .max(100),
-  from_date: z.date({
+  date: z.date({
     required_error: "Date is required.",
   }),
   time: z.date({
@@ -118,7 +118,7 @@ export default function ApplyMissingPunch({
       
       if (rowData.TransDate) {
         const parsedDate = parseTransDate(rowData.TransDate);
-        form.setValue("from_date", parsedDate);
+        form.setValue("date", parsedDate);
       }
       
     }
@@ -137,7 +137,7 @@ export default function ApplyMissingPunch({
     setIsSubmitting(true);
 
     try {
-      const combinedDateTime = new Date(values.from_date);
+      const combinedDateTime = new Date(values.date);
       combinedDateTime.setHours(values.time.getHours());
       combinedDateTime.setMinutes(values.time.getMinutes());
       combinedDateTime.setSeconds(values.time.getSeconds());
@@ -233,38 +233,20 @@ export default function ApplyMissingPunch({
               />
               <FormField
                 control={form.control}
-                name="from_date"
+                name="date"
                 render={({ field }) => (
                   <FormItem className="">
                     <FormLabel>
                       Date <Required />
                     </FormLabel>
-                    <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yy")
-                            ) : (
-                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
-                            )}
-                            <CalendarIcon />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date)
-                            closePopover('fromDate')
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <Input
+                        value={field.value ? format(field.value, "dd/MM/yy") : ""}
+                        readOnly
+                        className="bg-gray-50 cursor-not-allowed"
+                        placeholder="Choose date"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -284,7 +284,7 @@ export default function Page() {
           >
             <PopoverTrigger asChild>
               <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
-                <p>
+                <p className="truncate w-64 text-left">
                   <Label className="font-normal text-secondary">Vertical :</Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedVertical
@@ -328,7 +328,7 @@ export default function Page() {
           >
             <PopoverTrigger asChild>
               <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
-                <p className="truncate w-64">
+                <p className="truncate w-64 text-left">
                   <Label className="font-normal text-secondary">Organization :</Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedOrganization
@@ -370,7 +370,7 @@ export default function Page() {
                 variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
-                <p>
+                <p className="truncate w-64 text-left">
                   <Label className="font-normal text-secondary">Employee Type :</Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedEmployeeType
