@@ -187,16 +187,39 @@ export class ExcelExporter {
         };
 
         if (this.formValues.from_date) {
-          params.startDate = format(this.formValues.from_date, 'yyyy-MM-dd');
+          params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
         }
+
         if (this.formValues.to_date) {
-          params.endDate = format(this.formValues.to_date, 'yyyy-MM-dd');
+          params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
         }
+
         if (this.formValues.employee) {
-          params.employeeId = this.formValues.employee.toString();
+          params.employee_id = this.formValues.employee.toString();
         }
+
+        if (this.formValues.manager_id) {
+          params.manager_id = this.formValues.manager_id.toString();
+        }
+
+        if (this.formValues.employee_type) {
+          params.employee_type_id = this.formValues.employee_type.toString();
+        }
+
         if (this.formValues.organization) {
-          params.organizationId = this.formValues.organization.toString();
+          params.organization_id = this.formValues.organization.toString();
+        }
+
+        if (this.formValues.company) {
+          params.company_id = this.formValues.company.toString();
+        }
+
+        if (this.formValues.department) {
+          params.department_id = this.formValues.department.toString();
+        }
+
+        if (this.formValues.vertical) {
+          params.parent_orgid = this.formValues.vertical.toString();
         }
 
         const queryString = Object.entries(params)
@@ -204,7 +227,7 @@ export class ExcelExporter {
           .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
           .join('&');
 
-        const url = `/report/new${queryString ? `?${queryString}` : ''}`;
+        const url = `/report/attendance${queryString ? `?${queryString}` : ''}`;
         const response = await apiRequest(url, "GET");
 
         const batch = Array.isArray(response) ? response : (response.data || []);

@@ -12,16 +12,20 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
-import { searchEmployees } from "@/src/lib/apiHandler";
+import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { toast } from "react-hot-toast";
 import { PDFExporter } from './PDFExporter';
 import { ExcelExporter } from './ExcelExporter';
 import { CSVExporter } from './CSVExporter';
-import { CalendarIcon, ExportExcelIcon, LoginIcon } from "@/src/icons/icons";
-import { FileText } from "lucide-react";
+import { DeleteIcon, CalendarIcon, ExportExcelIcon, LoginIcon } from "@/src/icons/icons";
+import { FileText, Trash2Icon, TrashIcon } from "lucide-react";
 
 const formSchema = z.object({
-  organization: z.string().optional(),
+  vertical: z.string().optional(),
+  company: z.string().optional(),
+  department: z.string().optional(),
+  employee_type: z.string().optional(),
+  manager_id: z.string().optional(),
   employee: z.string().optional(),
   from_date: z.date().optional(),
   to_date: z.date().optional(),
@@ -42,20 +46,65 @@ export default function EmployeeReports() {
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
-  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
+  const [managerSearchTerm, setManagerSearchTerm] = useState("");
 
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
 
-  const { data: organizations } = useFetchAllEntity("organization", { removeAll: true });
+  const { data: organizations } = useFetchAllEntity("organization", { 
+    searchParams: { limit: "1000" }
+  });
   
-  const selectedOrganization = form.watch("organization");
+  const selectedVertical = form.watch("vertical");
+  const selectedCompany = form.watch("company");
+  const selectedDepartment = form.watch("department");
+  const selectedEmployeeType = form.watch("employee_type");
+  const selectedManagerId = form.watch("manager_id");
   
+  const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
+    queryKey: ["departmentsByOrg", selectedCompany],
+    queryFn: async () => {
+      if (!selectedCompany) return null;
+      const response = await apiRequest(`/dept-org-mapping/by-organization/${selectedCompany}`, "GET");
+      return response;
+    },
+    enabled: !!selectedCompany,
+  });
+  
+  const { data: managers } = useFetchAllEntity("employee", {
+    searchParams: { 
+      manager_flag: "true", 
+      limit: "1000",
+      offset: "1"
+    }
+  });
+
+  const getEmployeeSearchParams = () => {
+    const params: any = {
+      limit: "1000",
+      offset: "1"
+    };
+    if (selectedDepartment) {
+      params.department_id = selectedDepartment;
+    }
+    if (selectedManagerId) {
+      params.manager_id = selectedManagerId;
+    }
+    return { searchParams: params };
+  };
+
   const { data: employees } = useFetchAllEntity(
     "employee",
-    selectedOrganization ? { searchParams: { organization_id: selectedOrganization } } : undefined
+    (selectedDepartment || selectedManagerId) ? getEmployeeSearchParams() : {
+      searchParams: {
+        limit: "1000",
+        offset: "1"
+      }
+    }
   );
+
+  const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
   const debouncedEmployeeSearch = useCallback(
     debounce((searchTerm: string) => {
@@ -64,9 +113,9 @@ export default function EmployeeReports() {
     []
   );
 
-  const debouncedOrganizationSearch = useCallback(
+  const debouncedManagerSearch = useCallback(
     debounce((searchTerm: string) => {
-      setOrganizationSearchTerm(searchTerm);
+      setManagerSearchTerm(searchTerm);
     }, 300),
     []
   );
@@ -77,6 +126,79 @@ export default function EmployeeReports() {
     enabled: employeeSearchTerm.length > 0,
   });
 
+  const { data: searchedManagers, isLoading: isSearchingManagers } = useQuery({
+    queryKey: ["managerSearch", managerSearchTerm],
+    queryFn: async () => {
+      const response = await apiRequest(
+        `/employee/search?query=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`,
+        "GET"
+      );
+      return response;
+    },
+    enabled: managerSearchTerm.length > 0,
+  });
+
+  const getVerticalData = () => {
+    if (!organizations?.data) return [];
+    const parentMap = new Map();
+    organizations.data.forEach((item: any) => {
+      if (item.organizations) {
+        parentMap.set(item.organizations.organization_id, {
+          organization_id: item.organizations.organization_id,
+          organization_eng: item.organizations.organization_eng,
+          organization_arb: item.organizations.organization_arb,
+        });
+      }
+    });
+    return Array.from(parentMap.values());
+  };
+
+  const getCompanyData = () => {
+    if (!organizations?.data || !selectedVertical) return [];
+    return organizations.data.filter(
+      (item: any) => String(item.parent_id) === selectedVertical
+    );
+  };
+
+  const getDepartmentData = () => {
+    if (!departmentsByOrg?.data || !selectedCompany) return [];
+    
+    const departmentsMap = new Map();
+    const mappings = Array.isArray(departmentsByOrg.data) 
+      ? departmentsByOrg.data 
+      : [departmentsByOrg.data];
+    
+    mappings.forEach((mapping: any) => {
+      if (mapping.departments && mapping.departments.department_id && mapping.is_active) {
+        departmentsMap.set(mapping.departments.department_id, {
+          department_id: mapping.departments.department_id,
+          department_code: mapping.departments.department_code,
+          department_name_eng: mapping.departments.department_name_eng,
+          department_name_arb: mapping.departments.department_name_arb,
+        });
+      }
+    });
+    
+    return Array.from(departmentsMap.values());
+  };
+
+  const getEmployeeTypesData = () => {
+    if (!employeeTypes?.data) return [];
+    return employeeTypes.data.filter((item: any) => item.employee_type_id);
+  };
+
+  const getManagerData = () => {
+    const baseData = managerSearchTerm.length > 0 
+      ? searchedManagers?.data || []
+      : managers?.data || [];
+    
+    return baseData.filter((item: any) => 
+      item.employee_id && 
+      item.employee_id.toString().trim() !== '' &&
+      item.manager_flag === true
+    );
+  };
+
   const getFilteredEmployees = () => {
     const baseData = employeeSearchTerm.length > 0 
       ? searchedEmployees?.data || []
@@ -84,17 +206,6 @@ export default function EmployeeReports() {
     
     return baseData.filter((item: any) => 
       item.employee_id && item.employee_id.toString().trim() !== ''
-    );
-  };
-
-  const getFilteredOrganizations = () => {
-    const baseData = organizations?.data || [];
-    if (organizationSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.organization_id && 
-      item.organization_id.toString().trim() !== '' &&
-      item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
     );
   };
 
@@ -112,13 +223,11 @@ export default function EmployeeReports() {
     dailyworkhrs: "TotalWork Hrs",
     DailyMissedHrs: "Missed Hrs",
     dailyextrawork: "Overtime",
-    // late: "Late",
-    // early: "Early",
     MissedPunch: "Missed Punch",
     isabsent: "Status"
   };
 
- const calculateSummaryTotals = (dataArray: any[]) => {
+  const calculateSummaryTotals = (dataArray: any[]) => {
     const parseTimeToMinutes = (value: any) => {
       if (!value) return 0;
       
@@ -253,9 +362,9 @@ export default function EmployeeReports() {
   useEffect(() => {
     return () => {
       debouncedEmployeeSearch.cancel();
-      debouncedOrganizationSearch.cancel();
+      debouncedManagerSearch.cancel();
     };
-  }, [debouncedEmployeeSearch, debouncedOrganizationSearch]);
+  }, [debouncedEmployeeSearch, debouncedManagerSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -276,49 +385,191 @@ export default function EmployeeReports() {
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+                {/* VERTICAL */}
                 <FormField
                   control={form.control}
-                  name="organization"
+                  name="vertical"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Organization</FormLabel>
+                      <FormLabel className="flex gap-1">Vertical</FormLabel>
                       <Select
                         onValueChange={(val) => {
-                          field.onChange(Number(val));
+                          field.onChange(val);
+                          form.setValue("company", undefined);
+                          form.setValue("department", undefined);
+                          form.setValue("manager_id", undefined);
                           form.setValue("employee", undefined);
                         }}
-                        value={field.value !== undefined ? String(field.value) : ""}
+                        value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
-                            <SelectValue placeholder="Choose organization" />
+                          <SelectTrigger className="w-full max-w-[350px]">
+                            <SelectValue placeholder="Choose vertical" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search organizations..."
-                          onSearchChange={debouncedOrganizationSearch}
-                          className="mt-5"
-                        >
-                          {getFilteredOrganizations().length === 0 && organizationSearchTerm.length > 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              No organizations found
-                            </div>
-                          )}
-                          {getFilteredOrganizations().map((item: any) => {
-                            if (!item.organization_id || item.organization_id.toString().trim() === '') return null;
-                            return (
-                              <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                                {item.organization_eng}
-                              </SelectItem>
-                            );
-                          })}
+                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                          {getVerticalData().map((item: any) => (
+                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                              {item.organization_eng}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* COMPANY */}
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">Company</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("department", undefined);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                        disabled={!selectedVertical}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px]">
+                            <SelectValue placeholder="Choose company" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                          {getCompanyData().map((item: any) => (
+                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                              {item.organization_eng}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* DEPARTMENT */}
+                <FormField
+                  control={form.control}
+                  name="department"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">Department</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                        disabled={!selectedCompany || isDepartmentsLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px]">
+                            <SelectValue placeholder={
+                              isDepartmentsLoading 
+                                ? "Loading departments..." 
+                                : "Choose department"
+                            } />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                          {getDepartmentData().map((item: any) => (
+                            <SelectItem key={item.department_id} value={item.department_id.toString()}>
+                              {item.department_name_eng || item.department_code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* EMPLOYEE TYPE */}
+                <FormField
+                  control={form.control}
+                  name="employee_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">Employee Type</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(val)}
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px]">
+                            <SelectValue placeholder="Choose type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                          {getEmployeeTypesData().map((item: any) => (
+                            <SelectItem key={item.employee_type_id} value={item.employee_type_id.toString()}>
+                              {item.employee_type_eng}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* MANAGER */}
+                <FormField
+                  control={form.control}
+                  name="manager_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">Manager</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px]">
+                            <SelectValue placeholder="Choose manager" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder="Search managers..."
+                          onSearchChange={debouncedManagerSearch}
+                          className="mt-5 w-full max-w-[350px]"
+                        >
+                          {isSearchingManagers && managerSearchTerm.length > 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              Searching...
+                            </div>
+                          )}
+                          {getManagerData().length === 0 && managerSearchTerm.length > 0 && !isSearchingManagers && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No managers found
+                            </div>
+                          )}
+                          {getManagerData().map((item: any) => (
+                            <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
+                              {item.firstname_eng} {item.lastname_eng ? item.lastname_eng : ''} {item.emp_no ? `(${item.emp_no})` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* EMPLOYEE */}
                 <FormField
                   control={form.control}
                   name="employee"
@@ -326,11 +577,11 @@ export default function EmployeeReports() {
                     <FormItem>
                       <FormLabel className="flex gap-1">Employee</FormLabel>
                       <Select
-                        onValueChange={(val) => field.onChange(Number(val))}
-                        value={field.value !== undefined ? String(field.value) : ""}
+                        onValueChange={(val) => field.onChange(val)}
+                        value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px]">
                             <SelectValue placeholder="Choose employee" />
                           </SelectTrigger>
                         </FormControl>
@@ -338,7 +589,7 @@ export default function EmployeeReports() {
                           showSearch={true}
                           searchPlaceholder="Search employees..."
                           onSearchChange={debouncedEmployeeSearch}
-                          className="mt-5"
+                          className="mt-5 w-full max-w-[350px]"
                         >
                           {isSearchingEmployees && employeeSearchTerm.length > 0 && (
                             <div className="p-3 text-sm text-text-secondary">
@@ -350,14 +601,11 @@ export default function EmployeeReports() {
                               No employees found
                             </div>
                           )}
-                          {getFilteredEmployees().map((item: any) => {
-                            if (!item.employee_id || item.employee_id.toString().trim() === '') return null;
-                            return (
-                              <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
-                                {item.firstname_eng} {item.emp_no ? `(${item.emp_no})` : ''}
-                              </SelectItem>
-                            );
-                          })}
+                          {getFilteredEmployees().map((item: any) => (
+                            <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
+                              {item.firstname_eng} {item.emp_no ? `(${item.emp_no})` : ''}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -365,6 +613,7 @@ export default function EmployeeReports() {
                   )}
                 />
 
+                {/* FROM DATE */}
                 <FormField
                   control={form.control}
                   name="from_date"
@@ -401,6 +650,8 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
+
+                {/* TO DATE */}
                 <FormField
                   control={form.control}
                   name="to_date"
@@ -470,6 +721,17 @@ export default function EmployeeReports() {
 
             <div className="flex justify-center gap-2 items-center pb-5">
               <div className="flex gap-4 px-5">
+                <Button
+                  type="button"
+                  size={"sm"}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  onClick={() => form.reset()}
+                >
+                  <Trash2Icon />
+                  Clear Filters
+                </Button>
+                
                 <Button
                   type="button"
                   size={"sm"}
