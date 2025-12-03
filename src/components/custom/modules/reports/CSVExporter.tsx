@@ -28,10 +28,12 @@ export class CSVExporter {
     return [
       'employee_number',     
       'firstname_eng',
+      'parent_org_eng',
       'organization_eng',
       'department_name_eng',
       'employee_type',
-      'transdate',
+      'WorkDate',
+      'WorkDay',
       'punch_in',
       'geolocation_in',
       'punch_out',
@@ -39,10 +41,9 @@ export class CSVExporter {
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
-      // 'late',
-      // 'early',
+      'isabsent',
       'MissedPunch',
-      'isabsent'
+      'EmployeeStatus'
     ];
   }
   

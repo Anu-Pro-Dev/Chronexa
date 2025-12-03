@@ -130,7 +130,7 @@ export default function EmployeeReports() {
     queryKey: ["managerSearch", managerSearchTerm],
     queryFn: async () => {
       const response = await apiRequest(
-        `/employee/search?query=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`,
+        `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`,
         "GET"
       );
       return response;
@@ -188,16 +188,24 @@ export default function EmployeeReports() {
   };
 
   const getManagerData = () => {
-    const baseData = managerSearchTerm.length > 0 
-      ? searchedManagers?.data || []
-      : managers?.data || [];
-    
-    return baseData.filter((item: any) => 
+  // When searching, use search results directly
+  if (managerSearchTerm.length > 0) {
+    const searchData = searchedManagers?.data || [];
+    return searchData.filter((item: any) => 
       item.employee_id && 
-      item.employee_id.toString().trim() !== '' &&
-      item.manager_flag === true
+      item.employee_id.toString().trim() !== ''
     );
-  };
+  }
+  
+  // When not searching, use the managers list with manager_flag filter
+  const baseData = managers?.data || [];
+  return baseData.filter((item: any) => 
+    item.employee_id && 
+    item.employee_id.toString().trim() !== '' &&
+    item.manager_flag === true
+  );
+};
+
 
   const getFilteredEmployees = () => {
     const baseData = employeeSearchTerm.length > 0 
@@ -210,21 +218,24 @@ export default function EmployeeReports() {
   };
 
   const headerMap: Record<string, string> = {
-    employee_number: "Emp No",
-    firstname_eng: "Name",
+    employee_number: "EmpNo",
+    firstname_eng: "EmployeeName",
+    parent_org_eng: "ParentOrganization",
     organization_eng: "Organization",
     department_name_eng: "Department",
-    employee_type: "Emp Type",
-    transdate: "Date",
-    punch_in: "Time In",
-    geolocation_in: "Geo In",
-    punch_out: "Time Out",
-    geolocation_out: "Geo Out",
-    dailyworkhrs: "TotalWork Hrs",
-    DailyMissedHrs: "Missed Hrs",
-    dailyextrawork: "Overtime",
+    employee_type: "EmployeeType",
+    WorkDate: "WorkDate",
+    WorkDay: "WorkDay",
+    punch_in: "PunchIn",
+    geolocation_in: "GeoLocationIn",
+    punch_out: "PunchOut",
+    geolocation_out: "GeoLocationOut",
+    dailyworkhrs: "DailyWorkedHours",
+    DailyMissedHrs: "DailyMissedHours",
+    dailyextrawork: "DailyExtraWork",
+    isabsent: "DayStatus",
     MissedPunch: "Missed Punch",
-    isabsent: "Status"
+    EmployeeStatus: "EmployeeStatus"
   };
 
   const calculateSummaryTotals = (dataArray: any[]) => {

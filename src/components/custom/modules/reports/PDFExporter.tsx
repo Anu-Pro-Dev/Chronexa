@@ -31,7 +31,6 @@ export class PDFExporter {
     }
     
     try {
-      
       const logoPath = this.logoUrl.startsWith('/') 
         ? window.location.origin + this.logoUrl 
         : this.logoUrl;
@@ -69,7 +68,7 @@ export class PDFExporter {
 
   private async fetchDataInBatches(): Promise<any[]> {
     const allData: any[] = [];
-    const BATCH_SIZE = 1000;
+    const BATCH_SIZE = 2000; // Increased to match CSV for consistency
     let offset = 0;
     let hasMore = true;
 
@@ -106,8 +105,9 @@ export class PDFExporter {
           params.organization_id = this.formValues.organization.toString();
         }
 
+        // FIXED: Changed from company_id to organization_id to match CSV
         if (this.formValues.company) {
-          params.company_id = this.formValues.company.toString();
+          params.organization_id = this.formValues.company.toString();
         }
 
         if (this.formValues.department) {
@@ -124,9 +124,13 @@ export class PDFExporter {
           .join('&');
 
         const url = `/report/attendance${queryString ? `?${queryString}` : ''}`;
+        
+        console.log('PDF Fetching:', url); // Debug log
         const response = await apiRequest(url, "GET");
 
         const batch = Array.isArray(response) ? response : (response.data || []);
+        
+        console.log('PDF Batch received:', batch.length, 'records'); // Debug log
 
         if (batch.length === 0) {
           hasMore = false;
@@ -153,6 +157,7 @@ export class PDFExporter {
       }
     }
 
+    console.log('PDF Total records fetched:', allData.length); // Debug log
     return allData;
   }
 
@@ -179,24 +184,27 @@ export class PDFExporter {
     return [
       'employee_number',     
       'firstname_eng',
+      'parent_org_eng',
       'organization_eng',
       'department_name_eng',
       'employee_type',
-      'transdate',
+      'WorkDate',
+      'WorkDay',
       'punch_in',
-      // 'geolocation_in',
+      'geolocation_in',
       'punch_out',
-      // 'geolocation_out',
+      'geolocation_out',
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
+      'isabsent',
       'MissedPunch',
-      'isabsent'
+      'EmployeeStatus'
     ];
   }
 
   private formatCellValue(header: string, value: any): string {
-    if (!value) return '';
+    if (!value && value !== 0) return '';
     
     if (header === 'transdate' && value) {
       if (typeof value === 'string') {
@@ -250,7 +258,7 @@ export class PDFExporter {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    return value;
+    return String(value);
   }
 
   private generateHTMLContent(displayData: any[], allData?: any[], logoBase64?: string | null): string {
@@ -264,7 +272,11 @@ export class PDFExporter {
     
     const MAX_PDF_ROWS = 1000;
     const showingLimitedData = allData && allData.length > MAX_PDF_ROWS;
-    const reversedDataArray = [...displayData].reverse();
+    
+    // FIXED: Remove reverse() - keep data in original order
+    const dataArray = [...displayData];
+    
+    console.log('Generating HTML for', dataArray.length, 'rows'); // Debug log
 
     return `
       <div style="padding: 15px; font-family: Arial, sans-serif; width: 100%;">
@@ -322,7 +334,12 @@ export class PDFExporter {
             </tr>
           </thead>
           <tbody>
-            ${reversedDataArray.map((row: Record<string, any>) => `
+            ${dataArray.map((row: Record<string, any>, index: number) => {
+              // Debug: log first row
+              if (index === 0) {
+                console.log('First row data:', row);
+              }
+              return `
               <tr>
                 ${filteredHeaders.map(header => {
                   const cellValue = this.formatCellValue(header, row[header]);
@@ -330,11 +347,11 @@ export class PDFExporter {
                   const textColor = isLateOrMissed && parseFloat(cellValue) > 0 ? 'color: red;' : '';
                   
                   return `
-                    <td style="border: 1px solid black; padding: 6px; font-size: 9px; ${textColor}">${String(cellValue)}</td>
+                    <td style="border: 1px solid black; padding: 6px; font-size: 9px; ${textColor}">${cellValue}</td>
                   `;
                 }).join('')}
               </tr>
-            `).join('')}
+            `}).join('')}
           </tbody>
         </table>
 
