@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
@@ -10,14 +10,38 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { useTeamAttendanceData } from "./TeamAttendanceData";
+import { getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
+
+interface ViolationAnalytic {
+  ViolationYear: number;
+  ViolationMonth: number;
+  [key: string]: any;
+}
 
 function ViolationsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { teamAttendanceDetails, loading } = useTeamAttendanceData();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [violationsData, setViolationsData] = useState<ViolationAnalytic[]>([]);
+
+  useEffect(() => {
+    const fetchYearData = async () => {
+      try {
+        const response = await getLeaveAnalytics(selectedYear);
+        if (response?.success && response.data?.length > 0) {
+          setViolationsData(response.data);
+        } else {
+          setViolationsData([]);
+        }
+      } catch (error) {
+        console.error('Error fetching violations analytics:', error);
+        setViolationsData([]);
+      }
+    };
+
+    fetchYearData();
+  }, [selectedYear]);
 
   const formatValue = (value: any): number => {
     if (value === null || value === undefined) return 0;
@@ -47,25 +71,25 @@ function ViolationsCard() {
       "July", "August", "September", "October", "November", "December"
     ];
 
-    return months.map((month, index) => {
-      if (index === currentMonth && teamAttendanceDetails) {
-        return {
-          month,
-          missedin: formatValue(teamAttendanceDetails.TotalMissedIn),
-          missedout: formatValue(teamAttendanceDetails.TotalMissedOut),
-          latein: formatValue(teamAttendanceDetails.MonthlyLate),
-          earlyout: formatValue(teamAttendanceDetails.MonthlyEarly),
-        };
-      }
-      return {
-        month,
-        missedin: 0,
-        missedout: 0,
-        latein: 0,
-        earlyout: 0,
-      };
+    const monthDataMap = new Map();
+    
+    violationsData.forEach((item: any) => {
+      monthDataMap.set(item.ViolationMonth, {
+        missedin: formatValue(item.MissedInCount),
+        missedout: formatValue(item.MissedOutCount),
+        latein: formatValue(item.LateInCount),
+        earlyout: formatValue(item.EarlyOutCount),
+      });
     });
-  }, [teamAttendanceDetails, currentMonth]);
+
+    return months.map((month, index) => ({
+      month,
+      missedin: monthDataMap.get(index + 1)?.missedin || 0,
+      missedout: monthDataMap.get(index + 1)?.missedout || 0,
+      latein: monthDataMap.get(index + 1)?.latein || 0,
+      earlyout: monthDataMap.get(index + 1)?.earlyout || 0,
+    }));
+  }, [violationsData]);
 
   const chartConfig = {
     missedin: {
@@ -122,84 +146,78 @@ function ViolationsCard() {
         </Select>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-[300px]">
-          <p className="text-text-secondary">Loading...</p>
-        </div>
-      ) : (
-        <ChartContainer 
-          config={chartConfig} 
-          className={`relative ${
-            dir === "rtl" ? "-right-[45px]" : "-left-[35px]"
-          }`}
-          dir={dir}
+      <ChartContainer 
+        config={chartConfig} 
+        className={`relative ${
+          dir === "rtl" ? "-right-[45px]" : "-left-[35px]"
+        }`}
+        dir={dir}
+      >
+        <LineChart
+          accessibilityLayer
+          data={localizedChartData}
+          margin={{
+            left: 12,
+            right: 12,
+          }}
         >
-          <LineChart
-            accessibilityLayer
-            data={localizedChartData}
-            margin={{
-              left: 12,
-              right: 12,
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={(value) => {
+              if (dir === "rtl") {
+                const translated = monthTranslationsMap[value] || value;
+                return translated.slice(0, 3);
+              } else {
+                return value.slice(0, 3);
+              }
             }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => {
-                if (dir === "rtl") {
-                  const translated = monthTranslationsMap[value] || value;
-                  return translated.slice(0, 3);
-                } else {
-                  return value.slice(0, 3);
-                }
-              }}
-            />
-            <YAxis
-              type="number"
-              tickLine={false}
-              tickMargin={2}
-              axisLine={false}
-              orientation={dir === "rtl" ? "right" : "left"}
-            />
-            <ChartTooltip
-              content={<ChartTooltipContent />}
-              cursor={false}
-              defaultIndex={1}
-            />
-            <Line
-              dataKey="missedin"
-              type="monotone"
-              stroke="var(--color-missedin)"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              dataKey="missedout"
-              type="monotone"
-              stroke="var(--color-missedout)"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              dataKey="latein"
-              type="monotone"
-              stroke="var(--color-latein)"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              dataKey="earlyout"
-              type="monotone"
-              stroke="var(--color-earlyout)"
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ChartContainer>
-      )}
+          />
+          <YAxis
+            type="number"
+            tickLine={false}
+            tickMargin={2}
+            axisLine={false}
+            orientation={dir === "rtl" ? "right" : "left"}
+          />
+          <ChartTooltip
+            content={<ChartTooltipContent />}
+            cursor={false}
+            defaultIndex={1}
+          />
+          <Line
+            dataKey="missedin"
+            type="monotone"
+            stroke="var(--color-missedin)"
+            strokeWidth={2}
+            dot={false}
+          />
+          <Line
+            dataKey="missedout"
+            type="monotone"
+            stroke="var(--color-missedout)"
+            strokeWidth={2}
+            dot={false}
+          />
+          <Line
+            dataKey="latein"
+            type="monotone"
+            stroke="var(--color-latein)"
+            strokeWidth={2}
+            dot={false}
+          />
+          <Line
+            dataKey="earlyout"
+            type="monotone"
+            stroke="var(--color-earlyout)"
+            strokeWidth={2}
+            dot={false}
+          />
+        </LineChart>
+      </ChartContainer>
     </div>
   );
 }
