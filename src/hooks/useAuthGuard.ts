@@ -32,7 +32,11 @@ export function useAuthGuard() {
 
   useEffect(() => {    
     const checkAuth = () => {
-      if (pathname?.includes('/auth/azure/success')) {
+      // Public routes that don't require authentication
+      const publicRoutes = ['/auth/azure/success', '/reset-password', '/forgot-password'];
+      const isPublicRoute = publicRoutes.some(route => pathname?.includes(route));
+      
+      if (isPublicRoute) {
         setIsChecking(false);
         return;
       }

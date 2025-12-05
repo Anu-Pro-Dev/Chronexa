@@ -122,6 +122,19 @@
         "settings": "Settings",
         "alerts": "Alerts"
       },
+      "auth": {
+        "reset_password": "Reset Password",
+        "new_password": "New Password",
+        "confirm_password": "Confirm Password",
+        "placeholder_new_password": "Enter new password",
+        "placeholder_confirm_password": "Confirm new password",
+        "checking_reset_link": "Checking reset link...",
+        "reset_password_for": "Reset password for your account",
+        "reset_link_invalid": "Reset link is invalid or expired",
+        "reset_success_redirecting": "Password reset successful! Redirecting...",
+        "reset_failed": "Password reset failed",
+        "request_new_reset_link": "Request New Reset Link"
+      },
       "login": {
         "login": "Login",
         "welcome_text": "Welcome Back! Please Login to access",
@@ -138,7 +151,8 @@
         "error_username": "Username is required",
         "error_login": "An error occurred. Please try again",
         "error_password": "Password is required",
-        "forgot_password_msg": "Please connect with IT Department"
+        "forgot_password_msg": "Please connect with IT Department",
+        "forgot_password_desc": "Enter your username to receive a password reset link"       
       },
       "dashboard": {
         "my_attendance":"My Attendance",
@@ -280,7 +294,13 @@
         "placeholder_grade_code": "Enter Grade Code",
         "placeholder_grade_name": "Enter Grade Name",
         "valid_geoloc": "Enter valid coordinates: latitude (-90 to 90), longitude (-180 to 180)",
-        "placeholder_geoloc": "Example 25.123456, 55.654321"
+        "placeholder_geoloc": "Example 25.123456, 55.654321",
+        "old_password": "Old Password",
+        "new_password": "New Password",
+        "confirm_password": "Confirm Password",
+        "placeholder_old_password": "Enter old password",
+        "placeholder_new_password": "Enter new password",
+        "placeholder_confirm_password": "Confirm new password"
       },
       "organization": {
         "organization_types": "Organization Types",
@@ -820,7 +840,8 @@
       "unfinalizeroster_error": "Error un-finalizing roster. Please try again.",
       "clearroster_success": "Selected rows cleared successfully!",
       "clearroster_error": "Error clearing roster. Please try again.",
-      "selectrow_error": "Please select at least one row to perform this action."
+      "selectrow_error": "Please select at least one row to perform this action.",
+      "password_changed_success": "Password changed successfully"
     },
     "formErrors": {
       "location_code_required": "Location code is required.",
@@ -894,7 +915,11 @@
       "user_required": "User is required.",
       "user_max_length": "User must not exceed 25 characters.",
       "password_required": "Password is required.",
-      "password_max_length": "Password must not exceed 20 characters."
+      "password_max_length": "Password must not exceed 20 characters.",
+      "old_password_required": "Old password is required",
+      "confirm_password_required": "Confirm password is required",
+      "passwords_dont_match": "Passwords do not match",
+      "username_required": "Username is required"
     }
   }
 }

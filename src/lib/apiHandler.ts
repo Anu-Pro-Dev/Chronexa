@@ -111,9 +111,9 @@ export const useLogoutWithTimerPreservation = () => {
 };
 
 // Function for initiating forgot password
-export const forgotPasswordRequest = async (employeeId: number) => {
+export const forgotPasswordRequest = async (login: string) => {
   return apiRequest("/auth/forgot-password", "POST", {
-    employeeId,
+    login,
   });
 };
 
@@ -126,6 +126,17 @@ export const resetPasswordRequest = async (newPassword: string) => {
   }
   
   return apiRequest("/auth/reset-password", "POST", { newPassword });
+};
+
+// Function for changing password
+export const changePasswordRequest = async (data: {
+  oldPassword: string;
+  newPassword: string;
+}) => {
+  return apiRequest("/auth/change-password", "PATCH", {
+    oldPassword: data.oldPassword,
+    newPassword: data.newPassword,
+  });
 };
 
 // Function to fetch all countries

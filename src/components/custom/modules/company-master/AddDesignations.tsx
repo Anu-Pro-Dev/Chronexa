@@ -205,7 +205,7 @@ export default function AddDesignations({
                 ? translations.buttons.update
                 : translations.buttons.save}
             </Button>
-            </div>
+          </div>
         </div>
       </form>
     </Form>

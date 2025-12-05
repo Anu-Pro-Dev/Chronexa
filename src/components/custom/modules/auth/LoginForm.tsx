@@ -18,13 +18,12 @@ import { useRouter } from "next/navigation";
 import Required from "@/src/components/ui/required";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useMutation } from "@tanstack/react-query";
-import { loginRequest } from "@/src/lib/apiHandler";
+import { loginRequest, forgotPasswordRequest } from "@/src/lib/apiHandler";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import toast from "react-hot-toast";
 import ThreeDotsLoader from "@/src/animations/ThreeDotsLoader";
-import { UserAxiosInstance } from "@/src/lib/axios";
 
-export const useFormSchema = () => {
+export const useLoginFormSchema = () => {
   const { translations } = useLanguage();
   const t = translations?.modules?.login || {};
 
@@ -42,22 +41,36 @@ export const useFormSchema = () => {
   });
 };
 
+const forgotPasswordSchema = z.object({
+  username: z.string().trim().min(1, { message: "username_required" }),
+});
+
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
+  const [apiResponseMessage, setApiResponseMessage] = useState("");
   const { translations, language } = useLanguage();
-  const formSchema = useFormSchema();
+  const loginFormSchema = useLoginFormSchema();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const loginForm = useForm<z.infer<typeof loginFormSchema>>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
       username: "",
       password: "",
       remember_me: false,
     },
   });
+
+  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      username: "",
+    },
+  });
+
   const router = useRouter();
   const t = translations?.modules?.login || {};
+  const errT = translations?.formErrors || {};
 
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
@@ -67,21 +80,36 @@ export default function LoginForm() {
         toast.success(translations?.toastNotifications?.login_success || "Login successful!");
         router.push("/dashboard");
       } else {
-        form.setError("username", {
+        loginForm.setError("username", {
           type: "manual",
           message: t.error_login
         });
       }
     },
     onError: (error: any) => {
-      form.setError("username", {
+      loginForm.setError("username", {
         type: "manual",
         message: t.error_login
       });
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const forgotPasswordMutation = useMutation({
+    mutationFn: (login: string) => forgotPasswordRequest(login),
+    onSuccess: (data) => {
+      setApiResponseMessage(data.message || "Reset password link has been sent to your email.");
+      forgotPasswordForm.reset();
+    },
+    onError: (error: any) => {
+      const errorMessage = 
+        error?.response?.data?.message || 
+        error?.message || 
+        "Failed to send reset password link";
+      toast.error(errorMessage);
+    },
+  });
+
+  async function onLoginSubmit(values: z.infer<typeof loginFormSchema>) {
     loginMutation.mutate({
       username: values.username,
       password: values.password,
@@ -89,9 +117,21 @@ export default function LoginForm() {
     });
   }
 
+  async function onForgotPasswordSubmit(values: z.infer<typeof forgotPasswordSchema>) {
+    forgotPasswordMutation.mutate(values.username);
+  }
+
   const handleForgotPasswordClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    setApiResponseMessage("");
+    forgotPasswordForm.reset();
     setForgotPasswordModalOpen(true);
+  };
+
+  const handleCloseForgotPasswordModal = () => {
+    setForgotPasswordModalOpen(false);
+    setApiResponseMessage("");
+    forgotPasswordForm.reset();
   };
   
   const handleAdLogin = () => {
@@ -105,11 +145,11 @@ export default function LoginForm() {
 
   return (
     <>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <Form {...loginForm}>
+        <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="">
           <div className="flex flex-col gap-4">
             <FormField
-              control={form.control}
+              control={loginForm.control}
               name="username"
               render={({ field }) => (
                 <FormItem>
@@ -129,7 +169,7 @@ export default function LoginForm() {
             />
 
             <FormField
-              control={form.control}
+              control={loginForm.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
@@ -161,7 +201,7 @@ export default function LoginForm() {
 
             <div className="flex items-center justify-between">
               <FormField
-                control={form.control}
+                control={loginForm.control}
                 name="remember_me"
                 render={({ field }) => (
                   <FormItem className="">
@@ -235,25 +275,86 @@ export default function LoginForm() {
         </form>
       </Form>
 
-      <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={setForgotPasswordModalOpen}>
-        <ResponsiveModalContent>
-          <ResponsiveModalHeader className="flex">
+      <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={handleCloseForgotPasswordModal}>
+        <ResponsiveModalContent size="medium">
+          <ResponsiveModalHeader  className="gap-1">
             <ResponsiveModalTitle>
               {t.forgot_password || "Forgot Password"}
             </ResponsiveModalTitle>
-            <ResponsiveModalDescription>
-              {t.forgot_password_msg || "Please connect with IT Department"}
-            </ResponsiveModalDescription>
+            {apiResponseMessage ? (
+              <ResponsiveModalDescription className="text-green-600">
+                {apiResponseMessage}
+              </ResponsiveModalDescription>
+            ) : (
+              <ResponsiveModalDescription>
+                {t.forgot_password_desc || "Enter your username to receive a password reset link"}
+              </ResponsiveModalDescription>
+            )}
           </ResponsiveModalHeader>
-          <div className="w-full flex gap-2 items-center justify-center mt-5">
-            <Button
-              onClick={() => setForgotPasswordModalOpen(false)}
-              size="lg"
-              className="w-3/6"
-            >
-              {translations?.buttons?.ok || "OK"}
-            </Button>
-          </div>
+          
+          {!apiResponseMessage ? (
+            <Form {...forgotPasswordForm}>
+              <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}>
+                <div className="flex flex-col gap-4 mt-5">
+                  <FormField
+                    control={forgotPasswordForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {t.username || "Username"} <Required />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t.placeholder_username || "Enter Your username"}
+                            type="text"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="w-full flex gap-2 items-center pt-4">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      size="lg"
+                      className="w-full"
+                      onClick={handleCloseForgotPasswordModal}
+                    >
+                      {translations?.buttons?.cancel || "Cancel"}
+                    </Button>
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full"
+                      disabled={forgotPasswordMutation.status === "pending"}
+                    >
+                      {forgotPasswordMutation.status === "pending" ? (
+                        <div className="flex items-center gap-2">
+                          {translations?.buttons?.sending || "Sending"}
+                          <ThreeDotsLoader />
+                        </div>
+                      ) : (
+                        translations?.buttons?.send || "Send"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </Form>
+          ) : (
+            <div className="w-full flex gap-2 items-center justify-center mt-5">
+              <Button
+                onClick={handleCloseForgotPasswordModal}
+                size="lg"
+                className="w-full"
+              >
+                {translations?.buttons?.ok || "OK"}
+              </Button>
+            </div>
+          )}
         </ResponsiveModalContent>
       </ResponsiveModal>
     </>

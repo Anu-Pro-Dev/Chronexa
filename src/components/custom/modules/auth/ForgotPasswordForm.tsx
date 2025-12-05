@@ -42,7 +42,7 @@ export default function ForgotPassword() {
         return;
       }
   
-      await forgotPasswordRequest(employeeId);
+      // await forgotPasswordRequest(employeeId);
   
       toast.success("Password reset link sent to your registered email.");
       router.push("/");

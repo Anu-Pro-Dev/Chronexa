@@ -609,7 +609,7 @@ export default function AddPermissionApplication({
                 name="remarks"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Remarks </FormLabel>
+                    <FormLabel>Remarks <Required/></FormLabel>
                     <FormControl>
                       <Textarea
                         className="w-full"
