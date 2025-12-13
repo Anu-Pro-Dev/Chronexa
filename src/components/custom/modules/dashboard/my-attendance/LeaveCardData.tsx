@@ -116,7 +116,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
             label: t?.leaves_absent, 
             value: displayValues.MonthlyAbsent,
             color: "text-[#DA153E]", 
-            icon: AbsentIcon(), 
+            icon: <AbsentIcon color="#DA153E"/>,
             shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]",
             isHours: false
         },
@@ -183,7 +183,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
             label: t?.unapproved_perms || "Rejected Permissions", 
             value: displayValues.RejectedPermission,
             color: "text-[#DA153E]", 
-            icon: AbsentIcon(), 
+            icon: <AbsentIcon color="#DA153E"/>, 
             shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]",
             isHours: true
         }

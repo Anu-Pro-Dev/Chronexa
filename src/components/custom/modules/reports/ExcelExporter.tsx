@@ -6,14 +6,14 @@ export interface ExcelExporterProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
-  onProgress?: (progress: number) => void;
+  onProgress?: (current: number, total: number, phase: string) => void;
 }
 
 export class ExcelExporter {
   private formValues: any;
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
-  private onProgress?: (progress: number) => void;
+  private onProgress?: (current: number, total: number, phase: string) => void;
   
   constructor({ formValues, headerMap, calculateSummaryTotals, onProgress }: ExcelExporterProps) {
     this.formValues = formValues;
@@ -30,12 +30,12 @@ export class ExcelExporter {
       'organization_eng',
       'department_name_eng',
       'employee_type',
-      'WorkDate',
+      'transdate',
       'WorkDay',
       'punch_in',
-      'geolocation_in',
+      'GeoLocation_In',
       'punch_out',
-      'geolocation_out',
+      'GeoLocation_Out',
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
@@ -174,69 +174,88 @@ export class ExcelExporter {
     return new Promise(resolve => setTimeout(resolve, 0));
   }
 
+  private buildQueryParams(): Record<string, string> {
+    const params: Record<string, string> = {};
+
+    if (this.formValues.from_date) {
+      params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
+    }
+
+    if (this.formValues.to_date) {
+      params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
+    }
+
+    if (this.formValues.employee) {
+      params.employee_id = this.formValues.employee.toString();
+    }
+
+    if (this.formValues.manager_id) {
+      params.manager_id = this.formValues.manager_id.toString();
+    }
+
+    if (this.formValues.employee_type) {
+      params.employee_type_id = this.formValues.employee_type.toString();
+    }
+
+    if (this.formValues.organization) {
+      params.organization_id = this.formValues.organization.toString();
+    }
+
+    if (this.formValues.company) {
+      params.organization_id = this.formValues.company.toString();
+    }
+
+    if (this.formValues.department) {
+      params.department_id = this.formValues.department.toString();
+    }
+
+    if (this.formValues.vertical) {
+      params.parent_orgid = this.formValues.vertical.toString();
+    }
+
+    return params;
+  }
+
+  private buildUrl(params: Record<string, string>): string {
+    const queryString = Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+
+    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
+  }
+
   private async fetchDataInBatches(): Promise<any[]> {
     const allData: any[] = [];
-    const BATCH_SIZE = 2000; // Increased to match CSV/PDF for consistency
+    const BATCH_SIZE = 2000;
     let offset = 0;
     let hasMore = true;
+    let apiTotal = 0;
+    let fetchedRecords = 0;
 
-    this.onProgress?.(5);
+    this.onProgress?.(0, 0, 'initializing');
 
     while (hasMore) {
       try {
-        const params: Record<string, string> = {
+        const baseParams = this.buildQueryParams();
+        const params = {
+          ...baseParams,
           limit: BATCH_SIZE.toString(),
           offset: offset.toString(),
         };
 
-        if (this.formValues.from_date) {
-          params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
-        }
-
-        if (this.formValues.to_date) {
-          params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
-        }
-
-        if (this.formValues.employee) {
-          params.employee_id = this.formValues.employee.toString();
-        }
-
-        if (this.formValues.manager_id) {
-          params.manager_id = this.formValues.manager_id.toString();
-        }
-
-        if (this.formValues.employee_type) {
-          params.employee_type_id = this.formValues.employee_type.toString();
-        }
-
-        if (this.formValues.organization) {
-          params.organization_id = this.formValues.organization.toString();
-        }
-
-        // FIXED: Changed from company_id to organization_id to match CSV
-        if (this.formValues.company) {
-          params.organization_id = this.formValues.company.toString();
-        }
-
-        if (this.formValues.department) {
-          params.department_id = this.formValues.department.toString();
-        }
-
-        if (this.formValues.vertical) {
-          params.parent_orgid = this.formValues.vertical.toString();
-        }
-
-        const queryString = Object.entries(params)
-          .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-          .join('&');
-
-        const url = `/report/attendance${queryString ? `?${queryString}` : ''}`;
-        console.log('Excel Fetching:', url); // Debug log
+        const url = this.buildUrl(params);
         const response = await apiRequest(url, "GET");
 
+        // Handle API response structure: {success, data, total, hasNext}
         const batch = Array.isArray(response) ? response : (response.data || []);
-        console.log('Excel Batch received:', batch.length, 'records'); // Debug log
+        const total = response?.total || 0;
+        const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
+
+        // Set total from first API response
+        if (offset === 0 && total > 0) {
+          apiTotal = total;
+        }
 
         if (batch.length === 0) {
           hasMore = false;
@@ -244,11 +263,14 @@ export class ExcelExporter {
         }
 
         allData.push(...batch);
+        fetchedRecords += batch.length;
         offset += BATCH_SIZE;
-        hasMore = batch.length === BATCH_SIZE;
+        
+        // Update hasMore based on API response
+        hasMore = hasNext && batch.length === BATCH_SIZE;
 
-        const progress = 5 + Math.min(Math.round((offset / 10000) * 35), 35);
-        this.onProgress?.(progress);
+        // Report progress with actual values
+        this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
         await this.yieldToMain();
 
@@ -263,13 +285,12 @@ export class ExcelExporter {
       }
     }
 
-    console.log('Excel Total records fetched:', allData.length); // Debug log
     return allData;
   }
 
   async export(): Promise<void> {
     try {
-      this.onProgress?.(0);
+      this.onProgress?.(0, 0, 'initializing');
 
       const allData = await this.fetchDataInBatches();
 
@@ -278,7 +299,7 @@ export class ExcelExporter {
         return;
       }
 
-      this.onProgress?.(45);
+      this.onProgress?.(allData.length, allData.length, 'processing');
 
       const [{ default: ExcelJS }, fileSaver] = await Promise.all([
         import("exceljs"),
@@ -286,7 +307,6 @@ export class ExcelExporter {
       ]);
 
       const { saveAs } = fileSaver;
-      this.onProgress?.(50);
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Report");
@@ -370,10 +390,11 @@ export class ExcelExporter {
       });
       currentRow++;
 
-      this.onProgress?.(55);
+      this.onProgress?.(allData.length, allData.length, 'generating');
 
       const CHUNK_SIZE = 500;
       const totalRows = allData.length;
+      let processedRows = 0;
       
       for (let i = 0; i < totalRows; i += CHUNK_SIZE) {
         const chunk = allData.slice(i, i + CHUNK_SIZE);
@@ -394,15 +415,15 @@ export class ExcelExporter {
             }
           });
           currentRow++;
+          processedRows++;
         });
 
-        const progress = 55 + Math.round(((i + CHUNK_SIZE) / totalRows) * 25);
-        this.onProgress?.(Math.min(progress, 80));
+        // Update progress while generating Excel rows
+        // This keeps the progress bar moving during the generation phase
+        this.onProgress?.(processedRows, allData.length, 'generating');
         
         await this.yieldToMain();
       }
-
-      this.onProgress?.(85);
 
       currentRow += 2;
       const summaryTotals = this.calculateSummaryTotals(allData);
@@ -436,8 +457,7 @@ export class ExcelExporter {
         currentRow++;
       });
 
-      this.onProgress?.(90);
-
+      // Auto-sizing columns
       worksheet.columns = filteredHeaders.map(header => ({
         header: this.headerMap[header] || header,
         key: header,
@@ -457,6 +477,7 @@ export class ExcelExporter {
         column.width = Math.min(Math.max(maxWidth + 1, 6), 40);
       });
 
+      // Auto-sizing rows
       for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
         const row = worksheet.getRow(rowIndex);
         if (rowIndex === 1) {
@@ -477,8 +498,6 @@ export class ExcelExporter {
         }
       }
 
-      this.onProgress?.(95);
-
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -490,7 +509,7 @@ export class ExcelExporter {
           : "all"
       }_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
 
-      this.onProgress?.(100);
+      this.onProgress?.(allData.length, allData.length, 'complete');
       saveAs(blob, filename);
       
       toast.success(`Excel file generated successfully! (${allData.length.toLocaleString()} records)`);

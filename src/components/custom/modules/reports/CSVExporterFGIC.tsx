@@ -4,20 +4,20 @@ import Papa from "papaparse";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { formatInTimeZone } from "date-fns-tz";
 
-export interface CSVExporterProps {
+export interface CSVExporterFGICProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
   onProgress?: (current: number, total: number, phase: string) => void;
 }
 
-export class CSVExporter {
+export class CSVExporterFGIC {
   private formValues: any;
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
   private onProgress?: (current: number, total: number, phase: string) => void;
   
-  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress }: CSVExporterProps) {
+  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress }: CSVExporterFGICProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
@@ -30,20 +30,18 @@ export class CSVExporter {
       'firstname_eng',
       'parent_org_eng',
       'organization_eng',
-      'department_name_eng',
       'employee_type',
       'transdate',
       'WorkDay',
       'punch_in',
-      'GeoLocation_In',
       'punch_out',
-      'GeoLocation_Out',
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
+      'late',
+      'early',
       'isabsent',
-      'MissedPunch',
-      'EmployeeStatus'
+      'MissedPunch'
     ];
   }
   
@@ -94,20 +92,16 @@ export class CSVExporter {
       params.employee_type_id = this.formValues.employee_type.toString();
     }
 
-    if (this.formValues.organization) {
-      params.organization_id = this.formValues.organization.toString();
-    }
-
-    if (this.formValues.company) {
-      params.organization_id = this.formValues.company.toString();
-    }
-
+    // Organization hierarchy logic:
+    // If department selected, pass that as organization_id
+    // Else if division selected, pass that as organization_id
+    // Else if company selected, pass that as organization_id
     if (this.formValues.department) {
-      params.department_id = this.formValues.department.toString();
-    }
-
-    if (this.formValues.vertical) {
-      params.parent_orgid = this.formValues.vertical.toString();
+      params.organization_id = this.formValues.department.toString();
+    } else if (this.formValues.division) {
+      params.organization_id = this.formValues.division.toString();
+    } else if (this.formValues.company) {
+      params.organization_id = this.formValues.company.toString();
     }
 
     return params;
@@ -119,7 +113,7 @@ export class CSVExporter {
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       .join('&');
 
-    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
+    return `/report/new${queryString ? `?${queryString}` : ''}`;
   }
 
   async exportStreaming(): Promise<void> {

@@ -58,9 +58,9 @@ function ScheduleCard() {
     <div className="shadow-card rounded-[10px] bg-accent p-5">
       <div className="flex items-center justify-between mb-6">
         <h5 className="text-lg text-text-primary font-bold">{t?.schedule}</h5>
-        <Link href="/scheduling/monthly-schedule" className="text-primary text-sm font-medium">
+        {/* <Link href="/scheduling/monthly-schedule" className="text-primary text-sm font-medium">
           {translations?.buttons?.show_all}
-        </Link>
+        </Link> */}
       </div>
 
       <ProgressBarChart

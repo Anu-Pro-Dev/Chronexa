@@ -1,13 +1,14 @@
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 import { apiRequest } from "@/src/lib/apiHandler";
+import { formatInTimeZone } from "date-fns-tz";
 
 interface PDFExporterProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
   logoUrl?: string;
-  onProgress?: (progress: number) => void;
+  onProgress?: (current: number, total: number, phase: string) => void;
 }
 
 export class PDFExporter {
@@ -15,7 +16,7 @@ export class PDFExporter {
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
   private logoUrl?: string;
-  private onProgress?: (progress: number) => void;
+  private onProgress?: (current: number, total: number, phase: string) => void;
 
   constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress }: PDFExporterProps) {
     this.formValues = formValues;
@@ -66,71 +67,93 @@ export class PDFExporter {
     return new Promise(resolve => setTimeout(resolve, 0));
   }
 
+  private buildQueryParams(): Record<string, string> {
+    const params: Record<string, string> = {};
+
+    if (this.formValues.from_date) {
+      params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
+    }
+
+    if (this.formValues.to_date) {
+      params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
+    }
+
+    if (this.formValues.employee) {
+      params.employee_id = this.formValues.employee.toString();
+    }
+
+    if (this.formValues.manager_id) {
+      params.manager_id = this.formValues.manager_id.toString();
+    }
+
+    if (this.formValues.employee_type) {
+      params.employee_type_id = this.formValues.employee_type.toString();
+    }
+
+    if (this.formValues.organization) {
+      params.organization_id = this.formValues.organization.toString();
+    }
+
+    if (this.formValues.company) {
+      params.organization_id = this.formValues.company.toString();
+    }
+
+    if (this.formValues.department) {
+      params.department_id = this.formValues.department.toString();
+    }
+
+    if (this.formValues.vertical) {
+      params.parent_orgid = this.formValues.vertical.toString();
+    }
+
+    return params;
+  }
+
+  private buildUrl(params: Record<string, string>): string {
+    const queryString = Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+
+    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
+  }
+
   private async fetchDataInBatches(): Promise<any[]> {
     const allData: any[] = [];
-    const BATCH_SIZE = 2000; // Increased to match CSV for consistency
+    const BATCH_SIZE = 2000;
     let offset = 0;
     let hasMore = true;
+    let apiTotal = 0;
+    let fetchedRecords = 0;
 
-    this.onProgress?.(5);
+    this.onProgress?.(0, 0, 'initializing');
 
     while (hasMore) {
       try {
-        const params: Record<string, string> = {
+        const baseParams = this.buildQueryParams();
+        const params = {
+          ...baseParams,
           limit: BATCH_SIZE.toString(),
           offset: offset.toString(),
         };
 
-        if (this.formValues.from_date) {
-          params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
-        }
-
-        if (this.formValues.to_date) {
-          params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
-        }
-
-        if (this.formValues.employee) {
-          params.employee_id = this.formValues.employee.toString();
-        }
-
-        if (this.formValues.manager_id) {
-          params.manager_id = this.formValues.manager_id.toString();
-        }
-
-        if (this.formValues.employee_type) {
-          params.employee_type_id = this.formValues.employee_type.toString();
-        }
-
-        if (this.formValues.organization) {
-          params.organization_id = this.formValues.organization.toString();
-        }
-
-        // FIXED: Changed from company_id to organization_id to match CSV
-        if (this.formValues.company) {
-          params.organization_id = this.formValues.company.toString();
-        }
-
-        if (this.formValues.department) {
-          params.department_id = this.formValues.department.toString();
-        }
-
-        if (this.formValues.vertical) {
-          params.parent_orgid = this.formValues.vertical.toString();
-        }
-
-        const queryString = Object.entries(params)
-          .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-          .join('&');
-
-        const url = `/report/attendance${queryString ? `?${queryString}` : ''}`;
-        
-        console.log('PDF Fetching:', url); // Debug log
+        const url = this.buildUrl(params);
+        console.log('PDF Fetching URL:', url);
         const response = await apiRequest(url, "GET");
 
+        console.log('PDF API Response:', response);
+
+        // Handle API response structure: {success, data, total, hasNext}
         const batch = Array.isArray(response) ? response : (response.data || []);
-        
-        console.log('PDF Batch received:', batch.length, 'records'); // Debug log
+        const total = response?.total || 0;
+        const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
+
+        console.log('PDF Batch:', { batchLength: batch.length, total, hasNext });
+
+        // Set total from first API response
+        if (offset === 0 && total > 0) {
+          apiTotal = total;
+        }
 
         if (batch.length === 0) {
           hasMore = false;
@@ -138,11 +161,14 @@ export class PDFExporter {
         }
 
         allData.push(...batch);
+        fetchedRecords += batch.length;
         offset += BATCH_SIZE;
-        hasMore = batch.length === BATCH_SIZE;
+        
+        // Update hasMore based on API response
+        hasMore = hasNext && batch.length === BATCH_SIZE;
 
-        const progress = 5 + Math.min(Math.round((offset / 10000) * 35), 35);
-        this.onProgress?.(progress);
+        // Report progress with actual values
+        this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
         await this.yieldToMain();
 
@@ -157,7 +183,7 @@ export class PDFExporter {
       }
     }
 
-    console.log('PDF Total records fetched:', allData.length); // Debug log
+    console.log('PDF Total fetched:', allData.length);
     return allData;
   }
 
@@ -188,12 +214,12 @@ export class PDFExporter {
       'organization_eng',
       'department_name_eng',
       'employee_type',
-      'WorkDate',
+      'transdate',
       'WorkDay',
       'punch_in',
-      'geolocation_in',
+      'GeoLocation_In',
       'punch_out',
-      'geolocation_out',
+      'GeoLocation_Out',
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
@@ -203,35 +229,68 @@ export class PDFExporter {
     ];
   }
 
+  // Define column widths to fit all columns on page
+  private getColumnWidth(header: string): string {
+    const widthMap: Record<string, string> = {
+      'employee_number': '4%',
+      'firstname_eng': '7%',
+      'parent_org_eng': '6%',
+      'organization_eng': '6%',
+      'department_name_eng': '6%',
+      'employee_type': '5%',
+      'transdate': '5%',
+      'WorkDay': '4%',
+      'punch_in': '5%',
+      'GeoLocation_In': '7%',
+      'punch_out': '5%',
+      'GeoLocation_Out': '7%',
+      'dailyworkhrs': '5%',
+      'DailyMissedHrs': '5%',
+      'dailyextrawork': '5%',
+      'isabsent': '5%',
+      'MissedPunch': '5%',
+      'EmployeeStatus': '8%'
+    };
+    return widthMap[header] || '5%';
+  }
+
   private formatCellValue(header: string, value: any): string {
     if (!value && value !== 0) return '';
     
     if (header === 'transdate' && value) {
-      if (typeof value === 'string') {
-        const datePart = value.split(' ')[0].split('T')[0];
-        if (datePart.includes('-')) {
-          const [year, month, day] = datePart.split('-');
-          return `${day}-${month}-${year}`;
+      try {
+        return formatInTimeZone(value, 'UTC', 'dd-MM-yyyy');
+      } catch {
+        if (typeof value === 'string') {
+          const datePart = value.split(' ')[0].split('T')[0];
+          if (datePart.includes('-')) {
+            const [year, month, day] = datePart.split('-');
+            return `${day}-${month}-${year}`;
+          }
         }
+        return value;
       }
-      return value;
     }
 
     if ((header === 'punch_in' || header === 'punch_out') && value) {
-      if (typeof value === 'string') {
-        if (value.includes('T')) {
-          const timePart = value.split('T')[1];
-          return timePart.split('.')[0];
+      try {
+        return formatInTimeZone(value, 'UTC', 'HH:mm:ss');
+      } catch {
+        if (typeof value === 'string') {
+          if (value.includes('T')) {
+            const timePart = value.split('T')[1];
+            return timePart.split('.')[0];
+          }
+          if (value.includes(' ')) {
+            const timePart = value.split(' ')[1];
+            return timePart.split('.')[0];
+          }
+          if (value.includes(':')) {
+            return value.split('.')[0];
+          }
         }
-        if (value.includes(' ')) {
-          const timePart = value.split(' ')[1];
-          return timePart.split('.')[0];
-        }
-        if (value.includes(':')) {
-          return value.split('.')[0];
-        }
+        return value;
       }
-      return value;
     }
 
     if (['late', 'early', 'dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
@@ -265,81 +324,73 @@ export class PDFExporter {
     const dataForSummary = allData || displayData;
     const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(dataForSummary);
     const filteredHeaders = this.getFilteredHeaders();
-    const displayHeaders = filteredHeaders.map(header => 
-      (this.headerMap[header] || header).toUpperCase()
-    );
     const summaryTotals = this.calculateSummaryTotals(dataForSummary);
     
     const MAX_PDF_ROWS = 1000;
     const showingLimitedData = allData && allData.length > MAX_PDF_ROWS;
     
-    // FIXED: Remove reverse() - keep data in original order
     const dataArray = [...displayData];
-    
-    console.log('Generating HTML for', dataArray.length, 'rows'); // Debug log
+
+    console.log('Generating HTML with', dataArray.length, 'rows');
+    console.log('First row sample:', dataArray[0]);
 
     return `
-      <div style="padding: 15px; font-family: Arial, sans-serif; width: 100%;">
+      <div style="padding: 10px; font-family: Arial, sans-serif; width: 100%; font-size: 7px;">
         ${showingLimitedData ? `
-          <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin-bottom: 15px;">
+          <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 8px; margin-bottom: 10px; font-size: 9px;">
             <strong>Note:</strong> PDF showing first ${MAX_PDF_ROWS.toLocaleString()} of ${allData!.length.toLocaleString()} records. 
             Summary totals reflect all ${allData!.length.toLocaleString()} records. Use Excel export for complete dataset.
           </div>
         ` : ''}
         
         ${logoBase64 ? `
-          <div style="text-align: center; margin-bottom: 10px;">
-            <img src="${logoBase64}" alt="Logo" style="height: 50px;" />
+          <div style="text-align: center; margin-bottom: 8px;">
+            <img src="${logoBase64}" alt="Logo" style="height: 40px;" />
           </div>
         ` : ''}
         
-        <h1 style="text-align: center; font-size: 16px; font-weight: bold; margin: 10px 0;">
+        <h1 style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0;">
           EMPLOYEE DAILY MOVEMENT REPORT
         </h1>
 
-        <table style="width: 100%; margin-bottom: 10px;">
+        <table style="width: 100%; margin-bottom: 8px; font-size: 9px;">
           <tr>
-            <td style="font-size: 12px;">
+            <td>
               <strong>Employee ID:</strong> ${employeeId}
             </td>
-            <td style="text-align: right; font-size: 12px;">
+            <td style="text-align: right;">
               <strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}
             </td>
           </tr>
         </table>
          
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px;">
           <tr>
-            <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; width: 25%; text-align: center;">EMPLOYEE NAME</td>
-            <td style="border: 1px solid black; padding: 8px; font-size: 11px; width: 25%;">${employeeName}</td>
-            <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; width: 25%; text-align: center;">EMPLOYEE NO</td>
-            <td style="border: 1px solid black; padding: 8px; font-size: 11px; width: 25%;">${employeeNo}</td>
+            <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NAME</td>
+            <td style="border: 1px solid black; padding: 5px; width: 25%;">${employeeName}</td>
+            <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NO</td>
+            <td style="border: 1px solid black; padding: 5px; width: 25%;">${employeeNo}</td>
           </tr>
           ${this.formValues.from_date || this.formValues.to_date ? 
             `<tr>
-              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">FROM DATE</td>
-              <td style="border: 1px solid black; padding: 8px; font-size: 11px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '01/07/2025'}</td>
-              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">TO DATE</td>
-              <td style="border: 1px solid black; padding: 8px; font-size: 11px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025'}</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">FROM DATE</td>
+              <td style="border: 1px solid black; padding: 5px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '01/07/2025'}</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">TO DATE</td>
+              <td style="border: 1px solid black; padding: 5px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025'}</td>
             </tr>`
           : ''}
         </table>
       
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed;">
           <thead>
             <tr style="background-color: #0078D4;">
-              ${displayHeaders.map(header => `
-                <th style="border: 1px solid black; padding: 8px; text-align: center; color: white; font-weight: bold; font-size: 10px;">${header}</th>
+              ${filteredHeaders.map(header => `
+                <th style="border: 1px solid black; padding: 4px; text-align: center; color: white; font-weight: bold; font-size: 7px; width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden;">${(this.headerMap[header] || header).toUpperCase()}</th>
               `).join('')}
             </tr>
           </thead>
           <tbody>
-            ${dataArray.map((row: Record<string, any>, index: number) => {
-              // Debug: log first row
-              if (index === 0) {
-                console.log('First row data:', row);
-              }
-              return `
+            ${dataArray.map((row: Record<string, any>, index: number) => `
               <tr>
                 ${filteredHeaders.map(header => {
                   const cellValue = this.formatCellValue(header, row[header]);
@@ -347,34 +398,34 @@ export class PDFExporter {
                   const textColor = isLateOrMissed && parseFloat(cellValue) > 0 ? 'color: red;' : '';
                   
                   return `
-                    <td style="border: 1px solid black; padding: 6px; font-size: 9px; ${textColor}">${cellValue}</td>
+                    <td style="border: 1px solid black; padding: 3px; font-size: 6px; ${textColor} width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis;">${cellValue}</td>
                   `;
                 }).join('')}
               </tr>
-            `}).join('')}
+            `).join('')}
           </tbody>
         </table>
 
-        <div style="margin-top: 30px;">
-          <h2 style="text-align: center; font-size: 14px; font-weight: bold; margin-bottom: 15px;">
+        <div style="margin-top: 20px; page-break-before: avoid;">
+          <h2 style="text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 10px;">
             SUMMARY TOTALS ${showingLimitedData ? `(All ${allData!.length.toLocaleString()} Records)` : ''}
           </h2>
           
-          <table style="width: 100%; border-collapse: collapse;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
             <tr>
-              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center; width: 16.66%;">Total Late In Hours</td>
-              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center; width: 16.66%;">${summaryTotals.totalLateInHours}</td>
-              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center; width: 16.66%;">Total Early Out Hours</td>
-              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center; width: 16.66%;">${summaryTotals.totalEarlyOutHours}</td>
-              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center; width: 16.66%;">Total Missed Hours</td>
-              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center; width: 16.66%;">${summaryTotals.totalMissedHours}</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Late In Hours</td>
+              <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalLateInHours}</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Early Out Hours</td>
+              <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalEarlyOutHours}</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Missed Hours</td>
+              <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalMissedHours}</td>
             </tr>
             <tr>
-              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">Total Worked Hours</td>
-              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center;">${summaryTotals.totalWorkedHours}</td>
-              <td style="border: 1px solid black; padding: 8px; background-color: #0078D4; color: white; font-weight: bold; font-size: 11px; text-align: center;">Total Extra Hours</td>
-              <td style="border: 1px solid black; padding: 8px; font-size: 11px; text-align: center;">${summaryTotals.totalExtraHours}</td>
-              <td colspan="2" style="border: 1px solid black; padding: 8px;"></td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">Total Worked Hours</td>
+              <td style="border: 1px solid black; padding: 5px; text-align: center;">${summaryTotals.totalWorkedHours}</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">Total Extra Hours</td>
+              <td style="border: 1px solid black; padding: 5px; text-align: center;">${summaryTotals.totalExtraHours}</td>
+              <td colspan="2" style="border: 1px solid black; padding: 5px;"></td>
             </tr>
           </table>
         </div>
@@ -384,16 +435,18 @@ export class PDFExporter {
 
   async export(): Promise<void> {
     try {
-      this.onProgress?.(0);
+      this.onProgress?.(0, 0, 'initializing');
 
       const allData = await this.fetchDataInBatches();
+
+      console.log('PDF export - fetched data length:', allData.length);
 
       if (allData.length === 0) {
         toast.error("No data available to export.");
         return;
       }
 
-      this.onProgress?.(45);
+      this.onProgress?.(allData.length, allData.length, 'processing');
 
       const MAX_PDF_ROWS = 1000;
       const dataToExport = allData.length > MAX_PDF_ROWS 
@@ -409,64 +462,61 @@ export class PDFExporter {
 
       const html2pdf = await import('html2pdf.js').then(module => module.default);
       
-      this.onProgress?.(55);
+      this.onProgress?.(allData.length, allData.length, 'generating');
       
       const logoBase64 = await this.loadLogoAsBase64();
       
       const htmlContent = allData.length > MAX_PDF_ROWS 
         ? this.generateHTMLContent(dataToExport, allData, logoBase64)
-        : this.generateHTMLContent(dataToExport, allData, logoBase64);
+        : this.generateHTMLContent(dataToExport, undefined, logoBase64);
 
-      this.onProgress?.(65);
+      await this.yieldToMain();
 
       const opt = {
-        margin: [0.3, 0.3, 0.3, 0.3],
+        margin: [0.2, 0.2, 0.2, 0.2],
         filename: `report_${this.formValues.employee ? 'employee_' + this.formValues.employee : 'all'}_${format(new Date(), 'yyyy-MM-dd')}.pdf`,
         image: { type: 'jpeg', quality: 0.95 },
         html2canvas: { 
-          scale: 1.2,
+          scale: 2,
           useCORS: true,
-          allowTaint: true,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: 1400,
-          windowHeight: window.innerHeight,
-          logging: false,
+          logging: true,
         },
         jsPDF: { 
           unit: 'in', 
           format: 'a4', 
-          orientation: 'landscape',
-          compress: true
-        },
-        pagebreak: { 
-          mode: ['avoid-all', 'css', 'legacy'],
-          before: '.page-break-before',
-          after: '.page-break-after',
-          avoid: '.page-break-avoid'
+          orientation: 'landscape'
         }
       };
 
-      this.onProgress?.(75);
-
-      const pdf = await html2pdf().set(opt).from(htmlContent).outputPdf('blob');
+      console.log('Generating PDF with html2pdf...');
       
-      this.onProgress?.(95);
-
-      const pdfUrl = URL.createObjectURL(pdf);
-      window.open(pdfUrl, '_blank');
+      // Create a temporary container to render HTML
+      const container = document.createElement('div');
+      container.innerHTML = htmlContent;
+      document.body.appendChild(container);
       
+      // Wait a moment for rendering
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Generate and open PDF
+      await html2pdf().set(opt).from(container).save();
+      
+      // Clean up after a delay
       setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
+        document.body.removeChild(container);
       }, 1000);
-
-      this.onProgress?.(100);
+      
+      console.log('PDF generated successfully');
+      
+      console.log('PDF generated successfully');
+      
+      this.onProgress?.(allData.length, allData.length, 'complete');
       
       const recordMessage = allData.length > MAX_PDF_ROWS 
         ? `First ${MAX_PDF_ROWS.toLocaleString()} of ${allData.length.toLocaleString()} records`
         : `${allData.length.toLocaleString()} records`;
       
-      toast.success(`PDF generated successfully! (${recordMessage})`);
+      toast.success(`PDF downloaded successfully! (${recordMessage})`);
 
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -475,81 +525,6 @@ export class PDFExporter {
         toast.error(error.message);
       } else {
         toast.error("Error generating PDF. Please try again.");
-      }
-      throw error;
-    }
-  }
-
-  async exportMultiplePDFs(): Promise<void> {
-    try {
-      this.onProgress?.(0);
-
-      const allData = await this.fetchDataInBatches();
-
-      if (allData.length === 0) {
-        toast.error("No data available to export.");
-        return;
-      }
-
-      const RECORDS_PER_PDF = 500;
-      const numPDFs = Math.ceil(allData.length / RECORDS_PER_PDF);
-
-      if (numPDFs === 1) {
-        return this.export();
-      }
-
-      toast.loading(`Generating ${numPDFs} PDF files...`, { duration: 3000 });
-
-      const html2pdf = await import('html2pdf.js').then(module => module.default);
-      
-      const logoBase64 = await this.loadLogoAsBase64();
-
-      for (let i = 0; i < numPDFs; i++) {
-        const start = i * RECORDS_PER_PDF;
-        const end = Math.min(start + RECORDS_PER_PDF, allData.length);
-        const chunk = allData.slice(start, end);
-
-        const htmlContent = this.generateHTMLContent(chunk, allData, logoBase64);
-
-        const opt = {
-          margin: [0.3, 0.3, 0.3, 0.3],
-          filename: `report_part${i + 1}_of_${numPDFs}_${format(new Date(), 'yyyy-MM-dd')}.pdf`,
-          image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { 
-            scale: 1.2,
-            useCORS: true,
-            allowTaint: true,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: 1400,
-            windowHeight: window.innerHeight,
-            logging: false,
-          },
-          jsPDF: { 
-            unit: 'in', 
-            format: 'a4', 
-            orientation: 'landscape',
-            compress: true
-          },
-        };
-
-        await html2pdf().set(opt).from(htmlContent).save();
-
-        const progress = Math.round(((i + 1) / numPDFs) * 100);
-        this.onProgress?.(progress);
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      toast.success(`${numPDFs} PDF files generated successfully!`);
-
-    } catch (error) {
-      console.error("Error generating PDFs:", error);
-      
-      if (error instanceof Error && error.message.includes('Session expired')) {
-        toast.error(error.message);
-      } else {
-        toast.error("Error generating PDF files. Please try again.");
       }
       throw error;
     }

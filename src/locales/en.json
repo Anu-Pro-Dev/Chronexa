@@ -149,7 +149,7 @@
         "create_password": "Create Password",
         "password_generate": "Password Generate",
         "error_username": "Username is required",
-        "error_login": "An error occurred. Please try again",
+        "error_login": "Invalid username or password",
         "error_password": "Password is required",
         "forgot_password_msg": "Please connect with IT Department",
         "forgot_password_desc": "Enter your username to receive a password reset link"       

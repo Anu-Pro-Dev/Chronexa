@@ -9,7 +9,7 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
+import { getTeamLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
 
 interface LeaveAnalytic {
   LeaveYear: number;
@@ -60,7 +60,7 @@ function LeaveAnalyticsCard() {
   useEffect(() => {
     const fetchYearData = async () => {
       try {
-        const response = await getLeaveAnalytics(selectedYear);
+        const response = await getTeamLeaveAnalytics(selectedYear);
         if (response?.success && response.data?.length > 0) {
           setLeaveAnalytics(response.data);
         } else {

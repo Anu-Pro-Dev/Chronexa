@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, createContext, useContext, useCallback, useRef } from "react";
-import { getAttendanceDetails, getWorkSchedule, getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
+import { getAttendanceDetails, getWorkSchedule } from '@/src/lib/dashboardApiHandler';
 
 interface AttendanceDetails {
     [key: string]: any;

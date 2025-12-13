@@ -66,6 +66,34 @@ export const getWorkHourTrends = async (month?: string) => {
   );
 };
 
+export const getTeamAttendanceDetails = async (
+  date?: string,
+  month?: number,
+  year?: number
+) => {
+
+  const queryParams = new URLSearchParams();
+
+  if (date) queryParams.append("date", date);
+  if (month) queryParams.append("month", String(month));
+  if (year) queryParams.append("year", String(year));
+
+  const finalQuery = queryParams.toString();
+  const cacheKey = `team-attendance-${finalQuery || "default"}`;
+
+  return deduplicatedRequest(cacheKey, () =>
+    apiRequest(`/dashboard/teamAttendance${finalQuery ? `?${finalQuery}` : ''}`, "GET")
+  );
+};
+
+export const getTeamLeaveAnalytics = async (year?: number) => {
+  const queryParam = year ? `?year=${year}` : '';
+  const cacheKey = `leave-analytics-${year || 'current'}`;
+  return deduplicatedRequest(cacheKey, () =>
+    apiRequest(`/dashboard/teamLeaveAnalytics${queryParam}`, "GET")
+  );
+};
+
 let dashboardFetchPromise: Promise<any> | null = null;
 let dashboardFetchTimestamp = 0;
 

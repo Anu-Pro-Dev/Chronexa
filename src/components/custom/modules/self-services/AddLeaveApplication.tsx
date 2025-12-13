@@ -75,7 +75,7 @@ const formSchema = z.object({
 });
 
 export default function AddLeaveApplication({
-  on_open_change,
+  on_open_change
 }: {
   on_open_change?: any;
 }) {
@@ -141,11 +141,15 @@ export default function AddLeaveApplication({
       router.push("/self-services/leaves/my-request");
     },
     onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate leave request detected. Please use different values.");
-      } else {
-        toast.error("Failed to submit leave application. Please try again.");
-      }
+      console.error("API Error:", error);
+      
+      // Extract error message from API response
+      const errorMessage = 
+        error?.response?.data?.message || 
+        error?.message || 
+        "Failed to submit leave application. Please try again.";
+      
+      toast.error(errorMessage);
     },
   });
 
@@ -262,21 +266,17 @@ export default function AddLeaveApplication({
         (leaveType: any) => leaveType.leave_type_id.toString() === values.leave_types
       );
 
-      const fromDate = new Date(values.from_date);
-      fromDate.setHours(0, 0, 0, 0);
-      const fromDateISO = fromDate.toISOString();
-
-      const toDate = new Date(values.to_date);
-      toDate.setHours(23, 59, 59, 999);
-      const toDateISO = toDate.toISOString();
+      // Format dates in local timezone (YYYY-MM-DD format)
+      const fromDateLocal = format(values.from_date, 'yyyy-MM-dd');
+      const toDateLocal = format(values.to_date, 'yyyy-MM-dd');
 
       const numberOfLeaveDays = calculateLeaveDays(values.from_date, values.to_date);
 
       const payload: any = {
         leave_type_id: selectedLeaveType?.leave_type_id || null,
         employee_id: employeeId,
-        from_date: fromDateISO,
-        to_date: toDateISO,
+        from_date: fromDateLocal,  // Local date string: "2024-12-15"
+        to_date: toDateLocal,      // Local date string: "2024-12-31"
         number_of_leaves: numberOfLeaveDays,
         employee_remarks: values.employee_remarks,
       };
@@ -405,12 +405,12 @@ export default function AddLeaveApplication({
                             field.onChange(date)
                             closePopover('fromDate')
                           }}
-                          disabled={(date) => {
-                            const tomorrow = new Date();
-                            tomorrow.setDate(tomorrow.getDate() + 1);
-                            tomorrow.setHours(0, 0, 0, 0);
-                            return date < tomorrow;
-                          }}
+                          // disabled={(date) => {
+                          //   const tomorrow = new Date();
+                          //   tomorrow.setDate(tomorrow.getDate() + 1);
+                          //   tomorrow.setHours(0, 0, 0, 0);
+                          //   return date < tomorrow;
+                          // }}
                         />
                       </PopoverContent>
                     </Popover>
@@ -451,18 +451,29 @@ export default function AddLeaveApplication({
                           }}
                           disabled={(date) => {
                             const fromDate = form.getValues("from_date");
-                            
-                            if (!fromDate) {
-                              return true;
-                            }
-                            
-                            const startDate = new Date(fromDate);
-                            startDate.setHours(0, 0, 0, 0);
-                            
-                            const compareDate = new Date(date);
-                            compareDate.setHours(0, 0, 0, 0);
-                            return compareDate < startDate;
+
+                            // Block selecting today and past dates (same rule as From Date)
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            tomorrow.setHours(0, 0, 0, 0);
+
+                            // Always block past days
+                            if (date < tomorrow) return true;
+
+                            // If From Date not selected, only allow future dates
+                            if (!fromDate) return false;
+
+                            // Normalize both dates (remove time)
+                            const from = new Date(fromDate);
+                            from.setHours(0, 0, 0, 0);
+
+                            const current = new Date(date);
+                            current.setHours(0, 0, 0, 0);
+
+                            // Block selecting To Date earlier than From Date
+                            return current < from;
                           }}
+
                         />
                       </PopoverContent>
                     </Popover>

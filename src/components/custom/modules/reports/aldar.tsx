@@ -19,7 +19,6 @@ import { ExcelExporter } from './ExcelExporter';
 import { CSVExporter } from './CSVExporter';
 import { DeleteIcon, CalendarIcon, ExportExcelIcon, LoginIcon } from "@/src/icons/icons";
 import { FileText, Trash2Icon, TrashIcon } from "lucide-react";
-import Required from "@/src/components/ui/required";
 
 const formSchema = z.object({
   vertical: z.string().optional(),
@@ -480,7 +479,7 @@ export default function EmployeeReports() {
                   name="vertical"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Vertical <Required/></FormLabel>
+                      <FormLabel className="flex gap-1">Vertical</FormLabel>
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);

@@ -44,7 +44,7 @@ export default function Login() {
         <LanguageSwitcher/>
       </div>
       <div className="main-container h-full flex flex-col sm:flex-row">
-        <div className="hidden sm:flex sm:flex-1 relative"> 
+        {/* <div className="hidden sm:flex sm:flex-1 relative">
           <Image
             src="/AppBG.jpg"
             alt="Time Management"
@@ -53,6 +53,19 @@ export default function Login() {
             priority
             unoptimized
           />
+        </div> */}
+        {/* Center image wrapper */}
+        <div className="hidden sm:flex sm:flex-1 justify-center">
+          <div className="relative w-[55%] h-auto aspect-square">
+            <Image
+              src="/uaelogo.png"
+              alt="Time Management"
+              objectFit="contain"
+              layout="fill"
+              priority
+              unoptimized
+            />
+          </div> 
         </div>
         <div className="flex flex-1 justify-center items-center flex-col bg-fullpage">
           <div className="flex flex-col justify-center items-center">
@@ -65,7 +78,7 @@ export default function Login() {
                 className="pb-4"
               />
             </div>
-            <div className="w-full min-w-[300px]">
+            <div className="w-full min-w-[300px] lg:min-w-[320px] 2xl:min-w-[450px]">
               <LoginForm />
             </div>
           </div>
