@@ -342,7 +342,7 @@ export default function Page() {
         reject_modal_title="Reject Permission"
         reject_modal_description="Are you sure you want to reject the selected permission request(s)?"
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
           <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
@@ -396,6 +396,20 @@ export default function Page() {
                 onSelect={(date) => {
                   handleToDateChange(date);
                   closePopover('toDate');
+                }}
+                disabled={(date) => {
+                  // Use the fromDate state variable instead of form.getValues
+                  if (!fromDate) return false;
+
+                  // Normalize both dates (remove time)
+                  const from = new Date(fromDate);
+                  from.setHours(0, 0, 0, 0);
+
+                  const current = new Date(date);
+                  current.setHours(0, 0, 0, 0);
+
+                  // Block selecting To Date earlier than From Date
+                  return current < from;
                 }}
               />
             </PopoverContent>

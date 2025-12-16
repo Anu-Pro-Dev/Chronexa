@@ -84,7 +84,7 @@ export default function AddHoliday({
         <div className="flex flex-col gap-6">
           <div className="p-5 pb-0 flex flex-col">
             <div className="flex justify-between items-start gap-10">
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
+              <div className="flex flex-col flex-1 max-w-[350px] 3xl:max-w-[450px] gap-5">
                 <FormField
                   control={form.control}
                   name="code"
@@ -132,7 +132,7 @@ export default function AddHoliday({
                   )}
                 />
               </div>
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
+              <div className="flex flex-col flex-1 max-w-[350px] 3xl:max-w-[450px] gap-5">
                 <FormField
                   control={form.control}
                   name="reason_mode"
@@ -144,7 +144,7 @@ export default function AddHoliday({
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
+                          <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose organization" />
                           </SelectTrigger>
                         </FormControl>

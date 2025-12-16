@@ -87,7 +87,7 @@ export class PDFExporter {
     }
 
     if (this.formValues.employee_type) {
-      params.employee_type_id = this.formValues.employee_type.toString();
+      params.employee_type = this.formValues.employee_type.toString();
     }
 
     if (this.formValues.organization) {

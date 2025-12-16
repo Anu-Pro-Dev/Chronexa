@@ -11,12 +11,13 @@ import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
+import { Download } from "lucide-react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
-import { approveLeaveRequest } from "@/src/lib/apiHandler";
+import { approveLeaveRequest, downloadUploadedFile } from "@/src/lib/apiHandler";
 import toast from "react-hot-toast";
 import { InlineLoading } from "@/src/app/loading";
 
@@ -24,7 +25,7 @@ export default function Page() {
   const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
-  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [columns, setColumns] = useState<{ field: string; headerName: string; cellRenderer?: (data: any) => any }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("leave_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -103,6 +104,35 @@ export default function Page() {
       : leaveTypes.leave_type_eng || leaveTypes.leave_type_arb || "Unknown";
   }, [language]);
 
+  const AttachmentCellRenderer = useCallback((data: any) => {
+    const filePath = data.leave_doc_filename_path;
+    
+    if (!filePath || filePath === '-') {
+      return <span className="text-gray-400">-</span>;
+    }
+    
+    const handleDownload = async () => {
+      try {
+        await downloadUploadedFile(filePath);
+        toast.success('File downloaded successfully');
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error('Failed to download file');
+      }
+    };
+    
+    return (
+      <button 
+        onClick={handleDownload}
+        className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
+        title="Download attachment"
+      >
+        <Download className="w-4 h-4" />
+        <span>Download</span>
+      </button>
+    );
+  }, []);
+
   useEffect(() => {
     setColumns([
       { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
@@ -110,8 +140,13 @@ export default function Page() {
       { field: "from_date", headerName: t.from_date || "From Date" },
       { field: "to_date", headerName: t.to_date || "To Date" },
       { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
+      { 
+        field: "leave_doc_filename_path", 
+        headerName: "Attachment",
+        cellRenderer: AttachmentCellRenderer
+      },
     ]);
-  }, [language, t]);
+  }, [language, t, AttachmentCellRenderer]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
@@ -364,7 +399,7 @@ export default function Page() {
         reject_modal_title="Reject Leave"
         reject_modal_description="Are you sure you want to reject the selected leave request(s)?"
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
           <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
@@ -419,6 +454,17 @@ export default function Page() {
                   handleToDateChange(date);
                   closePopover('toDate');
                 }} 
+                disabled={(date) => {
+                  if (!fromDate) return false;
+
+                  const from = new Date(fromDate);
+                  from.setHours(0, 0, 0, 0);
+
+                  const current = new Date(date);
+                  current.setHours(0, 0, 0, 0);
+
+                  return current < from;
+                }}
               />
             </PopoverContent>
           </Popover>

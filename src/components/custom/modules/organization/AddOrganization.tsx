@@ -274,7 +274,7 @@ export default function AddOrganization({
                 <FormItem>
                   <FormLabel>{t.parent_type}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="max-w-[350px]">
+                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder={t.placeholder_parent_type} />
                     </SelectTrigger>
                     <SelectContent
@@ -304,7 +304,7 @@ export default function AddOrganization({
                 <FormItem>
                   <FormLabel>{t.parent}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="max-w-[350px]">
+                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder={t.placeholder_parent} />
                     </SelectTrigger>
                     <SelectContent
@@ -334,7 +334,7 @@ export default function AddOrganization({
                     <Required />
                   </FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="max-w-[350px]">
+                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder={t.placeholder_org_type} />
                     </SelectTrigger>
                     <SelectContent

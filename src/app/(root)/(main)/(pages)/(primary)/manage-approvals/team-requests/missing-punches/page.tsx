@@ -52,7 +52,7 @@ export default function Page() {
   }, [currentPage]);
 
   const getEmployeeName = useCallback((transaction: any) => {
-    const employee = transaction.employee_master;
+    const employee = transaction.employee;
 
     if (!employee) {
       return `Employee ${transaction.employee_id || "-"}`;
@@ -60,8 +60,8 @@ export default function Page() {
 
     const fullName =
       language === "ar"
-        ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
-        : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
+        ? `${employee.firstname_arb || ""}`.trim()
+        : `${employee.firstname_eng || ""}`.trim();
 
     return fullName || `Employee ${transaction.employee_id}`;
   }, [language]);
@@ -73,7 +73,7 @@ export default function Page() {
       { field: "transaction_date", headerName: "Date" },
       { field: "transaction_time", headerName: "Time" },
       { field: "reason", headerName: "Reason" },
-      { field: "remarks", headerName: "Remarks" },
+      // { field: "remarks", headerName: "Remarks" },
       { field: "transaction_status", headerName: "Status" },
     ]);
   }, [language, t]);
@@ -135,7 +135,7 @@ export default function Page() {
     if (!Array.isArray(punchesData?.data)) return [];
 
     return punchesData.data.map((transaction: any) => {
-      const empNo = transaction.employee_master?.emp_no || `EMP${transaction.employee_id}`;
+      const empNo = transaction.employee?.emp_no || `EMP${transaction.employee_id}`;
 
       return {
         ...transaction,
@@ -342,7 +342,7 @@ export default function Page() {
         reject_modal_title="Reject Missing Punch"
         reject_modal_description="Are you sure you want to reject the selected missing punch request(s)?"
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
           <Popover
             open={popoverStates.fromDate}
@@ -414,6 +414,20 @@ export default function Page() {
                 onSelect={(date) => {
                   handleToDateChange(date);
                   closePopover("toDate");
+                }}
+                disabled={(date) => {
+                  // Use the fromDate state variable instead of form.getValues
+                  if (!fromDate) return false;
+
+                  // Normalize both dates (remove time)
+                  const from = new Date(fromDate);
+                  from.setHours(0, 0, 0, 0);
+
+                  const current = new Date(date);
+                  current.setHours(0, 0, 0, 0);
+
+                  // Block selecting To Date earlier than From Date
+                  return current < from;
                 }}
               />
             </PopoverContent>

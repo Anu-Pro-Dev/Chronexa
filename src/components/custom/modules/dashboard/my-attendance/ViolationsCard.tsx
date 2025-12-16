@@ -201,7 +201,7 @@ function ViolationsCard() {
   const earlyOut = displayValues.earlyOut;
   
   return (
-    <div className="relative shadow-card h-full rounded-[10px] bg-accent px-2 pt-3 pb-10 flex flex-col items-center">
+    <div className="relative shadow-card h-full rounded-[10px] bg-accent px-2 py-3 flex flex-col items-center">
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute left-[50px] top-[50px]"></div>
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute right-[50px] bottom-[50px]"></div>
       <div className="flex flex-row justify-between py-4">

@@ -187,8 +187,8 @@ export default function Page() {
     }
     
     const fullName = language === "ar"
-      ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
-      : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
+      ? `${employee.firstname_arb || ""}`.trim()
+      : `${employee.firstname_eng || ""}`.trim();
     
     return fullName || `Emp ${transaction.employee_id}`;
   };
@@ -348,7 +348,7 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
         {/* Filter 1: VERTICAL ORGANIZATION */}
         <Popover
           open={popoverStates.vertical}

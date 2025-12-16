@@ -315,7 +315,7 @@ export default function AddOrganizationSchedule({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
@@ -361,7 +361,7 @@ export default function AddOrganizationSchedule({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
-                          className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                          className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
@@ -420,7 +420,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.organization}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                           disabled={isSearchingOrganizations}
@@ -496,7 +496,7 @@ export default function AddOrganizationSchedule({
                             role="combobox"
                             aria-expanded={popoverStates.schedule}
                             className={cn(
-                              "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                              "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                               !field.value && "text-text-secondary"
                             )}
                             disabled={isSearchingSchedules}
@@ -567,7 +567,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.monday}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                         >
@@ -629,7 +629,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.tuesday}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                         >
@@ -691,7 +691,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.wednesday}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                         >
@@ -752,7 +752,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.thursday}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                         >
@@ -814,7 +814,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.friday}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                         >
@@ -876,7 +876,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.saturday}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                         >
@@ -938,7 +938,7 @@ export default function AddOrganizationSchedule({
                           role="combobox"
                           aria-expanded={popoverStates.sunday}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                         >

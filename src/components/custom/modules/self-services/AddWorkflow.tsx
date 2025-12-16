@@ -359,12 +359,12 @@ export default function AddWorkflow() {
               {selectedRow ? "Edit Workflow" : "Generate the workflows"}
             </h1>
           </div>
-          <div className="grid lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-10">
             <FormField
               control={form.control}
               name="workflow_code"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
                   <FormLabel>Code <Required/></FormLabel>
                   <FormControl>
                     <Input placeholder="Enter the code" type="text" {...field} />
@@ -377,11 +377,11 @@ export default function AddWorkflow() {
               control={form.control}
               name="workflow_category"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
                   <FormLabel>Workflows <Required/></FormLabel>
                   <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                     <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Choose workflows category" />
                       </SelectTrigger>
                     </FormControl>
@@ -399,7 +399,7 @@ export default function AddWorkflow() {
               control={form.control}
               name="workflow_name"
               render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
                   <FormLabel>
                     {language === "ar"
                       ? "Workflow name (العربية) "
@@ -483,7 +483,7 @@ export default function AddWorkflow() {
                     onValueChange={(value) => updateStepData(rowId, 'roleId', value)}
                     onOpenChange={(open) => setShowRoleSearch(open)}
                   >
-                    <SelectTrigger className="max-w-[350px]">
+                    <SelectTrigger className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder="Choose role" />
                     </SelectTrigger>
                     <SelectContent
@@ -512,7 +512,7 @@ export default function AddWorkflow() {
                     value={stepData[rowId]?.onSuccess || ""}
                     onValueChange={(value) => updateStepData(rowId, 'onSuccess', value)}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder="Choose Step" />
                     </SelectTrigger>
                     <SelectContent>

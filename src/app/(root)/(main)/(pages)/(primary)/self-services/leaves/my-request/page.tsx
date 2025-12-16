@@ -10,6 +10,7 @@ import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
+import { Download } from "lucide-react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -18,12 +19,13 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
 import { InlineLoading } from "@/src/app/loading";
+import { downloadUploadedFile } from "@/src/lib/apiHandler";
 
 export default function Page() {
   const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
-  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [columns, setColumns] = useState<{ field: string; headerName: string; cellRenderer?: (data: any) => any }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("leave_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -111,6 +113,35 @@ export default function Page() {
     }
   }, [t]);
 
+  const AttachmentCellRenderer = useCallback((data: any) => {
+    const filePath = data.leave_doc_filename_path;
+    
+    if (!filePath || filePath === '-') {
+      return <span className="text-gray-400">-</span>;
+    }
+    
+    const handleDownload = async () => {
+      try {
+        await downloadUploadedFile(filePath);
+        toast.success('File downloaded successfully');
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error('Failed to download file');
+      }
+    };
+    
+    return (
+      <button 
+        onClick={handleDownload}
+        className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
+        title="Download attachment"
+      >
+        <Download className="w-4 h-4" />
+        <span>Download</span>
+      </button>
+    );
+  }, []);
+
   useEffect(() => {
     setColumns([
       { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
@@ -118,9 +149,14 @@ export default function Page() {
       { field: "to_date", headerName: t.to_date || "To Date" },
       { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
       { field: "employee_remarks", headerName: t.justification || "Justification" },
+      { 
+        field: "leave_doc_filename_path", 
+        headerName: "Attachment",
+        cellRenderer: AttachmentCellRenderer
+      },
       { field: "leave_status", headerName: t.status || "Status" },
     ]);
-  }, [language, t]);
+  }, [language, t, AttachmentCellRenderer]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
@@ -319,7 +355,7 @@ export default function Page() {
         entityName="employeeLeave"
         isAddNewPagePath="/self-services/leaves/my-request/add"
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
         <div>
           <Select onValueChange={handleStatusChange} value={selectedOption}>
             <SelectTrigger className="bg-accent border-grey">

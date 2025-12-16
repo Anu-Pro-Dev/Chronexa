@@ -30,7 +30,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange }) => {
   }, [value]);
 
   return (
-    <div className="w-full max-w-[350px] flex flex-col items-center space-y-4">
+    <div className="w-full max-w-[350px] 3xl:max-w-[450px] flex flex-col items-center space-y-4">
       <Popover>
         <PopoverTrigger className="flex justify-between items-center h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">  
           <span className="uppercase">{selectedColor}</span>

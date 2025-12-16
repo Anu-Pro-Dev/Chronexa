@@ -1203,3 +1203,42 @@ export const rejectManualPunchRequest = async (data: {
     payload
   );
 };
+
+// Function to download uploaded files
+export const downloadUploadedFile = async (filePath: string) => {
+  const token = getAuthToken();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
+
+  if (!token) {
+    throw new Error('Authentication token not found');
+  }
+
+  const response = await fetch(`${API_URL}${filePath}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to download file');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  
+  // Extract filename from path
+  const fileName = filePath.split('/').pop() || 'download';
+  link.download = fileName;
+  
+  document.body.appendChild(link);
+  link.click();
+  
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+
+  return { success: true, fileName };
+};

@@ -66,7 +66,7 @@ export default function Page() {
                 ? "bg-gradient-to-tl from-blue-600 to-blue-800 text-white"
                 : "bg-white text-gray-800 border border-gray-200"
             } ${
-              level === 0 ? "w-auto min-w-[45%] mx-auto mt-5" : level === 1 ? "w-[45%]" : "w-[50%]"
+              level === 0 ? "w-auto min-w-[45%] xl:min-w-[500px] xl:max-w-[500px] mx-auto mt-5" : level === 1 ? "w-[45%] xl:min-w-[500px] xl:max-w-[500px]": "w-[50%] xl:min-w-[550px] xl:max-w-[550px]"
             }`}
             onClick={() => hasChildren && toggleNode(node.organization_id)}
           >

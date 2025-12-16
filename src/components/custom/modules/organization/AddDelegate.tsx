@@ -250,7 +250,7 @@ export default function AddHoliday({
                         onOpenChange={(open) => setShowEmployeeSearch(open)}
                       >
                         <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
+                          <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder={t.placeholder_employee || "Choose employee"} />
                           </SelectTrigger>
                         </FormControl>
@@ -298,7 +298,7 @@ export default function AddHoliday({
                         onOpenChange={(open) => setShowDelegatedEmployeeSearch(open)}
                       >
                         <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
+                          <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder={t.placeholder_delegated_employee || "Choose delegated employee"} />
                           </SelectTrigger>
                         </FormControl>
@@ -344,7 +344,7 @@ export default function AddHoliday({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -387,7 +387,7 @@ export default function AddHoliday({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")

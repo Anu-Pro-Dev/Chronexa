@@ -41,7 +41,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
               onChange({ ...data, organization: value })
             }
           >
-            <SelectTrigger className="max-w-[350px]">
+            <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
               <SelectValue placeholder="Choose organization" />
             </SelectTrigger>
             <SelectContent>
@@ -61,7 +61,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
               onChange({ ...data, scheduleTimes: value })
             }
           >
-            <SelectTrigger className="max-w-[350px]">
+            <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
               <SelectValue placeholder="Choose organization" />
             </SelectTrigger>
             <SelectContent>
@@ -121,7 +121,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
                     handleTimeEntryChange(index, "inTime", value)
                   }
                 >
-                  <SelectTrigger className="max-w-[350px]">
+                  <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -142,7 +142,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
                     handleTimeEntryChange(index, "requiredWorkHours", value)
                   }
                 >
-                  <SelectTrigger className="max-w-[350px]">
+                  <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -167,7 +167,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
                     handleTimeEntryChange(index, "outTime", value)
                   }
                 >
-                  <SelectTrigger className="max-w-[350px]">
+                  <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>

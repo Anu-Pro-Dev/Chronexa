@@ -46,8 +46,15 @@ export default function EmployeeReports() {
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
+  
+  // Search terms for all dropdowns
+  const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const [divisionSearchTerm, setDivisionSearchTerm] = useState("");
+  const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
+  const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
+  
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
     total: 0,
@@ -74,7 +81,6 @@ export default function EmployeeReports() {
     queryKey: ["divisions", selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return null;
-      // Get all children of selected company from local data
       return allOrganizations?.data?.filter((org: any) => 
         org.parent_id === parseInt(selectedCompany)
       );
@@ -127,6 +133,35 @@ export default function EmployeeReports() {
 
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
+  // Debounced search functions
+  const debouncedCompanySearch = useCallback(
+    debounce((searchTerm: string) => {
+      setCompanySearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedDivisionSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setDivisionSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedDepartmentSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setDepartmentSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedEmployeeTypeSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setEmployeeTypeSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
   const debouncedEmployeeSearch = useCallback(
     debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
@@ -161,39 +196,68 @@ export default function EmployeeReports() {
 
   const getCompanyData = () => {
     if (!allOrganizations?.data || !Array.isArray(allOrganizations.data)) return [];
-    // Return only organizations with parent_id = 1
-    return allOrganizations.data.filter((item: any) => 
+    const companies = allOrganizations.data.filter((item: any) => 
       item?.parent_id === 1 && 
       item?.organization_id && 
       item.organization_id.toString().trim() !== ''
     );
+    
+    // Apply search filter
+    if (companySearchTerm) {
+      return companies.filter((item: any) => 
+        item?.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase())
+      );
+    }
+    return companies;
   };
 
   const getDivisionData = () => {
     if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedCompany) return [];
     const companyId = parseInt(selectedCompany);
-    // Return organizations that have selectedCompany as parent_id
-    return allOrganizations.data.filter((item: any) => 
+    const divisions = allOrganizations.data.filter((item: any) => 
       item?.parent_id === companyId && 
       item?.organization_id && 
       item.organization_id.toString().trim() !== ''
     );
+    
+    // Apply search filter
+    if (divisionSearchTerm) {
+      return divisions.filter((item: any) => 
+        item?.organization_eng?.toLowerCase().includes(divisionSearchTerm.toLowerCase())
+      );
+    }
+    return divisions;
   };
 
   const getDepartmentData = () => {
     if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedDivision) return [];
     const divisionId = parseInt(selectedDivision);
-    // Return organizations that have selectedDivision as parent_id (these are departments)
-    return allOrganizations.data.filter((item: any) => 
+    const departments = allOrganizations.data.filter((item: any) => 
       item?.parent_id === divisionId && 
       item?.organization_id && 
       item.organization_id.toString().trim() !== ''
     );
+    
+    // Apply search filter
+    if (departmentSearchTerm) {
+      return departments.filter((item: any) => 
+        item?.organization_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
+      );
+    }
+    return departments;
   };
 
   const getEmployeeTypesData = () => {
     if (!employeeTypes?.data) return [];
-    return employeeTypes.data.filter((item: any) => item.employee_type_id);
+    const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
+    
+    // Apply search filter
+    if (employeeTypeSearchTerm) {
+      return types.filter((item: any) => 
+        item?.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
+      );
+    }
+    return types;
   };
 
   const getManagerData = () => {
@@ -217,16 +281,12 @@ export default function EmployeeReports() {
     let baseData = [];
     
     if (employeeSearchTerm.length > 0) {
-      // Use search results if searching
       baseData = searchedEmployees?.data || [];
     } else if (selectedManagerId) {
-      // If manager is selected, use employees with that manager_id
       baseData = employees?.data || [];
     } else if (selectedDepartment) {
-      // If department is selected, use employees from that department
       baseData = employees?.data || [];
     } else {
-      // Default to all employees
       baseData = employees?.data || [];
     }
     
@@ -243,7 +303,6 @@ export default function EmployeeReports() {
     department_name_eng: "Department",
     employee_type: "EmployeeType",
     transdate: "transdate",
-    WorkDay: "WorkDay",
     punch_in: "PunchIn",
     GeoLocation_In: "GeoLocationIn",
     punch_out: "PunchOut",
@@ -422,10 +481,14 @@ export default function EmployeeReports() {
 
   useEffect(() => {
     return () => {
+      debouncedCompanySearch.cancel();
+      debouncedDivisionSearch.cancel();
+      debouncedDepartmentSearch.cancel();
+      debouncedEmployeeTypeSearch.cancel();
       debouncedEmployeeSearch.cancel();
       debouncedManagerSearch.cancel();
     };
-  }, [debouncedEmployeeSearch, debouncedManagerSearch]);
+  }, [debouncedCompanySearch, debouncedDivisionSearch, debouncedDepartmentSearch, debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -502,13 +565,20 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose company" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search companies..."
+                          onSearchChange={debouncedCompanySearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
                           {getCompanyData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">No companies found</div>
+                            <div className="p-3 text-sm text-text-secondary">
+                              {companySearchTerm ? "No companies found" : "No companies available"}
+                            </div>
                           ) : (
                             getCompanyData().map((item: any) => (
                               <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
@@ -541,13 +611,20 @@ export default function EmployeeReports() {
                         disabled={!selectedCompany}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose division" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search divisions..."
+                          onSearchChange={debouncedDivisionSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
                           {getDivisionData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">No divisions found</div>
+                            <div className="p-3 text-sm text-text-secondary">
+                              {divisionSearchTerm ? "No divisions found" : "No divisions available"}
+                            </div>
                           ) : (
                             getDivisionData().map((item: any) => (
                               <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
@@ -563,7 +640,7 @@ export default function EmployeeReports() {
                 />
 
                 {/* DEPARTMENT */}
-                {/* <FormField
+                <FormField
                   control={form.control}
                   name="department"
                   render={({ field }) => (
@@ -579,7 +656,7 @@ export default function EmployeeReports() {
                         disabled={!selectedDivision || isDepartmentsLoading}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder={
                               isDepartmentsLoading 
                                 ? "Loading departments..." 
@@ -587,12 +664,19 @@ export default function EmployeeReports() {
                             } />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search departments..."
+                          onSearchChange={debouncedDepartmentSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
                           {isDepartmentsLoading && (
                             <div className="p-3 text-sm text-text-secondary">Loading departments...</div>
                           )}
                           {!isDepartmentsLoading && getDepartmentData().length === 0 && (
-                            <div className="p-3 text-sm text-text-secondary">No departments found</div>
+                            <div className="p-3 text-sm text-text-secondary">
+                              {departmentSearchTerm ? "No departments found" : "No departments available"}
+                            </div>
                           )}
                           {!isDepartmentsLoading && getDepartmentData().map((item: any) => (
                             <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
@@ -604,10 +688,10 @@ export default function EmployeeReports() {
                       <FormMessage />
                     </FormItem>
                   )}
-                /> */}
+                />
 
                 {/* EMPLOYEE TYPE */}
-                {/* <FormField
+                <FormField
                   control={form.control}
                   name="employee_type"
                   render={({ field }) => (
@@ -618,16 +702,23 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose type" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search employee types..."
+                          onSearchChange={debouncedEmployeeTypeSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
                           {getEmployeeTypesData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">No employee types found</div>
+                            <div className="p-3 text-sm text-text-secondary">
+                              {employeeTypeSearchTerm ? "No employee types found" : "No employee types available"}
+                            </div>
                           ) : (
                             getEmployeeTypesData().map((item: any) => (
-                              <SelectItem key={item?.employee_type_id} value={item?.employee_type_id?.toString()}>
+                              <SelectItem key={item?.employee_type_id} value={item?.employee_type_eng || item?.employee_type_id?.toString()}>
                                 {item?.employee_type_eng || "Unnamed"}
                               </SelectItem>
                             ))
@@ -637,7 +728,7 @@ export default function EmployeeReports() {
                       <FormMessage />
                     </FormItem>
                   )}
-                /> */}
+                />
 
                 {/* MANAGER */}
                 <FormField
@@ -654,7 +745,7 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose manager" />
                           </SelectTrigger>
                         </FormControl>
@@ -662,7 +753,7 @@ export default function EmployeeReports() {
                           showSearch={true}
                           searchPlaceholder="Search managers..."
                           onSearchChange={debouncedManagerSearch}
-                          className="mt-5 w-full max-w-[350px]"
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {isSearchingManagers && managerSearchTerm.length > 0 && (
                             <div className="p-3 text-sm text-text-secondary">
@@ -698,7 +789,7 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose employee" />
                           </SelectTrigger>
                         </FormControl>
@@ -706,7 +797,7 @@ export default function EmployeeReports() {
                           showSearch={true}
                           searchPlaceholder="Search employees..."
                           onSearchChange={debouncedEmployeeSearch}
-                          className="mt-5 w-full max-w-[350px]"
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {isSearchingEmployees && employeeSearchTerm.length > 0 && (
                             <div className="p-3 text-sm text-text-secondary">
@@ -741,7 +832,7 @@ export default function EmployeeReports() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -779,7 +870,7 @@ export default function EmployeeReports() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")

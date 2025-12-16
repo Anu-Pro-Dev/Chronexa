@@ -422,21 +422,7 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
-      <div className="grid grid-cols-3 gap-4">
-        {/* <div>
-          <div className="bg-accent border border-grey rounded-full px-4 py-2 h-[40px] flex items-center">
-            <Label className="font-normal text-secondary whitespace-nowrap mr-2">
-              {t.employee_id || "Employee ID"} :
-            </Label>
-            <Input
-              type="text"
-              value={employeeFilter}
-              onChange={handleEmployeeFilterChange}
-              placeholder={t.placeholder_employee_id || "Enter Employee ID"}
-              className="bg-transparent border-0 p-0 h-auto font-semibold text-text-primary focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-text-primary"
-            />
-          </div>
-        </div> */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
           <Popover
             open={popoverStates.fromDate}

@@ -273,134 +273,137 @@ export default function Page() {
         isAddNewPagePath="/employee-master/employee/add"
       />
       {/* <div className="bg-white rounded-lg p-4 shadow-sm"> */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
 
           {/* Filter 1: VERTICAL ORGANIZATION */}
-          <Popover
-            open={popoverStates.vertical}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, vertical: open }))
-            }
-          >
-            <PopoverTrigger asChild>
-              <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
-                <p className="truncate w-64 text-left">
-                  <Label className="font-normal text-secondary">Vertical :</Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {selectedVertical
-                      ? getVerticalData().find((item: any) =>
-                          String(item.organization_id) === selectedVertical
-                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                      : "Choose Vertical"}
-                  </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
+          <div>
+            <Popover
+              open={popoverStates.vertical}
+              onOpenChange={(open) =>
+                setPopoverStates((prev) => ({ ...prev, vertical: open }))
+              }
+            >
+              <PopoverTrigger asChild>
+                <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
+                  <p className="truncate w-64 text-left">
+                    <Label className="font-normal text-secondary">Vertical :</Label>
+                    <span className="px-1 text-sm text-text-primary">
+                      {selectedVertical
+                        ? getVerticalData().find((item: any) =>
+                            String(item.organization_id) === selectedVertical
+                          )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                        : "Choose Vertical"}
+                    </span>
+                  </p>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
 
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-              <Command>
-                <CommandInput placeholder="Search vertical..." />
-                <CommandGroup className="max-h-64 overflow-auto">
-                  {getVerticalData().map((item: any) => (
-                    <CommandItem
-                      key={item.organization_id}
-                      onSelect={() => {
-                        setSelectedVertical(String(item.organization_id));
-                        setSelectedOrganization(""); // reset child organization
-                        closePopover("vertical");
-                      }}
-                    >
-                      {language === "ar" ? item.organization_arb : item.organization_eng}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder="Search vertical..." />
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getVerticalData().map((item: any) => (
+                      <CommandItem
+                        key={item.organization_id}
+                        onSelect={() => {
+                          setSelectedVertical(String(item.organization_id));
+                          setSelectedOrganization(""); // reset child organization
+                          closePopover("vertical");
+                        }}
+                      >
+                        {language === "ar" ? item.organization_arb : item.organization_eng}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
           {/* Filter 2: ORGANIZATION (Filtered by parent_id = selectedVertical) */}
-          <Popover
-            open={popoverStates.organization}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, organization: open }))
-            }
-          >
-            <PopoverTrigger asChild>
-              <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
-                <p className="truncate w-64 text-left">
-                  <Label className="font-normal text-secondary">Organization :</Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {selectedOrganization
-                      ? getOrganizationsData().find((item: any) =>
-                          String(item.organization_id) === selectedOrganization
-                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                      : "Choose Organization"}
-                  </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
+          <div>
+            <Popover
+              open={popoverStates.organization}
+              onOpenChange={(open) =>
+                setPopoverStates((prev) => ({ ...prev, organization: open }))
+              }
+            >
+              <PopoverTrigger asChild>
+                <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
+                  <p className="truncate w-64 text-left">
+                    <Label className="font-normal text-secondary">Organization :</Label>
+                    <span className="px-1 text-sm text-text-primary">
+                      {selectedOrganization
+                        ? getOrganizationsData().find((item: any) =>
+                            String(item.organization_id) === selectedOrganization
+                          )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                        : "Choose Organization"}
+                    </span>
+                  </p>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
 
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-              <Command>
-                <CommandInput placeholder="Search organization..." />
-                <CommandGroup className="max-h-64 overflow-auto">
-                  {getOrganizationsData().map((item: any) => (
-                    <CommandItem
-                      key={item.organization_id}
-                      onSelect={() => handleOrganizationChange(String(item.organization_id))}
-                    >
-                      {language === "ar" ? item.organization_arb : item.organization_eng}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder="Search organization..." />
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getOrganizationsData().map((item: any) => (
+                      <CommandItem
+                        key={item.organization_id}
+                        onSelect={() => handleOrganizationChange(String(item.organization_id))}
+                      >
+                        {language === "ar" ? item.organization_arb : item.organization_eng}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
           {/* Filter 3: EMPLOYEE TYPE (Already existed - no change except position) */}
-          <Popover 
-            open={popoverStates.employeeType} 
-            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
-          >
-            <PopoverTrigger asChild>
-              <Button 
-                size={"lg"} 
-                variant={"outline"}
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p className="truncate w-64 text-left">
-                  <Label className="font-normal text-secondary">Employee Type :</Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {selectedEmployeeType
-                      ? getEmployeeTypesData().find((item: any) => 
-                          String(item.employee_type_id) === selectedEmployeeType
-                        )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
-                      : "Choose type"}
-                  </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
+          <div>
+            <Popover 
+              open={popoverStates.employeeType} 
+              onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
+            >
+              <PopoverTrigger asChild>
+                <Button 
+                  size={"lg"} 
+                  variant={"outline"}
+                  className="w-full bg-accent px-4 flex justify-between border-grey"
+                >
+                  <p className="truncate w-64 text-left">
+                    <Label className="font-normal text-secondary">Employee Type :</Label>
+                    <span className="px-1 text-sm text-text-primary">
+                      {selectedEmployeeType
+                        ? getEmployeeTypesData().find((item: any) => 
+                            String(item.employee_type_id) === selectedEmployeeType
+                          )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
+                        : "Choose type"}
+                    </span>
+                  </p>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
 
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-              <Command>
-                <CommandInput placeholder="Search employee type..." />
-                <CommandGroup className="max-h-64 overflow-auto">
-                  {getEmployeeTypesData().map((item: any) => (
-                    <CommandItem
-                      key={item.employee_type_id}
-                      onSelect={() => handleEmployeeTypeChange(String(item.employee_type_id))}
-                    >
-                      {language === "ar" ? item.employee_type_arb : item.employee_type_eng}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder="Search employee type..." />
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getEmployeeTypesData().map((item: any) => (
+                      <CommandItem
+                        key={item.employee_type_id}
+                        onSelect={() => handleEmployeeTypeChange(String(item.employee_type_id))}
+                      >
+                        {language === "ar" ? item.employee_type_arb : item.employee_type_eng}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         {/* CLEAR FILTERS BUTTON */}

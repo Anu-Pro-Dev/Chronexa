@@ -104,7 +104,7 @@ export default function PowerForm({
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                             >
-                              <SelectTrigger className="max-w-[350px]">
+                              <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                                 <SelectValue placeholder="Choose option" />
                               </SelectTrigger>
                               <SelectContent>

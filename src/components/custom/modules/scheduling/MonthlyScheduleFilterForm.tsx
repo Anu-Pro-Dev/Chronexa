@@ -229,7 +229,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openOrganization}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingOrganizations}
@@ -284,7 +284,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openMonth}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                       >
@@ -338,7 +338,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openYear}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                       >
@@ -392,7 +392,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openDay}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                       >
@@ -446,7 +446,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openEmployee}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingEmployees || !!selectedManager}
@@ -501,7 +501,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openGroup}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingGroups}
@@ -556,7 +556,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openManager}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingManagers || !!selectedEmployee}
@@ -611,7 +611,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         role="combobox"
                         aria-expanded={openSchedule}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 max-w-[350px] 3xl:max-w-[450px] justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingSchedules || !selectedOrganization}

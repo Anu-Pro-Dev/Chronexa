@@ -273,7 +273,7 @@ export default function AddEmailSettings({
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="max-w-[350px]">
+                      <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                         <SelectValue placeholder="Choose encryption" />
                       </SelectTrigger>
                     </FormControl>

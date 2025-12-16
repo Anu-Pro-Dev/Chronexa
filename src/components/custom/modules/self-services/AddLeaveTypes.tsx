@@ -31,7 +31,7 @@ const formSchemaBasciSetup = z.object({
   leave_type_name: z
     .string({ required_error: "Leave type name is required" })
     .min(1, { message: "Leave type name is required" }),
-  workflows: z.string().min(1, { message: "Workflow is required." }).max(100),
+  workflows: z.string().optional(),
   specific_gender:z.string().optional(),
   total_entitled_days: z
     .number({
@@ -128,7 +128,7 @@ export default function AddLeaveTypes({
     defaultValues: {
       leave_type_code: "",
       leave_type_name: "",
-      workflows: "",
+      workflows: undefined,
       specific_gender: "",
       total_entitled_days: undefined,
       full_pay_days: undefined,
@@ -144,10 +144,9 @@ export default function AddLeaveTypes({
         (workflow: any) => workflow.workflow_id.toString() === values.workflows
       );
 
-      const basicData = {
+      const basicData: any = {
         leave_type_code: values.leave_type_code,
         leave_type_name: values.leave_type_name,
-        workflow_id: selectedWorkflow?.workflow_id || null,
         specific_gender: values?.specific_gender || "",
         total_entitled_days: values.total_entitled_days,
         apply_prior_to_days: values.apply_prior_to_days,
@@ -155,6 +154,10 @@ export default function AddLeaveTypes({
         half_pay_days: values.half_pay_days,
         unpaid_days: values.unpaid_days,
       };
+
+      if (selectedWorkflow?.workflow_id) {
+        basicData.workflow_id = selectedWorkflow.workflow_id;
+      }
 
       setBasicFormData(basicData);
       
@@ -181,7 +184,6 @@ export default function AddLeaveTypes({
 
       const combinedPayload: any = {
         leave_type_code: basicFormData.leave_type_code,
-        workflow_id: basicFormData.workflow_id,
         specific_gender: basicFormData.specific_gender,
         total_entitled_days: basicFormData.total_entitled_days,
         apply_prior_to_days: basicFormData.apply_prior_to_days,
@@ -202,6 +204,10 @@ export default function AddLeaveTypes({
         leave_by_overtime_flag: leaveAttributes.includes("Leave by Overtime"),
         apply_not_laterthandays_flag: leaveAttributes.includes("Apply Not Later than Days"),
       };
+
+      if (basicFormData.workflow_id) {
+        combinedPayload.workflow_id = basicFormData.workflow_id;
+      }
 
       if (language === "en") {
         combinedPayload.leave_type_eng = basicFormData.leave_type_name;
@@ -240,6 +246,7 @@ export default function AddLeaveTypes({
       formBasciSetup.setValue("full_pay_days", selectedRowData.full_pay_days || undefined);
       formBasciSetup.setValue("half_pay_days", selectedRowData.half_pay_days || undefined);
       formBasciSetup.setValue("unpaid_days", selectedRowData.unpaid_days || undefined);
+      
       const leaveAttributes: string[] = [];
       if (selectedRowData.need_approval_flag) leaveAttributes.push("Need Approval");
       if (selectedRowData.status_flag) leaveAttributes.push("Status");
@@ -256,19 +263,24 @@ export default function AddLeaveTypes({
       if (selectedRowData.apply_not_laterthandays_flag) leaveAttributes.push("Apply Not Later than Days");
       formPolicy.setValue("leave_attributes", leaveAttributes);
 
-      setBasicFormData({
+      const basicData: any = {
         leave_type_code: selectedRowData.leave_type_code || "",
         leave_type_name: language === "en"
           ? selectedRowData.leave_type_eng || ""
           : selectedRowData.leave_type_arb || "",
-        workflow_id: selectedRowData.workflow_id || null,
         specific_gender: selectedRowData.specific_gender,
         total_entitled_days: selectedRowData.total_entitled_days || undefined,
         apply_prior_to_days: selectedRowData.apply_prior_to_days || undefined,
         full_pay_days: selectedRowData.full_pay_days || undefined,
         half_pay_days: selectedRowData.half_pay_days || undefined,
         unpaid_days: selectedRowData.unpaid_days || undefined,
-      });
+      };
+
+      if (selectedRowData.workflow_id) {
+        basicData.workflow_id = selectedRowData.workflow_id;
+      }
+
+      setBasicFormData(basicData);
     }
   }, [selectedRowData, workflowData?.data, language, formBasciSetup, formPolicy]);
 
@@ -345,7 +357,7 @@ export default function AddLeaveTypes({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Workflows <Required />
+                      Workflows
                     </FormLabel>
                     <Select 
                       value={field.value} 
@@ -353,7 +365,7 @@ export default function AddLeaveTypes({
                       disabled={isWorkflowLoading}
                     >
                       <FormControl>
-                        <SelectTrigger className="max-w-[350px]">
+                        <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                           <SelectValue 
                             placeholder={
                               isWorkflowLoading 
@@ -396,7 +408,7 @@ export default function AddLeaveTypes({
                       onValueChange={field.onChange}
                     >
                       <FormControl>
-                        <SelectTrigger className="max-w-[350px]">
+                        <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                           <SelectValue 
                             placeholder="Choose Gender"
                           />

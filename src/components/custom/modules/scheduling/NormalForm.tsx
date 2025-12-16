@@ -177,7 +177,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                   disabled={orgsLoading}
                 >
                   <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
+                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder={t.placeholder_org || "Choose organization"} />
                     </SelectTrigger>
                   </FormControl>
@@ -227,7 +227,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                   disabled={locsLoading}
                 >
                   <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
+                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder={t.placeholder_schedule_location || "Choose schedule location"} />
                     </SelectTrigger>
                   </FormControl>
@@ -309,7 +309,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         <Button
                           variant="outline"
                           className={cn(
-                            "flex justify-between h-10 w-full max-w-[350px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                            "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
                             !displayValue && "text-muted-foreground"
                           )}
                         >
@@ -354,7 +354,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                         <Button
                           variant="outline"
                           className={cn(
-                            "flex justify-between h-10 w-full max-w-[350px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                            "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
                             !displayValue && "text-muted-foreground"
                           )}
                         >
@@ -447,7 +447,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                       >
                         {field.value ? (
                           format(field.value, "dd/MM/yy")

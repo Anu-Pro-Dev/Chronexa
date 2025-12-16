@@ -317,7 +317,7 @@ export default function AddEmployeeGroups({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(new Date(field.value), "dd/MM/yy")
@@ -360,7 +360,7 @@ export default function AddEmployeeGroups({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(new Date(field.value), "dd/MM/yy")
@@ -425,7 +425,7 @@ export default function AddEmployeeGroups({
                                 role="combobox"
                                 aria-expanded={popoverStates.manager}
                                 className={cn(
-                                  "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                                  "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                                   !field.value && "text-text-secondary"
                                 )}
                                 disabled={loadingManagers}

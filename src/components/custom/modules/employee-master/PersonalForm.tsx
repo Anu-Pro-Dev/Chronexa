@@ -87,7 +87,7 @@ export default function PersonalForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal  max-w-[350px] 3xl:max-w-[450px] "
                       >
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
@@ -209,7 +209,7 @@ export default function PersonalForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal  max-w-[350px] 3xl:max-w-[450px] "
                       >
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
@@ -254,7 +254,7 @@ export default function PersonalForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal  max-w-[350px] 3xl:max-w-[450px] "
                       >
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
@@ -350,7 +350,7 @@ export default function PersonalForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal  max-w-[350px] 3xl:max-w-[450px] "
                       >
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
@@ -409,7 +409,7 @@ export default function PersonalForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button size={"lg"} variant={"outline"}
-                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal max-w-[350px]"
+                        className="w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal  max-w-[350px] 3xl:max-w-[450px] "
                       >
                         {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                           format(field.value, "dd/MM/yy")
@@ -472,7 +472,7 @@ export default function PersonalForm({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="max-w-[350px]">
+                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                       <SelectValue placeholder={t.placeholder_gender || "Choose Gender"} />
                     </SelectTrigger>
                   </FormControl>

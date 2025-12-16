@@ -13,6 +13,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { format } from "date-fns";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -26,12 +27,11 @@ export default function Page() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useState<string>("all");
   const [recipient, setRecipient] = useState<string>("");
   const queryClient = useQueryClient();
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const debouncedStatus = useDebounce(status, 300);
   const debouncedRecipient = useDebounce(recipient, 300);
   const t = translations?.modules?.organization || {};
   const [popoverStates, setPopoverStates] = useState({
@@ -39,12 +39,24 @@ export default function Page() {
     toDate: false,
   });
 
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return "Choose date";
-    const day = String(date.getDate()).padStart(2, '0');
+  const formatDateForAPI = (date: Date) => {
+    const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDateForDisplay = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch {
+      return dateString;
+    }
   };
 
   const closePopover = (key: string) => {
@@ -81,6 +93,7 @@ export default function Page() {
       { field: "subject_text", headerName: "Subject" },
       { field: "body_text", headerName: "Body" },
       { field: "email_status_display", headerName: "Status"},
+      { field: "processed_date", headerName: "Sent At" },
       { field: "cc_email", headerName: "CC Email" },
       { field: "bcc_email", headerName: "BCC Email" },
     ]);
@@ -91,8 +104,10 @@ export default function Page() {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
-      ...(debouncedStatus && { status: debouncedStatus }),
+      ...(status && status !== "all" && { status: status }),
       ...(debouncedRecipient && { recipient: debouncedRecipient }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
     },
   });
 
@@ -121,6 +136,7 @@ export default function Page() {
           to_text: stripHtmlTags(taEmail.to_text || ""),
           cc_email: stripHtmlTags(taEmail.cc_email || ""),
           bcc_email: stripHtmlTags(taEmail.bcc_email || ""),
+          processed_date: formatDateForDisplay(taEmail.processed_date),
           email_status_display: statusInfo.label,
           email_status_color: statusInfo.color,
           email_status_bg: statusInfo.bgColor,
@@ -142,7 +158,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -150,25 +166,42 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
     setCurrentPage(1);
   }, []);
 
-  const handleStatusChange = useCallback((newStatus: string) => {
-    setStatus(newStatus === "all" ? "" : newStatus);
+  const handleFilterChange = useCallback(() => {
     setCurrentPage(1);
-  }, []);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleStatusChange = useCallback((newStatus: string) => {
+    setStatus(newStatus);
+    handleFilterChange();
+  }, [handleFilterChange]);
 
   const handleRecipientChange = useCallback((newRecipient: string) => {
     setRecipient(newRecipient);
     setCurrentPage(1);
   }, []);
 
+  const handleFromDateChange = (date: Date | undefined) => {
+    setFromDate(date);
+    handleFilterChange();
+  };
+
+  const handleToDateChange = (date: Date | undefined) => {
+    setToDate(date);
+    handleFilterChange();
+  };
+
   const handleClearFilters = useCallback(() => {
-    setStatus("");
+    setStatus("all");
     setRecipient("");
     setFromDate(undefined);
     setToDate(undefined);
@@ -271,7 +304,24 @@ export default function Page() {
         disableDelete
       />
       
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
+        <div>
+          <Select onValueChange={handleStatusChange} value={status}>
+            <SelectTrigger className="bg-accent border-grey">
+              <Label className="font-normal text-secondary">
+                Status :
+              </Label>
+              <SelectValue placeholder="Choose status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="0">Pending</SelectItem>
+              <SelectItem value="1">Processed</SelectItem>
+              <SelectItem value="2">Failed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div>
           <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
@@ -285,7 +335,7 @@ export default function Page() {
                     From Date :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {formatDate(fromDate)}
+                    {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}
                   </span>
                 </p>
                 <CalendarIcon />
@@ -296,7 +346,7 @@ export default function Page() {
                 mode="single"
                 selected={fromDate}
                 onSelect={(date) => {
-                  setFromDate(date);
+                  handleFromDateChange(date);
                   closePopover('fromDate');
                 }}
               />
@@ -317,7 +367,7 @@ export default function Page() {
                     To Date :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {formatDate(toDate)}
+                    {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}
                   </span>
                 </p>
                 <CalendarIcon />
@@ -328,9 +378,20 @@ export default function Page() {
                 mode="single" 
                 selected={toDate} 
                 onSelect={(date) => {
-                  setToDate(date);
+                  handleToDateChange(date);
                   closePopover('toDate');
                 }} 
+                disabled={(date) => {
+                  if (!fromDate) return false;
+
+                  const from = new Date(fromDate);
+                  from.setHours(0, 0, 0, 0);
+
+                  const current = new Date(date);
+                  current.setHours(0, 0, 0, 0);
+
+                  return current < from;
+                }}
               />
             </PopoverContent>
           </Popover>
@@ -343,9 +404,9 @@ export default function Page() {
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
         overrideCheckbox={true}
-        customColDef={{
-          flex: 0,
-        }}
+        // customColDef={{
+        //   flex: 0,
+        // }}
       />
     </div>
   );

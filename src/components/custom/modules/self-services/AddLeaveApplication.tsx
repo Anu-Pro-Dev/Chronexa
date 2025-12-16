@@ -344,7 +344,7 @@ export default function AddLeaveApplication({
                       disabled={isLeaveTypesLoading}
                     >
                       <FormControl>
-                        <SelectTrigger className="max-w-[350px]">
+                        <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                           <SelectValue 
                             placeholder={
                               isLeaveTypesLoading 
@@ -386,7 +386,7 @@ export default function AddLeaveApplication({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                           >
                             {field.value ? (
                               format(field.value, "dd/MM/yy")
@@ -430,7 +430,7 @@ export default function AddLeaveApplication({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button size={"lg"} variant={"outline"}
-                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                           >
                             {field.value ? (
                               format(field.value, "dd/MM/yy")
@@ -452,14 +452,6 @@ export default function AddLeaveApplication({
                           disabled={(date) => {
                             const fromDate = form.getValues("from_date");
 
-                            // Block selecting today and past dates (same rule as From Date)
-                            const tomorrow = new Date();
-                            tomorrow.setDate(tomorrow.getDate() + 1);
-                            tomorrow.setHours(0, 0, 0, 0);
-
-                            // Always block past days
-                            if (date < tomorrow) return true;
-
                             // If From Date not selected, only allow future dates
                             if (!fromDate) return false;
 
@@ -473,7 +465,6 @@ export default function AddLeaveApplication({
                             // Block selecting To Date earlier than From Date
                             return current < from;
                           }}
-
                         />
                       </PopoverContent>
                     </Popover>
@@ -514,7 +505,7 @@ export default function AddLeaveApplication({
                     <FormControl>
                       <Textarea 
                         placeholder="Add your remarks here"
-                        className="max-w-[350px]" 
+                        className="max-w-[350px] 3xl:max-w-[450px]" 
                         {...field} 
                         rows={4}
                         onChange={(e) => {

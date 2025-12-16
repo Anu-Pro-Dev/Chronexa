@@ -314,7 +314,8 @@ export default function Page() {
         entityName="employeeShortPermission"
         isAddNewPagePath="/self-services/permissions/my-request/add"
       />
-      <div className="grid grid-cols-3 gap-4">
+      
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
         <div>
           <Select onValueChange={handleStatusChange} value={selectedOption}>
             <SelectTrigger className="bg-accent border-grey">

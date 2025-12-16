@@ -60,6 +60,7 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { open, setOpen } = useSidebar();
   const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const [isDesktop, setIsDesktop] = React.useState(true);
 
   const getModuleTranslation = (moduleKey: string) => {
     const normalizedKey = moduleKey.toLowerCase().replace(/\s+/g, "_");
@@ -81,8 +82,26 @@ export default function AppSidebar() {
     return () => observer.disconnect();
   }, []);
 
+  // Check screen size and force collapse on mobile/tablet
+  React.useEffect(() => {
+    const checkScreenSize = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      
+      // Force collapse on mobile/tablet
+      if (!desktop) {
+        setOpen(false);
+      }
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [setOpen]);
+
+  // Only allow expand on desktop (1024px and above)
   const handleExpand = () => { 
-    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+    if (isDesktop) {
       setOpen(true); 
     }
   };
@@ -108,25 +127,33 @@ export default function AppSidebar() {
             <Image width={125} height={100} alt="logo" src={getMainLogo()} />
           </div>
         )}
-        {open && (
+        {/* Show collapse button only on desktop (1024px+) when sidebar is open */}
+        {open && isDesktop && (
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => setOpen(!open)} 
-            className="p-2.5 rounded-lg bg-backdrop hover:bg-backdrop transition hidden lg:flex" 
+            className="p-2.5 rounded-lg bg-backdrop hover:bg-backdrop transition" 
             aria-label="Collapse sidebar"
           >
             <MenuFold className='text-primary' />
           </Button>
         )}
+        {/* Show mono logo when collapsed - only clickable on desktop */}
         {!open && (
-          <div className="p-1 rounded-lg cursor-pointer" onClick={handleExpand}>
+          <div 
+            className={cn(
+              "p-1 rounded-lg",
+              isDesktop && "cursor-pointer hover:opacity-80"
+            )} 
+            onClick={handleExpand}
+          >
             <Image 
               width={25} 
               height={25} 
               alt="logo" 
               src={getMonoLogo()} 
-              className="transition-opacity hover:opacity-80"
+              className="transition-opacity"
             />
           </div>
         )}
@@ -161,7 +188,7 @@ export default function AppSidebar() {
                     <SidebarMenuButton 
                       asChild
                       isActive={isActive}
-                       tooltip={translatedName}
+                      tooltip={translatedName}
                       className={cn(
                         "transition",
                         open ? "gap-3 rounded-full" : "rounded-md justify-center",

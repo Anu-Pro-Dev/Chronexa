@@ -34,7 +34,7 @@ export default function OfficialForm({
   const { language, translations } = useLanguage();
   const t = translations?.modules?.employeeMaster || {};
   const errT = translations?.formErrors || {};
-  
+
   const managerFlagChecked = officialForm.watch("manager_flag");
 
   const [openEmployeeType, setOpenEmployeeType] = useState(false);
@@ -57,31 +57,31 @@ export default function OfficialForm({
     queryFn: getManagerEmployees,
   });
 
-  const getEmployeeTypesData = () => (employeeTypes?.data || []).filter((item: any) => 
+  const getEmployeeTypesData = () => (employeeTypes?.data || []).filter((item: any) =>
     item.employee_type_id && item.employee_type_id.toString().trim() !== ''
   );
-  
-  const getLocationsData = () => (locations?.data || []).filter((item: any) => 
+
+  const getLocationsData = () => (locations?.data || []).filter((item: any) =>
     item.location_id && item.location_id.toString().trim() !== ''
   );
-  
-  const getCitizenshipsData = () => (citizenships?.data || []).filter((item: any) => 
+
+  const getCitizenshipsData = () => (citizenships?.data || []).filter((item: any) =>
     item.citizenship_id && item.citizenship_id.toString().trim() !== ''
   );
-  
-  const getDesignationsData = () => (designations?.data || []).filter((item: any) => 
+
+  const getDesignationsData = () => (designations?.data || []).filter((item: any) =>
     item.designation_id && item.designation_id.toString().trim() !== ''
   );
-  
-  const getOrganizationsData = () => (organizations?.data || []).filter((item: any) => 
+
+  const getOrganizationsData = () => (organizations?.data || []).filter((item: any) =>
     item.organization_id && item.organization_id.toString().trim() !== ''
   );
-  
-  const getGradesData = () => (grades?.data || []).filter((item: any) => 
+
+  const getGradesData = () => (grades?.data || []).filter((item: any) =>
     item.grade_id && item.grade_id.toString().trim() !== ''
   );
-  
-  const getManagersData = () => (managerEmployees?.data || []).filter((emp: any) => 
+
+  const getManagersData = () => (managerEmployees?.data || []).filter((emp: any) =>
     emp.employee_id != null
   );
 
@@ -138,7 +138,7 @@ export default function OfficialForm({
                         role="combobox"
                         aria-expanded={openEmployeeType}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingEmployeeTypes}
@@ -146,8 +146,8 @@ export default function OfficialForm({
                         <span className="truncate">
                           {field.value
                             ? getEmployeeTypesData().find(
-                                (item: any) => item.employee_type_id === field.value
-                              )?.employee_type_eng
+                              (item: any) => item.employee_type_id === field.value
+                            )?.employee_type_eng
                             : t.placeholder_emp_type || "Choose employee type"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -202,7 +202,7 @@ export default function OfficialForm({
                         role="combobox"
                         aria-expanded={openLocation}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingLocations}
@@ -210,8 +210,8 @@ export default function OfficialForm({
                         <span className="truncate">
                           {field.value
                             ? getLocationsData().find(
-                                (item: any) => item.location_id === field.value
-                              )?.location_eng
+                              (item: any) => item.location_id === field.value
+                            )?.location_eng
                             : t.placeholder_location || "Choose location"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -266,7 +266,7 @@ export default function OfficialForm({
                         role="combobox"
                         aria-expanded={openCitizenship}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingCitizenships}
@@ -274,8 +274,8 @@ export default function OfficialForm({
                         <span className="truncate">
                           {field.value
                             ? getCitizenshipsData().find(
-                                (item: any) => item.citizenship_id === field.value
-                              )?.citizenship_eng
+                              (item: any) => item.citizenship_id === field.value
+                            )?.citizenship_eng
                             : t.placeholder_citizenship || "Choose citizenship"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -330,7 +330,7 @@ export default function OfficialForm({
                         role="combobox"
                         aria-expanded={openDesignation}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingDesignations}
@@ -338,15 +338,15 @@ export default function OfficialForm({
                         <span className="truncate">
                           {field.value
                             ? getDesignationsData().find(
-                                (item: any) => item.designation_id === field.value
-                              )?.designation_eng
+                              (item: any) => item.designation_id === field.value
+                            )?.designation_eng
                             : t.placeholder_designation || "Choose designation"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="max-w-[350px] p-0">
+                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px]  p-0">
                     <Command>
                       <CommandInput placeholder={t.search || "Search designation..."} />
                       <CommandEmpty>{t.no_results || "No designation found"}</CommandEmpty>
@@ -394,7 +394,7 @@ export default function OfficialForm({
                         role="combobox"
                         aria-expanded={openOrganization}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingOrganizations}
@@ -402,15 +402,15 @@ export default function OfficialForm({
                         <span className="truncate">
                           {field.value
                             ? getOrganizationsData().find(
-                                (item: any) => item.organization_id === field.value
-                              )?.organization_eng
+                              (item: any) => item.organization_id === field.value
+                            )?.organization_eng
                             : t.placeholder_organization || "Choose organization"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="max-w-[350px] p-0">
+                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px]  p-0">
                     <Command>
                       <CommandInput placeholder={t.search || "Search organization..."} />
                       <CommandEmpty>{t.no_results || "No organization found"}</CommandEmpty>
@@ -456,7 +456,7 @@ export default function OfficialForm({
                         role="combobox"
                         aria-expanded={openGrade}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingGrades}
@@ -464,17 +464,17 @@ export default function OfficialForm({
                         <span className="truncate">
                           {field.value
                             ? (getGradesData().find(
-                                (item: any) => item.grade_id === field.value
-                              )?.grade_eng || getGradesData().find(
-                                (item: any) => item.grade_id === field.value
-                              )?.grade_name)
+                              (item: any) => item.grade_id === field.value
+                            )?.grade_eng || getGradesData().find(
+                              (item: any) => item.grade_id === field.value
+                            )?.grade_name)
                             : t.placeholder_grade || "Choose grade"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="max-w-[350px] p-0">
+                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px]  p-0">
                     <Command>
                       <CommandInput placeholder={t.search || "Search grade..."} />
                       <CommandEmpty>{t.no_results || "No grade found"}</CommandEmpty>
@@ -520,7 +520,7 @@ export default function OfficialForm({
                         role="combobox"
                         aria-expanded={openManager}
                         className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] justify-between",
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
                           !field.value && "text-text-secondary"
                         )}
                         disabled={loadingManagers}
@@ -528,15 +528,15 @@ export default function OfficialForm({
                         <span className="truncate">
                           {field.value
                             ? getManagersData().find(
-                                (emp: any) => emp.employee_id === field.value
-                              )?.firstname_eng
+                              (emp: any) => emp.employee_id === field.value
+                            )?.firstname_eng
                             : t.placeholder_manager || "Choose manager"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="max-w-[350px] p-0">
+                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px]p-0">
                     <Command>
                       <CommandInput placeholder={t.search || "Search manager..."} />
                       <CommandEmpty>{t.no_results || "No manager found"}</CommandEmpty>

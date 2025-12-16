@@ -80,7 +80,7 @@ export default function ReprocessData() {
         <div className="flex flex-col gap-6">
           <div className="p-5 flex flex-col pb-0">
             <div className="flex justify-between items-start gap-10">
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
+              <div className="flex flex-col flex-1 max-w-[350px] 3xl:max-w-[450px] gap-5">
                 <FormField
                   control={form.control}
                   name="employee"
@@ -92,7 +92,7 @@ export default function ReprocessData() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
+                          <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose employee" />
                           </SelectTrigger>
                         </FormControl>
@@ -164,7 +164,7 @@ export default function ReprocessData() {
                   )}
                 />
               </div>
-              <div className="flex flex-col flex-1 max-w-[350px] gap-5">
+              <div className="flex flex-col flex-1 max-w-[350px] 3xl:max-w-[450px] gap-5">
                 <FormField
                   control={form.control}
                   name="organization"
@@ -176,7 +176,7 @@ export default function ReprocessData() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="max-w-[350px]">
+                          <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose organization" />
                           </SelectTrigger>
                         </FormControl>

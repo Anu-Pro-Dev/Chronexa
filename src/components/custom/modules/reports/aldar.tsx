@@ -45,8 +45,15 @@ export default function EmployeeReports() {
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
+  
+  // Search terms for all dropdowns
+  const [verticalSearchTerm, setVerticalSearchTerm] = useState("");
+  const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
+  const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
+  
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
     total: 0,
@@ -111,6 +118,35 @@ export default function EmployeeReports() {
 
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
+  // Debounced search functions for all dropdowns
+  const debouncedVerticalSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setVerticalSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedCompanySearch = useCallback(
+    debounce((searchTerm: string) => {
+      setCompanySearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedDepartmentSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setDepartmentSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedEmployeeTypeSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setEmployeeTypeSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
   const debouncedEmployeeSearch = useCallback(
     debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
@@ -155,14 +191,36 @@ export default function EmployeeReports() {
         });
       }
     });
-    return Array.from(parentMap.values());
+    
+    const verticals = Array.from(parentMap.values());
+    
+    // Filter by search term
+    if (verticalSearchTerm) {
+      return verticals.filter((item: any) => 
+        item.organization_eng?.toLowerCase().includes(verticalSearchTerm.toLowerCase()) ||
+        item.organization_arb?.toLowerCase().includes(verticalSearchTerm.toLowerCase())
+      );
+    }
+    
+    return verticals;
   };
 
   const getCompanyData = () => {
     if (!organizations?.data || !selectedVertical) return [];
-    return organizations.data.filter(
+    
+    const companies = organizations.data.filter(
       (item: any) => String(item.parent_id) === selectedVertical
     );
+    
+    // Filter by search term
+    if (companySearchTerm) {
+      return companies.filter((item: any) => 
+        item.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
+        item.organization_arb?.toLowerCase().includes(companySearchTerm.toLowerCase())
+      );
+    }
+    
+    return companies;
   };
 
   const getDepartmentData = () => {
@@ -184,12 +242,34 @@ export default function EmployeeReports() {
       }
     });
     
-    return Array.from(departmentsMap.values());
+    const departments = Array.from(departmentsMap.values());
+    
+    // Filter by search term
+    if (departmentSearchTerm) {
+      return departments.filter((item: any) => 
+        item.department_name_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
+        item.department_name_arb?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
+        item.department_code?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
+      );
+    }
+    
+    return departments;
   };
 
   const getEmployeeTypesData = () => {
     if (!employeeTypes?.data) return [];
-    return employeeTypes.data.filter((item: any) => item.employee_type_id);
+    
+    const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
+    
+    // Filter by search term
+    if (employeeTypeSearchTerm) {
+      return types.filter((item: any) => 
+        item.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase()) ||
+        item.employee_type_arb?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
+      );
+    }
+    
+    return types;
   };
 
   const getManagerData = () => {
@@ -290,7 +370,6 @@ export default function EmployeeReports() {
     };
   };
 
-  // Enhanced progress callback
   const handleProgressUpdate = (current: number, total: number, phase: string) => {
     setProgressDetails({ 
       current, 
@@ -298,21 +377,17 @@ export default function EmployeeReports() {
       phase: phase as 'initializing' | 'fetching' | 'processing' | 'generating' | 'complete'
     });
     
-    // Calculate percentage based on phase
     let percentage = 0;
     
     if (phase === 'initializing') {
       percentage = 0;
     } else if (phase === 'fetching') {
-      // 70% of progress bar for fetching
       if (total > 0) {
         percentage = Math.min(Math.round((current / total) * 70), 70);
       }
     } else if (phase === 'processing') {
-      // 70% (fetched) + 15% (processing)
       percentage = 85;
     } else if (phase === 'generating') {
-      // 70% (fetched) + 15% (processing) + partial generating
       percentage = 95;
     } else if (phase === 'complete') {
       percentage = 100;
@@ -411,10 +486,15 @@ export default function EmployeeReports() {
 
   useEffect(() => {
     return () => {
+      debouncedVerticalSearch.cancel();
+      debouncedCompanySearch.cancel();
+      debouncedDepartmentSearch.cancel();
+      debouncedEmployeeTypeSearch.cancel();
       debouncedEmployeeSearch.cancel();
       debouncedManagerSearch.cancel();
     };
-  }, [debouncedEmployeeSearch, debouncedManagerSearch]);
+  }, [debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch, 
+      debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -491,11 +571,21 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose vertical" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search verticals..."
+                          onSearchChange={debouncedVerticalSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getVerticalData().length === 0 && verticalSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No verticals found
+                            </div>
+                          )}
                           {getVerticalData().map((item: any) => (
                             <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
                               {item.organization_eng}
@@ -526,11 +616,21 @@ export default function EmployeeReports() {
                         disabled={!selectedVertical}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose company" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search companies..."
+                          onSearchChange={debouncedCompanySearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getCompanyData().length === 0 && companySearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No companies found
+                            </div>
+                          )}
                           {getCompanyData().map((item: any) => (
                             <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
                               {item.organization_eng}
@@ -560,7 +660,7 @@ export default function EmployeeReports() {
                         disabled={!selectedCompany || isDepartmentsLoading}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder={
                               isDepartmentsLoading 
                                 ? "Loading departments..." 
@@ -568,7 +668,17 @@ export default function EmployeeReports() {
                             } />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search departments..."
+                          onSearchChange={debouncedDepartmentSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getDepartmentData().length === 0 && departmentSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No departments found
+                            </div>
+                          )}
                           {getDepartmentData().map((item: any) => (
                             <SelectItem key={item.department_id} value={item.department_id.toString()}>
                               {item.department_name_eng || item.department_code}
@@ -593,13 +703,23 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose type" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="mt-5 w-full max-w-[350px]">
+                        <SelectContent 
+                          showSearch={true}
+                          searchPlaceholder="Search employee types..."
+                          onSearchChange={debouncedEmployeeTypeSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getEmployeeTypesData().length === 0 && employeeTypeSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              No employee types found
+                            </div>
+                          )}
                           {getEmployeeTypesData().map((item: any) => (
-                            <SelectItem key={item.employee_type_id} value={item.employee_type_id.toString()}>
+                            <SelectItem key={item.employee_type_id} value={item.employee_type_eng || item.employee_type_id.toString()}>
                               {item.employee_type_eng}
                             </SelectItem>
                           ))}
@@ -625,7 +745,7 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose manager" />
                           </SelectTrigger>
                         </FormControl>
@@ -633,7 +753,7 @@ export default function EmployeeReports() {
                           showSearch={true}
                           searchPlaceholder="Search managers..."
                           onSearchChange={debouncedManagerSearch}
-                          className="mt-5 w-full max-w-[350px]"
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {isSearchingManagers && managerSearchTerm.length > 0 && (
                             <div className="p-3 text-sm text-text-secondary">
@@ -656,7 +776,7 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
-
+                
                 {/* EMPLOYEE */}
                 <FormField
                   control={form.control}
@@ -669,7 +789,7 @@ export default function EmployeeReports() {
                         value={field.value || ""}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px]">
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder="Choose employee" />
                           </SelectTrigger>
                         </FormControl>
@@ -677,7 +797,7 @@ export default function EmployeeReports() {
                           showSearch={true}
                           searchPlaceholder="Search employees..."
                           onSearchChange={debouncedEmployeeSearch}
-                          className="mt-5 w-full max-w-[350px]"
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {isSearchingEmployees && employeeSearchTerm.length > 0 && (
                             <div className="p-3 text-sm text-text-secondary">
@@ -712,7 +832,7 @@ export default function EmployeeReports() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
@@ -750,7 +870,7 @@ export default function EmployeeReports() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button size={"lg"} variant={"outline"}
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] text-sm font-normal"
+                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
