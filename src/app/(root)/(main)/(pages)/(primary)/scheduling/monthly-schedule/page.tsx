@@ -6,6 +6,7 @@ import FilterForm from "@/src/components/custom/modules/scheduling/MonthlySchedu
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import MonthlyScheduleTable from "./schedule-table";
+import AddMonthlySchedule from "@/src/components/custom/modules/scheduling/AddMonthlySchedule";
 import {
   CopyIcon,
   ExportIcon,
@@ -13,7 +14,7 @@ import {
   PasteIcon,
 } from "@/src/icons/icons";
 import toast from "react-hot-toast";
-import { importMonthlyRosterRequest } from "@/src/lib/apiHandler";
+import { importMonthlyScheduleRequest } from "@/src/lib/apiHandler";
 import { getAuthToken } from "@/src/utils/authToken";
 
 export default function Page() {
@@ -24,15 +25,23 @@ export default function Page() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [selectedRowIds, setSelectedRowIds] = useState<Set<number>>(new Set());
+  const [open, setOpen] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const props = {
     SearchValue,
     SetSearchValue,
+    open,
+    on_open_change: setOpen,
   };
 
   const handleFilterSubmit = (data: any) => {
     setFilterData(data);
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handleSave = () => {
     setRefreshKey(prev => prev + 1);
   };
 
@@ -53,7 +62,7 @@ export default function Page() {
 
   const handleImport = async (file: File) => {
     try {
-      const result = await importMonthlyRosterRequest(file);
+      const result = await importMonthlyScheduleRequest(file);
       toast.success('Import successful');
       setSelectedFile(null);
       if (fileInputRef.current) {
@@ -145,6 +154,15 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.scheduling?.items}
+        modal_title={translations?.modules?.scheduling?.add_monthly_roster || "Add Monthly Roster"}
+        modal_component={
+          <AddMonthlySchedule
+            on_open_change={setOpen}
+            selectedRowData={selectedRowData}
+            onSave={handleSave}
+          />
+        }
+        size="large"
       />
 
       <div className="flex flex-col justify-between bg-accent rounded-[15px] items-center px-5 py-3">

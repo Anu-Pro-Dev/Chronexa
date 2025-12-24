@@ -9,7 +9,7 @@ import { useScheduleForm } from "@/src/components/custom/modules/scheduling/hook
 import NormalForm from "@/src/components/custom/modules/scheduling/NormalForm";
 import RamadanForm from "@/src/components/custom/modules/scheduling/RamadanForm";
 import PolicyForm from "@/src/components/custom/modules/scheduling/PolicyForm";
-import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
+import { useScheduleEditStore } from "@/src/store/useScheduleEditStore";
 
 export default function ScheduleAddPage() {
   const { modules, translations } = useLanguage();

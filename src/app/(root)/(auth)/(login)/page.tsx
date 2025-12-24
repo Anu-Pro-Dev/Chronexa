@@ -1,5 +1,5 @@
 'use client';
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import LoginForm from "@/src/components/custom/modules/auth/LoginForm";
 import { useLanguage } from "@/src/providers/LanguageProvider";
@@ -37,21 +37,21 @@ export default function Login() {
   const getMainLogo = () => {
     return isDarkMode ? "/LogoDark.png" : "/Logo.png";
   };
-  
+
   return (
     <main className="relative h-screen">
-      <div className={`absolute top-2 ${language === "ar" ? "left-2" : "right-2"} z-[100]`}>        
-        <LanguageSwitcher/>
+      <div className={`absolute top-2 ${language === "ar" ? "left-2" : "right-2"} z-[100]`}>
+        <LanguageSwitcher />
       </div>
       <div className="main-container h-full flex flex-col sm:flex-row">
         <div className="hidden sm:flex sm:flex-1 relative">
           <Image
             src="/AppBG.jpg"
             alt="Time Management"
-            objectFit="cover"
-            layout="fill"
+            fill
             priority
             unoptimized
+            className="object-cover"
           />
         </div>
         {/* Center image wrapper */}
@@ -60,10 +60,10 @@ export default function Login() {
             <Image
               src="/uaelogo.png"
               alt="Time Management"
-              objectFit="contain"
-              layout="fill"
+              fill
               priority
               unoptimized
+              className="object-contain"
             />
           </div> 
         </div> */}

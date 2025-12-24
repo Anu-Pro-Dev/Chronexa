@@ -1,8 +1,26 @@
-"use client"
-import { redirect } from "next/navigation";
-
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { InlineLoading } from "@/src/app/loading";
+
 export default function Page() {
-  const { modules } = useLanguage();
-  return redirect(modules?.selfServices.items[0].path);
+  const router = useRouter();
+  const { modules, isLoading } = useLanguage();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (modules?.selfServices?.items?.[0]?.path) {
+      router.replace(modules.selfServices.items[0].path);
+    }
+  }, [modules, isLoading, router]);
+
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="text-center">
+        <InlineLoading message="Loading workflow..." />
+      </div>
+    </div>
+  );
 }

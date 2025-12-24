@@ -7,7 +7,7 @@ import { UserDropdown } from '@/src/components/custom/common/user-dropdown';
 
 export default function Navbar() {
     return(
-        <header className="flex items-center px-4 flex-shrink-0 bg-accent justify-end py-3 shadow-sm z-40">
+        <header className="flex items-center px-4 flex-shrink-0 bg-accent justify-end py-3 shadow-sm z-40 gap-1">
           <LanguageSwitcher />
           <UserDropdown />
           <ThemeSwitcher/>

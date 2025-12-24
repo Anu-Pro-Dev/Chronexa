@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import * as z from "zod";
 import { normalFormSchema } from "./useNormalForm";
-import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
+import { useScheduleEditStore } from "@/src/store/useScheduleEditStore";
 
 const timeString = z
   .string()

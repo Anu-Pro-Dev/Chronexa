@@ -2,14 +2,12 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
-import AddRamadanDateRange from "@/src/components/custom/modules/scheduling/AddRamadanDateRange";
+import AddRamadanDate from "@/src/components/custom/modules/scheduling/AddRamadanDate";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
-import { Label } from "@/src/components/ui/label";
-import { Input } from "@/src/components/ui/input";
+import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -26,14 +24,9 @@ export default function Page() {
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.scheduling || {};
 
-  const [year, setYear] = useState<string>("");
-  const [month, setMonth] = useState<string | null>(null);
 
-  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
 
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+  const offset = useMemo(() => currentPage, [currentPage]);
 
   useEffect(() => {
     setColumns([
@@ -50,8 +43,6 @@ export default function Page() {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
-      ...(year && { year }),
-      ...(month && { month }),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
     },
   });
@@ -118,21 +109,6 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
   };
 
-  const handleFilterChange = useCallback(() => {
-    setCurrentPage(1);
-    if (refetch) setTimeout(() => refetch(), 100);
-  }, [refetch]);
-
-  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setYear(e.target.value);
-    handleFilterChange();
-  };
-
-  const handleMonthChange = (val: string) => {
-    setMonth(val);
-    handleFilterChange();
-  };
- 
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["ramadan"] });
   };
@@ -146,6 +122,16 @@ export default function Page() {
     setSelectedRows(rows);
   }, []);
 
+  if (isLoading && !ramadanData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <InlineLoading message="Loading ramadan dates..." />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -155,7 +141,7 @@ export default function Page() {
         entityName="ramadan"
         modal_title={t.ramadan_dates}
         modal_component={
-          <AddRamadanDateRange
+          <AddRamadanDate
             on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}

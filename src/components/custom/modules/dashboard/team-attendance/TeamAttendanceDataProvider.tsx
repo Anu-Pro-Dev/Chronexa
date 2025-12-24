@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef, createContext, useContext } from "react";
 import { getTeamAttendanceDetails } from "@/src/lib/dashboardApiHandler";
-import { useSelectedDate } from "@/src/stores/useSelectedDate";
+import { useSelectedDate } from "@/src/store/useSelectedDate";
 
 interface TeamAttendanceDetails {
   [key: string]: any;

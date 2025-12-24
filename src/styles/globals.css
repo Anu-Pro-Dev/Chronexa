@@ -8,10 +8,13 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-user-select: none;  /* Safari */
-  -moz-user-select: none;     /* Firefox */
-  -ms-user-select: none;      /* IE10+/Edge */
-  user-select: none;      
+  -webkit-user-select: none;
+  /* Safari */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE10+/Edge */
+  user-select: none;
 }
 
 .ag-cell {
@@ -83,13 +86,18 @@ body {
     --border-grey: #808080cc;
     --backdrop: #0078d40d;
     --table-backdrop: #0078d41a;
+    --fullpage: #fff;
     /* --backdrop: #E91D250d; */
     /* --table-backdrop: #E91D251a; */
 
     /* Charts Color */
     --chart-leaves: 206 100% 89%;
+    --chart-leaves-hover: 206 100% 75%;
+    /* darker on hover */
+
     --chart-absent: 206 100% 42%;
-    --fullpage: #fff;
+    --chart-absent-hover: 206 100% 30%;
+    /* darker on hover */
   }
 
   /* Dark mode styles */
@@ -144,7 +152,7 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #767676;
-} 
+}
 
 .select-item:hover {
   background-color: #3b82f6 !important;

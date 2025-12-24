@@ -42,11 +42,11 @@ export default function EmployeeReports() {
     fromDate: false,
     toDate: false,
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
-  
+
   // Search terms for all dropdowns
   const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [divisionSearchTerm, setDivisionSearchTerm] = useState("");
@@ -54,7 +54,7 @@ export default function EmployeeReports() {
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
-  
+
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
     total: 0,
@@ -66,22 +66,22 @@ export default function EmployeeReports() {
   };
 
   // Fetch all organizations
-  const { data: allOrganizations } = useFetchAllEntity("organization", { 
+  const { data: allOrganizations } = useFetchAllEntity("organization", {
     searchParams: { limit: "1000" }
   });
-  
+
   const selectedCompany = form.watch("company");
   const selectedDivision = form.watch("division");
   const selectedDepartment = form.watch("department");
   const selectedEmployeeType = form.watch("employee_type");
   const selectedManagerId = form.watch("manager_id");
-  
+
   // Fetch divisions/business groups (children of selected company)
   const { data: divisions } = useQuery({
     queryKey: ["divisions", selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return null;
-      return allOrganizations?.data?.filter((org: any) => 
+      return allOrganizations?.data?.filter((org: any) =>
         org.parent_id === parseInt(selectedCompany)
       );
     },
@@ -98,38 +98,77 @@ export default function EmployeeReports() {
     },
     enabled: !!selectedDivision,
   });
-  
+
   const { data: managers } = useFetchAllEntity("employee", {
-    searchParams: { 
-      manager_flag: "true", 
+    searchParams: {
+      manager_flag: "true",
       limit: "1000",
       offset: "1"
     }
   });
+
 
   const getEmployeeSearchParams = () => {
     const params: any = {
       limit: "1000",
       offset: "1"
     };
+
+    // Priority order: Department > Division > Company
+    // Use the most specific organization level selected
     if (selectedDepartment) {
-      params.department_id = selectedDepartment;
+      params.organization_id = selectedDepartment;
+    } else if (selectedDivision) {
+      params.organization_id = selectedDivision;
+    } else if (selectedCompany) {
+      params.organization_id = selectedCompany;
     }
+
+    // Add manager filter if selected
     if (selectedManagerId) {
       params.manager_id = selectedManagerId;
     }
+
     return { searchParams: params };
   };
 
+  // Update the employees query to always use the params when any org is selected:
   const { data: employees } = useFetchAllEntity(
     "employee",
-    (selectedDepartment || selectedManagerId) ? getEmployeeSearchParams() : {
-      searchParams: {
-        limit: "1000",
-        offset: "1"
+    (selectedCompany || selectedDivision || selectedDepartment || selectedManagerId)
+      ? getEmployeeSearchParams()
+      : {
+        searchParams: {
+          limit: "1000",
+          offset: "1"
+        }
       }
-    }
   );
+
+  // Also update the getFilteredEmployees function to respect organization filtering:
+  const getFilteredEmployees = () => {
+    let baseData = [];
+
+    if (employeeSearchTerm.length > 0) {
+      // When searching, still respect organization filters
+      baseData = searchedEmployees?.data || [];
+
+      // If an organization is selected, filter the search results
+      const selectedOrg = selectedDepartment || selectedDivision || selectedCompany;
+      if (selectedOrg) {
+        baseData = baseData.filter((emp: any) =>
+          emp?.organization_id?.toString() === selectedOrg
+        );
+      }
+    } else {
+      // Use the fetched employees which are already filtered by organization
+      baseData = employees?.data || [];
+    }
+
+    return baseData.filter((item: any) =>
+      item?.employee_id && item.employee_id.toString().trim() !== ''
+    );
+  };
 
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
@@ -196,15 +235,15 @@ export default function EmployeeReports() {
 
   const getCompanyData = () => {
     if (!allOrganizations?.data || !Array.isArray(allOrganizations.data)) return [];
-    const companies = allOrganizations.data.filter((item: any) => 
-      item?.parent_id === 1 && 
-      item?.organization_id && 
+    const companies = allOrganizations.data.filter((item: any) =>
+      item?.parent_id === 1 &&
+      item?.organization_id &&
       item.organization_id.toString().trim() !== ''
     );
-    
+
     // Apply search filter
     if (companySearchTerm) {
-      return companies.filter((item: any) => 
+      return companies.filter((item: any) =>
         item?.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase())
       );
     }
@@ -214,15 +253,15 @@ export default function EmployeeReports() {
   const getDivisionData = () => {
     if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedCompany) return [];
     const companyId = parseInt(selectedCompany);
-    const divisions = allOrganizations.data.filter((item: any) => 
-      item?.parent_id === companyId && 
-      item?.organization_id && 
+    const divisions = allOrganizations.data.filter((item: any) =>
+      item?.parent_id === companyId &&
+      item?.organization_id &&
       item.organization_id.toString().trim() !== ''
     );
-    
+
     // Apply search filter
     if (divisionSearchTerm) {
-      return divisions.filter((item: any) => 
+      return divisions.filter((item: any) =>
         item?.organization_eng?.toLowerCase().includes(divisionSearchTerm.toLowerCase())
       );
     }
@@ -232,15 +271,15 @@ export default function EmployeeReports() {
   const getDepartmentData = () => {
     if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedDivision) return [];
     const divisionId = parseInt(selectedDivision);
-    const departments = allOrganizations.data.filter((item: any) => 
-      item?.parent_id === divisionId && 
-      item?.organization_id && 
+    const departments = allOrganizations.data.filter((item: any) =>
+      item?.parent_id === divisionId &&
+      item?.organization_id &&
       item.organization_id.toString().trim() !== ''
     );
-    
+
     // Apply search filter
     if (departmentSearchTerm) {
-      return departments.filter((item: any) => 
+      return departments.filter((item: any) =>
         item?.organization_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
       );
     }
@@ -250,10 +289,10 @@ export default function EmployeeReports() {
   const getEmployeeTypesData = () => {
     if (!employeeTypes?.data) return [];
     const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
-    
+
     // Apply search filter
     if (employeeTypeSearchTerm) {
-      return types.filter((item: any) => 
+      return types.filter((item: any) =>
         item?.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
       );
     }
@@ -263,35 +302,17 @@ export default function EmployeeReports() {
   const getManagerData = () => {
     if (managerSearchTerm.length > 0) {
       const searchData = searchedManagers?.data || [];
-      return searchData.filter((item: any) => 
-        item?.employee_id && 
+      return searchData.filter((item: any) =>
+        item?.employee_id &&
         item.employee_id.toString().trim() !== ''
       );
     }
-    
+
     const baseData = managers?.data || [];
-    return baseData.filter((item: any) => 
-      item?.employee_id && 
+    return baseData.filter((item: any) =>
+      item?.employee_id &&
       item.employee_id.toString().trim() !== '' &&
       item?.manager_flag === true
-    );
-  };
-
-  const getFilteredEmployees = () => {
-    let baseData = [];
-    
-    if (employeeSearchTerm.length > 0) {
-      baseData = searchedEmployees?.data || [];
-    } else if (selectedManagerId) {
-      baseData = employees?.data || [];
-    } else if (selectedDepartment) {
-      baseData = employees?.data || [];
-    } else {
-      baseData = employees?.data || [];
-    }
-    
-    return baseData.filter((item: any) => 
-      item?.employee_id && item.employee_id.toString().trim() !== ''
     );
   };
 
@@ -300,27 +321,23 @@ export default function EmployeeReports() {
     firstname_eng: "EmployeeName",
     parent_org_eng: "Company",
     organization_eng: "Division",
-    department_name_eng: "Department",
     employee_type: "EmployeeType",
     transdate: "transdate",
     punch_in: "PunchIn",
-    GeoLocation_In: "GeoLocationIn",
     punch_out: "PunchOut",
-    GeoLocation_Out: "GeoLocationOut",
     dailyworkhrs: "DailyWorkedHours",
     DailyMissedHrs: "DailyMissedHours",
     dailyextrawork: "DailyExtraWork",
     isabsent: "DayStatus",
     MissedPunch: "Missed Punch",
-    EmployeeStatus: "EmployeeStatus"
   };
 
   const calculateSummaryTotals = (dataArray: any[]) => {
     const parseTimeToMinutes = (value: any) => {
       if (!value) return 0;
-      
+
       const strValue = String(value).trim();
-      
+
       if (strValue.includes(':')) {
         const parts = strValue.split(':').map(Number);
         const hours = parts[0] || 0;
@@ -328,7 +345,7 @@ export default function EmployeeReports() {
         const seconds = parts[2] || 0;
         return hours * 60 + minutes + (seconds / 60);
       }
-      
+
       const hours = parseFloat(strValue) || 0;
       return hours * 60;
     };
@@ -366,14 +383,14 @@ export default function EmployeeReports() {
   };
 
   const handleProgressUpdate = (current: number, total: number, phase: string) => {
-    setProgressDetails({ 
-      current, 
-      total, 
+    setProgressDetails({
+      current,
+      total,
       phase: phase as 'initializing' | 'fetching' | 'processing' | 'generating' | 'complete'
     });
-    
+
     let percentage = 0;
-    
+
     if (phase === 'initializing') {
       percentage = 0;
     } else if (phase === 'fetching') {
@@ -387,7 +404,7 @@ export default function EmployeeReports() {
     } else if (phase === 'complete') {
       percentage = 100;
     }
-    
+
     setExportProgress(percentage);
   };
 
@@ -396,7 +413,7 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('csv');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new CSVExporterFGIC({
         formValues: form.getValues(),
@@ -404,9 +421,9 @@ export default function EmployeeReports() {
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
       });
-      
+
       await exporter.exportStreaming();
-      
+
     } catch (error) {
       console.error("CSV export error:", error);
       toast.error("Error exporting CSV. Please try again.");
@@ -425,7 +442,7 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('excel');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new ExcelExporter({
         formValues: form.getValues(),
@@ -433,9 +450,9 @@ export default function EmployeeReports() {
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
       });
-      
+
       await exporter.export();
-      
+
     } catch (error) {
       console.error("Excel export error:", error);
       toast.error("Error exporting Excel. Please try again.");
@@ -454,18 +471,18 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('pdf');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new PDFExporter({
         formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
-        logoUrl: '/Logo.png',
+        logoUrl: '/FGI_COLOR.png',
         onProgress: handleProgressUpdate,
       });
-      
+
       await exporter.export();
-      
+
     } catch (error) {
       console.error("PDF export error:", error);
       toast.error("Error generating PDF. Please try again.");
@@ -496,7 +513,7 @@ export default function EmployeeReports() {
 
   const getProgressMessage = () => {
     const { current, total, phase } = progressDetails;
-    
+
     switch (phase) {
       case 'initializing':
         return 'Initializing export...';
@@ -521,7 +538,7 @@ export default function EmployeeReports() {
 
   const getProgressTip = () => {
     const { total } = progressDetails;
-    
+
     if (exportType === 'csv') {
       return 'CSV exports are fastest for large datasets';
     }
@@ -553,7 +570,7 @@ export default function EmployeeReports() {
                   name="company"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Company <Required/></FormLabel>
+                      <FormLabel className="flex gap-1">Company <Required /></FormLabel>
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
@@ -569,7 +586,7 @@ export default function EmployeeReports() {
                             <SelectValue placeholder="Choose company" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
                           searchPlaceholder="Search companies..."
                           onSearchChange={debouncedCompanySearch}
@@ -615,7 +632,7 @@ export default function EmployeeReports() {
                             <SelectValue placeholder="Choose division" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
                           searchPlaceholder="Search divisions..."
                           onSearchChange={debouncedDivisionSearch}
@@ -658,13 +675,13 @@ export default function EmployeeReports() {
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder={
-                              isDepartmentsLoading 
-                                ? "Loading departments..." 
+                              isDepartmentsLoading
+                                ? "Loading departments..."
                                 : "Choose department"
                             } />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
                           searchPlaceholder="Search departments..."
                           onSearchChange={debouncedDepartmentSearch}
@@ -706,7 +723,7 @@ export default function EmployeeReports() {
                             <SelectValue placeholder="Choose type" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
                           searchPlaceholder="Search employee types..."
                           onSearchChange={debouncedEmployeeTypeSearch}
@@ -913,7 +930,7 @@ export default function EmployeeReports() {
                     </span>
                   </div>
                   <div className="w-full bg-blue-200 rounded-full h-2.5">
-                    <div 
+                    <div
                       className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${exportProgress}%` }}
                     />

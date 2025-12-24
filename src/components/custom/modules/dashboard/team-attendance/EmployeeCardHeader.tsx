@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useSelectedDate } from "@/src/stores/useSelectedDate";
+import { useSelectedDate } from "@/src/store/useSelectedDate";
 import { Calendar } from "@/src/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Button } from "@/src/components/ui/button";
@@ -52,7 +52,6 @@ export const EmployeeCardHeader = () => {
               }
             }}
             disabled={(d) => d > new Date() || d < new Date("1900-01-01")}
-            initialFocus
           />
         </PopoverContent>
       </Popover>

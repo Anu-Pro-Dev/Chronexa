@@ -10,7 +10,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
 import { InlineLoading } from "@/src/app/loading";
-import { useOrgScheduleEditStore } from "@/src/stores/orgScheduleEditStore";
+import { useOrgScheduleEditStore } from "@/src/store/useOrgScheduleEditStore";
 
 type Column = {
   field: string;
@@ -47,17 +47,11 @@ export default function Page() {
                 field: "organization_name", 
                 headerName: t.organization || "Organization",
             },
-            { 
-                field: "from_date", 
-                headerName: t.from_date || "From" 
-            },
-            { 
-                field: "to_date", 
-                headerName: t.to_date || "To" 
-            },
+            { field: "from_date", headerName: "From" },
+            { field: "to_date", headerName: "To" },
             { 
                 field: "monday_schedule_id", 
-                headerName: t.monday || "Mon",
+                headerName: "Mon",
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.monday_schedule_color }}>
                         {row.monday_schedule_id}
@@ -66,7 +60,7 @@ export default function Page() {
             },
             { 
                 field: "tuesday_schedule_id", 
-                headerName: t.tuesday || "Tue",
+                headerName: "Tue",
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.tuesday_schedule_color }}>
                         {row.tuesday_schedule_id}
@@ -75,7 +69,7 @@ export default function Page() {
             },
             { 
                 field: "wednesday_schedule_id", 
-                headerName: t.wednesday || "Wed",
+                headerName: "Wed",
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.wednesday_schedule_color }}>
                         {row.wednesday_schedule_id}
@@ -84,7 +78,7 @@ export default function Page() {
             },
             { 
                 field: "thursday_schedule_id", 
-                headerName: t.thursday || "Thu",
+                headerName: "Thu",
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.thursday_schedule_color }}>
                         {row.thursday_schedule_id}
@@ -93,7 +87,7 @@ export default function Page() {
             },
             { 
                 field: "friday_schedule_id", 
-                headerName: t.friday || "Fri",
+                headerName: "Fri",
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.friday_schedule_color }}>
                         {row.friday_schedule_id}
@@ -265,6 +259,7 @@ export default function Page() {
                 onEditClick={handleEditClick}
                 onRowSelection={handleRowSelection}
                 isLoading={isLoading || isChecking}
+                overrideEditIcon={false}
             />
         );
     };

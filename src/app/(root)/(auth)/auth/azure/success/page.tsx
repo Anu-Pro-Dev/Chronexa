@@ -1,6 +1,6 @@
 "use client";
 import { UserAxiosInstance } from "@/src/lib/axios";
-import { useUserStore } from "@/src/stores/userStore";
+import { useUserStore } from "@/src/store/userStore";
 import React, { useEffect, useState } from "react";
 import { setAuthToken } from "@/src/utils/authToken";
 import { useRouter } from "next/navigation";

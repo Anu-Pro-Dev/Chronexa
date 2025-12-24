@@ -162,7 +162,7 @@ function LeaveAnalyticsCard() {
             orientation={dir === "rtl" ? "right" : "left"} 
           />
           <ChartTooltip 
-            cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} 
+            cursor={{ fill: 'rgba(0, 0, 0, 0.01)' }} 
             content={<ChartTooltipContent />} 
           />
           <Legend 
@@ -177,6 +177,9 @@ function LeaveAnalyticsCard() {
             fill="var(--color-leaves)" 
             radius={[0, 0, 2, 2]}
             name={translations.leaves_taken}
+            activeBar={{
+              fill: "hsl(var(--chart-leaves-hover))",
+            }}
           />
           <Bar 
             dataKey="absent" 
@@ -184,6 +187,9 @@ function LeaveAnalyticsCard() {
             fill="var(--color-absent)" 
             radius={[2, 2, 0, 0]}
             name={translations.leaves_absent}
+            activeBar={{
+              fill: "hsl(var(--chart-absent-hover))",
+            }}
           />
         </BarChart>
       </ChartContainer>

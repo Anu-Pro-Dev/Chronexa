@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Image from "next/legacy/image";
+import Image from "next/image";
 import { PunchInIcon, PunchOutIcon } from "@/src/icons/icons";
 import { usePunch } from "@/src/providers/PunchProvider";
 import { useLanguage } from "@/src/providers/LanguageProvider";
@@ -27,10 +27,10 @@ function TimerCard() {
         <Image
           src="/ClockCardBG.svg"
           alt="Clock Your Hours"
-          objectFit="cover"
-          layout="fill"
-          className="blur-[2px] !absolute"
+          fill
           priority
+          unoptimized
+          className="object-cover blur-[2px] !absolute"
         />
         <h5 className="text-base font-bold">{t?.clock_hrs}</h5>
         <p className="text-[35px] font-bold align-center py-4">
@@ -78,10 +78,10 @@ function TimerCard() {
       <Image
         src="/ClockCardBG.svg"
         alt="Clock Your Hours"
-        objectFit="cover"
-        layout="fill"
-        className="blur-[2px] !absolute"
+        fill
         priority
+        unoptimized
+        className="object-cover blur-[2px] !absolute"
       />
       <h5 className="text-base font-bold">{t?.clock_hrs}</h5>
       <p className={`text-[35px] font-bold align-center py-4`}>

@@ -191,7 +191,7 @@ function WorkTrendsCard() {
         <div className="relative">
           <ChartContainer
             dir={dir}
-            className={`relative w-full flex justify-center ${dir === "rtl" ? "-right-[45px]" : "-left-[35px]"}`}
+            className={`relative w-full h-[300px] flex justify-center ${dir === "rtl" ? "-right-[35px]" : "-left-[25px]"}`}
             config={{
               type: { label: "Bar Chart", icon: undefined, color: "#0078D4" },
               options: {},

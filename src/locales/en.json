@@ -796,7 +796,7 @@
       "login_success": "Login successfully!",
       "deleteschedule_success": "Schedule deleted successfully!",
       "addweeklyschedule_success": "Weekly schedule added successfully!",
-      "deleteramadan_success": "Ramadan deleted successfully!",
+      "deleteramadan_success": "Ramadan dates deleted successfully!",
       "addramadan_success": "Ramadan dates added successfully!",
       "deleteschedule_error": "Failed to delete schedule.",
       "deletelocations_error": "Failed to delete location(s).",

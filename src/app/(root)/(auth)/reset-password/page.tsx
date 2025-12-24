@@ -118,10 +118,10 @@ export default function ResetPasswordPage() {
       <Image
         src="/AppBG.jpg"
         alt="Time Management"
-        objectFit="cover"
-        layout="fill"
+        fill
         priority
         unoptimized
+        className="object-cover"
       />
       
       <div className="bg-backdrop bg-opacity-50 backdrop-blur-sm relative z-10 w-full h-full flex flex-col justify-center items-center p-4">

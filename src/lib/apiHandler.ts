@@ -452,7 +452,7 @@ export const addRamadanScheduleRequest = async (data: {
   return apiRequest("/ramadan/add", "POST", data);
 };
 
-// Function to add a new ramadan schedule
+// Function to edit ramadan schedule
 export const editRamadanScheduleRequest = async (data: {
   ramadan_id: number;
   ramadan_name_eng?: string;
@@ -461,9 +461,7 @@ export const editRamadanScheduleRequest = async (data: {
   from_date?: string;
   to_date?: string;
 }) => {
-  const { ramadan_id, ...payload } = data;
-
-  return apiRequest(`/ramadan/edit/${ramadan_id}`, "PUT", payload);
+  return apiRequest(`/ramadan/edit/${data.ramadan_id}`, "PUT", data);
 };
 
 // Function to add a new ramadan schedule
@@ -480,7 +478,7 @@ export const addHolidayScheduleRequest = async (data: {
   return apiRequest("/holiday/add", "POST", data);
 };
 
-// Function to add a new ramadan schedule
+// Function to edit holiday schedule
 export const editHolidayScheduleRequest = async (data: {
   holiday_id: number;
   holiday_eng?: string;
@@ -491,9 +489,7 @@ export const editHolidayScheduleRequest = async (data: {
   recurring_flag?: boolean;
   public_holiday_flag?: boolean;
 }) => {
-  const { holiday_id, ...payload } = data;
-
-  return apiRequest(`/holiday/edit/${holiday_id}`, "PUT", payload);
+  return apiRequest(`/holiday/edit/${data.holiday_id}`, "PUT", data);
 };
 
 // Function to add a new schedule
@@ -781,7 +777,34 @@ export const addLeaveRequest = async (form: {
 
   return apiRequest("/employeeLeave/add", "POST", formData);
 };
+// Function to update a leave application
+export const editLeaveRequest = async (form: {
+  employee_leave_id: number;
+  leave_type_id?: number;
+  employee_id?: number;
+  from_date?: string;
+  to_date?: string;
+  [key: string]: any;
+}) => {
+  const { employee_leave_id, ...payload } = form;
+  
+  const formData = new FormData();
 
+  for (const key in payload) {
+    const value = payload[key];
+
+    if (value !== undefined && value !== null) {
+      // Handle files safely if needed
+      if (value instanceof File || value instanceof Blob) {
+        formData.append(key, value);
+      } else {
+        formData.append(key, String(value));
+      }
+    }
+  }
+
+  return apiRequest(`/employeeLeave/edit/${employee_leave_id}`, "PUT", formData);
+};
 
 // Function to get pending permissions
 export const getPendingLeave= async () => {
@@ -977,6 +1000,32 @@ export const editDeviceRequest = async (data: {
   return apiRequest(`/device/edit/${device_id}`, "PUT", payload);
 };
 
+// Function to add a new app setting
+export const addAppSettingRequest = async (data: {
+  app_setting_id: number;
+  version_name: string;
+  value: string;
+  descr:string;
+  tab_no: number;
+  deleted?: boolean;
+}) => {
+  return apiRequest("/appSetting/add", "POST", data);
+};
+
+// Function to edit an app setting by ID
+export const editAppSettingRequest = async (data: {
+  app_setting_id: number;
+  version_name?: string;
+  value?: string;
+  descr?:string;
+  tab_no?: number;
+  deleted?: boolean;
+}) => {
+  const { app_setting_id, ...payload } = data;
+
+  return apiRequest(`/appSetting/edit/${app_setting_id}`, "PUT", payload);
+};
+
 // Function to add a new db setting
 export const addDBSettingRequest = async (data: {
   db_settings_id?: number;
@@ -1055,7 +1104,7 @@ export const sendTestEmailRequest = async (data: {
   return apiRequest(`/emailSetting/test`, "POST", data);
 };
 
-export const filterMonthlyRosterRequest = async (data: {
+export const filterMonthlyScheduleRequest = async (data: {
   organization_id: number;
   month: number;
   year: number;
@@ -1069,8 +1118,23 @@ export const filterMonthlyRosterRequest = async (data: {
   return apiRequest("/employeeMonthlyRoster/filter", "POST", data);
 };
 
+// Function to add an monthly roster by ID
+export const addMonthlyScheduleRequest = async (data: {
+  schedule_roster_id?: number;
+  employee_id:  number;
+  from_date?: string;
+  to_date?: string;
+  version_no?: number
+  finalize_flag?: boolean;
+  manager_id?: number;
+  [key: string]: any;
+}) => {
+  return apiRequest("/employeeMonthlyRoster/add", "POST", data);
+};
+
+
 // Function to edit an monthly roster by ID
-export const editMonthlyRosterRequest = async (data: {
+export const editMonthlyScheduleRequest = async (data: {
   schedule_roster_id: number;
   [key: string]: any;
 }) => {
@@ -1080,7 +1144,7 @@ export const editMonthlyRosterRequest = async (data: {
 };
 
 // Function to Finalize an monthly roster by ID
-export const finalizeMonthlyRosterRequest = async (data: {
+export const finalizeMonthlyScheduleRequest = async (data: {
   schedule_roster_id: number;
 }) => {
   const { schedule_roster_id, ...payload } = data;
@@ -1089,7 +1153,7 @@ export const finalizeMonthlyRosterRequest = async (data: {
 };
 
 // Function to import monthly roster from file
-export const importMonthlyRosterRequest = async (file: File) => {
+export const importMonthlyScheduleRequest = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
   
@@ -1097,7 +1161,7 @@ export const importMonthlyRosterRequest = async (file: File) => {
 };
 
 // Function to export monthly roster to file
-export const exportMonthlyRosterRequest = async (
+export const exportMonthlyScheduleRequest = async (
   filterData: any = null, 
   selectedIds: number[] = []
 ) => {
@@ -1202,6 +1266,14 @@ export const rejectManualPunchRequest = async (data: {
     "PUT", 
     payload
   );
+};
+
+export const groupApproveTransactionsRequest = async (data: {
+  transaction_time: string;
+  reason: string;
+  remarks: string;
+}) => {
+  return apiRequest("/employeeManualTransaction/groupApproveTransactions", "PUT", data);
 };
 
 // Function to download uploaded files

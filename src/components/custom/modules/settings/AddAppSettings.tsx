@@ -1,294 +1,298 @@
-
 "use client";
 import { useEffect, useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { cn, getRandomInt } from "@/src/lib/utils";
-import { Button } from "@/src/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
-import { useRouter } from "next/navigation";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { Button } from "@/src/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
-import toast from "react-hot-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import Switch from "@/src/components/ui/switch";
-
-const encryptionValues: Record<string, string> = {
-  "1": "TLS",
-  "2": "SSL",
-  "3": "None",
-};
-
-const encryptionLabelToId = Object.fromEntries(
-  Object.entries(encryptionValues).map(([id, label]) => [label, id])
-);
+import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addAppSettingRequest, editAppSettingRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
+import { Textarea } from "@/src/components/ui/textarea";
 
 const formSchema = z.object({
-		id: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(8),
-    name: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(100),
-    host: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(100),
-    port: z
-			.string()
-			.min(1, {
-			message: "Required",
-			})
-			.max(100),
-		from_email: z
-			.string()
-			.min(6, {
-				message: "Required",
-			})
-			.max(25),
-		encryption: z.string().min(1, { message: "Required" }),
-		active: z.boolean(),
+  version_name: z.string().min(1, { message: "version_name_required" }),
+  tab_no: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return undefined;
+      const num = Number(val);
+      return isNaN(num) ? undefined : num;
+    },
+    z.number().optional()
+  ),
+  value: z.string().optional(),
+  descr: z.string().optional(),
+  deleted: z.boolean().default(false),
 });
 
-export default function AddDBSettings({
+export default function AddAppSettings({
   on_open_change,
   selectedRowData,
   onSave,
 }: {
   on_open_change: any;
   selectedRowData?: any;
-  onSave: (id: string | null, newData: any) => void;
+  onSave: () => void;
 }) {
-    
-	const {language, translations } = useLanguage();
-    
+  const { language, translations } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const showToast = useShowToast();
+  const t = translations?.modules?.settings || {};
+  const errT = translations?.formErrors || {};
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-			id: "",
-      name: "",
-      host: "",
-      port: "",
-			encryption: "",
-			from_email: "",
-			active: false,
+      version_name: "",
+      tab_no: undefined,
+      value: "",
+      descr: "",
+      deleted: false,
     },
   });
 
-	useEffect(() => {
-		form.reset(form.getValues());
-	}, [language]);
+  useEffect(() => {
+    if (selectedRowData) {
+      form.reset({
+        version_name: selectedRowData.version_name ?? "",
+        tab_no: selectedRowData.tab_no ?? undefined,
+        value: selectedRowData.value ?? "",
+        descr: selectedRowData.descr ?? "",
+        deleted: selectedRowData.deleted === 1 || selectedRowData.deleted === true,
+      });
+    } else {
+      form.reset({
+        version_name: "",
+        tab_no: undefined,
+        value: "",
+        descr: "",
+        deleted: false,
+      });
+    }
+  }, [selectedRowData, form]);
 
-	useEffect(() => {
-		if (!selectedRowData) {
-			form.reset();
-		} else {
-			const encryptionId = encryptionLabelToId[selectedRowData.encryption] || "";
-			form.reset({
-				id: selectedRowData.emailID,
-				name: selectedRowData.name,
-				host: selectedRowData.host,
-				port: selectedRowData.port,
-				from_email: selectedRowData.fromEmail,
-				encryption: encryptionId,
-				active: selectedRowData?.isActive || false,
-			});
-		}
-	}, [selectedRowData, form]);
+  const addMutation = useMutation({
+    mutationFn: addAppSettingRequest,
+    onSuccess: () => {
+      showToast("success", "appsetting_add_success");
+      queryClient.invalidateQueries({ queryKey: ["appSetting"] });
+      onSave();
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
+      } else {
+        showToast("error", "formsubmission_error");
+      }
+    },
+  });
 
-	const handleSave = () => {
-		const formData = form.getValues();
-		if (selectedRowData) {
-			onSave(selectedRowData.id, formData);
-		} else {
-			onSave(null, formData);
-		}
-		on_open_change(false);
-	};
+  const editMutation = useMutation({
+    mutationFn: editAppSettingRequest,
+    onSuccess: () => {
+      showToast("success", "appsetting_update_success");
+      queryClient.invalidateQueries({ queryKey: ["appSetting"] });
+      onSave();
+      on_open_change(false);
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
+      } else {
+        showToast("error", "formsubmission_error");
+      }
+    },
+  });
 
-  const router = useRouter();
-  
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
-		if (selectedRowData) {
-			toast.success("Email Settings updated successfully");
-			onSave(selectedRowData.id, values);
-		} else {
-			toast.success("Email Settings added successfully");
-			onSave(null, values);
-		}
-		on_open_change(false);
-    } catch (error) {
-      console.error("Form submission error", error);
+      const payload: any = {
+        version_name: values.version_name,
+        tab_no: values.tab_no,
+        value: values.value,
+        descr: values.descr,
+        deleted: values.deleted ? 1 : 0,
+      };
+
+      if (selectedRowData) {
+        editMutation.mutate({
+          app_setting_id: selectedRowData.app_setting_id || selectedRowData.id,
+          ...payload,
+        });
+      } else {
+        addMutation.mutate(payload);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-16 gap-y-4">
-							<FormField
-									control={form.control}
-									name="id"
-									render={({ field }) => (
-											<FormItem>
-											<FormLabel>
-													ID <Required />
-											</FormLabel>
-											<FormControl>
-													<Input placeholder="Enter Unique identifier for database reference" type="text" {...field} />
-											</FormControl>
-											<FormMessage />
-											</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="name"
-									render={({ field }) => (
-											<FormItem>
-											<FormLabel>
-													Name <Required />
-											</FormLabel>
-											<FormControl>
-													<Input placeholder="Enter SMTP configuration name" type="text" {...field} />
-											</FormControl>
-											<FormMessage />
-											</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="host"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											Host <Required />
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter the IP or domain name"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="port"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											Port <Required />
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter your port number"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-									control={form.control}
-									name="from_email"
-									render={({ field }) => (
-									<FormItem>
-											<FormLabel>
-											From Email <Required/>
-											</FormLabel>
-											<FormControl>
-											<Input
-													placeholder="Enter from email address"
-													type="text"
-													{...field}
-											/>
-											</FormControl>
-											<FormMessage />
-									</FormItem>
-									)}
-							/>
-							<FormField
-								key={form.watch("encryption")}
-								control={form.control}
-								name="encryption"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Encryption <Required /></FormLabel>
-										<Select
-											onValueChange={field.onChange}
-											value={field.value}
-										>
-											<FormControl>
-												<SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
-													<SelectValue placeholder="Choose encryption" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												{Object.entries(encryptionValues).map(([value, label]) => (
-													<SelectItem key={value} value={value}>
-														{label}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="active"
-								render={({ field }) => (
-									<FormItem className="flex items-center space-x-4">
-										<FormLabel className="mb-0">Active SMTP</FormLabel>
-										<FormControl>
-											<Switch
-												checked={!!field.value}
-												onChange={(val: boolean) => field.onChange(val)}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+          <div className="grid grid-cols-2 gap-16 gap-y-4">
+            <FormField
+              control={form.control}
+              name="version_name"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {t.version || "Version"}
+                    <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_version || "Enter version name"}
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.version_name}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tab_no"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {t.tab || "Tab"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder={t.placeholder_tab || "Enter tab number"}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        field.onChange(val === "" ? undefined : val);
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.tab_no}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="value"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {t.value || "Value"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_value || "Enter value"}
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.value}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="descr"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {t.description || "Description"}
+                    <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder={t.placeholder_description || "Enter description"}
+                      {...field}
+                      rows={4}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.descr}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="deleted"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-4">
+                  <FormLabel className="mb-0">
+                    Deleted
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={!!field.value}
+                      onChange={(val: boolean) => field.onChange(val)}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 items-center py-5">
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                type="button"
+                size="lg"
+                className="w-full"
+                onClick={() => on_open_change(false)}
+              >
+                {translations?.buttons?.cancel}
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={addMutation.isPending || editMutation.isPending}
+              >
+                {addMutation.isPending || editMutation.isPending
+                  ? selectedRowData
+                    ? translations?.buttons?.updating
+                    : translations?.buttons?.saving
+                  : selectedRowData
+                    ? translations?.buttons?.update
+                    : translations?.buttons?.save}
+              </Button>
             </div>
-            <div className="flex justify-end gap-2 items-center py-5">
-							<div className="flex gap-4 px-5">
-									<Button
-									variant={"outline"}
-									type="button"
-									size={"lg"}
-									className="w-full"
-									onClick={() => {
-											on_open_change(false);
-									}}
-									>
-										{translations?.buttons?.cancel}
-									</Button>
-									<Button type="submit" size={"lg"} className="w-full">
-										{selectedRowData ? translations?.buttons?.Update || "Update" : translations?.buttons?.save || "Save"} 
-									</Button>
-							</div>
-            </div>
+          </div>
         </div>
       </form>
     </Form>

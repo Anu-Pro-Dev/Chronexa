@@ -16,7 +16,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { StatusSelector } from "./status-selector";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { getEmployeeGroupByEmployeeId, editMonthlyRosterRequest, finalizeMonthlyRosterRequest } from "@/src/lib/apiHandler";
+import { getEmployeeGroupByEmployeeId, editMonthlyScheduleRequest, finalizeMonthlyScheduleRequest } from "@/src/lib/apiHandler";
 import {
   LockIcon,
   UnlockIcon,
@@ -300,7 +300,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
         if (row.type !== "row") continue;
 
         const payload = buildPayload(row);
-        await editMonthlyRosterRequest(payload);
+        await editMonthlyScheduleRequest(payload);
       }
       showToast("success", "saveroster_success");
     } catch (err) {
@@ -317,7 +317,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
 
     try {
       for (const rowId of selectedRows) {
-        await finalizeMonthlyRosterRequest({
+        await finalizeMonthlyScheduleRequest({
           schedule_roster_id: rowId,
         });
       }
@@ -337,7 +337,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
 
     try {
       for (const rowId of selectedRows) {
-        await editMonthlyRosterRequest({
+        await editMonthlyScheduleRequest({
           schedule_roster_id: rowId,
           finalize_flag: false
         });
@@ -361,7 +361,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
         const payload: any = { schedule_roster_id: rowId };
         for (let i = 1; i <= 31; i++) payload[`D${i}`] = null;
 
-        await editMonthlyRosterRequest(payload);
+        await editMonthlyScheduleRequest(payload);
       }
 
       showToast("success", "clearroster_success");

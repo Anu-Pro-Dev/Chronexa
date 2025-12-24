@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { formatInTimeZone } from "date-fns-tz";
 
-interface PDFExporterProps {
+interface PDFExporterFGICProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
@@ -11,14 +11,14 @@ interface PDFExporterProps {
   onProgress?: (current: number, total: number, phase: string) => void;
 }
 
-export class PDFExporter {
+export class PDFExporterFGIC {
   private formValues: any;
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
   private logoUrl?: string;
   private onProgress?: (current: number, total: number, phase: string) => void;
 
-  constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress }: PDFExporterProps) {
+  constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress }: PDFExporterFGICProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
@@ -36,6 +36,8 @@ export class PDFExporter {
         ? window.location.origin + this.logoUrl 
         : this.logoUrl;
             
+      console.log(logoPath);
+      
       const response = await fetch(logoPath);
       
       if (!response.ok) {
@@ -115,7 +117,7 @@ export class PDFExporter {
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       .join('&');
 
-    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
+    return `/report/new${queryString ? `?${queryString}` : ''}`;
   }
 
   private async fetchDataInBatches(): Promise<any[]> {
@@ -140,13 +142,10 @@ export class PDFExporter {
         const url = this.buildUrl(params);
         const response = await apiRequest(url, "GET");
 
-        // Handle API response structure: {success, data, total, hasNext}
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
         const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
-
-        // Set total from first API response
         if (offset === 0 && total > 0) {
           apiTotal = total;
         }
@@ -160,10 +159,8 @@ export class PDFExporter {
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
         
-        // Update hasMore based on API response
         hasMore = hasNext && batch.length === BATCH_SIZE;
 
-        // Report progress with actual values
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
         await this.yieldToMain();
@@ -207,50 +204,48 @@ export class PDFExporter {
       'firstname_eng',
       'parent_org_eng',
       'organization_eng',
-      'department_name_eng',
       'employee_type',
+      'schCode',
       'transdate',
       'WorkDay',
       'punch_in',
-      'GeoLocation_In',
       'punch_out',
-      'GeoLocation_Out',
       'dailyworkhrs',
       'DailyMissedHrs',
       'dailyextrawork',
-      'isabsent',
-      'MissedPunch',
-      'EmployeeStatus'
+      'missed_punch',
+      'day_status'
     ];
   }
 
-  // Define column widths to fit all columns on page
   private getColumnWidth(header: string): string {
     const widthMap: Record<string, string> = {
       'employee_number': '4%',
       'firstname_eng': '7%',
       'parent_org_eng': '6%',
       'organization_eng': '6%',
-      'department_name_eng': '6%',
       'employee_type': '5%',
+      'schCode': '6%',
       'transdate': '5%',
       'WorkDay': '4%',
       'punch_in': '5%',
-      'GeoLocation_In': '7%',
       'punch_out': '5%',
-      'GeoLocation_Out': '7%',
       'dailyworkhrs': '5%',
       'DailyMissedHrs': '5%',
       'dailyextrawork': '5%',
-      'isabsent': '5%',
-      'MissedPunch': '5%',
-      'EmployeeStatus': '8%'
+      'missed_punch': '5%',
+      'day_status': '5%',
     };
     return widthMap[header] || '5%';
   }
 
-  private formatCellValue(header: string, value: any): string {
+  private formatCellValue(header: string, value: any, row?: Record<string, any>): string {
     if (!value && value !== 0) return '';
+
+    if (header === 'WorkDay' && row) {
+      const workDay = String(value).toLowerCase();
+      return String(value);
+    }
     
     if (header === 'transdate' && value) {
       try {
@@ -337,12 +332,12 @@ export class PDFExporter {
         
         ${logoBase64 ? `
           <div style="text-align: center; margin-bottom: 8px;">
-            <img src="${logoBase64}" alt="Logo" style="height: 40px;" />
+            <img src="${logoBase64}" alt="Logo" style="height: 84px;" />
           </div>
         ` : ''}
         
         <h1 style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0;">
-          EMPLOYEE DAILY MOVEMENT REPORT
+          EMPLOYEE MONTHLY ATTENDANCE REPORT
         </h1>
 
         <table style="width: 100%; margin-bottom: 8px; font-size: 9px;">
@@ -385,9 +380,20 @@ export class PDFExporter {
             ${dataArray.map((row: Record<string, any>, index: number) => `
               <tr>
                 ${filteredHeaders.map(header => {
-                  const cellValue = this.formatCellValue(header, row[header]);
+                  const cellValue = this.formatCellValue(header, row[header], row);
                   const isLateOrMissed = header === 'late' || header === 'DailyMissedHrs';
-                  const textColor = isLateOrMissed && parseFloat(cellValue) > 0 ? 'color: red;' : '';
+                  
+                  let textColor = '';
+                  if (header === 'day_status') {
+                    const statusLower = String(cellValue).toLowerCase();
+                    if (statusLower === 'absent') {
+                      textColor = 'color: red;';
+                    } else if (statusLower === 'week off') {
+                      textColor = 'color: green;';
+                    }
+                  } else if (isLateOrMissed && parseFloat(cellValue) > 0) {
+                    textColor = 'color: red;';
+                  }
                   
                   return `
                     <td style="border: 1px solid black; padding: 3px; font-size: 6px; ${textColor} width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis;">${cellValue}</td>
@@ -420,6 +426,12 @@ export class PDFExporter {
               <td colspan="2" style="border: 1px solid black; padding: 5px;"></td>
             </tr>
           </table>
+        </div>
+
+        <div style="margin-top: 20px; padding: 10px; page-break-inside: avoid;">
+          <p style="font-size: 10px; font-weight: bold; color: #d32f2f; text-align: center; margin: 0;">
+            Please take action for all the violations within two days; otherwise, this will be treated as a violation.
+          </p>
         </div>
       </div>
     `;
@@ -479,18 +491,14 @@ export class PDFExporter {
         }
       };
       
-      // Create a temporary container to render HTML
       const container = document.createElement('div');
       container.innerHTML = htmlContent;
       document.body.appendChild(container);
       
-      // Wait a moment for rendering
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Generate and open PDF
       await html2pdf().set(opt).from(container).save();
       
-      // Clean up after a delay
       setTimeout(() => {
         document.body.removeChild(container);
       }, 1000);

@@ -17,7 +17,7 @@ import { Checkbox } from "@/src/components/ui/checkbox";
 import ColorPicker from "@/src/components/ui/color-picker";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useFormContext } from "react-hook-form";
-import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
+import { useScheduleEditStore } from "@/src/store/useScheduleEditStore";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";

@@ -31,6 +31,7 @@ export class CSVExporterFGIC {
       'parent_org_eng',
       'organization_eng',
       'employee_type',
+      'schCode',
       'transdate',
       'WorkDay',
       'punch_in',
@@ -40,8 +41,8 @@ export class CSVExporterFGIC {
       'dailyextrawork',
       'late',
       'early',
-      'isabsent',
-      'MissedPunch'
+      'missed_punch',
+      'day_status'
     ];
   }
   

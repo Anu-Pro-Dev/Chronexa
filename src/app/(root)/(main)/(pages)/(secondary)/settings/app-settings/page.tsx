@@ -49,7 +49,7 @@ export default function Page() {
       return appSettingData.data.map((appSet: any) => {
         return {
           ...appSet,
-          id: appSet.app_settings_id || appSet.id,
+          id: appSet.app_setting_id || appSet.id,
         };
       });
     }
@@ -141,8 +141,8 @@ export default function Page() {
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
-        overrideEditIcon={false}
-        overrideCheckbox={false}
+        // overrideEditIcon={false}
+        // overrideCheckbox={false}
       />
     </div>
   );

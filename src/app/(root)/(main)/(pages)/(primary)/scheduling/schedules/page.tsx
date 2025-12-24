@@ -6,7 +6,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
+import { useScheduleEditStore } from "@/src/store/useScheduleEditStore";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 type Column = {

@@ -53,7 +53,7 @@ export default function Page() {
       return permissionTypeData.data.map((permission: any) => {
         return {
           ...permission,
-          id: permission.permission_id,
+          id: permission.permission_type_id, // Changed from permission_id
         };
       });
     }
@@ -106,8 +106,16 @@ export default function Page() {
  
   const handleEditClick = (rowData: any) => {
     try {
+      const permissionId = rowData.permission_type_id || rowData.id;
+      
+      if (!permissionId) {
+        toast.error("Permission ID not found");
+        return;
+      }
+      
       const editData = {
         ...rowData,
+        id: permissionId,
       };
       
       sessionStorage.setItem('editPermissionsData', JSON.stringify(editData));

@@ -1,29 +1,46 @@
 "use client";
+
 import { useState, useMemo, useEffect } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Legend,
+} from "recharts";
+
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/src/components/ui/chart";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
-import { Calendar1Icon } from "@/src/icons/icons";
-import { getTeamLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
+
+import { getTeamLeaveAnalytics } from "@/src/lib/dashboardApiHandler";
 
 interface LeaveAnalytic {
+  employee_id: number;
+  LVMonth: number;
   LeaveYear: number;
-  [key: string]: any;
+  LeaveCount: number;
+  AbsentCount: number;
 }
 
-function LeaveAnalyticsCard() {
-  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+export default function LeaveAnalyticsCard() {
+  const [dir] = useState<"ltr" | "rtl">("ltr");
+
   const translations = {
     leave_analytics: "Leave Analytics",
     select_year: "Select Year",
-    leaves_taken: "Leaves",
-    leaves_absent: "Absent",
-    no_data: "No leave data available",
     january: "January",
     february: "February",
     march: "March",
@@ -52,86 +69,87 @@ function LeaveAnalyticsCard() {
     translations.november,
     translations.december,
   ];
-  
+
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytic[]>([]);
 
   useEffect(() => {
-    const fetchYearData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getTeamLeaveAnalytics(selectedYear);
-        if (response?.success && response.data?.length > 0) {
-          setLeaveAnalytics(response.data);
-        } else {
-          setLeaveAnalytics([]);
-        }
-      } catch (error) {
-        console.error('Error fetching leave analytics:', error);
+        const res = await getTeamLeaveAnalytics(selectedYear);
+        setLeaveAnalytics(res?.success ? res.data || [] : []);
+      } catch (err) {
+        console.error("Leave analytics error:", err);
         setLeaveAnalytics([]);
       }
     };
 
-    fetchYearData();
+    fetchData();
   }, [selectedYear]);
 
-  const chartData = useMemo(() => {
-    const monthDataMap = new Map();
-    
-    leaveAnalytics.forEach((item: any) => {
-      monthDataMap.set(item.LVMonth, {
-        leaves: item.LeaveCount || 0,
-        absent: item.AbsentCount || 0,
-      });
+  const employees = useMemo(() => {
+    return [...new Set(leaveAnalytics.map(e => e.employee_id))];
+  }, [leaveAnalytics]);
+
+  const employeeColors = useMemo(() => {
+    const colors: Record<number, string> = {};
+    employees.forEach((id, i) => {
+      colors[id] = `hsl(${i * 9}, 100%, 64%)`;
     });
+    return colors;
+  }, [employees]);
 
-    const data = monthNames.map((monthName, index) => ({
-      month: monthName,
-      leaves: monthDataMap.get(index + 1)?.leaves || 0,
-      absent: monthDataMap.get(index + 1)?.absent || 0,
-    }));
+  const chartData = useMemo(() => {
+    return monthNames.map((month, index) => {
+      const row: any = { month };
 
-    return dir === "rtl" ? [...data].reverse() : data;
-  }, [dir, monthNames, leaveAnalytics]);
+      leaveAnalytics.forEach(item => {
+        if (item.LVMonth === index + 1) {
+          row[`emp${item.employee_id}`] =
+            (row[`emp${item.employee_id}`] || 0) +
+            item.LeaveCount +
+            item.AbsentCount;
+        }
+      });
 
-  const chartConfig = {
-    leaves: { 
-      label: translations.leaves_taken,
-      color: "hsl(var(--chart-leaves))"
-    },
-    absent: { 
-      label: translations.leaves_absent,
-      color: "hsl(var(--chart-absent))"
-    },
-  };
+      return row;
+    });
+  }, [leaveAnalytics, monthNames]);
 
-  const years = useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => currentYear - i);
-  }, [currentYear]);
+  const chartConfig: ChartConfig = useMemo(() => {
+    const config: ChartConfig = {};
+    employees.forEach(empId => {
+      config[`emp${empId}`] = {
+        label: `Employee ${empId}`,
+        color: employeeColors[empId],
+      };
+    });
+    return config;
+  }, [employees, employeeColors]);
+
+  const years = useMemo(
+    () => Array.from({ length: 5 }, (_, i) => currentYear - i),
+    [currentYear]
+  );
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
-      <div className="flex flex-row justify-between p-4">
-        <h5 className="text-lg text-text-primary font-bold">
+      <div className="flex justify-between p-4">
+        <h5 className="text-lg font-bold text-text-primary">
           {translations.leave_analytics}
         </h5>
-        <Select 
-          value={selectedYear.toString()} 
-          onValueChange={(value) => setSelectedYear(Number(value))}
+
+        <Select
+          value={selectedYear.toString()}
+          onValueChange={v => setSelectedYear(Number(v))}
         >
-          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
-            <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translations?.select_year || "Select Year"}>
-              {selectedYear}
-            </SelectValue>
+          <SelectTrigger className="h-9 w-auto rounded-lg border shadow-button text-sm font-semibold">
+            <SelectValue>{selectedYear}</SelectValue>
           </SelectTrigger>
-          <SelectContent className="bg-accent rounded-md shadow-dropdown">
-            {years.map((year) => (
-              <SelectItem
-                key={year}
-                value={year.toString()}
-                className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-primary"
-              >
+          <SelectContent>
+            {years.map(year => (
+              <SelectItem key={year} value={year.toString()}>
                 {year}
               </SelectItem>
             ))}
@@ -139,56 +157,37 @@ function LeaveAnalyticsCard() {
         </Select>
       </div>
 
-      <ChartContainer 
-        config={chartConfig} 
-        className={`relative ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
-        dir={dir}
-      >
+      <ChartContainer config={chartConfig} dir={dir} className={`relative w-full h-[300px] ${dir === "rtl" ? "-right-[30px]" : "-left-[25px]"}`}>
         <BarChart data={chartData}>
           <CartesianGrid vertical={false} />
           <XAxis
             dataKey="month"
             tickLine={false}
-            tickMargin={10}
             axisLine={false}
-            tickFormatter={(value) => value.slice(0, 3)}
-            interval={0}
+            tickFormatter={v => v.slice(0, 3)}
           />
-          <YAxis 
-            type="number" 
-            tickLine={false} 
-            tickMargin={2} 
-            axisLine={false} 
-            orientation={dir === "rtl" ? "right" : "left"} 
-          />
-          <ChartTooltip 
-            cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} 
-            content={<ChartTooltipContent />} 
-          />
-          <Legend 
-            verticalAlign="bottom" 
-            height={36}
-            iconType="circle"
-            wrapperStyle={{ paddingTop: '16px' }}
-          />
-          <Bar 
-            dataKey="leaves" 
-            stackId="a" 
-            fill="var(--color-leaves)" 
-            radius={[0, 0, 2, 2]}
-            name={translations.leaves_taken}
-          />
-          <Bar 
-            dataKey="absent" 
-            stackId="a" 
-            fill="var(--color-absent)" 
-            radius={[2, 2, 0, 0]}
-            name={translations.leaves_absent}
-          />
+          <YAxis tickLine={false} axisLine={false} />
+
+          <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "rgba(0,0,0,0.01)" }}/>
+          <Legend />
+
+          {employees.map(empId => (
+            <Bar
+              key={empId}
+              dataKey={`emp${empId}`}
+              name={`Employee ${empId}`}
+              fill={employeeColors[empId]}
+              barSize={18}
+              radius={[2, 2, 0, 0]}
+              activeBar={{
+                fill: employeeColors[empId].replace("64%", "50%"),
+                stroke: employeeColors[empId],
+                strokeWidth: 1,
+              }}
+            />
+          ))}
         </BarChart>
       </ChartContainer>
     </div>
   );
 }
-
-export default LeaveAnalyticsCard;

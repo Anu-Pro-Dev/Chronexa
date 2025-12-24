@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
 import Required from "@/src/components/ui/required";
-import { filterMonthlyRosterRequest, getManagerEmployees, getScheduleByOrganization } from "@/src/lib/apiHandler";
+import { filterMonthlyScheduleRequest, getManagerEmployees, getScheduleByOrganization } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/src/lib/utils";
@@ -153,7 +153,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
             onFilterParamsChange(requestBody);
           }
 
-          const data = await filterMonthlyRosterRequest(requestBody);
+          const data = await filterMonthlyScheduleRequest(requestBody);
           
           if (onFilterSubmit) {
             onFilterSubmit(data);
@@ -196,7 +196,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
         onFilterParamsChange(requestBody);
       }
 
-      const data = await filterMonthlyRosterRequest(requestBody);
+      const data = await filterMonthlyScheduleRequest(requestBody);
       
       if (onFilterSubmit) {
         onFilterSubmit(data);

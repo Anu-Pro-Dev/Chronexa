@@ -9,7 +9,7 @@ import {
   FormLabel,
 } from "@/src/components/ui/form";
 import { Checkbox } from "@/src/components/ui/checkbox";
-import { useEmployeeEditStore } from "@/src/stores/employeeEditStore";
+import { useEmployeeEditStore } from "@/src/store/useEmployeeEditStore";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 
 export default function FlagsForm({

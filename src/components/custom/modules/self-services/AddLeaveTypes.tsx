@@ -81,6 +81,11 @@ export default function AddLeaveTypes({
     mutationFn: addLeaveTypeRequest,
     onSuccess: (data) => {
       toast.success("Leave type added successfully!");
+      formBasciSetup.reset();
+      formPolicy.reset();
+      setBasicFormData(null);
+      setPageNumber(0);
+      
       if (onSave) {
         onSave(null, data.data);
       }
@@ -144,10 +149,16 @@ export default function AddLeaveTypes({
         (workflow: any) => workflow.workflow_id.toString() === values.workflows
       );
 
+      // Fix gender mapping - convert form values to database codes
+      let genderCode = null;
+      if (values.specific_gender === "ALL") genderCode = "A";
+      else if (values.specific_gender === "F") genderCode = "F";
+      else if (values.specific_gender === "M") genderCode = "M";
+
       const basicData: any = {
         leave_type_code: values.leave_type_code,
         leave_type_name: values.leave_type_name,
-        specific_gender: values?.specific_gender || "",
+        specific_gender: genderCode, // Will be null if no selection
         total_entitled_days: values.total_entitled_days,
         apply_prior_to_days: values.apply_prior_to_days,
         full_pay_days: values.full_pay_days,
@@ -155,7 +166,8 @@ export default function AddLeaveTypes({
         unpaid_days: values.unpaid_days,
       };
 
-      if (selectedWorkflow?.workflow_id) {
+      // Only add workflow_id if it exists
+      if (selectedWorkflow?.workflow_id !== null && selectedWorkflow?.workflow_id !== undefined) {
         basicData.workflow_id = selectedWorkflow.workflow_id;
       }
 
@@ -184,12 +196,12 @@ export default function AddLeaveTypes({
 
       const combinedPayload: any = {
         leave_type_code: basicFormData.leave_type_code,
-        specific_gender: basicFormData.specific_gender,
         total_entitled_days: basicFormData.total_entitled_days,
         apply_prior_to_days: basicFormData.apply_prior_to_days,
         full_pay_days: basicFormData.full_pay_days,
         half_pay_days: basicFormData.half_pay_days,
         unpaid_days: basicFormData.unpaid_days,
+        
         need_approval_flag: leaveAttributes.includes("Need Approval"),
         status_flag: leaveAttributes.includes("Status"),
         official_flag: leaveAttributes.includes("Official"),
@@ -205,8 +217,14 @@ export default function AddLeaveTypes({
         apply_not_laterthandays_flag: leaveAttributes.includes("Apply Not Later than Days"),
       };
 
-      if (basicFormData.workflow_id) {
+      // Only add workflow_id if it exists
+      if (basicFormData.workflow_id !== null && basicFormData.workflow_id !== undefined) {
         combinedPayload.workflow_id = basicFormData.workflow_id;
+      }
+
+      // Only add specific_gender if it exists and is valid (A, F, or M)
+      if (basicFormData.specific_gender && ['A', 'F', 'M'].includes(basicFormData.specific_gender)) {
+        combinedPayload.specific_gender = basicFormData.specific_gender;
       }
 
       if (language === "en") {
@@ -217,7 +235,7 @@ export default function AddLeaveTypes({
 
       if (selectedRowData) {
         editMutation.mutate({
-          leave_type_id: selectedRowData.id,
+          leave_type_id: selectedRowData.id || selectedRowData.leave_type_id,
           ...combinedPayload,
         });
       } else {
@@ -240,7 +258,15 @@ export default function AddLeaveTypes({
           : selectedRowData.leave_type_arb || ""
       );
       formBasciSetup.setValue("workflows", selectedRowData.workflow_id?.toString() || "");
-      formBasciSetup.setValue("specific_gender", selectedRowData.specific_gender?.toString() || "");
+      
+      // Fix gender mapping - convert database codes to form values
+      let genderValue = "";
+      if (selectedRowData.specific_gender === "A") genderValue = "ALL";
+      else if (selectedRowData.specific_gender === "F") genderValue = "F";
+      else if (selectedRowData.specific_gender === "M") genderValue = "M";
+      else if (selectedRowData.specific_gender) genderValue = selectedRowData.specific_gender;
+
+      formBasciSetup.setValue("specific_gender", genderValue);
       formBasciSetup.setValue("total_entitled_days", selectedRowData.total_entitled_days || undefined);
       formBasciSetup.setValue("apply_prior_to_days", selectedRowData.apply_prior_to_days || undefined);
       formBasciSetup.setValue("full_pay_days", selectedRowData.full_pay_days || undefined);
@@ -650,12 +676,19 @@ export default function AddLeaveTypes({
                   >
                     {translations?.buttons?.back}
                   </Button>
-                  <Button type="submit" size={"lg"} className=" px-10 " disabled={isSubmitting}>
-                    {isSubmitting
+                  <Button 
+                    type="submit" 
+                    size={"lg"} 
+                    className=" px-10 "
+                    disabled={addMutation.isPending || editMutation.isPending}
+                  >
+                    {addMutation.isPending || editMutation.isPending
                       ? selectedRowData
                         ? "Updating..."
                         : "Saving..."
-                      : translations?.buttons?.save
+                      : selectedRowData
+                        ? "Update"
+                        : "Save"
                     }
                   </Button>
                 </div>

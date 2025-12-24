@@ -8,7 +8,6 @@ import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
-import { Checkbox } from "@/src/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
@@ -24,7 +23,7 @@ const formSchema = z.object({
   remarks: z.string().optional(),
 });
 
-export default function AddRamadanDateRange({
+export default function AddRamadanDate({
   on_open_change,
   selectedRowData,
   onSave,
@@ -36,6 +35,7 @@ export default function AddRamadanDateRange({
 
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [originalValues, setOriginalValues] = useState<any>(null);
   const queryClient = useQueryClient();
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
@@ -45,6 +45,7 @@ export default function AddRamadanDateRange({
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,21 +58,71 @@ export default function AddRamadanDateRange({
   
   useEffect(() => {
     if (selectedRowData) {
+      const fromDate = selectedRowData.from_date ? new Date(selectedRowData.from_date) : null;
+      const toDate = selectedRowData.to_date ? new Date(selectedRowData.to_date) : null;
+
       form.reset({
         ramadan_name:
           language === "en"
             ? selectedRowData.ramadan_name_eng ?? ""
             : selectedRowData.ramadan_name_arb ?? "",
-        from_date: selectedRowData.from_date
-          ? new Date(selectedRowData.from_date): null,
-        to_date: selectedRowData.to_date
-          ? new Date(selectedRowData.to_date)  : null,
+        from_date: fromDate,
+        to_date: toDate,
+        remarks: selectedRowData.remarks ?? "",
+      });
+
+      // Store original values for comparison
+      setOriginalValues({
+        ramadan_name_eng: selectedRowData.ramadan_name_eng ?? "",
+        ramadan_name_arb: selectedRowData.ramadan_name_arb ?? "",
+        from_date: fromDate ? format(fromDate, "yyyy-MM-dd") : null,
+        to_date: toDate ? format(toDate, "yyyy-MM-dd") : null,
         remarks: selectedRowData.remarks ?? "",
       });
     } else {
       form.reset();
+      setOriginalValues(null);
     }
-  }, [selectedRowData, language]);
+  }, [selectedRowData, language, form]);
+
+  const handleError = (error: any) => {
+    console.error("API Error:", error);
+    
+    // Try to extract the error message from various possible error structures
+    const errorMessage = 
+      error?.response?.data?.message || 
+      error?.message || 
+      "Form submission error.";
+    
+    const overlappingDates = error?.response?.data?.overlapping_dates;
+
+    // Display the main error message
+    toast.error(errorMessage, { duration: 5000 });
+
+    // If there are overlapping dates, show additional details
+    if (overlappingDates && Array.isArray(overlappingDates) && overlappingDates.length > 0) {
+      overlappingDates.forEach((overlap: any, index: number) => {
+        const fromDate = new Date(overlap.from_date).toLocaleDateString();
+        const toDate = new Date(overlap.to_date).toLocaleDateString();
+        const name = language === "en" 
+          ? overlap.ramadan_name_eng 
+          : overlap.ramadan_name_arb;
+        
+        setTimeout(() => {
+          toast.error(
+            `Overlap ${index + 1}: ${name} (${fromDate} - ${toDate})`,
+            { duration: 6000 }
+          );
+        }, (index + 1) * 100);
+      });
+    }
+
+    // Handle specific status codes if needed
+    if (error?.response?.status === 409) {
+      // Duplicate/conflict is already handled by the message above
+      return;
+    }
+  };
 
   const addMutation = useMutation({
     mutationFn: addRamadanScheduleRequest,
@@ -81,13 +132,7 @@ export default function AddRamadanDateRange({
       on_open_change(false);
       queryClient.invalidateQueries({ queryKey: ["ramadan"] });
     },
-    onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
-      } else {
-        toast.error("Form submission error.");
-      }
-    },
+    onError: handleError,
   });
 
   const editMutation = useMutation({
@@ -98,13 +143,7 @@ export default function AddRamadanDateRange({
       queryClient.invalidateQueries({ queryKey: ["ramadan"] });
       on_open_change(false);
     },
-    onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
-      } else {
-        toast.error("Form submission error.");
-      }
-    },
+    onError: handleError,
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -113,26 +152,92 @@ export default function AddRamadanDateRange({
     setIsSubmitting(true);
     
     try {
-      const payload: any = {
-        from_date: values.from_date
-          ? format(values.from_date, "yyyy-MM-dd"): null,
-        to_date: values.to_date
-          ? format(values.to_date, "yyyy-MM-dd"): null,  
-        remarks: values.remarks,
-      };
-
-      if (language === "en") {
-        payload.ramadan_name_eng = values.ramadan_name;
-      } else {
-        payload.ramadan_name_arb = values.ramadan_name;
-      }
-
       if (selectedRowData) {
-        editMutation.mutate({
-          ramadan_id: selectedRowData.id,
-          ...payload,
-        });
+        // EDIT MODE - Send only changed fields
+        // Extract the ID from possible field names
+        const ramadanId = selectedRowData.ramadan_id || selectedRowData.id;
+        
+        if (!ramadanId) {
+          console.error("No valid ramadan ID found. selectedRowData:", selectedRowData);
+          toast.error("Unable to update: Ramadan ID not found. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Start with ramadan_id in payload
+        const payload: any = {
+          ramadan_id: Number(ramadanId),
+        };
+
+        // Only add fields that have changed
+        if (originalValues) {
+          // Check ramadan name based on current language
+          if (language === "en") {
+            if (values.ramadan_name !== originalValues.ramadan_name_eng) {
+              payload.ramadan_name_eng = values.ramadan_name;
+            }
+          } else {
+            if (values.ramadan_name !== originalValues.ramadan_name_arb) {
+              payload.ramadan_name_arb = values.ramadan_name;
+            }
+          }
+
+          // Check from date
+          const fromDateString = values.from_date ? format(values.from_date, "yyyy-MM-dd") : null;
+          if (fromDateString !== originalValues.from_date) {
+            payload.from_date = fromDateString;
+          }
+
+          // Check to date
+          const toDateString = values.to_date ? format(values.to_date, "yyyy-MM-dd") : null;
+          if (toDateString !== originalValues.to_date) {
+            payload.to_date = toDateString;
+          }
+
+          // Check remarks
+          const currentRemarks = values.remarks ?? "";
+          if (currentRemarks !== originalValues.remarks) {
+            payload.remarks = currentRemarks;
+          }
+        } else {
+          // Fallback: if no original values, send all fields (shouldn't happen)
+          if (language === "en") {
+            payload.ramadan_name_eng = values.ramadan_name;
+          } else {
+            payload.ramadan_name_arb = values.ramadan_name;
+          }
+          payload.from_date = values.from_date ? format(values.from_date, "yyyy-MM-dd") : null;
+          payload.to_date = values.to_date ? format(values.to_date, "yyyy-MM-dd") : null;
+          payload.remarks = values.remarks;
+        }
+
+        // Check if there are any changes to submit
+        const hasChanges = Object.keys(payload).length > 1; // More than just ramadan_id
+
+        if (!hasChanges) {
+          setIsSubmitting(false);
+          return;
+        }
+
+        console.log("Editing ramadan with ID:", ramadanId);
+        console.log("Changed fields payload:", payload);
+
+        editMutation.mutate(payload);
       } else {
+        // ADD MODE - Send all required fields
+        const payload: any = {
+          from_date: values.from_date ? format(values.from_date, "yyyy-MM-dd") : null,
+          to_date: values.to_date ? format(values.to_date, "yyyy-MM-dd") : null,  
+          remarks: values.remarks,
+        };
+
+        if (language === "en") {
+          payload.ramadan_name_eng = values.ramadan_name;
+        } else {
+          payload.ramadan_name_arb = values.ramadan_name;
+        }
+
+        console.log("Adding new ramadan. Payload:", payload);
         addMutation.mutate(payload);
       }
     } finally {
@@ -283,11 +388,24 @@ export default function AddRamadanDateRange({
                 size={"lg"}
                 className="w-full"
                 onClick={() => on_open_change(false)}
+                disabled={addMutation.isPending || editMutation.isPending}
               >
                 {translations.buttons.cancel}
               </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                Save
+              <Button 
+                type="submit" 
+                size={"lg"} 
+                className="w-full"
+                disabled={addMutation.isPending || editMutation.isPending}
+              >
+                {addMutation.isPending || editMutation.isPending
+                  ? selectedRowData
+                    ? "Updating..."
+                    : "Saving..."
+                  : selectedRowData
+                    ? "Update"
+                    : "Save"
+                }
               </Button>
             </div>
           </div>

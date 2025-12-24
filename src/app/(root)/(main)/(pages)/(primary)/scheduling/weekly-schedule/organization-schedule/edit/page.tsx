@@ -5,7 +5,7 @@ import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddOrganizationSchedule from "@/src/components/custom/modules/scheduling/AddOrganizationSchedule";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { useOrgScheduleEditStore } from "@/src/stores/orgScheduleEditStore";
+import { useOrgScheduleEditStore } from "@/src/store/useOrgScheduleEditStore";
 import { getOrgScheduleByID } from "@/src/lib/apiHandler";
 import { InlineLoading } from "@/src/app/loading";
 

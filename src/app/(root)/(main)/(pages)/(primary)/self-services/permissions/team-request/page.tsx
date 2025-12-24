@@ -291,6 +291,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeShortPermission"
+        isAddNewPagePath="/self-services/permissions/team-request/add"
       />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
         <div>

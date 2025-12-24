@@ -335,7 +335,7 @@ export default function AddDBSettings({
             />
           </div>
           <div className="flex justify-end gap-2 items-center py-5">
-            <div className="flex gap-4 px-5">
+            <div className="flex gap-4">
               <Button
                 variant="outline"
                 type="button"

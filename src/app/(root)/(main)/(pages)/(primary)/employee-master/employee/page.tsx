@@ -6,7 +6,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { useEmployeeEditStore } from "@/src/stores/employeeEditStore";
+import { useEmployeeEditStore } from "@/src/store/useEmployeeEditStore";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";

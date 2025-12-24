@@ -12,21 +12,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
 import { CalendarIcon, ClockIcon, ExclamationIcon } from "@/src/icons/icons";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { format } from "date-fns";
 import { TimePicker } from "@/src/components/ui/time-picker";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { addManualPunchRequest } from "@/src/lib/apiHandler";
+import { groupApproveTransactionsRequest } from "@/src/lib/apiHandler";
 
 const formSchema = z.object({
-  employee: z
-    .string()
-    .min(1, {
-      message: "Employee is required.",
-    })
-    .max(100),
   reason: z
     .string()
     .min(1, {
@@ -39,10 +34,10 @@ const formSchema = z.object({
   time: z.date({
     required_error: "Time is required.",
   }),
-  employee_remarks: z.string().optional(),
+  remarks: z.string().optional(),
 });
 
-export default function ApplyMissingPunch({
+export default function GroupApplyPunch({
   on_open_change,
   rowData,
   punchType,
@@ -68,14 +63,13 @@ export default function ApplyMissingPunch({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      employee: "",
       reason: "",
-      employee_remarks: "",
+      remarks: "",
     },
   });
 
-  const applyMissingPunchMutation = useMutation({
-    mutationFn: addManualPunchRequest,
+  const GroupApplyPunchMutation = useMutation({
+    mutationFn: groupApproveTransactionsRequest,
     onSuccess: (data) => {
       toast.success("Missing punch applied successfully!");
       queryClient.invalidateQueries({ queryKey: ["missingMovement"] });
@@ -110,9 +104,6 @@ export default function ApplyMissingPunch({
 
   useEffect(() => {
     if (rowData && punchType) {
-      const employeeDisplay = `${rowData.employee_name} (${rowData.Employee_Id})`;
-      form.setValue("employee", employeeDisplay);
-      
       form.setValue("reason", punchType);
       
       if (rowData.TransDate) {
@@ -144,14 +135,11 @@ export default function ApplyMissingPunch({
       const transaction_time = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
 
       const payload = {
-        employee_id: Number(rowData?.Employee_Id),
         transaction_time: transaction_time,
-        Emp_Missing_Movements_Id: Number(rowData?.emp_missing_Movements_Id),
         reason: values.reason,
-        remarks: values.employee_remarks || "",
-        transaction_status: "Pending",
+        remarks: values.remarks || "",
       };
-      applyMissingPunchMutation.mutate(payload);
+      GroupApplyPunchMutation.mutate(payload);
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
@@ -183,37 +171,21 @@ export default function ApplyMissingPunch({
             <div className="grid grid-cols-2 gap-y-5 gap-10 pt-8">
               <FormField
                 control={form.control}
-                name="employee"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Employee <Required />
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly
-                        className="bg-gray-50 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Reason <Required /></FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly
-                        className="bg-gray-50 cursor-not-allowed"
-                        placeholder="Punch Type"
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select punch type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="IN">IN</SelectItem>
+                        <SelectItem value="OUT">OUT</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -226,14 +198,37 @@ export default function ApplyMissingPunch({
                     <FormLabel>
                       Date <Required />
                     </FormLabel>
-                    <FormControl>
-                      <Input
-                        value={field.value ? format(field.value, "dd/MM/yy") : ""}
-                        readOnly
-                        className="bg-gray-50 cursor-not-allowed"
-                        placeholder="Choose date"
-                      />
-                    </FormControl>
+                    <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "dd/MM/yy")
+                            ) : (
+                              <span className="text-text-secondary">Choose date</span>
+                            )}
+                            <CalendarIcon />
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            closePopover('fromDate');
+                          }}
+                          defaultMonth={new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -275,9 +270,9 @@ export default function ApplyMissingPunch({
               />
               <FormField
                 control={form.control}
-                name="employee_remarks"
+                name="remarks"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
+                  <FormItem>
                     <FormLabel>Remarks </FormLabel>
                     <FormControl>
                       <Textarea 

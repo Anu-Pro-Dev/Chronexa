@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import MissingPunchModal from "@/src/components/custom/modules/self-services/MissingPunchModal";
+import GroupPunchModal from "@/src/components/custom/modules/self-services/GroupPunchModal";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
@@ -42,6 +43,7 @@ export default function Page() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
@@ -59,7 +61,7 @@ export default function Page() {
   const closePopover = (key: string) => {
     setPopoverStates((prev) => ({ ...prev, [key]: false }));
   };
-  
+
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -76,18 +78,22 @@ export default function Page() {
       rowData: data,
       punchType: field,
     };
-    
+
     setSelectedRowData(completeData);
     setIsModalOpen(true);
+  }, []);
+
+  const handleGroupApplyClick = useCallback(() => {
+    setIsGroupModalOpen(true);
   }, []);
 
   const TimeInCellRenderer = useCallback((data: any) => {
     const value = data.Trans_IN;
     const status = data.Status_IN;
-    
+
     const isPending = status && (status.toUpperCase() === 'PENDING' || status.toUpperCase() === 'APPLIED');
     const isRejected = status && status.toUpperCase() === 'REJECTED';
-    
+
     if (value === "Apply") {
       if (isPending || isRejected) {
         return (
@@ -97,7 +103,7 @@ export default function Page() {
         );
       }
       return (
-        <button 
+        <button
           onClick={() => handleCellClick(data, "IN")}
           className="text-primary hover:underline cursor-pointer"
         >
@@ -111,10 +117,10 @@ export default function Page() {
   const TimeOutCellRenderer = useCallback((data: any) => {
     const value = data.Trans_OUT;
     const status = data.Status_OUT;
-    
+
     const isPending = status && (status.toUpperCase() === 'PENDING' || status.toUpperCase() === 'APPLIED');
     const isRejected = status && status.toUpperCase() === 'REJECTED';
-    
+
     if (value === "Apply") {
       if (isPending || isRejected) {
         return (
@@ -124,7 +130,7 @@ export default function Page() {
         );
       }
       return (
-        <button 
+        <button
           onClick={() => handleCellClick(data, "OUT")}
           className="text-primary hover:underline cursor-pointer"
         >
@@ -191,7 +197,7 @@ export default function Page() {
     enabled: !!employeeId && isAuthenticated && !isChecking,
     endpoint: `/missingMovement/all`,
   });
-  
+
   const getEmployeeName = (transaction: any) => {
     const txEmployeeId = transaction.Employee_Id;
 
@@ -220,11 +226,11 @@ export default function Page() {
 
   const formatTime = (timeString: string | null) => {
     if (!timeString) return null;
-    
+
     if (/^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
       return timeString;
     }
-    
+
     try {
       const date = new Date(timeString);
       if (!isNaN(date.getTime())) {
@@ -263,7 +269,7 @@ export default function Page() {
       const empNo = transaction.employee_master?.emp_no || `EMP${transaction.Employee_Id}`;
       const timeIn = formatTime(transaction.Trans_IN);
       const timeOut = formatTime(transaction.Trans_OUT);
-      
+
       let status = "-";
       if (transaction.Status_IN && transaction.Status_OUT) {
         status = `${transaction.Status_IN} / ${transaction.Status_OUT}`;
@@ -272,7 +278,7 @@ export default function Page() {
       } else if (transaction.Status_OUT) {
         status = transaction.Status_OUT;
       }
-      
+
       return {
         ...transaction,
         id: transaction.Emp_Missing_Movements_Id,
@@ -421,83 +427,99 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
+        customButtons={
+          <>
+            {userInfo?.role?.toLowerCase() === "admin" && (
+              <Button
+                variant={"success"}
+                size={"sm"}
+                className="flex items-center space-y-0.5"
+                onClick={handleGroupApplyClick}
+              >
+                <span>Group Apply</span>
+              </Button>
+            )}
+          </>
+        }
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
-        <div>
-          <Popover
-            open={popoverStates.fromDate}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, fromDate: open }))
-            }
-          >
-            <PopoverTrigger asChild>
-              <Button
-                size={"lg"}
-                variant={"outline"}
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    {t.from_date || "From Date"} :
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {fromDate
-                      ? formatDate(fromDate)
-                      : t.placeholder_date || "Choose date"}
-                  </span>
-                </p>
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={fromDate}
-                onSelect={(date) => {
-                  handleFromDateChange(date);
-                  closePopover("fromDate");
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div>
-          <Popover
-            open={popoverStates.toDate}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, toDate: open }))
-            }
-          >
-            <PopoverTrigger asChild>
-              <Button
-                size={"lg"}
-                variant={"outline"}
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    {t.to_date || "To Date"} :
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {toDate
-                      ? formatDate(toDate)
-                      : t.placeholder_date || "Choose date"}
-                  </span>
-                </p>
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={toDate}
-                onSelect={(date) => {
-                  handleToDateChange(date);
-                  closePopover("toDate");
-                }}
-              />
-            </PopoverContent>
-          </Popover>
+      <div className="">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+          <div className="">
+            <Popover
+              open={popoverStates.fromDate}
+              onOpenChange={(open) =>
+                setPopoverStates((prev) => ({ ...prev, fromDate: open }))
+              }
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  size={"lg"}
+                  variant={"outline"}
+                  className="w-full bg-accent px-4 flex justify-between border-grey"
+                >
+                  <p>
+                    <Label className="font-normal text-secondary">
+                      {t.from_date || "From Date"} :
+                    </Label>
+                    <span className="px-1 text-sm text-text-primary">
+                      {fromDate
+                        ? formatDate(fromDate)
+                        : t.placeholder_date || "Choose date"}
+                    </span>
+                  </p>
+                  <CalendarIcon />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={fromDate}
+                  onSelect={(date) => {
+                    handleFromDateChange(date);
+                    closePopover("fromDate");
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Popover
+              open={popoverStates.toDate}
+              onOpenChange={(open) =>
+                setPopoverStates((prev) => ({ ...prev, toDate: open }))
+              }
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  size={"lg"}
+                  variant={"outline"}
+                  className="w-full bg-accent px-4 flex justify-between border-grey"
+                >
+                  <p>
+                    <Label className="font-normal text-secondary">
+                      {t.to_date || "To Date"} :
+                    </Label>
+                    <span className="px-1 text-sm text-text-primary">
+                      {toDate
+                        ? formatDate(toDate)
+                        : t.placeholder_date || "Choose date"}
+                    </span>
+                  </p>
+                  <CalendarIcon />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={toDate}
+                  onSelect={(date) => {
+                    handleToDateChange(date);
+                    closePopover("toDate");
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
       <div className="bg-accent rounded-2xl">
@@ -517,6 +539,13 @@ export default function Page() {
           onOpenChange={setIsModalOpen}
           rowData={selectedRowData.rowData}
           punchType={selectedRowData.punchType}
+          size="large"
+        />
+      )}
+      {isGroupModalOpen && (
+        <GroupPunchModal
+          open={isGroupModalOpen}
+          onOpenChange={setIsGroupModalOpen}
           size="large"
         />
       )}

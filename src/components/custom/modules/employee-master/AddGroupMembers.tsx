@@ -29,7 +29,7 @@ export default function AddGroupMembers({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
@@ -72,7 +72,7 @@ export default function AddGroupMembers({
   const { data: existingMembersData, refetch: refetchExistingMembers } = useFetchAllEntity("employeeGroupMember", {
     searchParams: {
       ...(currentGroupCode && { group_code: currentGroupCode }),
-      limit: "9999", 
+      limit: "9999",
     },
   });
 
@@ -94,14 +94,14 @@ export default function AddGroupMembers({
       limit: String(rowsPerPage),
       offset: String(currentPage),
     };
-    
+
     if (debouncedSearchValue) {
       params.search = debouncedSearchValue;
     }
-    
+
     if (sortField) params.sort_by = sortField;
     if (sortDirection) params.sort_order = sortDirection;
-    
+
     return params;
   }, [rowsPerPage, currentPage, debouncedSearchValue, sortField, sortDirection]);
 
@@ -114,8 +114,12 @@ export default function AddGroupMembers({
     onSuccess: (data) => {
       preserveUrlParams();
       onSave(null, data.data);
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "employeeGroupMember",
+      });
       on_open_change(false);
-      queryClient.invalidateQueries({ queryKey: ["employeeGroupMember"] });
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -278,23 +282,23 @@ export default function AddGroupMembers({
         <div className="flex flex-col gap-3">
           <div className="flex gap-2 items-center justify-between">
             <div className="flex">
-              <PowerSearch 
+              <PowerSearch
                 props={{
                   SearchValue: searchValue,
                   SetSearchValue: handleSearchChange,
-                }} 
+                }}
               />
             </div>
             <div className="flex gap-4">
-              <Button 
+              <Button
                 type="button"
-                variant={"success"} 
+                variant={"success"}
                 size={"sm"}
                 disabled={isSubmitting || selectedRows.length === 0}
                 onClick={handleAdd}
                 className="flex items-center space-y-0.5 border border-success"
               >
-                <AddIcon/> {translations.buttons.add}
+                <AddIcon /> {translations.buttons.add}
               </Button>
               <Button
                 variant={"outlineGrey"}
@@ -309,15 +313,15 @@ export default function AddGroupMembers({
           </div>
         </div>
       </form>
-      
+
       <div className="border border-[#E5E7EB] mt-6">
-        <PowerTable 
-          props={tableProps} 
+        <PowerTable
+          props={tableProps}
           ispageValue5={true}
           onRowSelection={handleRowSelection}
           overrideEditIcon={false}
         />
       </div>
-    </> 
+    </>
   );
 }

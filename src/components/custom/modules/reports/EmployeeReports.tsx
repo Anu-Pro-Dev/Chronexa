@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/pop
 import { Calendar } from "@/src/components/ui/calendar";
 import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { toast } from "react-hot-toast";
-import { PDFExporter } from './PDFExporter';
+import { PDFExporterFGIC } from './PDFExporterFGIC';
 import { ExcelExporter } from './ExcelExporter';
 import { CSVExporterFGIC } from './CSVExporterFGIC';
 import { CalendarIcon, LoginIcon } from "@/src/icons/icons";
@@ -107,29 +107,68 @@ export default function EmployeeReports() {
     }
   });
 
+
   const getEmployeeSearchParams = () => {
     const params: any = {
       limit: "1000",
       offset: "1"
     };
+  
+    // Priority order: Department > Division > Company
+    // Use the most specific organization level selected
     if (selectedDepartment) {
-      params.department_id = selectedDepartment;
-    }
-    if (selectedManagerId) {
-      params.manager_id = selectedManagerId;
-    }
-    return { searchParams: params };
-  };
+      params.organization_id = selectedDepartment;
+      } else if (selectedDivision) {
+        params.organization_id = selectedDivision;
+      } else if (selectedCompany) {
+        params.organization_id = selectedCompany;
+      }
+      
+      // Add manager filter if selected
+      if (selectedManagerId) {
+        params.manager_id = selectedManagerId;
+      }
+      
+      return { searchParams: params };
+    };
 
+  // Update the employees query to always use the params when any org is selected:
   const { data: employees } = useFetchAllEntity(
     "employee",
-    (selectedDepartment || selectedManagerId) ? getEmployeeSearchParams() : {
-      searchParams: {
-        limit: "1000",
-        offset: "1"
-      }
-    }
+    (selectedCompany || selectedDivision || selectedDepartment || selectedManagerId) 
+      ? getEmployeeSearchParams() 
+      : {
+          searchParams: {
+            limit: "1000",
+            offset: "1"
+          }
+        }
   );
+
+  // Also update the getFilteredEmployees function to respect organization filtering:
+  const getFilteredEmployees = () => {
+    let baseData = [];
+    
+    if (employeeSearchTerm.length > 0) {
+      // When searching, still respect organization filters
+      baseData = searchedEmployees?.data || [];
+      
+      // If an organization is selected, filter the search results
+      const selectedOrg = selectedDepartment || selectedDivision || selectedCompany;
+      if (selectedOrg) {
+        baseData = baseData.filter((emp: any) => 
+          emp?.organization_id?.toString() === selectedOrg
+        );
+      }
+    } else {
+      // Use the fetched employees which are already filtered by organization
+      baseData = employees?.data || [];
+    }
+    
+    return baseData.filter((item: any) => 
+      item?.employee_id && item.employee_id.toString().trim() !== ''
+    );
+  };
 
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
@@ -277,42 +316,22 @@ export default function EmployeeReports() {
     );
   };
 
-  const getFilteredEmployees = () => {
-    let baseData = [];
-    
-    if (employeeSearchTerm.length > 0) {
-      baseData = searchedEmployees?.data || [];
-    } else if (selectedManagerId) {
-      baseData = employees?.data || [];
-    } else if (selectedDepartment) {
-      baseData = employees?.data || [];
-    } else {
-      baseData = employees?.data || [];
-    }
-    
-    return baseData.filter((item: any) => 
-      item?.employee_id && item.employee_id.toString().trim() !== ''
-    );
-  };
-
   const headerMap: Record<string, string> = {
-    employee_number: "EmpNo",
-    firstname_eng: "EmployeeName",
+    employee_number: "Emp No",
+    firstname_eng: "Employee Name",
     parent_org_eng: "Company",
     organization_eng: "Division",
-    department_name_eng: "Department",
-    employee_type: "EmployeeType",
-    transdate: "transdate",
-    punch_in: "PunchIn",
-    GeoLocation_In: "GeoLocationIn",
-    punch_out: "PunchOut",
-    GeoLocation_Out: "GeoLocationOut",
-    dailyworkhrs: "DailyWorkedHours",
-    DailyMissedHrs: "DailyMissedHours",
-    dailyextrawork: "DailyExtraWork",
-    isabsent: "DayStatus",
-    MissedPunch: "Missed Punch",
-    EmployeeStatus: "EmployeeStatus"
+    employee_type: "Employee Type",
+    schCode: "Schedule",
+    transdate: "Date",
+    WorkDay: "Day",
+    punch_in: "Punch In",
+    punch_out: "Punch Out",
+    dailyworkhrs: "Worked Hours",
+    DailyMissedHrs: "Missed Hours",
+    dailyextrawork: "Overtime",
+    missed_punch: "Missed Punch",
+    day_status: "Status",
   };
 
   const calculateSummaryTotals = (dataArray: any[]) => {
@@ -456,11 +475,11 @@ export default function EmployeeReports() {
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
     
     try {
-      const exporter = new PDFExporter({
+      const exporter = new PDFExporterFGIC({
         formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
-        logoUrl: '/Logo.png',
+        logoUrl: '/FGI_COLOR.png',
         onProgress: handleProgressUpdate,
       });
       
@@ -947,6 +966,17 @@ export default function EmployeeReports() {
                 >
                   <FileText className="w-4 h-4" />
                   Export CSV
+                </Button>
+                <Button
+                  type="button"
+                  size={"sm"}
+                  className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
+                  onClick={handleShowReport}
+                  disabled={loading}
+                >
+                  <LoginIcon />
+                  Export PDF
+                  {/* {loading && exportType === 'pdf' ? `${exportProgress}%` : "Show PDF"} */}
                 </Button>
               </div>
             </div>

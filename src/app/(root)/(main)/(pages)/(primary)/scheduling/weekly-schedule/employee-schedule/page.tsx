@@ -10,7 +10,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
 import { InlineLoading } from "@/src/app/loading";
-import { useEmpScheduleEditStore } from "@/src/stores/empScheduleEditStore";
+import { useEmpScheduleEditStore } from "@/src/store/useEmployeeScheduleEditStore";
 
 type Column = {
   field: string;

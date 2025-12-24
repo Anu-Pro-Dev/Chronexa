@@ -28,13 +28,13 @@ const formSchema = z.object({
   to_date: z.date({ required_error: "to_date_required" }).optional(),
   employee_id: z.coerce.number({ required_error: "employee_required" }).min(1, { message: "employee_required" }),
   schedule_id: z.coerce.number({ required_error: "schedule_required" }).min(1, { message: "schedule_required" }),
-  sunday_schedule_id: z.coerce.number().optional(),
-  monday_schedule_id: z.coerce.number().optional(),
-  tuesday_schedule_id: z.coerce.number().optional(),
-  wednesday_schedule_id: z.coerce.number().optional(),
-  thursday_schedule_id: z.coerce.number().optional(),
-  friday_schedule_id: z.coerce.number().optional(),
-  saturday_schedule_id: z.coerce.number().optional(),
+  sunday_schedule_id: z.coerce.number().nullable().optional(),
+  monday_schedule_id: z.coerce.number().nullable().optional(),
+  tuesday_schedule_id: z.coerce.number().nullable().optional(),
+  wednesday_schedule_id: z.coerce.number().nullable().optional(),
+  thursday_schedule_id: z.coerce.number().nullable().optional(),
+  friday_schedule_id: z.coerce.number().nullable().optional(),
+  saturday_schedule_id: z.coerce.number().nullable().optional(),
   attachment: z.custom<any>(
     (value) => {
       if (!value) return true;
@@ -198,20 +198,19 @@ export default function AddEmployeeSchedule({
     let shouldUpdate = false;
 
     days.forEach((dayKey) => {
-      if (!currentValues[dayKey]) {
+      // Only auto-fill if the field is undefined (not if it's null or has a value)
+      if (currentValues[dayKey] === undefined) {
         updatedFields[dayKey] = scheduleId;
         shouldUpdate = true;
       }
     });
 
     if (shouldUpdate) {
-      form.setValue("monday_schedule_id", updatedFields.monday_schedule_id ?? currentValues.monday_schedule_id);
-      form.setValue("tuesday_schedule_id", updatedFields.tuesday_schedule_id ?? currentValues.tuesday_schedule_id);
-      form.setValue("wednesday_schedule_id", updatedFields.wednesday_schedule_id ?? currentValues.wednesday_schedule_id);
-      form.setValue("thursday_schedule_id", updatedFields.thursday_schedule_id ?? currentValues.thursday_schedule_id);
-      form.setValue("friday_schedule_id", updatedFields.friday_schedule_id ?? currentValues.friday_schedule_id);
-      form.setValue("saturday_schedule_id", updatedFields.saturday_schedule_id ?? currentValues.saturday_schedule_id);
-      form.setValue("sunday_schedule_id", updatedFields.sunday_schedule_id ?? currentValues.sunday_schedule_id);
+      days.forEach((dayKey) => {
+        if (updatedFields[dayKey] !== undefined) {
+          form.setValue(dayKey, updatedFields[dayKey]);
+        }
+      });
     }
   }, [scheduleId, form, selectedRowData]);
 
@@ -278,14 +277,30 @@ export default function AddEmployeeSchedule({
           : undefined,
         employee_id: values.employee_id,
         schedule_id: values.schedule_id,
-        sunday_schedule_id: values.sunday_schedule_id,
-        monday_schedule_id: values.monday_schedule_id,
-        tuesday_schedule_id: values.tuesday_schedule_id,
-        wednesday_schedule_id: values.wednesday_schedule_id,
-        thursday_schedule_id: values.thursday_schedule_id,
-        friday_schedule_id: values.friday_schedule_id,
-        saturday_schedule_id: values.saturday_schedule_id,
       };
+
+      // Only add weekday schedules if they have a value (including null)
+      if (values.sunday_schedule_id !== null) {
+        payload.sunday_schedule_id = values.sunday_schedule_id;
+      }
+      if (values.monday_schedule_id !== null) {
+        payload.monday_schedule_id = values.monday_schedule_id;
+      }
+      if (values.tuesday_schedule_id !== null) {
+        payload.tuesday_schedule_id = values.tuesday_schedule_id;
+      }
+      if (values.wednesday_schedule_id !== null) {
+        payload.wednesday_schedule_id = values.wednesday_schedule_id;
+      }
+      if (values.thursday_schedule_id !== null) {
+        payload.thursday_schedule_id = values.thursday_schedule_id;
+      }
+      if (values.friday_schedule_id !== null) {
+        payload.friday_schedule_id = values.friday_schedule_id;
+      }
+      if (values.saturday_schedule_id !== null) {
+        payload.saturday_schedule_id = values.saturday_schedule_id;
+      }
 
       if (values.attachment) {
         payload.attachment = values.attachment;
@@ -585,7 +600,9 @@ export default function AddEmployeeSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
@@ -598,6 +615,21 @@ export default function AddEmployeeSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('monday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -647,7 +679,9 @@ export default function AddEmployeeSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
@@ -660,6 +694,21 @@ export default function AddEmployeeSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('tuesday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -709,7 +758,9 @@ export default function AddEmployeeSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
@@ -722,6 +773,21 @@ export default function AddEmployeeSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('wednesday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -770,7 +836,9 @@ export default function AddEmployeeSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
@@ -783,6 +851,21 @@ export default function AddEmployeeSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('thursday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -832,7 +915,9 @@ export default function AddEmployeeSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
@@ -845,6 +930,21 @@ export default function AddEmployeeSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('friday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -894,7 +994,9 @@ export default function AddEmployeeSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
@@ -907,6 +1009,21 @@ export default function AddEmployeeSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('saturday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -956,7 +1073,9 @@ export default function AddEmployeeSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
@@ -969,6 +1088,21 @@ export default function AddEmployeeSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('sunday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}

@@ -10,7 +10,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import Required from "@/src/components/ui/required";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
@@ -40,6 +39,7 @@ export default function AddHoliday({
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const [originalValues, setOriginalValues] = useState<any>(null);
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -48,37 +48,90 @@ export default function AddHoliday({
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       holiday_name: "",
       from_date: null,
       to_date: null,
-      remarks:"",
+      remarks: "",
       recurring_flag: false,
       public_holiday_flag: false,
     },
   });
-  
+
   useEffect(() => {
     if (selectedRowData) {
+      const fromDate = selectedRowData.from_date ? new Date(selectedRowData.from_date) : null;
+      const toDate = selectedRowData.to_date ? new Date(selectedRowData.to_date) : null;
+
       form.reset({
         holiday_name:
           language === "en"
             ? selectedRowData.holiday_eng ?? ""
             : selectedRowData.holiday_arb ?? "",
-        from_date: selectedRowData.from_date
-          ? new Date(selectedRowData.from_date): null,
-        to_date: selectedRowData.to_date
-          ? new Date(selectedRowData.to_date)  : null,
+        from_date: fromDate,
+        to_date: toDate,
+        remarks: selectedRowData.remarks ?? "",
+        recurring_flag: selectedRowData.recurring_flag ?? false,
+        public_holiday_flag: selectedRowData.public_holiday_flag ?? false,
+      });
+
+      // Store original values for comparison
+      setOriginalValues({
+        holiday_eng: selectedRowData.holiday_eng ?? "",
+        holiday_arb: selectedRowData.holiday_arb ?? "",
+        from_date: fromDate ? format(fromDate, "yyyy-MM-dd") : null,
+        to_date: toDate ? format(toDate, "yyyy-MM-dd") : null,
         remarks: selectedRowData.remarks ?? "",
         recurring_flag: selectedRowData.recurring_flag ?? false,
         public_holiday_flag: selectedRowData.public_holiday_flag ?? false,
       });
     } else {
       form.reset();
+      setOriginalValues(null);
     }
-  }, [selectedRowData, language]);
+  }, [selectedRowData, language, form]);
+
+  const handleError = (error: any) => {
+    console.error("API Error:", error);
+    
+    // Try to extract the error message from various possible error structures
+    const errorMessage = 
+      error?.response?.data?.message || 
+      error?.message || 
+      "Form submission error.";
+    
+    const overlappingDates = error?.response?.data?.overlapping_dates;
+
+    // Display the main error message
+    toast.error(errorMessage, { duration: 5000 });
+
+    // If there are overlapping dates, show additional details
+    if (overlappingDates && Array.isArray(overlappingDates) && overlappingDates.length > 0) {
+      overlappingDates.forEach((overlap: any, index: number) => {
+        const fromDate = new Date(overlap.from_date).toLocaleDateString();
+        const toDate = new Date(overlap.to_date).toLocaleDateString();
+        const name = language === "en" 
+          ? overlap.holiday_eng 
+          : overlap.holiday_arb;
+        
+        setTimeout(() => {
+          toast.error(
+            `Overlap ${index + 1}: ${name} (${fromDate} - ${toDate})`,
+            { duration: 6000 }
+          );
+        }, (index + 1) * 100);
+      });
+    }
+
+    // Handle specific status codes if needed
+    if (error?.response?.status === 409) {
+      // Duplicate/conflict is already handled by the message above
+      return;
+    }
+  };
 
   const addMutation = useMutation({
     mutationFn: addHolidayScheduleRequest,
@@ -88,13 +141,7 @@ export default function AddHoliday({
       on_open_change(false);
       queryClient.invalidateQueries({ queryKey: ["holiday"] });
     },
-    onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
-      } else {
-        toast.error("Form submission error.");
-      }
-    },
+    onError: handleError,
   });
 
   const editMutation = useMutation({
@@ -105,42 +152,104 @@ export default function AddHoliday({
       queryClient.invalidateQueries({ queryKey: ["holiday"] });
       on_open_change(false);
     },
-    onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
-      } else {
-        toast.error("Form submission error.");
-      }
-    },
+    onError: handleError,
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
 
     setIsSubmitting(true);
-    
-    try {
-      const payload: any = {
-        from_date: values.from_date
-          ? format(values.from_date, "yyyy-MM-dd"): null,
-        to_date: values.to_date
-          ? format(values.to_date, "yyyy-MM-dd"): null,
-        remarks: values.remarks,  
-        recurring_flag: values.recurring_flag,
-        public_holiday_flag: values.public_holiday_flag,
-      };
-      if (language === "en") {
-        payload.holiday_eng = values.holiday_name;
-      } else {
-        payload.holiday_arb = values.holiday_name;
-      }
 
+    try {
       if (selectedRowData) {
-        editMutation.mutate({
+        // EDIT MODE - Send only changed fields
+        const payload: any = {
           holiday_id: selectedRowData.id,
-          ...payload,
-        });
+        };
+
+        // Only add fields that have changed
+        if (originalValues) {
+          // Check holiday name based on current language
+          if (language === "en") {
+            if (values.holiday_name !== originalValues.holiday_eng) {
+              payload.holiday_eng = values.holiday_name;
+            }
+          } else {
+            if (values.holiday_name !== originalValues.holiday_arb) {
+              payload.holiday_arb = values.holiday_name;
+            }
+          }
+
+          // Check from date
+          const fromDateString = values.from_date ? format(values.from_date, "yyyy-MM-dd") : null;
+          if (fromDateString !== originalValues.from_date) {
+            payload.from_date = fromDateString;
+          }
+
+          // Check to date
+          const toDateString = values.to_date ? format(values.to_date, "yyyy-MM-dd") : null;
+          if (toDateString !== originalValues.to_date) {
+            payload.to_date = toDateString;
+          }
+
+          // Check remarks
+          const currentRemarks = values.remarks ?? "";
+          if (currentRemarks !== originalValues.remarks) {
+            payload.remarks = currentRemarks;
+          }
+
+          // Check recurring flag
+          if (values.recurring_flag !== originalValues.recurring_flag) {
+            payload.recurring_flag = values.recurring_flag;
+          }
+
+          // Check public holiday flag
+          if (values.public_holiday_flag !== originalValues.public_holiday_flag) {
+            payload.public_holiday_flag = values.public_holiday_flag;
+          }
+        } else {
+          // Fallback: if no original values, send all fields (shouldn't happen)
+          if (language === "en") {
+            payload.holiday_eng = values.holiday_name;
+          } else {
+            payload.holiday_arb = values.holiday_name;
+          }
+          payload.from_date = values.from_date ? format(values.from_date, "yyyy-MM-dd") : null;
+          payload.to_date = values.to_date ? format(values.to_date, "yyyy-MM-dd") : null;
+          payload.remarks = values.remarks;
+          payload.recurring_flag = values.recurring_flag;
+          payload.public_holiday_flag = values.public_holiday_flag;
+        }
+
+        // Check if there are any changes to submit
+        const hasChanges = Object.keys(payload).length > 1; // More than just holiday_id
+
+        if (!hasChanges) {
+          setIsSubmitting(false);
+          return;
+        }
+
+        console.log("Editing holiday with ID:", selectedRowData.id);
+        console.log("Changed fields payload:", payload);
+
+        editMutation.mutate(payload);
       } else {
+        // ADD MODE - Send all required fields
+        const payload: any = {
+          from_date: values.from_date ? format(values.from_date, "yyyy-MM-dd") : null,
+          to_date: values.to_date ? format(values.to_date, "yyyy-MM-dd") : null,
+          remarks: values.remarks,
+          recurring_flag: values.recurring_flag,
+          public_holiday_flag: values.public_holiday_flag,
+        };
+
+        if (language === "en") {
+          payload.holiday_eng = values.holiday_name;
+        } else {
+          payload.holiday_arb = values.holiday_name;
+        }
+
+        console.log("Adding new holiday. Payload:", payload);
         addMutation.mutate(payload);
       }
     } finally {
@@ -197,7 +306,7 @@ export default function AddHoliday({
                   control={form.control}
                   name="holiday_name"
                   render={({ field }) => (
-                  <FormItem>
+                    <FormItem>
                       <FormLabel>
                         {language === "ar"
                           ? "Holiday Name (العربية) "
@@ -205,10 +314,10 @@ export default function AddHoliday({
                         <Required />
                       </FormLabel>
                       <FormControl>
-                      <Input placeholder="Enter holiday name" type="text" {...field} />
+                        <Input placeholder="Enter holiday name" type="text" {...field} />
                       </FormControl>
                       <FormMessage />
-                  </FormItem>
+                    </FormItem>
                   )}
                 />
                 <FormField
@@ -259,7 +368,7 @@ export default function AddHoliday({
                             disabled={(date) => {
                               const today = new Date();
                               today.setHours(0, 0, 0, 0);
-                              
+
                               return date < today;
                             }}
                           />
@@ -322,8 +431,20 @@ export default function AddHoliday({
               >
                 {translations.buttons.cancel}
               </Button>
-              <Button type="submit" size={"lg"} className="w-full">
-                Save
+              <Button
+                type="submit"
+                size={"lg"}
+                className="w-full"
+                disabled={addMutation.isPending || editMutation.isPending}
+              >
+                {addMutation.isPending || editMutation.isPending
+                  ? selectedRowData
+                    ? "Updating..."
+                    : "Saving..."
+                  : selectedRowData
+                    ? "Update"
+                    : "Save"
+                }
               </Button>
             </div>
           </div>

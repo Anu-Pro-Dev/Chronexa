@@ -28,13 +28,13 @@ const formSchema = z.object({
   to_date: z.date({ required_error: "to_date_required" }).optional(),
   organization_id: z.coerce.number({ required_error: "organization_required" }).min(1, { message: "organization_required" }),
   schedule_id: z.coerce.number({ required_error: "schedule_required" }).min(1, { message: "schedule_required" }),
-  sunday_schedule_id: z.coerce.number().optional(),
-  monday_schedule_id: z.coerce.number().optional(),
-  tuesday_schedule_id: z.coerce.number().optional(),
-  wednesday_schedule_id: z.coerce.number().optional(),
-  thursday_schedule_id: z.coerce.number().optional(),
-  friday_schedule_id: z.coerce.number().optional(),
-  saturday_schedule_id: z.coerce.number().optional(),
+  sunday_schedule_id: z.coerce.number().nullable().optional(),
+  monday_schedule_id: z.coerce.number().nullable().optional(),
+  tuesday_schedule_id: z.coerce.number().nullable().optional(),
+  wednesday_schedule_id: z.coerce.number().nullable().optional(),
+  thursday_schedule_id: z.coerce.number().nullable().optional(),
+  friday_schedule_id: z.coerce.number().nullable().optional(),
+  saturday_schedule_id: z.coerce.number().nullable().optional(),
   attachment: z.custom<any>(
     (value) => {
       if (!value) return true;
@@ -74,7 +74,7 @@ export default function AddOrganizationSchedule({
   const showToast = useShowToast();
   const t = translations?.modules?.schedulingModule || {};
   const errT = translations?.formErrors || {};
-  
+
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -92,7 +92,7 @@ export default function AddOrganizationSchedule({
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -129,13 +129,13 @@ export default function AddOrganizationSchedule({
   });
 
   const getFilteredOrganizations = () => {
-    return (organizations?.data || []).filter((item: any) => 
+    return (organizations?.data || []).filter((item: any) =>
       item.organization_id && item.organization_id.toString().trim() !== ''
     );
   };
 
   const getFilteredSchedules = () => {
-    return (schedules?.data || []).filter((item: any) => 
+    return (schedules?.data || []).filter((item: any) =>
       item.schedule_id && item.schedule_id.toString().trim() !== ''
     );
   };
@@ -149,6 +149,80 @@ export default function AddOrganizationSchedule({
   const getScheduleCode = (schedId: number) => {
     const sched = schedules?.data?.find((s: any) => s.schedule_id === schedId);
     return sched?.schedule_code || "";
+  };
+
+  const WeekdayScheduleSelector = ({ field, day, t, popoverStates, setPopoverStates, getScheduleCode, getFilteredSchedules, closePopover, translations }: any) => {
+    return (
+      <Popover
+        open={popoverStates[day]}
+        onOpenChange={(open) => setPopoverStates((prev: any) => ({ ...prev, [day]: open }))}
+      >
+        <PopoverTrigger asChild>
+          <FormControl>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={popoverStates[day]}
+              className={cn(
+                "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
+                !field.value && "text-text-secondary"
+              )}
+            >
+              <span className="truncate">
+                {field.value === null
+                  ? t.nil || "None"
+                  : field.value
+                    ? getScheduleCode(field.value)
+                    : t.placeholder_schedule || "Choose schedule"}
+              </span>
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </FormControl>
+        </PopoverTrigger>
+        <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+          <Command>
+            <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
+            <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
+            <CommandGroup className="max-h-64 overflow-auto">
+              {/* Add Nil/None option */}
+              <CommandItem
+                value="nil-option"
+                onSelect={() => {
+                  field.onChange(null);
+                  closePopover(day);
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    field.value === null ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {t.nil || "None"}
+              </CommandItem>
+              {getFilteredSchedules().map((item: any) => (
+                <CommandItem
+                  key={item.schedule_id}
+                  value={item.schedule_code}
+                  onSelect={() => {
+                    field.onChange(item.schedule_id);
+                    closePopover(day);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      field.value === item.schedule_id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {item.schedule_code}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    );
   };
 
   useEffect(() => {
@@ -187,20 +261,19 @@ export default function AddOrganizationSchedule({
     let shouldUpdate = false;
 
     days.forEach((dayKey) => {
-      if (!currentValues[dayKey]) {
+      // Only auto-fill if the field is undefined (not if it's null or has a value)
+      if (currentValues[dayKey] === undefined) {
         updatedFields[dayKey] = scheduleId;
         shouldUpdate = true;
       }
     });
 
     if (shouldUpdate) {
-      form.setValue("monday_schedule_id", updatedFields.monday_schedule_id ?? currentValues.monday_schedule_id);
-      form.setValue("tuesday_schedule_id", updatedFields.tuesday_schedule_id ?? currentValues.tuesday_schedule_id);
-      form.setValue("wednesday_schedule_id", updatedFields.wednesday_schedule_id ?? currentValues.wednesday_schedule_id);
-      form.setValue("thursday_schedule_id", updatedFields.thursday_schedule_id ?? currentValues.thursday_schedule_id);
-      form.setValue("friday_schedule_id", updatedFields.friday_schedule_id ?? currentValues.friday_schedule_id);
-      form.setValue("saturday_schedule_id", updatedFields.saturday_schedule_id ?? currentValues.saturday_schedule_id);
-      form.setValue("sunday_schedule_id", updatedFields.sunday_schedule_id ?? currentValues.sunday_schedule_id);
+      days.forEach((dayKey) => {
+        if (updatedFields[dayKey] !== undefined) {
+          form.setValue(dayKey, updatedFields[dayKey]);
+        }
+      });
     }
   }, [scheduleId, form, selectedRowData]);
 
@@ -217,11 +290,11 @@ export default function AddOrganizationSchedule({
     }
     prevOrgIdRef.current = organizationId;
   }, [organizationId, form]);
-  
+
   const addMutation = useMutation({
     mutationFn: addOrgScheduleRequest,
     onSuccess: (data) => {
-      showToast("success", "addorgschedule_success");     
+      showToast("success", "addorgschedule_success");
       onSave(null, data.data);
       queryClient.invalidateQueries({ queryKey: ["organizationSchedule"] });
       router.push("/scheduling/weekly-schedule/organization-schedule");
@@ -230,7 +303,7 @@ export default function AddOrganizationSchedule({
       if (error?.response?.status === 409) {
         showToast("error", "findduplicate_error");
       } else {
-        showToast("error", "formsubmission_error"); 
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -247,7 +320,7 @@ export default function AddOrganizationSchedule({
       if (error?.response?.status === 409) {
         showToast("error", "findduplicate_error");
       } else {
-        showToast("error", "formsubmission_error"); 
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -267,14 +340,30 @@ export default function AddOrganizationSchedule({
           : undefined,
         organization_id: values.organization_id,
         schedule_id: values.schedule_id,
-        sunday_schedule_id: values.sunday_schedule_id,
-        monday_schedule_id: values.monday_schedule_id,
-        tuesday_schedule_id: values.tuesday_schedule_id,
-        wednesday_schedule_id: values.wednesday_schedule_id,
-        thursday_schedule_id: values.thursday_schedule_id,
-        friday_schedule_id: values.friday_schedule_id,
-        saturday_schedule_id: values.saturday_schedule_id,
       };
+
+      // Only add weekday schedules if they have a value (including null)
+      if (values.sunday_schedule_id !== null) {
+        payload.sunday_schedule_id = values.sunday_schedule_id;
+      }
+      if (values.monday_schedule_id !== null) {
+        payload.monday_schedule_id = values.monday_schedule_id;
+      }
+      if (values.tuesday_schedule_id !== null) {
+        payload.tuesday_schedule_id = values.tuesday_schedule_id;
+      }
+      if (values.wednesday_schedule_id !== null) {
+        payload.wednesday_schedule_id = values.wednesday_schedule_id;
+      }
+      if (values.thursday_schedule_id !== null) {
+        payload.thursday_schedule_id = values.thursday_schedule_id;
+      }
+      if (values.friday_schedule_id !== null) {
+        payload.friday_schedule_id = values.friday_schedule_id;
+      }
+      if (values.saturday_schedule_id !== null) {
+        payload.saturday_schedule_id = values.saturday_schedule_id;
+      }
 
       if (values.attachment) {
         payload.attachment = values.attachment;
@@ -292,9 +381,9 @@ export default function AddOrganizationSchedule({
       setIsSubmitting(false);
     }
   }
-  
+
   const isEditMode = !!selectedRowData;
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
@@ -334,11 +423,11 @@ export default function AddOrganizationSchedule({
                           field.onChange(date)
                           closePopover('fromDate')
                         }}
-                        disabled={(date) => {
-                          const today = new Date();
-                          today.setHours(0, 0, 0, 0);
-                          return date < today;
-                        }}
+                      // disabled={(date) => {
+                      //   const today = new Date();
+                      //   today.setHours(0, 0, 0, 0);
+                      //   return date < today;
+                      // }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -382,14 +471,14 @@ export default function AddOrganizationSchedule({
                         }}
                         disabled={(date) => {
                           const orgScheduleStartDate = form.getValues("from_date");
-                          
+
                           if (!orgScheduleStartDate) {
                             return true;
                           }
-                          
+
                           const startDate = new Date(orgScheduleStartDate);
                           startDate.setHours(0, 0, 0, 0);
-                          
+
                           const compareDate = new Date(date);
                           compareDate.setHours(0, 0, 0, 0);
                           return compareDate <= startDate;
@@ -436,8 +525,8 @@ export default function AddOrganizationSchedule({
                     </PopoverTrigger>
                     <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
                       <Command>
-                        <CommandInput 
-                          placeholder={t.search_organizations || "Search organizations..."} 
+                        <CommandInput
+                          placeholder={t.search_organizations || "Search organizations..."}
                           className="border-none"
                           onValueChange={setOrganizationSearchTerm}
                         />
@@ -512,8 +601,8 @@ export default function AddOrganizationSchedule({
                       </PopoverTrigger>
                       <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
                         <Command>
-                          <CommandInput 
-                            placeholder={t.search_schedules || "Search schedules..."} 
+                          <CommandInput
+                            placeholder={t.search_schedules || "Search schedules..."}
                             className="border-none"
                             onValueChange={setScheduleSearchTerm}
                           />
@@ -572,9 +661,11 @@ export default function AddOrganizationSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
-                              ? getScheduleCode(field.value)
-                              : t.placeholder_schedule || "Choose schedule"}
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -585,6 +676,21 @@ export default function AddOrganizationSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('monday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -604,6 +710,7 @@ export default function AddOrganizationSchedule({
                             </CommandItem>
                           ))}
                         </CommandGroup>
+
                       </Command>
                     </PopoverContent>
                   </Popover>
@@ -614,7 +721,7 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="tuesday_schedule_id"
@@ -634,9 +741,11 @@ export default function AddOrganizationSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
-                              ? getScheduleCode(field.value)
-                              : t.placeholder_schedule || "Choose schedule"}
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -647,6 +756,21 @@ export default function AddOrganizationSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('tuesday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -676,7 +800,7 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="wednesday_schedule_id"
@@ -696,9 +820,11 @@ export default function AddOrganizationSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
-                              ? getScheduleCode(field.value)
-                              : t.placeholder_schedule || "Choose schedule"}
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -709,6 +835,21 @@ export default function AddOrganizationSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('wednesday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -757,9 +898,11 @@ export default function AddOrganizationSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
-                              ? getScheduleCode(field.value)
-                              : t.placeholder_schedule || "Choose schedule"}
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -770,6 +913,21 @@ export default function AddOrganizationSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('thursday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -799,7 +957,7 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="friday_schedule_id"
@@ -819,9 +977,11 @@ export default function AddOrganizationSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
-                              ? getScheduleCode(field.value)
-                              : t.placeholder_schedule || "Choose schedule"}
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -832,6 +992,21 @@ export default function AddOrganizationSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('friday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -861,7 +1036,7 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="saturday_schedule_id"
@@ -881,9 +1056,11 @@ export default function AddOrganizationSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
-                              ? getScheduleCode(field.value)
-                              : t.placeholder_schedule || "Choose schedule"}
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -894,6 +1071,21 @@ export default function AddOrganizationSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('saturday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -923,7 +1115,7 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="sunday_schedule_id"
@@ -943,9 +1135,11 @@ export default function AddOrganizationSchedule({
                           )}
                         >
                           <span className="truncate">
-                            {field.value
-                              ? getScheduleCode(field.value)
-                              : t.placeholder_schedule || "Choose schedule"}
+                            {field.value === null
+                              ? t.nil || "None"
+                              : field.value
+                                ? getScheduleCode(field.value)
+                                : t.placeholder_schedule || "Choose schedule"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -956,6 +1150,21 @@ export default function AddOrganizationSchedule({
                         <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
                         <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            value="nil-option"
+                            onSelect={() => {
+                              field.onChange(null);
+                              closePopover('sunday');
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === null ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {t.nil || "None"}
+                          </CommandItem>
                           {getFilteredSchedules().map((item: any) => (
                             <CommandItem
                               key={item.schedule_id}
@@ -985,7 +1194,7 @@ export default function AddOrganizationSchedule({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="attachment"
@@ -1024,9 +1233,9 @@ export default function AddOrganizationSchedule({
             >
               {translations.buttons.cancel}
             </Button>
-            <Button 
-              type="submit" 
-              size={"lg"} 
+            <Button
+              type="submit"
+              size={"lg"}
               className="w-full"
               disabled={isSubmitting}
             >
@@ -1035,8 +1244,8 @@ export default function AddOrganizationSchedule({
                   ? translations.buttons.updating
                   : translations.buttons.saving
                 : selectedRowData
-                ? translations.buttons.update
-                : translations.buttons.save}
+                  ? translations.buttons.update
+                  : translations.buttons.save}
             </Button>
           </div>
         </div>

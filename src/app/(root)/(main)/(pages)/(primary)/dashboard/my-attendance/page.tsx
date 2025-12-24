@@ -56,7 +56,7 @@
 //           value: "01",
 //         },
 //       ]);
-      
+
 //       setIsLoading(false);
 //     };
 
@@ -91,7 +91,7 @@ import { cn } from "@/src/lib/utils";
 import MyAttendancePage from "@/src/components/custom/modules/dashboard/my-attendance/MAPage";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { PunchButton } from "@/src/components/custom/common/punch-button";
-import { 
+import {
   AbsentIcon,
   ApprovedIcon,
   LeaveTakenIcon,
@@ -99,17 +99,21 @@ import {
   TotalLeavesIcon,
   WorkingDaysIcon,
 }
-from "@/src/icons/icons";
+  from "@/src/icons/icons";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import React, { useEffect, useState } from "react";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import CurrentDate from "@/src/components/ui/currentdate";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Dashboard() {
   const { modules } = useLanguage();
+  const { userInfo } = useAuthGuard();
   const [LeaveAndAttendanceElements, SetLeaveAndAttendance] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const shouldShowPunchButton = userInfo?.isWebPunch === true;
+  
   useEffect(() => {
     const loadData = () => {
       SetLeaveAndAttendance([
@@ -144,7 +148,7 @@ export default function Dashboard() {
           value: "01",
         },
       ]);
-      
+
       setIsLoading(false);
     };
 
@@ -160,10 +164,13 @@ export default function Dashboard() {
           disableSearch
           items={modules?.dashboard.items}
         />
-        <div className="flex">
+        <div className="flex gap-4">
           <CurrentDate />
-          {/* <PunchButton /> */}
-          <div className="h-9"></div>
+          <div className="h-9">
+            {shouldShowPunchButton && (
+              <PunchButton />
+            )}
+          </div>
         </div>
       </div>
       {isLoading ? (

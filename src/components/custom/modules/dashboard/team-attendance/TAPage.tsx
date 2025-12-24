@@ -16,10 +16,15 @@ function TeamAttendancePage() {
                     </div>
                 </div>
                 <div className="widget-group-2 flex justify-between gap-4">
-                    <div className='card-widget max-w-[50%] w-full h-auto flex flex-col gap-4'>
+                    <div className='card-widget max-w-[100%] w-full h-auto flex flex-col gap-4'>
                         <LeaveAnalyticsCard/>
                     </div>
-                    <div className="card-widget max-w-[50%] w-full h-auto flex flex-col gap-4">
+                    {/* <div className="card-widget max-w-[50%] w-full h-auto flex flex-col gap-4">
+                        <ViolationsCard/>
+                    </div> */}
+                </div>
+                <div className="widget-group-2 flex justify-between gap-4">
+                    <div className="card-widget max-w-[100%] w-full h-auto flex flex-col gap-4">
                         <ViolationsCard/>
                     </div>
                 </div>

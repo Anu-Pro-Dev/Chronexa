@@ -5,16 +5,15 @@ import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddGroupMembers from "@/src/components/custom/modules/employee-master/AddGroupMembers";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
-import { apiRequest } from "@/src/lib/apiHandler";
-import { useShowToast } from "@/src/utils/toastHelper";
-import toast from "react-hot-toast"; 
+import { useEmployeeGroupStore } from "@/src/store/useEmployeeGroupStore";
+import { useDeleteEntityMutation } from "@/src/hooks/useDeleteEntityMutation";
+import toast from "react-hot-toast";
 
 export default function MembersTable() {
   const searchParams = useSearchParams();
-  const group = searchParams.get("group");
   const router = useRouter();
   const pathname = usePathname();
   const { modules, language, translations } = useLanguage();
@@ -30,31 +29,29 @@ export default function MembersTable() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.employeeMaster || {};
-  const showToast = useShowToast();
 
-  const deleteMutation = useMutation({
-    mutationFn: async (ids: number[]) => {
-      if (ids.length === 1) {
-        return apiRequest(`/employeeGroupMember/delete/${ids[0]}`, "DELETE");
-      } else {
-        return apiRequest(`/employeeGroupMember/delete`, "DELETE", { ids });
-      }
-    },
-    onSuccess: (_result, ids) => {
-      const count = ids.length;
-      if (count === 1) {
-        showToast("success", "delete_success", { displayText: "Group Member" });
-      } else {
-        showToast("success", "delete_multiple_success", { displayText: "Group Members", count });
-      }
-      queryClient.invalidateQueries({ queryKey: ["employeeGroupMember"] });
-      setSelectedRows([]);
-    },
-    onError: (error) => {
-      console.error("Delete operation failed:", error);
-      showToast("error", "formsubmission_error");
-    },
+  const group = searchParams.get("group");
+  const groupIdFromUrl = searchParams.get("id")
+    ? Number(searchParams.get("id"))
+    : null;
+  const { groupId, groupCode } = useEmployeeGroupStore();
+
+  // Use the delete hook
+  const deleteMutation = useDeleteEntityMutation({
+    onSelectionClear: () => setSelectedRows([]),
   });
+
+  useEffect(() => {
+    if (
+      groupIdFromUrl &&
+      Number.isFinite(groupIdFromUrl) &&
+      groupId !== groupIdFromUrl
+    ) {
+      useEmployeeGroupStore
+        .getState()
+        .setGroup(groupIdFromUrl, group || "");
+    }
+  }, [groupIdFromUrl, group]);
 
   const handleDelete = useCallback(() => {
     if (!selectedRows || selectedRows.length === 0) {
@@ -71,7 +68,10 @@ export default function MembersTable() {
       return;
     }
 
-    deleteMutation.mutate(ids);
+    deleteMutation.mutate({
+      entityName: "employeeGroupMember",
+      ids,
+    });
   }, [selectedRows, deleteMutation]);
 
   const preserveUrlParams = useCallback(() => {
@@ -99,23 +99,24 @@ export default function MembersTable() {
     ]);
   }, [language, t]);
 
-  const { data: groupMembersData, isLoading: isLoadingGroupMembers, refetch: refetchGroupMembers } = useFetchAllEntity("employeeGroupMember", {
+  const { data: groupMembersData, isLoading, refetch } = useFetchAllEntity("employeeGroupMember", {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
-      ...(group && { group_code: group }),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
     },
+    enabled: !!groupId,
+    endpoint: `/employeeGroupMember/byGroup/${groupId}`,
   });
 
   const filteredData = useMemo(() => {
     if (!groupMembersData?.data || !Array.isArray(groupMembersData.data)) {
       return [];
     }
-    
-    const mergedData = groupMembersData.data.map((member: any) => {
+
+    return groupMembersData.data.map((member: any) => {
       const emp = member.employee_master;
-      
+
       if (!emp) {
         console.warn(`No employee_master data found for group member ID: ${member.group_member_id}`);
       }
@@ -129,28 +130,24 @@ export default function MembersTable() {
         id: member.group_member_id,
         group_member_id: member.group_member_id,
         employee_no: emp?.emp_no || "N/A",
-        employee_name: language === "ar" 
+        employee_name: language === "ar"
           ? (emp?.firstname_arb || emp?.firstname_eng || "N/A")
           : (emp?.firstname_eng || emp?.firstname_arb || "N/A"),
-        designation: emp?.designation 
-          ? (language === "ar" 
-              ? (emp.designation.designation_arb || emp.designation.designation_eng || "N/A")
-              : (emp.designation.designation_eng || emp.designation.designation_arb || "N/A"))
+        designation: emp?.designation
+          ? (language === "ar"
+            ? (emp.designation.designation_arb || emp.designation.designation_eng || "N/A")
+            : (emp.designation.designation_eng || emp.designation.designation_arb || "N/A"))
           : "N/A",
-        organization: emp?.organization 
-          ? (language === "ar" 
-              ? (emp.organization.organization_arb || emp.organization.organization_eng || "N/A")
-              : (emp.organization.organization_eng || emp.organization.organization_arb || "N/A"))
+        organization: emp?.organization
+          ? (language === "ar"
+            ? (emp.organization.organization_arb || emp.organization.organization_eng || "N/A")
+            : (emp.organization.organization_eng || emp.organization.organization_arb || "N/A"))
           : "N/A",
         effective_from_date: member.effective_from_date,
         effective_to_date: member.effective_to_date,
       };
     });
-
-    return mergedData;
   }, [groupMembersData, language]);
-
-  const isLoading = isLoadingGroupMembers;
 
   useEffect(() => {
     if (!open) {
@@ -160,20 +157,20 @@ export default function MembersTable() {
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
-    
-    if (refetchGroupMembers) {
-      setTimeout(() => refetchGroupMembers(), 100);
+
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
     }
-  }, [refetchGroupMembers]);
+  }, [currentPage, refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1);
-    
-    if (refetchGroupMembers) {
-      setTimeout(() => refetchGroupMembers(), 100);
+
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
     }
-  }, [refetchGroupMembers]);
+  }, [rowsPerPage, refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -181,9 +178,13 @@ export default function MembersTable() {
   }, []);
 
   const handleSave = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["employeeGroupMember"] });
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === "employeeGroupMember",
+    });
     setOpen(false);
-    
+
     setTimeout(() => {
       if (group) {
         const params = new URLSearchParams(searchParams.toString());

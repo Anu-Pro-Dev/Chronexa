@@ -4,7 +4,7 @@ import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddOrganizationSchedule from "@/src/components/custom/modules/scheduling/AddOrganizationSchedule";
 import { useQueryClient } from "@tanstack/react-query";
-import { useOrgScheduleEditStore } from "@/src/stores/orgScheduleEditStore";
+import { useOrgScheduleEditStore } from "@/src/store/useOrgScheduleEditStore";
 
 export default function OrgScheduleAddPage() {  
   const { modules } = useLanguage();

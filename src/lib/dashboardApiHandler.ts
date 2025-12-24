@@ -94,6 +94,14 @@ export const getTeamLeaveAnalytics = async (year?: number) => {
   );
 };
 
+export const getTeamViolationAnalytics = async (year?: number) => {
+  const queryParam = year ? `?year=${year}` : '';
+  const cacheKey = `violation-analytics-${year || 'current'}`;
+  return deduplicatedRequest(cacheKey, () =>
+    apiRequest(`/dashboard/teamViolationAnalytics${queryParam}`, "GET")
+  );
+};
+
 let dashboardFetchPromise: Promise<any> | null = null;
 let dashboardFetchTimestamp = 0;
 

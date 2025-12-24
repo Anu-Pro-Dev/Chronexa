@@ -26,7 +26,7 @@ import {
   addRoletoUser,
 } from "@/src/lib/apiHandler";
 
-import { useEmployeeEditStore } from "@/src/stores/employeeEditStore";
+import { useEmployeeEditStore } from "@/src/store/useEmployeeEditStore";
 import { useShowToast } from "@/src/utils/toastHelper";
 
 type EmployeeData = z.infer<typeof personalFormSchema> &

@@ -10,12 +10,15 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
+import { getTeamViolationAnalytics } from '@/src/lib/dashboardApiHandler';
 
 interface ViolationAnalytic {
-  ViolationYear: number;
-  ViolationMonth: number;
-  [key: string]: any;
+  ViolationMnth: number;
+  LeaveYear: number;
+  LateCnt: number;
+  EarlyCnt: number;
+  MissedIn: number;
+  MissedOut: number;
 }
 
 function ViolationsCard() {
@@ -28,7 +31,7 @@ function ViolationsCard() {
   useEffect(() => {
     const fetchYearData = async () => {
       try {
-        const response = await getLeaveAnalytics(selectedYear);
+        const response = await getTeamViolationAnalytics(selectedYear);
         if (response?.success && response.data?.length > 0) {
           setViolationsData(response.data);
         } else {
@@ -63,8 +66,6 @@ function ViolationsCard() {
     December: translations.december || "December",
   };
 
-  const currentMonth = new Date().getMonth();
-
   const chartData = useMemo(() => {
     const months = [
       "January", "February", "March", "April", "May", "June",
@@ -73,12 +74,12 @@ function ViolationsCard() {
 
     const monthDataMap = new Map();
     
-    violationsData.forEach((item: any) => {
-      monthDataMap.set(item.ViolationMonth, {
-        missedin: formatValue(item.MissedInCount),
-        missedout: formatValue(item.MissedOutCount),
-        latein: formatValue(item.LateInCount),
-        earlyout: formatValue(item.EarlyOutCount),
+    violationsData.forEach((item: ViolationAnalytic) => {
+      monthDataMap.set(item.ViolationMnth, {
+        missedin: formatValue(item.MissedIn),
+        missedout: formatValue(item.MissedOut),
+        latein: formatValue(item.LateCnt),
+        earlyout: formatValue(item.EarlyCnt),
       });
     });
 
@@ -148,7 +149,7 @@ function ViolationsCard() {
 
       <ChartContainer 
         config={chartConfig} 
-        className={`relative ${
+        className={`relative w-full h-[300px] ${
           dir === "rtl" ? "-right-[45px]" : "-left-[35px]"
         }`}
         dir={dir}

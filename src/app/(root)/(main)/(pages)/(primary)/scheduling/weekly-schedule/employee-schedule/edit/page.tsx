@@ -5,7 +5,7 @@ import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import AddEmployeeSchedule from "@/src/components/custom/modules/scheduling/AddEmployeeSchedule";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { useEmpScheduleEditStore } from "@/src/stores/empScheduleEditStore";
+import { useEmpScheduleEditStore } from "@/src/store/useEmployeeScheduleEditStore";
 import { getEmpScheduleByID } from "@/src/lib/apiHandler";
 import { InlineLoading } from "@/src/app/loading";
 

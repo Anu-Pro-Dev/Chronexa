@@ -50,6 +50,7 @@ export default function PowerHeader({
   enableWord = false,
   size = "medium",
   customDeleteHandler,
+  customButtons,
 }: {
   items?: any;
   props?: any;
@@ -84,6 +85,7 @@ export default function PowerHeader({
   enableWord?: boolean;
   size?: "small" | "medium" | "large" | "extraLarge";
   customDeleteHandler?: any;
+  customButtons?: React.ReactNode;
 }) {
   const { privilegeMap } = usePrivileges();
   const pathname = usePathname();
@@ -244,6 +246,7 @@ export default function PowerHeader({
               isLarge={isLarge}
             />
           )}
+          {customButtons}
           {!disableFeatures && !disableAdd && canAdd && (
             <PowerAdd
               modal_title={modal_title}

@@ -1,6 +1,6 @@
 "use client";
 import PowerHeader from "@/src/components/custom/power-comps/power-header"
-import AddPermissionTypes from "@/src/components/custom/modules/self-services/AddPermissionTypes";
+import AddPermissionApplication from "@/src/components/custom/modules/self-services/AddPermissionApplication";
 import React, { useState, useEffect } from "react"
 import { useLanguage } from "@/src/providers/LanguageProvider"
 import { InlineLoading } from "@/src/app/loading";
@@ -11,12 +11,12 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const storedData = sessionStorage.getItem('editPermissionsData')
+    const storedData = sessionStorage.getItem('editPermissionRequestData')
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData)
         setEditData(parsedData)
-        sessionStorage.removeItem('editPermissionsData')
+        sessionStorage.removeItem('editPermissionRequestData')
       } catch (error) {
         console.error("Error parsing edit data:", error)
       }
@@ -31,7 +31,11 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader items={modules?.selfServices.items} disableFeatures />
-      <AddPermissionTypes selectedRowData={editData} />
+      <AddPermissionApplication 
+        selectedRowData={editData} 
+        prefillEmployee={false}
+        pageTitle="Team Permission Request"
+      />
     </div>
   )
 }

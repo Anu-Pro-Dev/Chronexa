@@ -133,7 +133,7 @@ export default function Page() {
     return (
       <button 
         onClick={handleDownload}
-        className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
+        className="flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer"
         title="Download attachment"
       >
         <Download className="w-4 h-4" />

@@ -31,52 +31,16 @@ const formSchemaBasciSetup = z.object({
   permission_type_name: z
     .string({ required_error: "Permission type name is required" })
     .min(1, { message: "Permission type name is required" }),
-  workflows: z.string().min(1, { message: "Workflow is required." }).max(100),
-  specific_gender:z.string().optional(),
+  workflows: z.string().optional(),
+  specific_gender: z.string().optional(),
   max_minutes_per_day: z
-    .number({
-      required_error: "Max minutes per day is required",
-      invalid_type_error: "Max minutes per day must be a number",
-    })
-    .min(1, {
-      message: "Max minutes per day must be at least 1",
-    })
-    .max(1000, {
-      message: "Max minutes per day cannot exceed 1000",
-    }),
+    .number().optional(),
   max_perm_per_day: z
-    .number({
-      required_error: "Max permissions per day is required",
-      invalid_type_error: "Max permissions per day must be a number",
-    })
-    .min(1, {
-      message: "Max permissions per day must be at least 1",
-    })
-    .max(1000, {
-      message: "Max permissions per day cannot exceed 1000",
-    }),
+    .number().optional(),
   max_minutes_per_month: z
-    .number({
-      required_error: "Max minutes per month is required",
-      invalid_type_error: "Max minutes per month must be a number",
-    })
-    .min(1, {
-      message: "Max minutes per month must be at least 1",
-    })
-    .max(1000, {
-      message: "Max minutes per month cannot exceed 1000",
-    }),
+    .number().optional(),
   max_perm_per_month: z
-    .number({
-      required_error: "Max permissions per month is required",
-      invalid_type_error: "Max permissions per month must be a number",
-    })
-    .min(1, {
-      message: "Max permissions per month must be at least 1",
-    })
-    .max(1000, {
-      message: "Max permissions per month cannot exceed 1000",
-    }),
+    .number().optional(),
 })
 
 const formSchemaPolicy = z.object({
@@ -168,17 +132,16 @@ export default function AddPermissionTypes({
         (workflow: any) => workflow.workflow_id.toString() === values.workflows
       );
 
-      let genderCode = "";
+      let genderCode = null; // Change default to null instead of ""
       if (values.specific_gender === "ALL") genderCode = "A";
-      else if (values.specific_gender === "Female") genderCode = "F";
-      else if (values.specific_gender === "Male") genderCode = "M";
-      else genderCode = values.specific_gender || "";
+      else if (values.specific_gender === "F") genderCode = "F";
+      else if (values.specific_gender === "M") genderCode = "M";
 
       const basicData = {
         permission_type_code: values.permission_type_code,
         permission_type_name: values.permission_type_name,
         workflow_id: selectedWorkflow?.workflow_id || null,
-        specific_gender: genderCode,
+        specific_gender: genderCode, // Will be null if no selection
         max_minutes_per_day: values.max_minutes_per_day,
         max_perm_per_day: values.max_perm_per_day,
         max_minutes_per_month: values.max_minutes_per_month,
@@ -186,7 +149,7 @@ export default function AddPermissionTypes({
       };
 
       setBasicFormData(basicData);
-      
+
       setPageNumber(1);
     } catch (error) {
       console.error("Form submission error", error);
@@ -233,13 +196,11 @@ export default function AddPermissionTypes({
 
       const combinedPayload: any = {
         permission_type_code: basicFormData.permission_type_code,
-        workflow_id: basicFormData.workflow_id,
-        specific_gender: basicFormData.specific_gender,
         max_minutes_per_day: basicFormData.max_minutes_per_day,
         max_perm_per_day: basicFormData.max_perm_per_day,
         max_minutes_per_month: basicFormData.max_minutes_per_month,
         max_perm_per_month: basicFormData.max_perm_per_month,
-        
+
         group_apply_flag: permissionAttributes.includes("Group Apply"),
         status_flag: permissionAttributes.includes("Status"),
         official_flag: permissionAttributes.includes("Official"),
@@ -247,12 +208,22 @@ export default function AddPermissionTypes({
         mandatory_comments_flag: permissionAttributes.includes("Mandatory Comments"),
         mandatory_attachment_flag: permissionAttributes.includes("Mandatory Attachment"),
         apply_ramadan_restriction_flag: permissionAttributes.includes("Apply Ramadan Restriction"),
-        
+
         minutes_permission_flag: permissionType === "by_minutes_permission",
         from_to_time_permission_flag: permissionType === "by_from_to_time_permission",
         weekdays_permission_flag: permissionType === "by_weekdays_permission",
         full_day_permission_flag: permissionType === "by_fulldays_permission",
       };
+
+      // Only add workflow_id if it exists
+      if (basicFormData.workflow_id !== null && basicFormData.workflow_id !== undefined) {
+        combinedPayload.workflow_id = basicFormData.workflow_id;
+      }
+
+      // Only add specific_gender if it exists and is valid (A, F, or M)
+      if (basicFormData.specific_gender && ['A', 'F', 'M'].includes(basicFormData.specific_gender)) {
+        combinedPayload.specific_gender = basicFormData.specific_gender;
+      }
 
       if (language === "en") {
         combinedPayload.permission_type_eng = basicFormData.permission_type_name;
@@ -262,7 +233,7 @@ export default function AddPermissionTypes({
 
       if (selectedRowData) {
         editMutation.mutate({
-          permission_type_id: selectedRowData.id,
+          permission_type_id: selectedRowData.id || selectedRowData.permission_type_id,
           ...combinedPayload,
         });
       } else {
@@ -279,13 +250,21 @@ export default function AddPermissionTypes({
   useEffect(() => {
     if (selectedRowData && workflowData?.data) {
       formBasciSetup.setValue("permission_type_code", selectedRowData.permission_type_code || "");
-      formBasciSetup.setValue("permission_type_name", 
+      formBasciSetup.setValue("permission_type_name",
         language === "en"
           ? selectedRowData.permission_type_eng || ""
           : selectedRowData.permission_type_arb || ""
       );
       formBasciSetup.setValue("workflows", selectedRowData.workflow_id?.toString() || "");
-      formBasciSetup.setValue("specific_gender", selectedRowData.specific_gender?.toString() || "");
+
+      // Fix gender mapping - convert database codes to form values
+      let genderValue = "";
+      if (selectedRowData.specific_gender === "A") genderValue = "ALL";
+      else if (selectedRowData.specific_gender === "F") genderValue = "F";
+      else if (selectedRowData.specific_gender === "M") genderValue = "M";
+      else if (selectedRowData.specific_gender) genderValue = selectedRowData.specific_gender;
+
+      formBasciSetup.setValue("specific_gender", genderValue);
       formBasciSetup.setValue("max_minutes_per_day", selectedRowData.max_minutes_per_day || undefined);
       formBasciSetup.setValue("max_perm_per_day", selectedRowData.max_perm_per_day || undefined);
       formBasciSetup.setValue("max_minutes_per_month", selectedRowData.max_minutes_per_month || undefined);
@@ -396,23 +375,23 @@ export default function AddPermissionTypes({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Workflows <Required />
+                      Workflows
                     </FormLabel>
-                    <Select 
-                      value={field.value} 
+                    <Select
+                      value={field.value}
                       onValueChange={field.onChange}
                       disabled={isWorkflowLoading}
                     >
                       <FormControl>
                         <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px] 3xl:max-w-[450px]">
-                          <SelectValue 
+                          <SelectValue
                             placeholder={
-                              isWorkflowLoading 
-                                ? "Loading workflows..." 
-                                : workflowError 
-                                ? "Error loading workflows" 
-                                : "Choose workflows"
-                            } 
+                              isWorkflowLoading
+                                ? "Loading workflows..."
+                                : workflowError
+                                  ? "Error loading workflows"
+                                  : "Choose workflows"
+                            }
                           />
                         </SelectTrigger>
                       </FormControl>
@@ -422,8 +401,8 @@ export default function AddPermissionTypes({
                             key={workflow.workflow_id}
                             value={workflow.workflow_id.toString()}
                           >
-                            {language === "ar" && workflow.workflow_name_arb 
-                              ? workflow.workflow_name_arb 
+                            {language === "ar" && workflow.workflow_name_arb
+                              ? workflow.workflow_name_arb
                               : workflow.workflow_name_eng
                             }
                           </SelectItem>
@@ -442,13 +421,13 @@ export default function AddPermissionTypes({
                     <FormLabel>
                       Gender
                     </FormLabel>
-                    <Select 
-                      value={field.value} 
+                    <Select
+                      value={field.value}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
                         <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px] 3xl:max-w-[450px]">
-                          <SelectValue 
+                          <SelectValue
                             placeholder="Choose Gender"
                           />
                         </SelectTrigger>
@@ -469,7 +448,7 @@ export default function AddPermissionTypes({
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Max. Minutes Per Day <Required />
+                      Max. Minutes Per Day
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -485,14 +464,14 @@ export default function AddPermissionTypes({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={formBasciSetup.control}
                 name="max_perm_per_day"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Max. No. Of Permissions Per Day <Required />
+                      Max. No. Of Permissions Per Day
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -508,14 +487,14 @@ export default function AddPermissionTypes({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={formBasciSetup.control}
                 name="max_minutes_per_month"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Max. Minutes Per Month <Required />
+                      Max. Minutes Per Month
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -531,14 +510,14 @@ export default function AddPermissionTypes({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={formBasciSetup.control}
                 name="max_perm_per_month"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Max. No. Of Permissions Per Month <Required />
+                      Max. No. Of Permissions Per Month
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -739,12 +718,19 @@ export default function AddPermissionTypes({
                   >
                     {translations?.buttons?.back}
                   </Button>
-                  <Button type="submit" size={"lg"} className=" px-10 " disabled={isSubmitting}>
-                    {isSubmitting
+                  <Button
+                    type="submit"
+                    size={"lg"}
+                    className="w-full"
+                    disabled={addMutation.isPending || editMutation.isPending}
+                  >
+                    {addMutation.isPending || editMutation.isPending
                       ? selectedRowData
                         ? "Updating..."
                         : "Saving..."
-                      : translations?.buttons?.save
+                      : selectedRowData
+                        ? "Update"
+                        : "Save"
                     }
                   </Button>
                 </div>

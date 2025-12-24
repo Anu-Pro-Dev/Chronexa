@@ -9,7 +9,7 @@ import { Label } from "@/src/components/ui/label";
 import { useFormContext } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { addScheduleRequest, editScheduleRequest } from "@/src/lib/apiHandler";
-import { useScheduleEditStore } from "@/src/stores/scheduleEditStore";
+import { useScheduleEditStore } from "@/src/store/useScheduleEditStore";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useShowToast } from "@/src/utils/toastHelper";
 

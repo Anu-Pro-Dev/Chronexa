@@ -26,7 +26,7 @@ const encryptionLabelToId = Object.fromEntries(
 );
 
 const formSchema = z.object({
-   host: z
+  host: z
     .string()
     .min(1, { message: "host_required" })
     .max(100, { message: "host_max_length" }),
@@ -143,7 +143,7 @@ export default function AddEmailSettings({
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    try {      
+    try {
       const payload: any = {
         em_smtp_name: values.name,
         em_smtp_password: values.password,
@@ -155,12 +155,12 @@ export default function AddEmailSettings({
       };
 
       if (selectedRowData) {
-        editMutation.mutate({ 
-          em_id: selectedRowData.em_id, 
-          ...payload 
+        editMutation.mutate({
+          em_id: selectedRowData.em_id,
+          ...payload
         });
       } else {
-        addMutation.mutate({ 
+        addMutation.mutate({
           ...payload,
         });
       }
@@ -240,28 +240,7 @@ export default function AddEmailSettings({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Password <Required />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter SMTP password"
-                      type="password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <TranslatedError
-                    fieldError={form.formState.errors.password}
-                    translations={errT}
-                  />
-                </FormItem>
-              )}
-            />
+            
             <FormField
               key={form.watch("encryption")}
               control={form.control}
@@ -316,6 +295,28 @@ export default function AddEmailSettings({
             />
             <FormField
               control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Password <Required />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter SMTP password"
+                      type="password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.password}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="active"
               render={({ field }) => (
                 <FormItem className="flex items-center space-x-4">
@@ -337,7 +338,7 @@ export default function AddEmailSettings({
             />
           </div>
           <div className="flex justify-end gap-2 items-center py-5">
-            <div className="flex gap-4 px-5">
+            <div className="flex gap-4">
               <Button
                 variant="outline"
                 type="button"
@@ -351,15 +352,15 @@ export default function AddEmailSettings({
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={isSubmitting}
+                disabled={addMutation.isPending || editMutation.isPending}
               >
-                {isSubmitting
+                {addMutation.isPending || editMutation.isPending
                   ? selectedRowData
                     ? btnT?.updating || "Updating..."
                     : btnT?.saving || "Saving..."
                   : selectedRowData
-                  ? btnT?.update || "Update"
-                  : btnT?.save || "Save"}
+                    ? btnT?.update || "Update"
+                    : btnT?.save || "Save"}
               </Button>
             </div>
           </div>
