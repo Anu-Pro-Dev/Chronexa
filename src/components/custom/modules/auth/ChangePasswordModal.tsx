@@ -26,6 +26,7 @@ import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation"; // Add this import
 
 const formSchema = z.object({
   old_password: z.string().min(1, { message: "old_password_required" }),
@@ -51,6 +52,7 @@ export default function ChangePasswordModal({
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const showToast = useShowToast();
+  const router = useRouter(); // Add this
   const t = translations?.modules?.companyMaster || {};
   const errT = translations?.formErrors || {};
 
@@ -69,6 +71,22 @@ export default function ChangePasswordModal({
       showToast("success", "password_changed_success");
       form.reset();
       onOpenChange(false);
+      
+      // Clear any stored tokens/session data
+      localStorage.removeItem("token"); // Adjust based on your auth implementation
+      localStorage.removeItem("refreshToken");
+      sessionStorage.clear();
+      
+      // Optionally clear cookies if you're using them
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.message || 

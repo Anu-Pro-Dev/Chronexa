@@ -40,7 +40,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
                 PendingPermission: parsePermissionHours(data?.PermBalanceHrs || "00:00") * progress,
                 AppliedPermission: parsePermissionHours(data?.PermAppliedHrs || "00:00") * progress,
                 // PermissionsTaken: parsePermissionHours(data?.PermissionsTaken || "00:00") * progress,
-                RejectedPermission: parsePermissionHours(data?.RejectedPermissionHrs || "00:00") * progress,
+                RejectedPermission: parsePermissionHours(data?.RejectedPermissionMts || "00:00") * progress,
                 ApprovedPermission: parsePermissionHours(data?.ApprovedPermissionHrs || "00:00") * progress,
             };
 

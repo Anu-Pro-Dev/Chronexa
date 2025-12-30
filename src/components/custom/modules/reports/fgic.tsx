@@ -12,30 +12,32 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
+import { Checkbox } from "@/src/components/ui/checkbox";
 import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { toast } from "react-hot-toast";
-import { PDFExporter } from './PDFExporter';
+import { PDFExporterFGIC } from './PDFExporterFGIC';
 import { ExcelExporter } from './ExcelExporter';
 import { CSVExporterFGIC } from './CSVExporterFGIC';
 import { CalendarIcon, LoginIcon } from "@/src/icons/icons";
 import { FileText, Trash2Icon } from "lucide-react";
-import Required from "@/src/components/ui/required";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 
 const formSchema = z.object({
-  company: z.string().optional(),
-  division: z.string().optional(),
-  department: z.string().optional(),
-  employee_type: z.string().optional(),
-  manager_id: z.string().optional(),
-  employee: z.string().optional(),
+  employees: z.array(z.string()).optional(),
   from_date: z.date().optional(),
   to_date: z.date().optional(),
 });
 
 export default function EmployeeReports() {
+  const { employeeId, userRole } = useAuthGuard();
+  const isManager = userRole?.toLowerCase() === 'manager';
+  const isAdmin = userRole?.toLowerCase() === 'admin';
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      employees: [],
+    },
   });
 
   const [popoverStates, setPopoverStates] = useState({
@@ -46,14 +48,8 @@ export default function EmployeeReports() {
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
-
-  // Search terms for all dropdowns
-  const [companySearchTerm, setCompanySearchTerm] = useState("");
-  const [divisionSearchTerm, setDivisionSearchTerm] = useState("");
-  const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
-  const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
-  const [managerSearchTerm, setManagerSearchTerm] = useState("");
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
 
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
@@ -65,140 +61,14 @@ export default function EmployeeReports() {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
 
-  // Fetch all organizations
-  const { data: allOrganizations } = useFetchAllEntity("organization", {
-    searchParams: { limit: "1000" }
-  });
-
-  const selectedCompany = form.watch("company");
-  const selectedDivision = form.watch("division");
-  const selectedDepartment = form.watch("department");
-  const selectedEmployeeType = form.watch("employee_type");
-  const selectedManagerId = form.watch("manager_id");
-
-  // Fetch divisions/business groups (children of selected company)
-  const { data: divisions } = useQuery({
-    queryKey: ["divisions", selectedCompany],
-    queryFn: async () => {
-      if (!selectedCompany) return null;
-      return allOrganizations?.data?.filter((org: any) =>
-        org.parent_id === parseInt(selectedCompany)
-      );
-    },
-    enabled: !!selectedCompany && !!allOrganizations?.data,
-  });
-
-  // Fetch departments for selected division
-  const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
-    queryKey: ["departmentsByOrg", selectedDivision],
-    queryFn: async () => {
-      if (!selectedDivision) return null;
-      const response = await apiRequest(`/dept-org-mapping/by-organization/${selectedDivision}`, "GET");
-      return response;
-    },
-    enabled: !!selectedDivision,
-  });
-
-  const { data: managers } = useFetchAllEntity("employee", {
-    searchParams: {
-      manager_flag: "true",
-      limit: "1000",
-      offset: "1"
-    }
-  });
-
-
-  const getEmployeeSearchParams = () => {
-    const params: any = {
-      limit: "1000",
-      offset: "1"
-    };
-
-    // Priority order: Department > Division > Company
-    // Use the most specific organization level selected
-    if (selectedDepartment) {
-      params.organization_id = selectedDepartment;
-    } else if (selectedDivision) {
-      params.organization_id = selectedDivision;
-    } else if (selectedCompany) {
-      params.organization_id = selectedCompany;
-    }
-
-    // Add manager filter if selected
-    if (selectedManagerId) {
-      params.manager_id = selectedManagerId;
-    }
-
-    return { searchParams: params };
-  };
-
-  // Update the employees query to always use the params when any org is selected:
+  // Fetch employees based on user role
   const { data: employees } = useFetchAllEntity(
     "employee",
-    (selectedCompany || selectedDivision || selectedDepartment || selectedManagerId)
-      ? getEmployeeSearchParams()
-      : {
-        searchParams: {
-          limit: "1000",
-          offset: "1"
-        }
+    isManager && !isAdmin && employeeId
+      ? {
+        endpoint: `/employee/all?manager_id=${employeeId}`,
       }
-  );
-
-  // Also update the getFilteredEmployees function to respect organization filtering:
-  const getFilteredEmployees = () => {
-    let baseData = [];
-
-    if (employeeSearchTerm.length > 0) {
-      // When searching, still respect organization filters
-      baseData = searchedEmployees?.data || [];
-
-      // If an organization is selected, filter the search results
-      const selectedOrg = selectedDepartment || selectedDivision || selectedCompany;
-      if (selectedOrg) {
-        baseData = baseData.filter((emp: any) =>
-          emp?.organization_id?.toString() === selectedOrg
-        );
-      }
-    } else {
-      // Use the fetched employees which are already filtered by organization
-      baseData = employees?.data || [];
-    }
-
-    return baseData.filter((item: any) =>
-      item?.employee_id && item.employee_id.toString().trim() !== ''
-    );
-  };
-
-  const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
-
-  // Debounced search functions
-  const debouncedCompanySearch = useCallback(
-    debounce((searchTerm: string) => {
-      setCompanySearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedDivisionSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setDivisionSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedDepartmentSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setDepartmentSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedEmployeeTypeSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setEmployeeTypeSearchTerm(searchTerm);
-    }, 300),
-    []
+      : { searchParams: { limit: "1000", offset: "1" } }
   );
 
   const debouncedEmployeeSearch = useCallback(
@@ -208,128 +78,72 @@ export default function EmployeeReports() {
     []
   );
 
-  const debouncedManagerSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setManagerSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
-    queryKey: ["employeeSearch", employeeSearchTerm],
-    queryFn: () => searchEmployees(employeeSearchTerm),
+    queryKey: ["employeeSearch", employeeSearchTerm, employeeId, isManager, isAdmin],
+    queryFn: async () => {
+      if (isManager && !isAdmin && employeeId) {
+        const response = await apiRequest(
+          `/employee/all?manager_id=${employeeId}`,
+          "GET"
+        );
+        if (response?.data) {
+          const filtered = response.data.filter((emp: any) =>
+            emp?.firstname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
+            emp?.lastname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
+            emp?.emp_no?.toLowerCase().includes(employeeSearchTerm.toLowerCase())
+          );
+          return { data: filtered };
+        }
+        return response;
+      } else {
+        const response = await apiRequest(
+          `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`,
+          "GET"
+        );
+        return response;
+      }
+    },
     enabled: employeeSearchTerm.length > 0,
   });
 
-  const { data: searchedManagers, isLoading: isSearchingManagers } = useQuery({
-    queryKey: ["managerSearch", managerSearchTerm],
-    queryFn: async () => {
-      const response = await apiRequest(
-        `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`,
-        "GET"
-      );
-      return response;
-    },
-    enabled: managerSearchTerm.length > 0,
-  });
+  const getFilteredEmployees = () => {
+    let baseData = [];
 
-  const getCompanyData = () => {
-    if (!allOrganizations?.data || !Array.isArray(allOrganizations.data)) return [];
-    const companies = allOrganizations.data.filter((item: any) =>
-      item?.parent_id === 1 &&
-      item?.organization_id &&
-      item.organization_id.toString().trim() !== ''
-    );
-
-    // Apply search filter
-    if (companySearchTerm) {
-      return companies.filter((item: any) =>
-        item?.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase())
-      );
-    }
-    return companies;
-  };
-
-  const getDivisionData = () => {
-    if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedCompany) return [];
-    const companyId = parseInt(selectedCompany);
-    const divisions = allOrganizations.data.filter((item: any) =>
-      item?.parent_id === companyId &&
-      item?.organization_id &&
-      item.organization_id.toString().trim() !== ''
-    );
-
-    // Apply search filter
-    if (divisionSearchTerm) {
-      return divisions.filter((item: any) =>
-        item?.organization_eng?.toLowerCase().includes(divisionSearchTerm.toLowerCase())
-      );
-    }
-    return divisions;
-  };
-
-  const getDepartmentData = () => {
-    if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedDivision) return [];
-    const divisionId = parseInt(selectedDivision);
-    const departments = allOrganizations.data.filter((item: any) =>
-      item?.parent_id === divisionId &&
-      item?.organization_id &&
-      item.organization_id.toString().trim() !== ''
-    );
-
-    // Apply search filter
-    if (departmentSearchTerm) {
-      return departments.filter((item: any) =>
-        item?.organization_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
-      );
-    }
-    return departments;
-  };
-
-  const getEmployeeTypesData = () => {
-    if (!employeeTypes?.data) return [];
-    const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
-
-    // Apply search filter
-    if (employeeTypeSearchTerm) {
-      return types.filter((item: any) =>
-        item?.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
-      );
-    }
-    return types;
-  };
-
-  const getManagerData = () => {
-    if (managerSearchTerm.length > 0) {
-      const searchData = searchedManagers?.data || [];
-      return searchData.filter((item: any) =>
-        item?.employee_id &&
-        item.employee_id.toString().trim() !== ''
-      );
+    if (employeeSearchTerm.length > 0) {
+      baseData = searchedEmployees?.data || [];
+    } else {
+      baseData = employees?.data || [];
     }
 
-    const baseData = managers?.data || [];
     return baseData.filter((item: any) =>
-      item?.employee_id &&
-      item.employee_id.toString().trim() !== '' &&
-      item?.manager_flag === true
+      item?.employee_id && item.employee_id.toString().trim() !== ''
     );
+  };
+
+  const handleEmployeeToggle = (employeeId: string) => {
+    setSelectedEmployees(prev => {
+      return prev.includes(employeeId)
+        ? prev.filter(id => id !== employeeId)
+        : [...prev, employeeId];
+    });
   };
 
   const headerMap: Record<string, string> = {
-    employee_number: "EmpNo",
-    firstname_eng: "EmployeeName",
+    employee_number: "Emp No",
+    firstname_eng: "Employee Name",
     parent_org_eng: "Company",
     organization_eng: "Division",
-    employee_type: "EmployeeType",
-    transdate: "transdate",
-    punch_in: "PunchIn",
-    punch_out: "PunchOut",
-    dailyworkhrs: "DailyWorkedHours",
-    DailyMissedHrs: "DailyMissedHours",
-    dailyextrawork: "DailyExtraWork",
-    isabsent: "DayStatus",
-    MissedPunch: "Missed Punch",
+    employee_type: "Employee Type",
+    schCode: "Schedule",
+    transdate: "Date",
+    WorkDay: "Day",
+    punch_in: "Punch In",
+    punch_out: "Punch Out",
+    dailyworkhrs: "Worked Hours",
+    DailyMissedHrs: "Missed Hours",
+    dailyextrawork: "Overtime",
+    missed_punch: "Missed Punch",
+    day_status: "Status",
   };
 
   const calculateSummaryTotals = (dataArray: any[]) => {
@@ -407,6 +221,22 @@ export default function EmployeeReports() {
 
     setExportProgress(percentage);
   };
+  const getReportParams = () => {
+    const values = form.getValues();
+
+    return {
+      employee_ids: selectedEmployees, // Pass the array directly
+      from_date: values.from_date,
+      to_date: values.to_date,
+      manager_id: (isManager && !isAdmin && employeeId && selectedEmployees.length === 0)
+        ? employeeId
+        : undefined, // Only add manager_id if no employees selected
+      employeeId,
+      userRole,
+      isManager: isManager && !isAdmin,
+      isAdmin,
+    };
+  };
 
   const handleExportCSV = async () => {
     setLoading(true);
@@ -416,7 +246,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new CSVExporterFGIC({
-        formValues: form.getValues(),
+        formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -445,7 +275,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new ExcelExporter({
-        formValues: form.getValues(),
+        formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -473,8 +303,8 @@ export default function EmployeeReports() {
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
 
     try {
-      const exporter = new PDFExporter({
-        formValues: form.getValues(),
+      const exporter = new PDFExporterFGIC({
+        formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
         logoUrl: '/FGI_COLOR.png',
@@ -498,14 +328,9 @@ export default function EmployeeReports() {
 
   useEffect(() => {
     return () => {
-      debouncedCompanySearch.cancel();
-      debouncedDivisionSearch.cancel();
-      debouncedDepartmentSearch.cancel();
-      debouncedEmployeeTypeSearch.cancel();
       debouncedEmployeeSearch.cancel();
-      debouncedManagerSearch.cancel();
     };
-  }, [debouncedCompanySearch, debouncedDivisionSearch, debouncedDepartmentSearch, debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
+  }, [debouncedEmployeeSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -557,6 +382,15 @@ export default function EmployeeReports() {
     return '';
   };
 
+  const getPlaceholderText = () => {
+    if (selectedEmployees.length === 0) {
+      if (isAdmin) return "Choose employee (all employees)";
+      if (isManager) return "Choose employee from your team";
+      return "Choose employee";
+    }
+    return `${selectedEmployees.length} employee${selectedEmployees.length > 1 ? 's' : ''} selected`;
+  };
+
   return (
     <div>
       <Form {...form}>
@@ -564,250 +398,19 @@ export default function EmployeeReports() {
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
-                {/* COMPANY */}
-                <FormField
-                  control={form.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Company <Required /></FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("division", undefined);
-                          form.setValue("department", undefined);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose company" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search companies..."
-                          onSearchChange={debouncedCompanySearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getCompanyData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {companySearchTerm ? "No companies found" : "No companies available"}
-                            </div>
-                          ) : (
-                            getCompanyData().map((item: any) => (
-                              <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
-                                {item?.organization_eng || "Unnamed"}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* DIVISION / BUSINESS GROUP */}
-                <FormField
-                  control={form.control}
-                  name="division"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Division / Business Group</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("department", undefined);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                        disabled={!selectedCompany}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose division" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search divisions..."
-                          onSearchChange={debouncedDivisionSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getDivisionData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {divisionSearchTerm ? "No divisions found" : "No divisions available"}
-                            </div>
-                          ) : (
-                            getDivisionData().map((item: any) => (
-                              <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
-                                {item?.organization_eng || "Unnamed"}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* DEPARTMENT */}
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Department</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                        disabled={!selectedDivision || isDepartmentsLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={
-                              isDepartmentsLoading
-                                ? "Loading departments..."
-                                : "Choose department"
-                            } />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search departments..."
-                          onSearchChange={debouncedDepartmentSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {isDepartmentsLoading && (
-                            <div className="p-3 text-sm text-text-secondary">Loading departments...</div>
-                          )}
-                          {!isDepartmentsLoading && getDepartmentData().length === 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {departmentSearchTerm ? "No departments found" : "No departments available"}
-                            </div>
-                          )}
-                          {!isDepartmentsLoading && getDepartmentData().map((item: any) => (
-                            <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
-                              {item?.organization_eng || "Unnamed"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* EMPLOYEE TYPE */}
-                <FormField
-                  control={form.control}
-                  name="employee_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Employee Type</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value || ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search employee types..."
-                          onSearchChange={debouncedEmployeeTypeSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getEmployeeTypesData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {employeeTypeSearchTerm ? "No employee types found" : "No employee types available"}
-                            </div>
-                          ) : (
-                            getEmployeeTypesData().map((item: any) => (
-                              <SelectItem key={item?.employee_type_id} value={item?.employee_type_eng || item?.employee_type_id?.toString()}>
-                                {item?.employee_type_eng || "Unnamed"}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* MANAGER */}
-                <FormField
-                  control={form.control}
-                  name="manager_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Manager</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose manager" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search managers..."
-                          onSearchChange={debouncedManagerSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {isSearchingManagers && managerSearchTerm.length > 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              Searching...
-                            </div>
-                          )}
-                          {getManagerData().length === 0 && managerSearchTerm.length > 0 && !isSearchingManagers && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              No managers found
-                            </div>
-                          )}
-                          {getManagerData().map((item: any) => (
-                            <SelectItem key={item?.employee_id} value={item?.employee_id?.toString()}>
-                              {item?.firstname_eng} {item?.lastname_eng ? item.lastname_eng : ''} {item?.emp_no ? `(${item.emp_no})` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 {/* EMPLOYEE */}
                 <FormField
                   control={form.control}
-                  name="employee"
+                  name="employees"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">Employee</FormLabel>
                       <Select
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value || ""}
+                      // Remove onValueChange and value props - we're handling this manually
                       >
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose employee" />
+                            <SelectValue placeholder={getPlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -826,17 +429,42 @@ export default function EmployeeReports() {
                               No employees found
                             </div>
                           )}
-                          {getFilteredEmployees().map((item: any) => (
-                            <SelectItem key={item?.employee_id} value={item?.employee_id?.toString()}>
-                              {item?.firstname_eng} {item?.emp_no ? `(${item.emp_no})` : ''}
-                            </SelectItem>
-                          ))}
+                          {getFilteredEmployees().length === 0 && employeeSearchTerm.length === 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {isAdmin ? "No employees available" : isManager ? "No team members available" : "No employees available"}
+                            </div>
+                          )}
+                          {getFilteredEmployees().map((item: any) => {
+                            const empId = item?.employee_id?.toString();
+                            const isChecked = selectedEmployees.includes(empId);
+
+                            return (
+                              <div
+                                key={empId}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleEmployeeToggle(empId);
+                                }}
+                              >
+                                <Checkbox
+                                  checked={isChecked}
+                                  className="mr-2"
+                                // Remove onCheckedChange - handled by parent div onClick
+                                />
+                                <span>{item?.firstname_eng} {item?.emp_no ? `(${item.emp_no})` : ''}</span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
 
                 {/* FROM DATE */}
                 <FormField
@@ -949,7 +577,10 @@ export default function EmployeeReports() {
                   size={"sm"}
                   variant="outline"
                   className="flex items-center gap-2"
-                  onClick={() => form.reset()}
+                  onClick={() => {
+                    form.reset();
+                    setSelectedEmployees([]);
+                  }}
                   disabled={loading}
                 >
                   <Trash2Icon />
@@ -964,6 +595,16 @@ export default function EmployeeReports() {
                 >
                   <FileText className="w-4 h-4" />
                   Export CSV
+                </Button>
+                <Button
+                  type="button"
+                  size={"sm"}
+                  className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
+                  onClick={handleShowReport}
+                  disabled={loading}
+                >
+                  <LoginIcon />
+                  Export PDF
                 </Button>
               </div>
             </div>

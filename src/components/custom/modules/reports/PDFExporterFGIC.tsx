@@ -7,8 +7,7 @@ interface PDFExporterFGICProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
-  logoUrl?: string;
-  onProgress?: (current: number, total: number, phase: string) => void;
+  logoUrl?: string; onProgress?: (current: number, total: number, phase: string) => void;
 }
 
 export class PDFExporterFGIC {
@@ -30,23 +29,21 @@ export class PDFExporterFGIC {
     if (!this.logoUrl) {
       return null;
     }
-    
+
     try {
-      const logoPath = this.logoUrl.startsWith('/') 
-        ? window.location.origin + this.logoUrl 
+      const logoPath = this.logoUrl.startsWith('/')
+        ? window.location.origin + this.logoUrl
         : this.logoUrl;
-            
-      console.log(logoPath);
-      
+
       const response = await fetch(logoPath);
-      
+
       if (!response.ok) {
         console.error('Failed to fetch logo:', response.status, response.statusText);
         return null;
       }
-      
+
       const blob = await response.blob();
-      
+
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -68,7 +65,6 @@ export class PDFExporterFGIC {
   private async yieldToMain(): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, 0));
   }
-
   private buildQueryParams(): Record<string, string> {
     const params: Record<string, string> = {};
 
@@ -80,11 +76,11 @@ export class PDFExporterFGIC {
       params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
     }
 
-    if (this.formValues.employee) {
-      params.employee_id = this.formValues.employee.toString();
-    }
+    // Check if specific employees are selected
+    const hasSpecificEmployees = this.formValues.employee_ids?.length > 0;
 
-    if (this.formValues.manager_id) {
+    // Add manager_id ONLY if no specific employees are selected
+    if (!hasSpecificEmployees && this.formValues.manager_id) {
       params.manager_id = this.formValues.manager_id.toString();
     }
 
@@ -92,16 +88,15 @@ export class PDFExporterFGIC {
       params.employee_type = this.formValues.employee_type.toString();
     }
 
-    if (this.formValues.organization) {
-      params.organization_id = this.formValues.organization.toString();
-    }
-
-    if (this.formValues.company) {
-      params.organization_id = this.formValues.company.toString();
-    }
-
+    // Organization hierarchy
     if (this.formValues.department) {
-      params.department_id = this.formValues.department.toString();
+      params.organization_id = this.formValues.department.toString();
+    } else if (this.formValues.division) {
+      params.organization_id = this.formValues.division.toString();
+    } else if (this.formValues.organization) {
+      params.organization_id = this.formValues.organization.toString();
+    } else if (this.formValues.company) {
+      params.organization_id = this.formValues.company.toString();
     }
 
     if (this.formValues.vertical) {
@@ -111,12 +106,25 @@ export class PDFExporterFGIC {
     return params;
   }
 
+  // Update buildUrl()
   private buildUrl(params: Record<string, string>): string {
-    const queryString = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-      .join('&');
+    const queryParts: string[] = [];
 
+    // Special handling for employee_ids - add as raw array format
+    if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
+      // Create array format: employee_id=[2,17]
+      const ids = this.formValues.employee_ids.join(',');
+      queryParts.push(`employee_id=[${ids}]`);
+    }
+
+    // Add all other params
+    Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .forEach(([key, value]) => {
+        queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      });
+
+    const queryString = queryParts.join('&');
     return `/report/new${queryString ? `?${queryString}` : ''}`;
   }
 
@@ -142,10 +150,12 @@ export class PDFExporterFGIC {
         const url = this.buildUrl(params);
         const response = await apiRequest(url, "GET");
 
+        // Handle API response structure consistently
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
         const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
+        // Set total from first API response
         if (offset === 0 && total > 0) {
           apiTotal = total;
         }
@@ -158,7 +168,7 @@ export class PDFExporterFGIC {
         allData.push(...batch);
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
-        
+
         hasMore = hasNext && batch.length === BATCH_SIZE;
 
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
@@ -167,11 +177,11 @@ export class PDFExporterFGIC {
 
       } catch (error) {
         console.error('Error fetching batch:', error);
-        
+
         if (error && typeof error === 'object' && 'requireLogin' in error) {
           throw new Error('Session expired. Please login again.');
         }
-        
+
         throw new Error('Failed to fetch data from server');
       }
     }
@@ -180,12 +190,21 @@ export class PDFExporterFGIC {
   }
 
   private getEmployeeDetails(data: any[]) {
-    const isSpecificEmployee = this.formValues.employee;
-    
-    if (isSpecificEmployee && data.length > 0) {
+    // Check if multiple employees are selected
+    const hasMultipleEmployees = this.formValues.employee_ids && this.formValues.employee_ids.length > 1;
+    const hasSingleEmployee = this.formValues.employee_ids && this.formValues.employee_ids.length === 1;
+    const isSpecificEmployee = this.formValues.employee || hasSingleEmployee;
+
+    if (hasMultipleEmployees) {
+      return {
+        employeeId: `${this.formValues.employee_ids.length} Employees`,
+        employeeName: `${this.formValues.employee_ids.length} Employees Selected`,
+        employeeNo: '',
+      };
+    } else if (isSpecificEmployee && data.length > 0) {
       const firstRow = data[0];
       return {
-        employeeId: firstRow?.employee_id || this.formValues.employee || '',
+        employeeId: firstRow?.employee_id || this.formValues.employee || this.formValues.employee_ids?.[0] || '',
         employeeName: firstRow?.firstname_eng || '',
         employeeNo: firstRow?.employee_number || '',
       };
@@ -200,7 +219,7 @@ export class PDFExporterFGIC {
 
   private getFilteredHeaders() {
     return [
-      'employee_number',     
+      'employee_number',
       'firstname_eng',
       'parent_org_eng',
       'organization_eng',
@@ -243,10 +262,9 @@ export class PDFExporterFGIC {
     if (!value && value !== 0) return '';
 
     if (header === 'WorkDay' && row) {
-      const workDay = String(value).toLowerCase();
       return String(value);
     }
-    
+
     if (header === 'transdate' && value) {
       try {
         return formatInTimeZone(value, 'UTC', 'dd-MM-yyyy');
@@ -285,7 +303,7 @@ export class PDFExporterFGIC {
 
     if (['late', 'early', 'dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
       if (value === '0' || value === 0) return '00:00:00';
-      
+
       if (typeof value === 'string') {
         let timeOnly = value;
         if (value.includes('T')) {
@@ -295,15 +313,15 @@ export class PDFExporterFGIC {
         }
         return timeOnly.split('.')[0];
       }
-      
+
       const numValue = parseFloat(value);
       if (isNaN(numValue)) return '00:00:00';
-      
+
       const totalSeconds = Math.round(Math.abs(numValue) * 3600);
       const hours = Math.floor(totalSeconds / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
-      
+
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
@@ -315,10 +333,10 @@ export class PDFExporterFGIC {
     const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(dataForSummary);
     const filteredHeaders = this.getFilteredHeaders();
     const summaryTotals = this.calculateSummaryTotals(dataForSummary);
-    
+
     const MAX_PDF_ROWS = 1000;
     const showingLimitedData = allData && allData.length > MAX_PDF_ROWS;
-    
+
     const dataArray = [...displayData];
 
     return `
@@ -329,6 +347,14 @@ export class PDFExporterFGIC {
             Summary totals reflect all ${allData!.length.toLocaleString()} records. Use Excel export for complete dataset.
           </div>
         ` : ''}
+
+        <table style="width: 100%; margin-bottom: 8px; font-size: 9px;">
+          <tr>
+            <td style="text-align: right;">
+              <strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}
+            </td>
+          </tr>
+        </table>
         
         ${logoBase64 ? `
           <div style="text-align: center; margin-bottom: 8px;">
@@ -336,69 +362,58 @@ export class PDFExporterFGIC {
           </div>
         ` : ''}
         
-        <h1 style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0;">
-          EMPLOYEE MONTHLY ATTENDANCE REPORT
+        <h1 style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0 10px 0;">
+          EMPLOYEE TIME ATTENDANCE REPORT
         </h1>
-
-        <table style="width: 100%; margin-bottom: 8px; font-size: 9px;">
-          <tr>
-            <td>
-              <strong>Employee ID:</strong> ${employeeId}
-            </td>
-            <td style="text-align: right;">
-              <strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}
-            </td>
-          </tr>
-        </table>
          
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px;">
           <tr>
-            <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NAME</td>
+            <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NAME</td>
             <td style="border: 1px solid black; padding: 5px; width: 25%;">${employeeName}</td>
-            <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NO</td>
+            <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NO</td>
             <td style="border: 1px solid black; padding: 5px; width: 25%;">${employeeNo}</td>
           </tr>
-          ${this.formValues.from_date || this.formValues.to_date ? 
-            `<tr>
-              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">FROM DATE</td>
-              <td style="border: 1px solid black; padding: 5px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '01/07/2025'}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">TO DATE</td>
-              <td style="border: 1px solid black; padding: 5px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '31/07/2025'}</td>
+          ${this.formValues.from_date || this.formValues.to_date ?
+        `<tr>
+              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">FROM DATE</td>
+              <td style="border: 1px solid black; padding: 5px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : ''}</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">TO DATE</td>
+              <td style="border: 1px solid black; padding: 5px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : ''}</td>
             </tr>`
-          : ''}
+        : ''}
         </table>
       
         <table style="width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed;">
           <thead>
-            <tr style="background-color: #0078D4;">
+            <tr style="background-color: #F37021;">
               ${filteredHeaders.map(header => `
                 <th style="border: 1px solid black; padding: 4px; text-align: center; color: white; font-weight: bold; font-size: 7px; width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden;">${(this.headerMap[header] || header).toUpperCase()}</th>
               `).join('')}
             </tr>
           </thead>
           <tbody>
-            ${dataArray.map((row: Record<string, any>, index: number) => `
+            ${dataArray.map((row: Record<string, any>) => `
               <tr>
                 ${filteredHeaders.map(header => {
-                  const cellValue = this.formatCellValue(header, row[header], row);
-                  const isLateOrMissed = header === 'late' || header === 'DailyMissedHrs';
-                  
-                  let textColor = '';
-                  if (header === 'day_status') {
-                    const statusLower = String(cellValue).toLowerCase();
-                    if (statusLower === 'absent') {
-                      textColor = 'color: red;';
-                    } else if (statusLower === 'week off') {
-                      textColor = 'color: green;';
-                    }
-                  } else if (isLateOrMissed && parseFloat(cellValue) > 0) {
-                    textColor = 'color: red;';
-                  }
-                  
-                  return `
+          const cellValue = this.formatCellValue(header, row[header], row);
+          const isLateOrMissed = header === 'late' || header === 'DailyMissedHrs';
+
+          let textColor = '';
+          if (header === 'day_status') {
+            const statusLower = String(cellValue).toLowerCase();
+            if (statusLower === 'absent') {
+              textColor = 'color: red;';
+            } else if (statusLower === 'week off') {
+              textColor = 'color: green;';
+            }
+          } else if (isLateOrMissed && parseFloat(cellValue) > 0) {
+            textColor = 'color: red;';
+          }
+
+          return `
                     <td style="border: 1px solid black; padding: 3px; font-size: 6px; ${textColor} width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis;">${cellValue}</td>
                   `;
-                }).join('')}
+        }).join('')}
               </tr>
             `).join('')}
           </tbody>
@@ -411,17 +426,17 @@ export class PDFExporterFGIC {
           
           <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
             <tr>
-              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Late In Hours</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Late In Hours</td>
               <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalLateInHours}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Early Out Hours</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Early Out Hours</td>
               <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalEarlyOutHours}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Missed Hours</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Missed Hours</td>
               <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalMissedHours}</td>
             </tr>
             <tr>
-              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">Total Worked Hours</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Worked Hours</td>
               <td style="border: 1px solid black; padding: 5px; text-align: center;">${summaryTotals.totalWorkedHours}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">Total Extra Hours</td>
+              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Extra Hours</td>
               <td style="border: 1px solid black; padding: 5px; text-align: center;">${summaryTotals.totalExtraHours}</td>
               <td colspan="2" style="border: 1px solid black; padding: 5px;"></td>
             </tr>
@@ -443,7 +458,6 @@ export class PDFExporterFGIC {
 
       const allData = await this.fetchDataInBatches();
 
-
       if (allData.length === 0) {
         toast.error("No data available to export.");
         return;
@@ -452,7 +466,7 @@ export class PDFExporterFGIC {
       this.onProgress?.(allData.length, allData.length, 'processing');
 
       const MAX_PDF_ROWS = 1000;
-      const dataToExport = allData.length > MAX_PDF_ROWS 
+      const dataToExport = allData.length > MAX_PDF_ROWS
         ? allData.slice(0, MAX_PDF_ROWS)
         : allData;
 
@@ -464,12 +478,12 @@ export class PDFExporterFGIC {
       }
 
       const html2pdf = await import('html2pdf.js').then(module => module.default);
-      
+
       this.onProgress?.(allData.length, allData.length, 'generating');
-      
+
       const logoBase64 = await this.loadLogoAsBase64();
-      
-      const htmlContent = allData.length > MAX_PDF_ROWS 
+
+      const htmlContent = allData.length > MAX_PDF_ROWS
         ? this.generateHTMLContent(dataToExport, allData, logoBase64)
         : this.generateHTMLContent(dataToExport, undefined, logoBase64);
 
@@ -479,41 +493,41 @@ export class PDFExporterFGIC {
         margin: [0.2, 0.2, 0.2, 0.2],
         filename: `report_${this.formValues.employee ? 'employee_' + this.formValues.employee : 'all'}_${format(new Date(), 'yyyy-MM-dd')}.pdf`,
         image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { 
+        html2canvas: {
           scale: 2,
           useCORS: true,
           logging: true,
         },
-        jsPDF: { 
-          unit: 'in', 
-          format: 'a4', 
+        jsPDF: {
+          unit: 'in',
+          format: 'a4',
           orientation: 'landscape'
         }
       };
-      
+
       const container = document.createElement('div');
       container.innerHTML = htmlContent;
       document.body.appendChild(container);
-      
+
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
       await html2pdf().set(opt).from(container).save();
-      
+
       setTimeout(() => {
         document.body.removeChild(container);
       }, 1000);
-                  
+
       this.onProgress?.(allData.length, allData.length, 'complete');
-      
-      const recordMessage = allData.length > MAX_PDF_ROWS 
+
+      const recordMessage = allData.length > MAX_PDF_ROWS
         ? `First ${MAX_PDF_ROWS.toLocaleString()} of ${allData.length.toLocaleString()} records`
         : `${allData.length.toLocaleString()} records`;
-      
+
       toast.success(`PDF downloaded successfully! (${recordMessage})`);
 
     } catch (error) {
       console.error("Error generating PDF:", error);
-      
+
       if (error instanceof Error && error.message.includes('Session expired')) {
         toast.error(error.message);
       } else {

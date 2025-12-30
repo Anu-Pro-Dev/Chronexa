@@ -1,3 +1,587 @@
+// "use client";
+// import { useEffect, useState, useCallback } from "react";
+// import { useForm } from "react-hook-form";
+// import { debounce } from "lodash";
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import * as z from "zod";
+// import { Button } from "@/src/components/ui/button";
+// import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
+// import { format } from "date-fns";
+// import { useQuery } from "@tanstack/react-query";
+// import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
+// import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
+// import { Calendar } from "@/src/components/ui/calendar";
+// import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
+// import { toast } from "react-hot-toast";
+// import { PDFExporterFGIC } from './PDFExporterFGIC';
+// import { ExcelExporter } from './ExcelExporter';
+// import { CSVExporterFGIC } from './CSVExporterFGIC';
+// import { CalendarIcon, LoginIcon } from "@/src/icons/icons";
+// import { FileText, Trash2Icon } from "lucide-react";
+// import { useAuthGuard } from "@/src/hooks/useAuthGuard";
+
+// const formSchema = z.object({
+//   employee: z.string().optional(),
+//   from_date: z.date().optional(),
+//   to_date: z.date().optional(),
+// });
+
+// export default function EmployeeReports() {
+//   const { employeeId, userRole } = useAuthGuard();
+//   const isManager = userRole?.toLowerCase() === 'manager';
+//   const isAdmin = userRole?.toLowerCase() === 'admin';
+
+//   const form = useForm<z.infer<typeof formSchema>>({
+//     resolver: zodResolver(formSchema),
+//     defaultValues: {},
+//   });
+
+//   const [popoverStates, setPopoverStates] = useState({
+//     fromDate: false,
+//     toDate: false,
+//   });
+
+//   const [loading, setLoading] = useState(false);
+//   const [exportProgress, setExportProgress] = useState(0);
+//   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
+//   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
+
+//   const [progressDetails, setProgressDetails] = useState({
+//     current: 0,
+//     total: 0,
+//     phase: 'initializing' as 'initializing' | 'fetching' | 'processing' | 'generating' | 'complete'
+//   });
+
+//   const closePopover = (key: string) => {
+//     setPopoverStates(prev => ({ ...prev, [key]: false }));
+//   };
+
+//   // Fetch employees based on user role
+//   // For Admin: fetch all employees
+//   // For Manager: fetch only their team members
+//   // For Regular users: fetch all employees (backend should handle permissions)
+//   const { data: employees } = useFetchAllEntity(
+//     "employee",
+//     isManager && !isAdmin && employeeId
+//       ? { 
+//           endpoint: `/employee/all?manager_id=${employeeId}`,
+//         }
+//       : { searchParams: { limit: "1000", offset: "1" } }
+//   );
+
+//   const debouncedEmployeeSearch = useCallback(
+//     debounce((searchTerm: string) => {
+//       setEmployeeSearchTerm(searchTerm);
+//     }, 300),
+//     []
+//   );
+
+//   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
+//     queryKey: ["employeeSearch", employeeSearchTerm, employeeId, isManager, isAdmin],
+//     queryFn: async () => {
+//       if (isManager && !isAdmin && employeeId) {
+//         // For managers (non-admin), search within their team
+//         const response = await apiRequest(
+//           `/employee/all?manager_id=${employeeId}`,
+//           "GET"
+//         );
+//         // Filter by search term on client side
+//         if (response?.data) {
+//           const filtered = response.data.filter((emp: any) => 
+//             emp?.firstname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
+//             emp?.lastname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
+//             emp?.emp_no?.toLowerCase().includes(employeeSearchTerm.toLowerCase())
+//           );
+//           return { data: filtered };
+//         }
+//         return response;
+//       } else {
+//         // For admin or regular users, use standard search
+//         const response = await apiRequest(
+//           `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`,
+//           "GET"
+//         );
+//         return response;
+//       }
+//     },
+//     enabled: employeeSearchTerm.length > 0,
+//   });
+
+//   const getFilteredEmployees = () => {
+//     let baseData = [];
+
+//     if (employeeSearchTerm.length > 0) {
+//       baseData = searchedEmployees?.data || [];
+//     } else {
+//       baseData = employees?.data || [];
+//     }
+
+//     return baseData.filter((item: any) =>
+//       item?.employee_id && item.employee_id.toString().trim() !== ''
+//     );
+//   };
+
+//   const headerMap: Record<string, string> = {
+//     employee_number: "Emp No",
+//     firstname_eng: "Employee Name",
+//     parent_org_eng: "Company",
+//     organization_eng: "Division",
+//     employee_type: "Employee Type",
+//     schCode: "Schedule",
+//     transdate: "Date",
+//     WorkDay: "Day",
+//     punch_in: "Punch In",
+//     punch_out: "Punch Out",
+//     dailyworkhrs: "Worked Hours",
+//     DailyMissedHrs: "Missed Hours",
+//     dailyextrawork: "Overtime",
+//     missed_punch: "Missed Punch",
+//     day_status: "Status",
+//   };
+
+//   const calculateSummaryTotals = (dataArray: any[]) => {
+//     const parseTimeToMinutes = (value: any) => {
+//       if (!value) return 0;
+
+//       const strValue = String(value).trim();
+
+//       if (strValue.includes(':')) {
+//         const parts = strValue.split(':').map(Number);
+//         const hours = parts[0] || 0;
+//         const minutes = parts[1] || 0;
+//         const seconds = parts[2] || 0;
+//         return hours * 60 + minutes + (seconds / 60);
+//       }
+
+//       const hours = parseFloat(strValue) || 0;
+//       return hours * 60;
+//     };
+
+//     const totals = {
+//       totalLateInMinutes: 0,
+//       totalWorkedMinutes: 0,
+//       totalEarlyOutMinutes: 0,
+//       totalMissedMinutes: 0,
+//       totalExtraMinutes: 0,
+//     };
+
+//     dataArray.forEach((row: any) => {
+//       totals.totalLateInMinutes += parseTimeToMinutes(row.late);
+//       totals.totalWorkedMinutes += parseTimeToMinutes(row.dailyworkhrs);
+//       totals.totalEarlyOutMinutes += parseTimeToMinutes(row.early);
+//       totals.totalMissedMinutes += parseTimeToMinutes(row.DailyMissedHrs);
+//       totals.totalExtraMinutes += parseTimeToMinutes(row.dailyextrawork);
+//     });
+
+//     const formatMinutesToHHMM = (totalMinutes: number) => {
+//       const hours = Math.floor(Math.abs(totalMinutes) / 60);
+//       const minutes = Math.round(Math.abs(totalMinutes) % 60);
+//       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+//     };
+
+//     return {
+//       totalLateInHours: formatMinutesToHHMM(totals.totalLateInMinutes),
+//       totalWorkedHours: formatMinutesToHHMM(totals.totalWorkedMinutes),
+//       totalEarlyOutHours: formatMinutesToHHMM(totals.totalEarlyOutMinutes),
+//       totalMissedHours: formatMinutesToHHMM(totals.totalMissedMinutes),
+//       totalExtraHours: formatMinutesToHHMM(totals.totalExtraMinutes),
+//       totalAbsents: "00:00",
+//     };
+//   };
+
+//   const handleProgressUpdate = (current: number, total: number, phase: string) => {
+//     setProgressDetails({
+//       current,
+//       total,
+//       phase: phase as 'initializing' | 'fetching' | 'processing' | 'generating' | 'complete'
+//     });
+
+//     let percentage = 0;
+
+//     if (phase === 'initializing') {
+//       percentage = 0;
+//     } else if (phase === 'fetching') {
+//       if (total > 0) {
+//         percentage = Math.min(Math.round((current / total) * 70), 70);
+//       }
+//     } else if (phase === 'processing') {
+//       percentage = 85;
+//     } else if (phase === 'generating') {
+//       percentage = 95;
+//     } else if (phase === 'complete') {
+//       percentage = 100;
+//     }
+
+//     setExportProgress(percentage);
+//   };
+
+//   const getReportParams = () => {
+//     const values = form.getValues();
+//     const params: any = {
+//       ...values,
+//       employeeId,
+//       userRole,
+//       isManager: isManager && !isAdmin, // Only true for managers who are not admins
+//       isAdmin,
+//     };
+
+//     return params;
+//   };
+
+//   const handleExportCSV = async () => {
+//     setLoading(true);
+//     setExportProgress(0);
+//     setExportType('csv');
+//     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
+
+//     try {
+//       const exporter = new CSVExporterFGIC({
+//         formValues: getReportParams(),
+//         headerMap,
+//         calculateSummaryTotals,
+//         onProgress: handleProgressUpdate,
+//       });
+
+//       await exporter.exportStreaming();
+
+//     } catch (error) {
+//       console.error("CSV export error:", error);
+//       toast.error("Error exporting CSV. Please try again.");
+//     } finally {
+//       setTimeout(() => {
+//         setLoading(false);
+//         setExportProgress(0);
+//         setExportType(null);
+//         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
+//       }, 500);
+//     }
+//   };
+
+//   const handleExportExcel = async () => {
+//     setLoading(true);
+//     setExportProgress(0);
+//     setExportType('excel');
+//     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
+
+//     try {
+//       const exporter = new ExcelExporter({
+//         formValues: getReportParams(),
+//         headerMap,
+//         calculateSummaryTotals,
+//         onProgress: handleProgressUpdate,
+//       });
+
+//       await exporter.export();
+
+//     } catch (error) {
+//       console.error("Excel export error:", error);
+//       toast.error("Error exporting Excel. Please try again.");
+//     } finally {
+//       setTimeout(() => {
+//         setLoading(false);
+//         setExportProgress(0);
+//         setExportType(null);
+//         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
+//       }, 500);
+//     }
+//   };
+
+//   const handleShowReport = async () => {
+//     setLoading(true);
+//     setExportProgress(0);
+//     setExportType('pdf');
+//     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
+
+//     try {
+//       const exporter = new PDFExporterFGIC({
+//         formValues: getReportParams(),
+//         headerMap,
+//         calculateSummaryTotals,
+//         logoUrl: '/FGI_COLOR.png',
+//         onProgress: handleProgressUpdate,
+//       });
+
+//       await exporter.export();
+
+//     } catch (error) {
+//       console.error("PDF export error:", error);
+//       toast.error("Error generating PDF. Please try again.");
+//     } finally {
+//       setTimeout(() => {
+//         setLoading(false);
+//         setExportProgress(0);
+//         setExportType(null);
+//         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
+//       }, 500);
+//     }
+//   };
+
+//   useEffect(() => {
+//     return () => {
+//       debouncedEmployeeSearch.cancel();
+//     };
+//   }, [debouncedEmployeeSearch]);
+
+//   function onSubmit(values: z.infer<typeof formSchema>) {
+//     return;
+//   }
+
+//   const getProgressMessage = () => {
+//     const { current, total, phase } = progressDetails;
+
+//     switch (phase) {
+//       case 'initializing':
+//         return 'Initializing export...';
+//       case 'fetching':
+//         if (total > 0) {
+//           return `Fetching data from server... (${current.toLocaleString()} of ${total.toLocaleString()} records)`;
+//         }
+//         return 'Fetching data from server...';
+//       case 'processing':
+//         return `Processing ${total.toLocaleString()} records...`;
+//       case 'generating':
+//         if (exportType === 'csv') return 'Generating CSV file...';
+//         if (exportType === 'excel') return 'Generating Excel file...';
+//         if (exportType === 'pdf') return 'Generating PDF file...';
+//         return 'Generating file...';
+//       case 'complete':
+//         return 'Export complete!';
+//       default:
+//         return 'Processing...';
+//     }
+//   };
+
+//   const getProgressTip = () => {
+//     const { total } = progressDetails;
+
+//     if (exportType === 'csv') {
+//       return 'CSV exports are fastest for large datasets';
+//     }
+//     if (exportType === 'excel') {
+//       if (total > 10000) {
+//         return `Processing ${total.toLocaleString()} records... This may take a moment`;
+//       }
+//       return 'Excel export includes formatting and formulas';
+//     }
+//     if (exportType === 'pdf') {
+//       if (total > 1000) {
+//         return `Large dataset detected. Showing last 1,000 records in PDF`;
+//       }
+//       return 'PDF includes charts and summary statistics';
+//     }
+//     return '';
+//   };
+
+//   const getPlaceholderText = () => {
+//     if (isAdmin) return "Choose employee (all employees)";
+//     if (isManager) return "Choose employee from your team";
+//     return "Choose employee";
+//   };
+
+//   return (
+//     <div>
+//       <Form {...form}>
+//         <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
+//           <div className="flex flex-col gap-6">
+//             <div className="p-5 flex flex-col">
+//               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+//                 {/* EMPLOYEE */}
+//                 <FormField
+//                   control={form.control}
+//                   name="employee"
+//                   render={({ field }) => (
+//                     <FormItem>
+//                       <FormLabel className="flex gap-1">Employee</FormLabel>
+//                       <Select
+//                         onValueChange={(val) => field.onChange(val)}
+//                         value={field.value || ""}
+//                       >
+//                         <FormControl>
+//                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+//                             <SelectValue placeholder={getPlaceholderText()} />
+//                           </SelectTrigger>
+//                         </FormControl>
+//                         <SelectContent
+//                           showSearch={true}
+//                           searchPlaceholder="Search employees..."
+//                           onSearchChange={debouncedEmployeeSearch}
+//                           className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+//                         >
+//                           {isSearchingEmployees && employeeSearchTerm.length > 0 && (
+//                             <div className="p-3 text-sm text-text-secondary">
+//                               Searching...
+//                             </div>
+//                           )}
+//                           {getFilteredEmployees().length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
+//                             <div className="p-3 text-sm text-text-secondary">
+//                               No employees found
+//                             </div>
+//                           )}
+//                           {getFilteredEmployees().length === 0 && employeeSearchTerm.length === 0 && (
+//                             <div className="p-3 text-sm text-text-secondary">
+//                               {isAdmin ? "No employees available" : isManager ? "No team members available" : "No employees available"}
+//                             </div>
+//                           )}
+//                           {getFilteredEmployees().map((item: any) => (
+//                             <SelectItem key={item?.employee_id} value={item?.employee_id?.toString()}>
+//                               {item?.firstname_eng} {item?.emp_no ? `(${item.emp_no})` : ''}
+//                             </SelectItem>
+//                           ))}
+//                         </SelectContent>
+//                       </Select>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+//                 </div>
+//                 <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+
+//                 {/* FROM DATE */}
+//                 <FormField
+//                   control={form.control}
+//                   name="from_date"
+//                   render={({ field }) => (
+//                     <FormItem className="">
+//                       <FormLabel>From Date</FormLabel>
+//                       <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+//                         <PopoverTrigger asChild>
+//                           <FormControl>
+//                             <Button size={"lg"} variant={"outline"}
+//                               className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+//                             >
+//                               {field.value ? (
+//                                 format(field.value, "dd/MM/yy")
+//                               ) : (
+//                                 <span className="font-normal text-sm text-text-secondary">Choose date</span>
+//                               )}
+//                               <CalendarIcon />
+//                             </Button>
+//                           </FormControl>
+//                         </PopoverTrigger>
+//                         <PopoverContent className="w-auto p-0" align="start">
+//                           <Calendar
+//                             mode="single"
+//                             selected={field.value}
+//                             onSelect={(date) => {
+//                               field.onChange(date)
+//                               closePopover('fromDate')
+//                             }}
+//                           />
+//                         </PopoverContent>
+//                       </Popover>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+
+//                 {/* TO DATE */}
+//                 <FormField
+//                   control={form.control}
+//                   name="to_date"
+//                   render={({ field }) => (
+//                     <FormItem className="">
+//                       <FormLabel>To Date</FormLabel>
+//                       <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
+//                         <PopoverTrigger asChild>
+//                           <FormControl>
+//                             <Button size={"lg"} variant={"outline"}
+//                               className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+//                             >
+//                               {field.value ? (
+//                                 format(field.value, "dd/MM/yy")
+//                               ) : (
+//                                 <span className="font-normal text-sm text-text-secondary">Choose date</span>
+//                               )}
+//                               <CalendarIcon />
+//                             </Button>
+//                           </FormControl>
+//                         </PopoverTrigger>
+//                         <PopoverContent className="w-auto p-0" align="start">
+//                           <Calendar
+//                             mode="single"
+//                             selected={field.value}
+//                             onSelect={(date) => {
+//                               field.onChange(date)
+//                               closePopover('toDate')
+//                             }}
+//                             disabled={(date) => date > new Date()}
+//                           />
+//                         </PopoverContent>
+//                       </Popover>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+//               </div>
+//             </div>
+
+//             {/* Progress Bar */}
+//             {loading && exportProgress >= 0 && (
+//               <div className="px-8 pb-2">
+//                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+//                   <div className="flex items-center justify-between mb-2">
+//                     <span className="text-sm font-medium text-blue-900">
+//                       {getProgressMessage()}
+//                     </span>
+//                     <span className="text-sm font-bold text-blue-900">
+//                       {exportProgress}%
+//                     </span>
+//                   </div>
+//                   <div className="w-full bg-blue-200 rounded-full h-2.5">
+//                     <div
+//                       className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+//                       style={{ width: `${exportProgress}%` }}
+//                     />
+//                   </div>
+//                   <p className="text-xs text-blue-700 mt-2">
+//                     {getProgressTip()}
+//                   </p>
+//                 </div>
+//               </div>
+//             )}
+
+//             <div className="flex justify-center gap-2 items-center pb-5">
+//               <div className="flex gap-4 px-5">
+//                 <Button
+//                   type="button"
+//                   size={"sm"}
+//                   variant="outline"
+//                   className="flex items-center gap-2"
+//                   onClick={() => form.reset()}
+//                   disabled={loading}
+//                 >
+//                   <Trash2Icon />
+//                   Clear Filters
+//                 </Button>
+//                 <Button
+//                   type="button"
+//                   size={"sm"}
+//                   className="flex items-center gap-2 bg-[#0073C6]"
+//                   onClick={handleExportCSV}
+//                   disabled={loading}
+//                 >
+//                   <FileText className="w-4 h-4" />
+//                   Export CSV
+//                 </Button>
+//                 <Button
+//                   type="button"
+//                   size={"sm"}
+//                   className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
+//                   onClick={handleShowReport}
+//                   disabled={loading}
+//                 >
+//                   <LoginIcon />
+//                   Export PDF
+//                 </Button>
+//               </div>
+//             </div>
+//           </div>
+//         </form>
+//       </Form>
+//     </div>
+//   );
+// }
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -12,6 +596,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
+import { Checkbox } from "@/src/components/ui/checkbox";
 import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { toast } from "react-hot-toast";
 import { PDFExporterFGIC } from './PDFExporterFGIC';
@@ -19,42 +604,37 @@ import { ExcelExporter } from './ExcelExporter';
 import { CSVExporterFGIC } from './CSVExporterFGIC';
 import { CalendarIcon, LoginIcon } from "@/src/icons/icons";
 import { FileText, Trash2Icon } from "lucide-react";
-import Required from "@/src/components/ui/required";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 
 const formSchema = z.object({
-  company: z.string().optional(),
-  division: z.string().optional(),
-  department: z.string().optional(),
-  employee_type: z.string().optional(),
-  manager_id: z.string().optional(),
-  employee: z.string().optional(),
+  employees: z.array(z.string()).optional(),
   from_date: z.date().optional(),
   to_date: z.date().optional(),
 });
 
 export default function EmployeeReports() {
+  const { employeeId, userRole } = useAuthGuard();
+  const isManager = userRole?.toLowerCase() === 'manager';
+  const isAdmin = userRole?.toLowerCase() === 'admin';
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      employees: [],
+    },
   });
 
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
-  
-  // Search terms for all dropdowns
-  const [companySearchTerm, setCompanySearchTerm] = useState("");
-  const [divisionSearchTerm, setDivisionSearchTerm] = useState("");
-  const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
-  const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
-  const [managerSearchTerm, setManagerSearchTerm] = useState("");
-  
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
     total: 0,
@@ -65,140 +645,14 @@ export default function EmployeeReports() {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
 
-  // Fetch all organizations
-  const { data: allOrganizations } = useFetchAllEntity("organization", { 
-    searchParams: { limit: "1000" }
-  });
-  
-  const selectedCompany = form.watch("company");
-  const selectedDivision = form.watch("division");
-  const selectedDepartment = form.watch("department");
-  const selectedEmployeeType = form.watch("employee_type");
-  const selectedManagerId = form.watch("manager_id");
-  
-  // Fetch divisions/business groups (children of selected company)
-  const { data: divisions } = useQuery({
-    queryKey: ["divisions", selectedCompany],
-    queryFn: async () => {
-      if (!selectedCompany) return null;
-      return allOrganizations?.data?.filter((org: any) => 
-        org.parent_id === parseInt(selectedCompany)
-      );
-    },
-    enabled: !!selectedCompany && !!allOrganizations?.data,
-  });
-
-  // Fetch departments for selected division
-  const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
-    queryKey: ["departmentsByOrg", selectedDivision],
-    queryFn: async () => {
-      if (!selectedDivision) return null;
-      const response = await apiRequest(`/dept-org-mapping/by-organization/${selectedDivision}`, "GET");
-      return response;
-    },
-    enabled: !!selectedDivision,
-  });
-  
-  const { data: managers } = useFetchAllEntity("employee", {
-    searchParams: { 
-      manager_flag: "true", 
-      limit: "1000",
-      offset: "1"
-    }
-  });
-
-
-  const getEmployeeSearchParams = () => {
-    const params: any = {
-      limit: "1000",
-      offset: "1"
-    };
-  
-    // Priority order: Department > Division > Company
-    // Use the most specific organization level selected
-    if (selectedDepartment) {
-      params.organization_id = selectedDepartment;
-      } else if (selectedDivision) {
-        params.organization_id = selectedDivision;
-      } else if (selectedCompany) {
-        params.organization_id = selectedCompany;
-      }
-      
-      // Add manager filter if selected
-      if (selectedManagerId) {
-        params.manager_id = selectedManagerId;
-      }
-      
-      return { searchParams: params };
-    };
-
-  // Update the employees query to always use the params when any org is selected:
+  // Fetch employees based on user role
   const { data: employees } = useFetchAllEntity(
     "employee",
-    (selectedCompany || selectedDivision || selectedDepartment || selectedManagerId) 
-      ? getEmployeeSearchParams() 
-      : {
-          searchParams: {
-            limit: "1000",
-            offset: "1"
-          }
-        }
-  );
-
-  // Also update the getFilteredEmployees function to respect organization filtering:
-  const getFilteredEmployees = () => {
-    let baseData = [];
-    
-    if (employeeSearchTerm.length > 0) {
-      // When searching, still respect organization filters
-      baseData = searchedEmployees?.data || [];
-      
-      // If an organization is selected, filter the search results
-      const selectedOrg = selectedDepartment || selectedDivision || selectedCompany;
-      if (selectedOrg) {
-        baseData = baseData.filter((emp: any) => 
-          emp?.organization_id?.toString() === selectedOrg
-        );
+    isManager && !isAdmin && employeeId
+      ? {
+        endpoint: `/employee/all?manager_id=${employeeId}`,
       }
-    } else {
-      // Use the fetched employees which are already filtered by organization
-      baseData = employees?.data || [];
-    }
-    
-    return baseData.filter((item: any) => 
-      item?.employee_id && item.employee_id.toString().trim() !== ''
-    );
-  };
-
-  const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
-
-  // Debounced search functions
-  const debouncedCompanySearch = useCallback(
-    debounce((searchTerm: string) => {
-      setCompanySearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedDivisionSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setDivisionSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedDepartmentSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setDepartmentSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
-  const debouncedEmployeeTypeSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setEmployeeTypeSearchTerm(searchTerm);
-    }, 300),
-    []
+      : { searchParams: { limit: "1000", offset: "1" } }
   );
 
   const debouncedEmployeeSearch = useCallback(
@@ -208,112 +662,54 @@ export default function EmployeeReports() {
     []
   );
 
-  const debouncedManagerSearch = useCallback(
-    debounce((searchTerm: string) => {
-      setManagerSearchTerm(searchTerm);
-    }, 300),
-    []
-  );
-
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
-    queryKey: ["employeeSearch", employeeSearchTerm],
-    queryFn: () => searchEmployees(employeeSearchTerm),
+    queryKey: ["employeeSearch", employeeSearchTerm, employeeId, isManager, isAdmin],
+    queryFn: async () => {
+      if (isManager && !isAdmin && employeeId) {
+        const response = await apiRequest(
+          `/employee/all?manager_id=${employeeId}`,
+          "GET"
+        );
+        if (response?.data) {
+          const filtered = response.data.filter((emp: any) =>
+            emp?.firstname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
+            emp?.lastname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
+            emp?.emp_no?.toLowerCase().includes(employeeSearchTerm.toLowerCase())
+          );
+          return { data: filtered };
+        }
+        return response;
+      } else {
+        const response = await apiRequest(
+          `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`,
+          "GET"
+        );
+        return response;
+      }
+    },
     enabled: employeeSearchTerm.length > 0,
   });
 
-  const { data: searchedManagers, isLoading: isSearchingManagers } = useQuery({
-    queryKey: ["managerSearch", managerSearchTerm],
-    queryFn: async () => {
-      const response = await apiRequest(
-        `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`,
-        "GET"
-      );
-      return response;
-    },
-    enabled: managerSearchTerm.length > 0,
-  });
+  const getFilteredEmployees = () => {
+    let baseData = [];
 
-  const getCompanyData = () => {
-    if (!allOrganizations?.data || !Array.isArray(allOrganizations.data)) return [];
-    const companies = allOrganizations.data.filter((item: any) => 
-      item?.parent_id === 1 && 
-      item?.organization_id && 
-      item.organization_id.toString().trim() !== ''
-    );
-    
-    // Apply search filter
-    if (companySearchTerm) {
-      return companies.filter((item: any) => 
-        item?.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase())
-      );
+    if (employeeSearchTerm.length > 0) {
+      baseData = searchedEmployees?.data || [];
+    } else {
+      baseData = employees?.data || [];
     }
-    return companies;
+
+    return baseData.filter((item: any) =>
+      item?.employee_id && item.employee_id.toString().trim() !== ''
+    );
   };
 
-  const getDivisionData = () => {
-    if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedCompany) return [];
-    const companyId = parseInt(selectedCompany);
-    const divisions = allOrganizations.data.filter((item: any) => 
-      item?.parent_id === companyId && 
-      item?.organization_id && 
-      item.organization_id.toString().trim() !== ''
-    );
-    
-    // Apply search filter
-    if (divisionSearchTerm) {
-      return divisions.filter((item: any) => 
-        item?.organization_eng?.toLowerCase().includes(divisionSearchTerm.toLowerCase())
-      );
-    }
-    return divisions;
-  };
-
-  const getDepartmentData = () => {
-    if (!allOrganizations?.data || !Array.isArray(allOrganizations.data) || !selectedDivision) return [];
-    const divisionId = parseInt(selectedDivision);
-    const departments = allOrganizations.data.filter((item: any) => 
-      item?.parent_id === divisionId && 
-      item?.organization_id && 
-      item.organization_id.toString().trim() !== ''
-    );
-    
-    // Apply search filter
-    if (departmentSearchTerm) {
-      return departments.filter((item: any) => 
-        item?.organization_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
-      );
-    }
-    return departments;
-  };
-
-  const getEmployeeTypesData = () => {
-    if (!employeeTypes?.data) return [];
-    const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
-    
-    // Apply search filter
-    if (employeeTypeSearchTerm) {
-      return types.filter((item: any) => 
-        item?.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
-      );
-    }
-    return types;
-  };
-
-  const getManagerData = () => {
-    if (managerSearchTerm.length > 0) {
-      const searchData = searchedManagers?.data || [];
-      return searchData.filter((item: any) => 
-        item?.employee_id && 
-        item.employee_id.toString().trim() !== ''
-      );
-    }
-    
-    const baseData = managers?.data || [];
-    return baseData.filter((item: any) => 
-      item?.employee_id && 
-      item.employee_id.toString().trim() !== '' &&
-      item?.manager_flag === true
-    );
+  const handleEmployeeToggle = (employeeId: string) => {
+    setSelectedEmployees(prev => {
+      return prev.includes(employeeId)
+        ? prev.filter(id => id !== employeeId)
+        : [...prev, employeeId];
+    });
   };
 
   const headerMap: Record<string, string> = {
@@ -337,9 +733,9 @@ export default function EmployeeReports() {
   const calculateSummaryTotals = (dataArray: any[]) => {
     const parseTimeToMinutes = (value: any) => {
       if (!value) return 0;
-      
+
       const strValue = String(value).trim();
-      
+
       if (strValue.includes(':')) {
         const parts = strValue.split(':').map(Number);
         const hours = parts[0] || 0;
@@ -347,7 +743,7 @@ export default function EmployeeReports() {
         const seconds = parts[2] || 0;
         return hours * 60 + minutes + (seconds / 60);
       }
-      
+
       const hours = parseFloat(strValue) || 0;
       return hours * 60;
     };
@@ -385,14 +781,14 @@ export default function EmployeeReports() {
   };
 
   const handleProgressUpdate = (current: number, total: number, phase: string) => {
-    setProgressDetails({ 
-      current, 
-      total, 
+    setProgressDetails({
+      current,
+      total,
       phase: phase as 'initializing' | 'fetching' | 'processing' | 'generating' | 'complete'
     });
-    
+
     let percentage = 0;
-    
+
     if (phase === 'initializing') {
       percentage = 0;
     } else if (phase === 'fetching') {
@@ -406,8 +802,24 @@ export default function EmployeeReports() {
     } else if (phase === 'complete') {
       percentage = 100;
     }
-    
+
     setExportProgress(percentage);
+  };
+  const getReportParams = () => {
+    const values = form.getValues();
+
+    return {
+      employee_ids: selectedEmployees, // Pass the array directly
+      from_date: values.from_date,
+      to_date: values.to_date,
+      manager_id: (isManager && !isAdmin && employeeId && selectedEmployees.length === 0)
+        ? employeeId
+        : undefined, // Only add manager_id if no employees selected
+      employeeId,
+      userRole,
+      isManager: isManager && !isAdmin,
+      isAdmin,
+    };
   };
 
   const handleExportCSV = async () => {
@@ -415,17 +827,17 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('csv');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new CSVExporterFGIC({
-        formValues: form.getValues(),
+        formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
       });
-      
+
       await exporter.exportStreaming();
-      
+
     } catch (error) {
       console.error("CSV export error:", error);
       toast.error("Error exporting CSV. Please try again.");
@@ -444,17 +856,17 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('excel');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new ExcelExporter({
-        formValues: form.getValues(),
+        formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
       });
-      
+
       await exporter.export();
-      
+
     } catch (error) {
       console.error("Excel export error:", error);
       toast.error("Error exporting Excel. Please try again.");
@@ -473,18 +885,18 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('pdf');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new PDFExporterFGIC({
-        formValues: form.getValues(),
+        formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
         logoUrl: '/FGI_COLOR.png',
         onProgress: handleProgressUpdate,
       });
-      
+
       await exporter.export();
-      
+
     } catch (error) {
       console.error("PDF export error:", error);
       toast.error("Error generating PDF. Please try again.");
@@ -500,14 +912,9 @@ export default function EmployeeReports() {
 
   useEffect(() => {
     return () => {
-      debouncedCompanySearch.cancel();
-      debouncedDivisionSearch.cancel();
-      debouncedDepartmentSearch.cancel();
-      debouncedEmployeeTypeSearch.cancel();
       debouncedEmployeeSearch.cancel();
-      debouncedManagerSearch.cancel();
     };
-  }, [debouncedCompanySearch, debouncedDivisionSearch, debouncedDepartmentSearch, debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
+  }, [debouncedEmployeeSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -515,7 +922,7 @@ export default function EmployeeReports() {
 
   const getProgressMessage = () => {
     const { current, total, phase } = progressDetails;
-    
+
     switch (phase) {
       case 'initializing':
         return 'Initializing export...';
@@ -540,7 +947,7 @@ export default function EmployeeReports() {
 
   const getProgressTip = () => {
     const { total } = progressDetails;
-    
+
     if (exportType === 'csv') {
       return 'CSV exports are fastest for large datasets';
     }
@@ -559,6 +966,15 @@ export default function EmployeeReports() {
     return '';
   };
 
+  const getPlaceholderText = () => {
+    if (selectedEmployees.length === 0) {
+      if (isAdmin) return "Choose employee (all employees)";
+      if (isManager) return "Choose employee from your team";
+      return "Choose employee";
+    }
+    return `${selectedEmployees.length} employee${selectedEmployees.length > 1 ? 's' : ''} selected`;
+  };
+
   return (
     <div>
       <Form {...form}>
@@ -566,250 +982,19 @@ export default function EmployeeReports() {
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
-                {/* COMPANY */}
-                <FormField
-                  control={form.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Company <Required/></FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("division", undefined);
-                          form.setValue("department", undefined);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose company" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent 
-                          showSearch={true}
-                          searchPlaceholder="Search companies..."
-                          onSearchChange={debouncedCompanySearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getCompanyData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {companySearchTerm ? "No companies found" : "No companies available"}
-                            </div>
-                          ) : (
-                            getCompanyData().map((item: any) => (
-                              <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
-                                {item?.organization_eng || "Unnamed"}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* DIVISION / BUSINESS GROUP */}
-                <FormField
-                  control={form.control}
-                  name="division"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Division / Business Group</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("department", undefined);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                        disabled={!selectedCompany}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose division" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent 
-                          showSearch={true}
-                          searchPlaceholder="Search divisions..."
-                          onSearchChange={debouncedDivisionSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getDivisionData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {divisionSearchTerm ? "No divisions found" : "No divisions available"}
-                            </div>
-                          ) : (
-                            getDivisionData().map((item: any) => (
-                              <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
-                                {item?.organization_eng || "Unnamed"}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* DEPARTMENT */}
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Department</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                        disabled={!selectedDivision || isDepartmentsLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={
-                              isDepartmentsLoading 
-                                ? "Loading departments..." 
-                                : "Choose department"
-                            } />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent 
-                          showSearch={true}
-                          searchPlaceholder="Search departments..."
-                          onSearchChange={debouncedDepartmentSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {isDepartmentsLoading && (
-                            <div className="p-3 text-sm text-text-secondary">Loading departments...</div>
-                          )}
-                          {!isDepartmentsLoading && getDepartmentData().length === 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {departmentSearchTerm ? "No departments found" : "No departments available"}
-                            </div>
-                          )}
-                          {!isDepartmentsLoading && getDepartmentData().map((item: any) => (
-                            <SelectItem key={item?.organization_id} value={item?.organization_id?.toString()}>
-                              {item?.organization_eng || "Unnamed"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* EMPLOYEE TYPE */}
-                <FormField
-                  control={form.control}
-                  name="employee_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Employee Type</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value || ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent 
-                          showSearch={true}
-                          searchPlaceholder="Search employee types..."
-                          onSearchChange={debouncedEmployeeTypeSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getEmployeeTypesData().length === 0 ? (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {employeeTypeSearchTerm ? "No employee types found" : "No employee types available"}
-                            </div>
-                          ) : (
-                            getEmployeeTypesData().map((item: any) => (
-                              <SelectItem key={item?.employee_type_id} value={item?.employee_type_eng || item?.employee_type_id?.toString()}>
-                                {item?.employee_type_eng || "Unnamed"}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* MANAGER */}
-                <FormField
-                  control={form.control}
-                  name="manager_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">Manager</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose manager" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder="Search managers..."
-                          onSearchChange={debouncedManagerSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {isSearchingManagers && managerSearchTerm.length > 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              Searching...
-                            </div>
-                          )}
-                          {getManagerData().length === 0 && managerSearchTerm.length > 0 && !isSearchingManagers && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              No managers found
-                            </div>
-                          )}
-                          {getManagerData().map((item: any) => (
-                            <SelectItem key={item?.employee_id} value={item?.employee_id?.toString()}>
-                              {item?.firstname_eng} {item?.lastname_eng ? item.lastname_eng : ''} {item?.emp_no ? `(${item.emp_no})` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 {/* EMPLOYEE */}
                 <FormField
                   control={form.control}
-                  name="employee"
+                  name="employees"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">Employee</FormLabel>
                       <Select
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value || ""}
+                      // Remove onValueChange and value props - we're handling this manually
                       >
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose employee" />
+                            <SelectValue placeholder={getPlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -828,17 +1013,42 @@ export default function EmployeeReports() {
                               No employees found
                             </div>
                           )}
-                          {getFilteredEmployees().map((item: any) => (
-                            <SelectItem key={item?.employee_id} value={item?.employee_id?.toString()}>
-                              {item?.firstname_eng} {item?.emp_no ? `(${item.emp_no})` : ''}
-                            </SelectItem>
-                          ))}
+                          {getFilteredEmployees().length === 0 && employeeSearchTerm.length === 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {isAdmin ? "No employees available" : isManager ? "No team members available" : "No employees available"}
+                            </div>
+                          )}
+                          {getFilteredEmployees().map((item: any) => {
+                            const empId = item?.employee_id?.toString();
+                            const isChecked = selectedEmployees.includes(empId);
+
+                            return (
+                              <div
+                                key={empId}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleEmployeeToggle(empId);
+                                }}
+                              >
+                                <Checkbox
+                                  checked={isChecked}
+                                  className="mr-2"
+                                // Remove onCheckedChange - handled by parent div onClick
+                                />
+                                <span>{item?.firstname_eng} {item?.emp_no ? `(${item.emp_no})` : ''}</span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
 
                 {/* FROM DATE */}
                 <FormField
@@ -932,7 +1142,7 @@ export default function EmployeeReports() {
                     </span>
                   </div>
                   <div className="w-full bg-blue-200 rounded-full h-2.5">
-                    <div 
+                    <div
                       className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${exportProgress}%` }}
                     />
@@ -951,7 +1161,10 @@ export default function EmployeeReports() {
                   size={"sm"}
                   variant="outline"
                   className="flex items-center gap-2"
-                  onClick={() => form.reset()}
+                  onClick={() => {
+                    form.reset();
+                    setSelectedEmployees([]);
+                  }}
                   disabled={loading}
                 >
                   <Trash2Icon />
@@ -976,7 +1189,6 @@ export default function EmployeeReports() {
                 >
                   <LoginIcon />
                   Export PDF
-                  {/* {loading && exportType === 'pdf' ? `${exportProgress}%` : "Show PDF"} */}
                 </Button>
               </div>
             </div>
