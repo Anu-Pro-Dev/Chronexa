@@ -33,6 +33,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.configurations || {};
 
   const offset = useMemo(() => {
     return currentPage;
@@ -71,7 +72,7 @@ export default function Page() {
       });
     }
     return [];
-  }, [rolesData]);
+  }, [rolesData, t]);
 
   useEffect(() => {
     if (!open) {
@@ -83,13 +84,26 @@ export default function Page() {
     setColumns([
       {
         field: "role_name",
-        headerName: language === "ar" ? "اسم الدور" : "Role Name",
+        headerName: t.role_name || "Role Name",
       },
-      { field: "privileges", clickable: true, onCellClick: handleCellClick },
-      { field: "assign_role", headerName: "Assign Role", clickable: true, onCellClick: handleCellClickPath },
-      { field: "_count.sec_user_roles", headerName: "Users" },
+      { 
+        field: "privileges", 
+        headerName: t.privileges || "Privileges",
+        clickable: true, 
+        onCellClick: handleCellClick 
+      },
+      { 
+        field: "assign_role", 
+        headerName: t.assign_role || "Assign Role", 
+        clickable: true, 
+        onCellClick: handleCellClickPath 
+      },
+      { 
+        field: "_count.sec_user_roles", 
+        headerName: t.users || "Users" 
+      },
     ]);
-  }, [language, handleCellClick, handleCellClickPath]);
+  }, [t, language, handleCellClick, handleCellClickPath]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -159,7 +173,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.configuration?.items}
         entityName="secRole"
-        modal_title="Roles"
+        modal_title={t.roles || "Roles"}
         modal_component={
           <AddRole 
             on_open_change={setOpen}

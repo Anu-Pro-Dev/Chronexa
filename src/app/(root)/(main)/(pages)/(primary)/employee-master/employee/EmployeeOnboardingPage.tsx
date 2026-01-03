@@ -219,10 +219,12 @@ export default function EmployeeOnboardingPage({
         setCompletedSteps([...completedSteps, "personal-form"]);
       }
     } else if (activeStep === "credentials-form") {
-      isValid = await credentialsForm.trigger();
-      if (!isValid) {
-        showToast("error", "validation_error", "Please complete all required credential fields.");
-        return;
+      if (mode === "add") {
+        isValid = await credentialsForm.trigger();
+        if (!isValid) {
+          showToast("error", "validation_error", "Please complete all required credential fields.");
+          return;
+        }
       }
       if (!completedSteps.includes("credentials-form")) {
         setCompletedSteps([...completedSteps, "credentials-form"]);
@@ -308,7 +310,7 @@ export default function EmployeeOnboardingPage({
     const credentialsValid = isEdit ? true : await credentialsForm.trigger();
 
     const isValid = personalValid && officialValid && flagsValid && credentialsValid;
-    
+
     if (!isValid) {
       showToast("error", "validation_error", "Please fix highlighted fields.");
       setLoading(false);
@@ -317,7 +319,7 @@ export default function EmployeeOnboardingPage({
 
     const combinedData = {
       ...personalForm.getValues(),
-      ...credentialsForm.getValues(),
+      ...(mode === "add" ? credentialsForm.getValues() : {}),
       ...officialForm.getValues(),
       ...flagsForm.getValues(),
     };

@@ -71,16 +71,16 @@ export default function EmployeeCardData() {
   };
 
   const employeeData = [
-    { label: "Workforce", value: displayValues.Workforce, color: "text-primary", icon: EmployeesIcon(), shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]", isHours: false },
-    { label: "Project Managers", value: displayValues.ProjectManagers, color: "text-[#FF6B2D]", icon: <ManagerIcon color="#FF6B2D" />, shadow: "shadow-[0_0_20px_15px_rgba(255,107,45,0.15)]", isHours: false },
-    { label: "Check In", value: displayValues.CheckInCount, color: "text-[#1DAA61]", icon: <CheckCircleIcon className="size-6 text-[#1DAA61]" />, shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]", isHours: false },
-    { label: "Check Out", value: displayValues.CheckOutCount, color: "text-[#7D3FFF]", icon: <XCircleIcon className="size-6 text-[#7D3FFF]" />, shadow: "shadow-[0_0_20px_15px_rgba(125,63,255,0.05)]", isHours: false },
-    { label: t?.approved_leaves || "Approved Leaves", value: displayValues.ApprovedLeaves, color: "text-[#FFBF00]", icon: LeaveTakenIcon(), shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]", isHours: false },
-    { label: "Absent", value: displayValues.AbsentCount, color: "text-[#FF3B3B]", icon: <AbsentIcon color="#FF3B3B" />, shadow: "shadow-[0_0_20px_15px_rgba(255,59,59,0.1)]", isHours: false },
-    { label: "Missed CheckIn", value: displayValues.MissedCheckIn, color: "text-[#2AD90F]", icon: <UserPlusIcon className="size-5 text-[#2AD90F]" />, shadow: "shadow-[0_0_20px_15px_rgba(42,214,15,0.15)]", isHours: false },
-    { label: "Missed CheckOut", value: displayValues.MissedCheckOut, color: "text-[#E6107C]", icon: <UserMinusIcon className="size-5 text-[#E6107C]" />, shadow: "shadow-[0_0_20px_15px_rgba(230,16,124,0.1)]", isHours: false },
-    { label: "Missing Hours", value: displayValues.MissingHours, color: "text-[#DA153E]", icon: <VoilationIcon color="#DA153E" />, shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]", isHours: true },
-    { label: "Overtime", value: displayValues.Overtime, color: "text-[#158993]", icon: <ClockIcon className="size-5 text-[#158993]" />, shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]", isHours: true },
+    { label: t?.workforce, value: displayValues.Workforce, color: "text-primary", icon: EmployeesIcon(), shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]", isHours: false },
+    { label: t?.project_managers, value: displayValues.ProjectManagers, color: "text-[#FF6B2D]", icon: <ManagerIcon color="#FF6B2D" />, shadow: "shadow-[0_0_20px_15px_rgba(255,107,45,0.15)]", isHours: false },
+    { label: t?.check_in, value: displayValues.CheckInCount, color: "text-[#1DAA61]", icon: <CheckCircleIcon className="size-6 text-[#1DAA61]" />, shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]", isHours: false },
+    { label: t?.check_out, value: displayValues.CheckOutCount, color: "text-[#7D3FFF]", icon: <XCircleIcon className="size-6 text-[#7D3FFF]" />, shadow: "shadow-[0_0_20px_15px_rgba(125,63,255,0.05)]", isHours: false },
+    { label: t?.approved_leaves, value: displayValues.ApprovedLeaves, color: "text-[#FFBF00]", icon: LeaveTakenIcon(), shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]", isHours: false },
+    { label: t?.absent, value: displayValues.AbsentCount, color: "text-[#FF3B3B]", icon: <AbsentIcon color="#FF3B3B" />, shadow: "shadow-[0_0_20px_15px_rgba(255,59,59,0.1)]", isHours: false },
+    { label: t?.missed_check_in, value: displayValues.MissedCheckIn, color: "text-[#2AD90F]", icon: <UserPlusIcon className="size-5 text-[#2AD90F]" />, shadow: "shadow-[0_0_20px_15px_rgba(42,214,15,0.15)]", isHours: false },
+    { label: t?.missed_check_out, value: displayValues.MissedCheckOut, color: "text-[#E6107C]", icon: <UserMinusIcon className="size-5 text-[#E6107C]" />, shadow: "shadow-[0_0_20px_15px_rgba(230,16,124,0.1)]", isHours: false },
+    { label: t?.missing_hours, value: displayValues.MissingHours, color: "text-[#DA153E]", icon: <VoilationIcon color="#DA153E" />, shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]", isHours: true },
+    { label: t?.overtime, value: displayValues.Overtime, color: "text-[#158993]", icon: <ClockIcon className="size-5 text-[#158993]" />, shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]", isHours: true },
   ];
 
   const formatDisplayValue = (value: number, isHours: boolean) => {

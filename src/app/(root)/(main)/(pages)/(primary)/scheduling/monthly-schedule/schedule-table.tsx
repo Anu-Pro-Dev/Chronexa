@@ -33,10 +33,33 @@ interface ScheduleGridProps {
   onSelectionChange?: (selectedIds: Set<number>) => void;
 }
 
+function calculateMonthlyWorkHours(slots: any[], scheduleList: any[]) {
+  let totalMinutes = 0;
+
+  slots.forEach(slot => {
+    if (!slot.schedule_id) return;
+
+    const schedule = scheduleList.find(
+      (s: any) => s.schedule_id === slot.schedule_id
+    );
+    if (!schedule?.required_work_hours) return;
+
+    const [hh, mm] = schedule.required_work_hours.split(":").map(Number);
+    totalMinutes += hh * 60 + mm;
+  });
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
+}
+
 export default function ScheduleGrid({ groupFilter, filterData, onSelectionChange }: ScheduleGridProps = {}) {
   const { language, translations } = useLanguage();
   const showToast = useShowToast();
-  
+
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [data, setData] = useState<any[]>([]);
@@ -86,28 +109,27 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
     scheduleId: number,
     statusCode: string
   ) => {
-    setData((prevData: any) =>
-      prevData.map((row: any) => {
+    setData(prev =>
+      prev.map(row => {
         if (row.type !== "row" || row.id !== rowId) return row;
+        if (row.finalize_flag) return row;
 
-        const updatedSlots = [...row.slots];
-        
-        const formattedCode =
-          statusCode.length >= 3
-            ? statusCode.charAt(0).toUpperCase() + statusCode.slice(1, 3).toLowerCase()
-            : statusCode;
-        
-        const scheduleItem = scheduleListData?.data?.find(
-          (s: any) => s.schedule_id === scheduleId
-        );
-        
-        updatedSlots[dayIndex] = {
-          status: formattedCode,
-          sch_color: scheduleItem?.sch_color || "",
+        const slots = [...row.slots];
+        slots[dayIndex] = {
+          status: statusCode,
           schedule_id: scheduleId,
         };
 
-        return { ...row, slots: updatedSlots };
+        const recalculatedHours = calculateMonthlyWorkHours(
+          slots,
+          scheduleListData.data
+        );
+
+        return {
+          ...row,
+          slots,
+          hours: recalculatedHours,
+        };
       })
     );
   };
@@ -227,18 +249,18 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
 
     function createRowData(item: any) {
       const empNo = item.emp_no || item.employee_master?.emp_no || `#${item.employee_id}`;
-      
+
       let empName = "";
       if (language === "ar") {
-        empName = item.employee_name_arb || 
-                  item.employee_master?.firstname_arb || 
-                  "";
+        empName = item.employee_name_arb ||
+          item.employee_master?.firstname_arb ||
+          "";
       } else {
-        empName = item.employee_name || 
-                  item.employee_master?.firstname_eng || 
-                  "";
+        empName = item.employee_name ||
+          item.employee_master?.firstname_eng ||
+          "";
       }
-      
+
       empName = empName.trim() || `Employee ${item.employee_id}`;
 
       const slots = Array.from({ length: 31 }, (_, i) => {
@@ -263,13 +285,15 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
         };
       });
 
+      const total_hours = item.work_hours ?? "00:00";
+
       return {
         type: "row",
         id: item.schedule_roster_id,
         number: empNo,
         name: empName,
         version: item.version_no,
-        hours: "0",
+        hours: total_hours,
         finalize_flag: item.finalize_flag || false,
         slots,
       };
@@ -280,7 +304,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
 
   const totalRecords = paginatedFilterData.total || 0;
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
-  const allRowsSelected = data.filter(item => item.type === "row").length > 0 && 
+  const allRowsSelected = data.filter(item => item.type === "row").length > 0 &&
     data.filter(item => item.type === "row").every(item => selectedRows.has(item.id));
 
   const buildPayload = (row: any) => {
@@ -294,14 +318,49 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
     return payload;
   };
 
+  const calculateAndSaveRow = async (row: any, finalize = false) => {
+    const calculatedHours = calculateMonthlyWorkHours(
+      row.slots,
+      scheduleListData.data
+    );
+
+    const payload: any = {
+      ...buildPayload(row),
+      work_hours: calculatedHours,
+    };
+
+    if (finalize) {
+      payload.finalize_flag = true;
+    }
+
+    await editMonthlyScheduleRequest(payload);
+
+    return {
+      ...row,
+      hours: calculatedHours,
+      finalize_flag: finalize ? true : row.finalize_flag,
+    };
+  };
+
   const handleSave = async () => {
     try {
+      const updated: any[] = [];
+
       for (const row of data) {
         if (row.type !== "row") continue;
+        if (row.finalize_flag) continue;
 
-        const payload = buildPayload(row);
-        await editMonthlyScheduleRequest(payload);
+        const updatedRow = await calculateAndSaveRow(row);
+        updated.push(updatedRow);
       }
+
+      setData(prev =>
+        prev.map(r => {
+          const u = updated.find(x => x.id === r.id);
+          return u ? u : r;
+        })
+      );
+
       showToast("success", "saveroster_success");
     } catch (err) {
       console.error(err);
@@ -316,18 +375,31 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
     }
 
     try {
+      const updated: any[] = [];
+
       for (const rowId of selectedRows) {
-        await finalizeMonthlyScheduleRequest({
-          schedule_roster_id: rowId,
-        });
+        const row = data.find(r => r.type === "row" && r.id === rowId);
+        if (!row) continue;
+
+        const updatedRow = await calculateAndSaveRow(row, true);
+        updated.push(updatedRow);
       }
-      showToast("success", "finalizeroster_success");
+
+      setData(prev =>
+        prev.map(r => {
+          const u = updated.find(x => x.id === r.id);
+          return u ? u : r;
+        })
+      );
+
       setSelectedRows(new Set());
+      showToast("success", "finalizeroster_success");
     } catch (err) {
       console.error(err);
       showToast("error", "finalizeroster_error");
     }
   };
+
 
   const handleUnFinalize = async () => {
     if (selectedRows.size === 0) {
@@ -339,11 +411,23 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
       for (const rowId of selectedRows) {
         await editMonthlyScheduleRequest({
           schedule_roster_id: rowId,
-          finalize_flag: false
+          finalize_flag: false,
         });
       }
-      showToast("success", "unfinalizeroster_success");
+
+      setData(prev =>
+        prev.map(row =>
+          selectedRows.has(row.id)
+            ? {
+              ...row,
+              finalize_flag: false,
+            }
+            : row
+        )
+      );
+
       setSelectedRows(new Set());
+      showToast("success", "unfinalizeroster_success");
     } catch (err) {
       console.error(err);
       showToast("error", "unfinalizeroster_error");
@@ -358,6 +442,9 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
 
     try {
       for (const rowId of selectedRows) {
+        const row = data.find(r => r.id === rowId);
+        if (row?.finalize_flag) continue;
+
         const payload: any = { schedule_roster_id: rowId };
         for (let i = 1; i <= 31; i++) payload[`D${i}`] = null;
 
@@ -372,9 +459,9 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
     }
   };
 
+
   return (
     <div className="absolute w-full">
-      {/* Action Buttons */}
       <div className="flex justify-end gap-4 mb-3">
         <Button size="sm" type="button" onClick={handleSave}>
           <SaveIcon /> {translations?.buttons?.save}
@@ -400,7 +487,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
           <TableHeader>
             <TableRow className="table-header text-[15px]">
               <TableHead className="h-12 w-12 px-4">
-                <Checkbox 
+                <Checkbox
                   className="border-2 border-[#E5E7EB] rounded-[3px]"
                   checked={allRowsSelected}
                   onCheckedChange={handleSelectAll}
@@ -442,7 +529,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
             ) : data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={37} className="text-center py-8">
-                  {filterData 
+                  {filterData
                     ? (translations?.modules?.scheduling?.no_rows || "No data found for the selected filters")
                     : (translations?.no_data || "Please apply filters to view data")}
                 </TableCell>
@@ -468,7 +555,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
                     className="text-text-content text-sm font-bold hover:bg-backdrop"
                   >
                     <TableCell className="w-12 px-4">
-                      <Checkbox 
+                      <Checkbox
                         className="border-2 border-[#E5E7EB] rounded-[3px]"
                         checked={selectedRows.has(item.id)}
                         onCheckedChange={(checked) => handleRowSelection(item.id, checked as boolean)}
@@ -495,10 +582,12 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
                         <StatusSelector
                           status={slot.status}
                           scheduleId={slot.schedule_id}
+                          disabled={item.finalize_flag}
                           onStatusChange={(scheduleId, statusCode) =>
                             handleStatusChange(item.id, slotIndex, scheduleId, statusCode)
                           }
                         />
+
                       </TableCell>
                     ))}
 
@@ -513,8 +602,8 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
 
       <div className="bg-accent rounded-b-2xl flex items-center justify-between px-5 py-0 pb-6">
         <div className="flex items-center space-x-2">
-          <Select 
-            value={rowsPerPage.toString()} 
+          <Select
+            value={rowsPerPage.toString()}
             onValueChange={handleRowsPerPageChange}
           >
             <SelectTrigger className="w-20 h-10 border-none text-sm font-normal text-secondary bg-accent rounded-lg shadow-lg">
@@ -532,9 +621,9 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="pagination" 
+          <Button
+            variant="ghost"
+            size="pagination"
             className="h-6 w-6 flex justify-center items-center bg-backdrop ml-2"
             onClick={handlePreviousPage}
             disabled={currentPage === 1 || isLoading}
@@ -544,9 +633,9 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
           <Button variant="ghost" size="pagination" className="text-sm font-normal text-secondary">
             {currentPage} / {totalPages || 1}
           </Button>
-          <Button 
-            variant="ghost" 
-            size="pagination" 
+          <Button
+            variant="ghost"
+            size="pagination"
             className="h-6 w-6 flex justify-center items-center bg-backdrop"
             onClick={handleNextPage}
             disabled={!paginatedFilterData.hasNext || isLoading}

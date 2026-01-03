@@ -3,12 +3,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useMemo } from "react";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
+import { useLanguage } from "@/src/providers/LanguageProvider";
+import { createTabPathMapper, getTabLabel } from "@/src/utils/tabPathMapper";
 
 export default function PowerTabs() {
   const { privilegeMap } = usePrivileges();
+  const { translations } = useLanguage();
   const pathname = usePathname();
 
   const normalize = (str: string) => str.replace(/\s+/g, "-").toLowerCase();
+
+  const getTabPath = useMemo(
+    () => createTabPathMapper(translations),
+    [translations]
+  );
 
   const [firstSegment, secondSegment] = pathname.split("/").slice(1, 3);
   
@@ -37,10 +45,10 @@ export default function PowerTabs() {
         .map((t) => ({
           url: `/${normalize(activeModuleKey!)}/${normalize(
             activeSubmodule.sub_module_name
-          )}/${normalize(t.tab_name)}`,
-          label: t.tab_name,
+          )}/${getTabPath(t.tab_name)}`,
+          label: getTabLabel(t.tab_name, translations),
         })) ?? [],
-    [activeModuleKey, activeSubmodule]
+    [activeModuleKey, activeSubmodule, getTabPath, translations]
   );
 
   return (

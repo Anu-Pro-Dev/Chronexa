@@ -36,9 +36,27 @@ export default function MembersTable() {
     : null;
   const { groupId, groupCode } = useEmployeeGroupStore();
 
-  // Use the delete hook
   const deleteMutation = useDeleteEntityMutation({
     onSelectionClear: () => setSelectedRows([]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "employeeGroupMember",
+      });
+
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "employee",
+      });
+
+      if (refetch) {
+        setTimeout(() => {
+          refetch();
+        }, 200);
+      }
+    },
   });
 
   useEffect(() => {
@@ -94,8 +112,8 @@ export default function MembersTable() {
     setColumns([
       { field: "employee_no", headerName: t.emp_no },
       { field: "employee_name", headerName: t.employee },
-      { field: "designation", headerName: "Designation" },
-      { field: "organization", headerName: "Organization" },
+      { field: "designation", headerName: t.designation },
+      { field: "organization", headerName: t.organization },
     ]);
   }, [language, t]);
 
@@ -183,7 +201,21 @@ export default function MembersTable() {
         Array.isArray(query.queryKey) &&
         query.queryKey[0] === "employeeGroupMember",
     });
+
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === "employee",
+    });
+
+    if (refetch) {
+      setTimeout(() => {
+        refetch();
+      }, 200);
+    }
+
     setOpen(false);
+    setSelectedRows([]);
 
     setTimeout(() => {
       if (group) {
@@ -194,10 +226,17 @@ export default function MembersTable() {
         }
       }
     }, 100);
-  }, [queryClient, group, searchParams, pathname, router]);
+  }, [queryClient, group, searchParams, pathname, router, refetch]);
 
   const handleOpenChange = useCallback((isOpen: boolean) => {
     setOpen(isOpen);
+
+    if (!isOpen && refetch) {
+      setTimeout(() => {
+        refetch();
+      }, 100);
+    }
+
     if (group) {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.get("group")) {
@@ -205,7 +244,7 @@ export default function MembersTable() {
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
       }
     }
-  }, [group, searchParams, pathname, router]);
+  }, [group, searchParams, pathname, router, refetch]);
 
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);

@@ -23,12 +23,15 @@ export default function GroupPunchModal({
   size?: "small" | "medium" | "large" | "extraLarge"; 
 }) {
   const { translations } = useLanguage();
+  const t = translations?.modules?.selfServices || {};
 
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
       <ResponsiveModalContent size={size}>
         <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Apply Missing Punch</ResponsiveModalTitle>
+          <ResponsiveModalTitle>
+            {t.group_apply_punch || "Group Apply Punch"}
+          </ResponsiveModalTitle>
         </ResponsiveModalHeader>
 
         <GroupApplyPunch

@@ -177,22 +177,22 @@ export default function AddDBSettings({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 gap-y-4 min-w-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 gap-y-4 min-w-0">
             <FormField
               key={form.watch("database")}
               control={form.control}
               name="database"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {t.database || "Database"} <Required />
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
-                        <SelectValue placeholder="Choose Database" />
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.placeholder_database || "Choose Database"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -210,16 +210,22 @@ export default function AddDBSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="database_name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {t.database_name || "Database Name"} <Required />
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your Database name" type="text" {...field} />
+                    <Input 
+                      placeholder={t.placeholder_database_name || "Enter your Database name"} 
+                      type="text" 
+                      {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
+                    />
                   </FormControl>
                   <TranslatedError
                     fieldError={form.formState.errors.database_name}
@@ -228,19 +234,21 @@ export default function AddDBSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="host"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {t.host || "Host"} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter the IP or domain name"
+                      placeholder={t.placeholder_host || "Enter the IP or domain name"}
                       type="text"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -250,19 +258,21 @@ export default function AddDBSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="port"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {t.port || "Port"} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter your port number"
+                      placeholder={t.placeholder_port || "Enter port number"}
                       type="text"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -272,17 +282,21 @@ export default function AddDBSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="user"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>User <Required /></FormLabel>
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {t.user || "User"} <Required />
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter your database user"
+                      placeholder={t.placeholder_user || "Enter your database user"}
                       type="text"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -292,17 +306,21 @@ export default function AddDBSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password <Required /></FormLabel>
+                <FormItem className="min-w-0">
+                  <FormLabel>
+                    {t.password || "Password"} <Required />
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter your database user password"
+                      placeholder={t.placeholder_password || "Enter your database user password"}
                       type="password"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -312,29 +330,33 @@ export default function AddDBSettings({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="connected"
-              render={({ field }) => (
-                <FormItem className="flex items-center space-x-4">
-                  <FormLabel className="mb-0">
-                    {t.connection || "Connect DB"}
-                  </FormLabel>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="connected"
+            render={({ field }) => (
+              <FormItem>
+                <div className={`flex items-center gap-2 ${language === "ar" ? "flex-row-reverse justify-end" : ""}`}>
                   <FormControl>
                     <Switch
                       checked={!!field.value}
                       onChange={(val: boolean) => field.onChange(val)}
                     />
                   </FormControl>
-                  <TranslatedError
-                    fieldError={form.formState.errors.connected}
-                    translations={errT}
-                  />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="flex justify-end gap-2 items-center py-5">
+                  <FormLabel className="!mt-0 cursor-pointer">
+                    {t.connection || "Connect DB"}
+                  </FormLabel>
+                </div>
+                <TranslatedError
+                  fieldError={form.formState.errors.connected}
+                  translations={errT}
+                />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-end gap-2 items-center py-2">
             <div className="flex gap-4">
               <Button
                 variant="outline"

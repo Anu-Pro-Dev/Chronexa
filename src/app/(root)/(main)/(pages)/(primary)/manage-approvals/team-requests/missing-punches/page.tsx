@@ -14,12 +14,13 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import { approveManualPunchRequest, rejectManualPunchRequest } from "@/src/lib/apiHandler";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  const showToast = useShowToast();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("transaction_id");
@@ -70,11 +71,10 @@ export default function Page() {
     setColumns([
       { field: "emp_no", headerName: t.employee_no || "Employee No" },
       { field: "employee_name", headerName: t.employee_name || "Employee Name" },
-      { field: "transaction_date", headerName: "Date" },
-      { field: "transaction_time", headerName: "Time" },
-      { field: "reason", headerName: "Reason" },
-      // { field: "remarks", headerName: "Remarks" },
-      { field: "transaction_status", headerName: "Status" },
+      { field: "transaction_date", headerName: t.date || "Date" },
+      { field: "transaction_time", headerName: t.time || "Time" },
+      { field: "reason", headerName: t.reason || "Reason" },
+      { field: "transaction_status", headerName: t.status || "Status" },
     ]);
   }, [language, t]);
 
@@ -201,7 +201,7 @@ export default function Page() {
 
   const handleApprove = async () => {
     if (selectedRows.length === 0) {
-      toast.error("No row selected");
+      showToast("error", "no_row_selected");
       return;
     }
 
@@ -218,22 +218,19 @@ export default function Page() {
         )
       );
 
-      results.forEach((res) => {
-        toast.success(res?.data?.message || "Approved successfully");
-      });
-
+      showToast("success", "approve_punch_success");
       setSelectedRows([]);
       setApproveOpen(false);
       await refetch();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Approval failed");
+      showToast("error", "approve_punch_error");
       console.error("Approval error:", error);
     }
   };
 
   const handleReject = async () => {
     if (selectedRows.length === 0) {
-      toast.error("No row selected");
+      showToast("error", "no_row_selected");
       return;
     }
 
@@ -250,15 +247,12 @@ export default function Page() {
         )
       );
 
-      results.forEach((res) => {
-        toast.success(res?.data?.message || "Rejected successfully");
-      });
-
+      showToast("success", "reject_punch_success");
       setSelectedRows([]);
       setRejectOpen(false);
       await refetch();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Rejection failed");
+      showToast("error", "reject_punch_error");
       console.error("Rejection error:", error);
     }
   };
@@ -337,10 +331,10 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.manageApprovals?.items}
         entityName="employeeManualTransaction"
-        approve_modal_title="Approve Missing Punch"
-        approve_modal_description="Are you sure you want to approve the selected missing punch request(s)?"
-        reject_modal_title="Reject Missing Punch"
-        reject_modal_description="Are you sure you want to reject the selected missing punch request(s)?"
+        approve_modal_title={t.approve_punch || "Approve Missing Punch"}
+        approve_modal_description={t.approve_punch_desc || "Are you sure you want to approve the selected missing punch request(s)?"}
+        reject_modal_title={t.reject_punch || "Reject Missing Punch"}
+        reject_modal_description={t.reject_punch_desc || "Are you sure you want to reject the selected missing punch request(s)?"}
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
@@ -416,17 +410,14 @@ export default function Page() {
                   closePopover("toDate");
                 }}
                 disabled={(date) => {
-                  // Use the fromDate state variable instead of form.getValues
                   if (!fromDate) return false;
 
-                  // Normalize both dates (remove time)
                   const from = new Date(fromDate);
                   from.setHours(0, 0, 0, 0);
 
                   const current = new Date(date);
                   current.setHours(0, 0, 0, 0);
 
-                  // Block selecting To Date earlier than From Date
                   return current < from;
                 }}
               />
@@ -437,7 +428,7 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Missing Punches Approval
+            {t.missing_punches_approval || "Missing Punches Approval"}
           </h1>
         </div>
         <div className="px-6">

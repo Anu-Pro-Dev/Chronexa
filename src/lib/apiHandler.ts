@@ -58,28 +58,28 @@ export const serverTimeZoneRequest = async () => {
 
 // Function for logging in
 export const loginRequest = async (login: string, password: string, rememberMe: boolean) => {
-    const response = await apiRequest("/auth/login", "POST", {
-      login: login,
-      password: password,
-      rememberMe,
-    });
-  
-    if (response.token) {
-      setAuthToken(response.token, rememberMe);
-      if (rememberMe) {
-        localStorage.setItem("user", JSON.stringify(response.user));
-      } else {
-        sessionStorage.setItem("user", JSON.stringify(response.user));
-      }
+  const response = await apiRequest("/auth/login", "POST", {
+    login: login,
+    password: password,
+    rememberMe,
+  });
+
+  if (response.token) {
+    setAuthToken(response.token, rememberMe);
+    if (rememberMe) {
+      localStorage.setItem("user", JSON.stringify(response.user));
+    } else {
+      sessionStorage.setItem("user", JSON.stringify(response.user));
     }
-  
-    return response;
+  }
+
+  return response;
 };
 
 // Function for logging out
 export const logoutRequest = async () => {
   const token = getAuthToken();
-  
+
   if (!token) {
     console.warn("No authentication token found, skipping logout API call.");
     performLogoutCleanup();
@@ -124,7 +124,7 @@ export const resetPasswordRequest = async (newPassword: string) => {
   if (!token) {
     throw new Error("No authentication token found.");
   }
-  
+
   return apiRequest("/auth/reset-password", "POST", { newPassword });
 };
 
@@ -163,7 +163,7 @@ export const addLocationRequest = async (data: {
 export const editLocationRequest = async (data: {
   location_id?: number;
   location_code: string;
-  
+
   city?: string;
   region_name?: string;
   country_code?: string;
@@ -703,12 +703,12 @@ export const editShortPermissionRequest = async (data: {
 };
 
 // Function to get pending permissions
-export const getPendingPermission= async () => {
+export const getPendingPermission = async () => {
   return apiRequest('/employeeShortPermission/team/all?pending=true', "GET");
 };
 
 // Function to approve or reject permissions
-export const approvePermissionRequest= async (data: {
+export const approvePermissionRequest = async (data: {
   short_permission_id?: number;
   approve_reject_flag: number;
 }) => {
@@ -787,7 +787,7 @@ export const editLeaveRequest = async (form: {
   [key: string]: any;
 }) => {
   const { employee_leave_id, ...payload } = form;
-  
+
   const formData = new FormData();
 
   for (const key in payload) {
@@ -807,12 +807,12 @@ export const editLeaveRequest = async (form: {
 };
 
 // Function to get pending permissions
-export const getPendingLeave= async () => {
+export const getPendingLeave = async () => {
   return apiRequest('/employeeLeave/pending', "GET");
 };
 
 // Function to approve or reject permissions
-export const approveLeaveRequest= async (data: {
+export const approveLeaveRequest = async (data: {
   employee_leave_id?: number;
   approve_reject_flag: number;
 }) => {
@@ -871,7 +871,7 @@ export const addRolePrivilegeRequest = async (data: {
 
 // Function to update a role privilege
 export const editRolePrivilegeRequest = async (data: {
-  role_privilege_id?:number;
+  role_privilege_id?: number;
   role_id?: number;
   sub_module_id?: number;
   scope?: string;
@@ -902,7 +902,7 @@ export const addRoleTabPrivilegeRequest = async (data: {
 
 // Function to update a role privilege
 export const editRoleTabPrivilegeRequest = async (data: {
-  role_tab_privilege_id?:number;
+  role_tab_privilege_id?: number;
   role_id?: number;
   tab_id?: number;
   sub_module_id?: number;
@@ -953,7 +953,7 @@ export const editRoletoUser = async (data: {
 export const addOrUpdateUserRole = async (data: {
   user_id: number[];
   role_id: number;
-}) => { 
+}) => {
   return apiRequest(`/secUserRole/update-roles`, "PATCH", data);
 }
 
@@ -1005,7 +1005,7 @@ export const addAppSettingRequest = async (data: {
   app_setting_id: number;
   version_name: string;
   value: string;
-  descr:string;
+  descr: string;
   tab_no: number;
   deleted?: boolean;
 }) => {
@@ -1017,7 +1017,7 @@ export const editAppSettingRequest = async (data: {
   app_setting_id: number;
   version_name?: string;
   value?: string;
-  descr?:string;
+  descr?: string;
   tab_no?: number;
   deleted?: boolean;
 }) => {
@@ -1104,6 +1104,12 @@ export const sendTestEmailRequest = async (data: {
   return apiRequest(`/emailSetting/test`, "POST", data);
 };
 
+// Function to get all monthly schedules
+export const getAllMonthlySchedules = async () => {
+  return apiRequest("/employeeMonthlyRoster/all", "GET");
+};
+
+// Function to filter monthlyschedule
 export const filterMonthlyScheduleRequest = async (data: {
   organization_id: number;
   month: number;
@@ -1121,7 +1127,7 @@ export const filterMonthlyScheduleRequest = async (data: {
 // Function to add an monthly roster by ID
 export const addMonthlyScheduleRequest = async (data: {
   schedule_roster_id?: number;
-  employee_id:  number;
+  employee_id: number;
   from_date?: string;
   to_date?: string;
   version_no?: number
@@ -1156,13 +1162,13 @@ export const finalizeMonthlyScheduleRequest = async (data: {
 export const importMonthlyScheduleRequest = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
-  
+
   return apiRequest("/employeeMonthlyRoster/import", "POST", formData);
 };
 
 // Function to export monthly roster to file
 export const exportMonthlyScheduleRequest = async (
-  filterData: any = null, 
+  filterData: any = null,
   selectedIds: number[] = []
 ) => {
   const body: any = {};
@@ -1195,24 +1201,24 @@ export const exportMonthlyScheduleRequest = async (
   });
 
   if (!response.ok) {
-    throw new Error('Export failed');
+    const errorText = await response.text();
+    throw new Error(`Export failed: ${response.status} - ${errorText}`);
   }
 
   const blob = await response.blob();
-  
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = `employee_monthly_rosters_${Date.now()}.csv`;
   document.body.appendChild(a);
   a.click();
-  
   window.URL.revokeObjectURL(url);
   document.body.removeChild(a);
 
   return { success: true };
 };
 
+// Funtions for manual punches
 export const addManualPunchRequest = async (data: {
   employee_id: number;
   transaction_time: string;
@@ -1240,8 +1246,8 @@ export const approveManualPunchRequest = async (data: {
   };
 
   return apiRequest(
-    `/employeeManualTransaction/approve?id=${data.employee_manual_transaction_id}`, 
-    "PUT", 
+    `/employeeManualTransaction/approve?id=${data.employee_manual_transaction_id}`,
+    "PUT",
     payload
   );
 };
@@ -1262,8 +1268,8 @@ export const rejectManualPunchRequest = async (data: {
   };
 
   return apiRequest(
-    `/employeeManualTransaction/reject?id=${data.employee_manual_transaction_id}`, 
-    "PUT", 
+    `/employeeManualTransaction/reject?id=${data.employee_manual_transaction_id}`,
+    "PUT",
     payload
   );
 };
@@ -1301,14 +1307,14 @@ export const downloadUploadedFile = async (filePath: string) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  
+
   // Extract filename from path
   const fileName = filePath.split('/').pop() || 'download';
   link.download = fileName;
-  
+
   document.body.appendChild(link);
   link.click();
-  
+
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
 

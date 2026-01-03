@@ -32,7 +32,7 @@ const formSchema = z.object({
     z.number().optional()
   ),
   value: z.string().optional(),
-  descr: z.string().optional(),
+  descr: z.string().min(1, { message: "description_required" }),
   deleted: z.boolean().default(false),
 });
 
@@ -86,7 +86,7 @@ export default function AddAppSettings({
   const addMutation = useMutation({
     mutationFn: addAppSettingRequest,
     onSuccess: () => {
-      showToast("success", "appsetting_add_success");
+      showToast("success", "addappsetting_success");
       queryClient.invalidateQueries({ queryKey: ["appSetting"] });
       onSave();
       on_open_change(false);
@@ -103,7 +103,7 @@ export default function AddAppSettings({
   const editMutation = useMutation({
     mutationFn: editAppSettingRequest,
     onSuccess: () => {
-      showToast("success", "appsetting_update_success");
+      showToast("success", "updateappsetting_success");
       queryClient.invalidateQueries({ queryKey: ["appSetting"] });
       onSave();
       on_open_change(false);
@@ -147,7 +147,7 @@ export default function AddAppSettings({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-16 gap-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 gap-y-4 min-w-0">
             <FormField
               control={form.control}
               name="version_name"
@@ -162,6 +162,7 @@ export default function AddAppSettings({
                       type="text"
                       placeholder={t.placeholder_version || "Enter version name"}
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -191,6 +192,7 @@ export default function AddAppSettings({
                       }}
                       onBlur={field.onBlur}
                       name={field.name}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -214,6 +216,7 @@ export default function AddAppSettings({
                       type="text"
                       placeholder={t.placeholder_value || "Enter value"}
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -238,6 +241,7 @@ export default function AddAppSettings({
                       placeholder={t.placeholder_description || "Enter description"}
                       {...field}
                       rows={4}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -247,26 +251,29 @@ export default function AddAppSettings({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="deleted"
-              render={({ field }) => (
-                <FormItem className="flex items-center space-x-4">
-                  <FormLabel className="mb-0">
-                    Deleted
-                  </FormLabel>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="deleted"
+            render={({ field }) => (
+              <FormItem>
+                <div className={`flex items-center gap-2 ${language === "ar" ? "flex-row-reverse justify-end" : ""}`}>
                   <FormControl>
                     <Switch
                       checked={!!field.value}
                       onChange={(val: boolean) => field.onChange(val)}
                     />
                   </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
+                  <FormLabel className="!mt-0 cursor-pointer">
+                    {language === "ar" ? "محذوف" : "Deleted"}
+                  </FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
 
-          <div className="flex justify-end gap-2 items-center py-5">
+          <div className="flex justify-end gap-2 items-center py-2">
             <div className="flex gap-4">
               <Button
                 variant="outline"
@@ -275,7 +282,7 @@ export default function AddAppSettings({
                 className="w-full"
                 onClick={() => on_open_change(false)}
               >
-                {translations?.buttons?.cancel}
+                {translations?.buttons?.cancel || "Cancel"}
               </Button>
               <Button
                 type="submit"

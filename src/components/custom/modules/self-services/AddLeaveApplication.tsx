@@ -22,25 +22,31 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { addLeaveRequest, editLeaveRequest } from "@/src/lib/apiHandler";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { InlineLoading } from "@/src/app/loading";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
   employee: z
     .string()
     .min(1, {
-      message: "Employee is required.",
+      message: "employee_required",
     })
-    .max(100),
+    .max(100, {
+      message: "employee_max_length",
+    }),
   leave_types: z
     .string()
     .min(1, {
-      message: "Leave type is required.",
+      message: "leave_type_required",
     })
-    .max(100),
+    .max(100, {
+      message: "leave_type_max_length",
+    }),
   from_date: z.date({
-    required_error: "From Date is required.",
+    required_error: "from_date_required",
   }),
   to_date: z.date({
-    required_error: "To Date is required.",
+    required_error: "to_date_required",
   }),
   leave_doc_filename_path: z.custom<any>(
     (value) => {
@@ -70,12 +76,13 @@ const formSchema = z.object({
       return true;
     },
     {
-      message: "Invalid file. Ensure it's a document/image (PDF/JPG/JPEG/PNG) and less than 5MB.",
+      message: "invalid_file_error",
     }
   ).optional(),
-  employee_remarks: z.string().optional(),
+  employee_remarks: z.string().max(500, {
+    message: "remarks_max_length",
+  }).optional(),
 });
-
 export default function AddLeaveApplication({
   selectedRowData,
   onSave,
@@ -99,10 +106,9 @@ export default function AddLeaveApplication({
     toDate: false,
   });
   const [originalValues, setOriginalValues] = useState<any>(null);
-  // Debug: Log what we receive
-  useEffect(() => {
-    console.log('AddLeaveApplication received selectedRowData:', selectedRowData);
-  }, [selectedRowData]);
+  const showToast = useShowToast();
+  const t = translations?.modules?.selfServices || {};
+  const formErrors = translations?.formErrors || {};
 
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
@@ -118,7 +124,6 @@ export default function AddLeaveApplication({
     },
   });
 
-  // Debounced search for leave types
   const debouncedLeaveTypeSearch = useCallback(
     debounce((searchTerm: string) => {
       setLeaveTypeSearchTerm(searchTerm);
@@ -157,7 +162,7 @@ export default function AddLeaveApplication({
   const addMutation = useMutation({
     mutationFn: addLeaveRequest,
     onSuccess: (data) => {
-      toast.success("Leave application submitted successfully!");
+      showToast("success", "addleave_success");
       if (onSave) {
         onSave(null, data.data);
       }
@@ -166,20 +171,14 @@ export default function AddLeaveApplication({
     },
     onError: (error: any) => {
       console.error("API Error:", error);
-
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to submit leave application. Please try again.";
-
-      toast.error(errorMessage);
+      showToast("error", "addleave_error");
     },
   });
 
   const editMutation = useMutation({
     mutationFn: editLeaveRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Leave application updated successfully!");
+      showToast("success", "updateleave_success");
       if (onSave) {
         onSave(variables.leave_id?.toString() ?? null, variables);
       }
@@ -188,26 +187,16 @@ export default function AddLeaveApplication({
     },
     onError: (error: any) => {
       console.error("API Error:", error);
-
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to update leave application. Please try again.";
-
-      toast.error(errorMessage);
+      showToast("error", "updateleave_error");
     },
   });
 
   useEffect(() => {
     if (selectedRowData && leaveTypesData?.data) {
-      console.log("Loading edit data:", selectedRowData);
-
       const leaveTypeId = (
         selectedRowData.leave_type_id ||
         selectedRowData.leave_types?.leave_type_id
       )?.toString() || "";
-
-      console.log("Extracted leave_type_id:", leaveTypeId);
 
       if (leaveTypeId) {
         form.setValue("leave_types", leaveTypeId);
@@ -249,7 +238,6 @@ export default function AddLeaveApplication({
       form.setValue("employee_remarks", selectedRowData.employee_remarks || "");
       setRemarksLength(selectedRowData.employee_remarks?.length || 0);
 
-      // Store original values for comparison
       setOriginalValues({
         leave_type_id: leaveTypeId,
         from_date: !isNaN(fromDate.getTime()) ? format(fromDate, 'yyyy-MM-dd') : null,
@@ -405,7 +393,7 @@ export default function AddLeaveApplication({
       const numberOfLeaveDays = calculateLeaveDays(values.from_date, values.to_date);
 
       if (selectedRowData && Object.keys(selectedRowData).length > 0) {
-        // EDIT MODE - Send only changed fields
+
         const leaveId = selectedRowData.employee_leave_id ||
           selectedRowData.leave_id ||
           selectedRowData.id;
@@ -421,40 +409,33 @@ export default function AddLeaveApplication({
           employee_leave_id: leaveId,
         };
 
-        // Only add fields that have changed
         if (originalValues) {
-          // Check leave type
+
           if (selectedLeaveType?.leave_type_id.toString() !== originalValues.leave_type_id) {
             payload.leave_type_id = selectedLeaveType?.leave_type_id;
           }
-
-          // Check from date
+        
           if (fromDateLocal !== originalValues.from_date) {
             payload.from_date = fromDateLocal;
           }
 
-          // Check to date
           if (toDateLocal !== originalValues.to_date) {
             payload.to_date = toDateLocal;
           }
 
-          // If dates changed, recalculate number of leaves
           if (payload.from_date || payload.to_date) {
             payload.number_of_leaves = numberOfLeaveDays;
           }
 
-          // Check remarks
           const currentRemarks = values.employee_remarks || "";
           if (currentRemarks !== originalValues.employee_remarks) {
             payload.employee_remarks = currentRemarks;
           }
 
-          // Check if new file is uploaded
           if (values.leave_doc_filename_path && values.leave_doc_filename_path instanceof File) {
             payload.leave_doc_filename_path = values.leave_doc_filename_path;
           }
         } else {
-          // Fallback: if no original values, send all fields (shouldn't happen)
           payload.leave_type_id = selectedLeaveType?.leave_type_id || null;
           payload.from_date = fromDateLocal;
           payload.to_date = toDateLocal;
@@ -466,20 +447,14 @@ export default function AddLeaveApplication({
           }
         }
 
-        // Check if there are any changes to submit
-        const hasChanges = Object.keys(payload).length > 1; // More than just employee_leave_id
+        const hasChanges = Object.keys(payload).length > 1;
 
         if (!hasChanges) {
           setIsSubmitting(false);
           return;
         }
-
-        console.log("Editing leave with ID:", leaveId);
-        console.log("Changed fields payload:", payload);
-
         editMutation.mutate(payload);
       } else {
-        // ADD MODE - Send all required fields
         const payload: any = {
           leave_type_id: selectedLeaveType?.leave_type_id || null,
           employee_id: employeeId,
@@ -492,8 +467,6 @@ export default function AddLeaveApplication({
         if (values.leave_doc_filename_path && values.leave_doc_filename_path instanceof File) {
           payload.leave_doc_filename_path = values.leave_doc_filename_path;
         }
-
-        console.log("Adding new leave. Payload:", payload);
         addMutation.mutate(payload);
       }
     } catch (error) {
@@ -508,12 +481,13 @@ export default function AddLeaveApplication({
       <div className="bg-accent transition-all duration-300 rounded-xl p-6">
         <div className="flex justify-between items-center">
           <h1 className="font-bold text-xl text-primary flex items-center justify-between">
-            My Leave Request
+            {t.my_request || "My Leave Request"}
           </h1>
           <div className="flex items-center gap-4">
             {remarksLength > 500 && (
               <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center ">
-                <ExclamationIcon className="mr-2" width="14" height="14" /> Maximum 500 characters only allowed.
+                <ExclamationIcon className="mr-2" width="14" height="14" />
+                {formErrors.remarks_max_length || "Maximum 500 characters only allowed."}
               </p>
             )}
           </div>
@@ -527,7 +501,7 @@ export default function AddLeaveApplication({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Employee <Required />
+                      {t.employee || "Employee"} <Required />
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -537,7 +511,10 @@ export default function AddLeaveApplication({
                         className="bg-gray-50 cursor-not-allowed"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.employee}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -546,7 +523,7 @@ export default function AddLeaveApplication({
                 name="leave_types"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Leave types <Required /></FormLabel>
+                    <FormLabel>{t.leave_type || "Leave types"} <Required /></FormLabel>
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
@@ -557,23 +534,25 @@ export default function AddLeaveApplication({
                           <SelectValue
                             placeholder={
                               isLeaveTypesLoading
-                                ? "Loading leave types..."
+                                ? t.loading_leave_types || "Loading leave types..."
                                 : leaveTypesError
-                                  ? "Error loading leave types"
-                                  : "Choose leave types"
+                                  ? t.error_loading_leave_types || "Error loading leave types"
+                                  : t.placeholder_leave_types || "Choose leave types"
                             }
                           />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent
                         showSearch={true}
-                        searchPlaceholder="Search leave types..."
+                        searchPlaceholder={t.search_leave_types || "Search leave types..."}
                         onSearchChange={debouncedLeaveTypeSearch}
                         className="mt-1 max-w-[350px] 3xl:max-w-[450px]"
                       >
                         {getFilteredLeaveTypes().length === 0 ? (
                           <div className="p-3 text-sm text-text-secondary">
-                            {leaveTypeSearchTerm ? "No leave types found" : "No leave types available"}
+                            {leaveTypeSearchTerm
+                              ? t.no_leave_types_found || "No leave types found"
+                              : t.no_leave_types_available || "No leave types available"}
                           </div>
                         ) : (
                           getFilteredLeaveTypes().map((leaveType: any) => (
@@ -587,7 +566,10 @@ export default function AddLeaveApplication({
                         )}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.leave_types}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -597,7 +579,7 @@ export default function AddLeaveApplication({
                 render={({ field }) => (
                   <FormItem className="">
                     <FormLabel>
-                      From Date <Required />
+                      {t.from_date || "From Date"} <Required />
                     </FormLabel>
                     <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                       <PopoverTrigger asChild>
@@ -608,7 +590,7 @@ export default function AddLeaveApplication({
                             {field.value ? (
                               format(field.value, "dd/MM/yy")
                             ) : (
-                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                              <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || "Choose date"}</span>
                             )}
                             <CalendarIcon />
                           </Button>
@@ -625,7 +607,10 @@ export default function AddLeaveApplication({
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.from_date}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -635,7 +620,7 @@ export default function AddLeaveApplication({
                 render={({ field }) => (
                   <FormItem className="">
                     <FormLabel>
-                      To Date <Required />
+                      {t.to_date || "To Date"} <Required />
                     </FormLabel>
                     <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                       <PopoverTrigger asChild>
@@ -646,7 +631,7 @@ export default function AddLeaveApplication({
                             {field.value ? (
                               format(field.value, "dd/MM/yy")
                             ) : (
-                              <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                              <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || "Choose date"}</span>
                             )}
                             <CalendarIcon />
                           </Button>
@@ -676,7 +661,10 @@ export default function AddLeaveApplication({
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.to_date}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -686,10 +674,10 @@ export default function AddLeaveApplication({
                 render={({ field: { value, onChange, ...fieldProps } }) => (
                   <FormItem>
                     <FormLabel>
-                      Attachment
+                      {t.attachment || "Attachment"}
                       {selectedRowData?.leave_doc_filename_path && selectedRowData.leave_doc_filename_path !== '-' && (
                         <span className="text-xs text-gray-500 ml-2">
-                          (Current: {selectedRowData.leave_doc_filename_path.split('/').pop()})
+                          ({t.current_file || "Current"}: {selectedRowData.leave_doc_filename_path.split('/').pop()})
                         </span>
                       )}
                     </FormLabel>
@@ -707,10 +695,13 @@ export default function AddLeaveApplication({
                     </FormControl>
                     {selectedRowData && (
                       <p className="text-xs text-gray-500">
-                        Leave empty to keep existing attachment, or upload a new file to replace it
+                        {t.attachment_note || "Leave empty to keep existing attachment, or upload a new file to replace it"}
                       </p>
                     )}
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.leave_doc_filename_path}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -719,10 +710,10 @@ export default function AddLeaveApplication({
                 name="employee_remarks"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Remarks </FormLabel>
+                    <FormLabel>{t.remarks || "Remarks"} </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Add your remarks here"
+                        placeholder={t.placeholder_remarks || "Add your remarks here"}
                         className="max-w-[350px] 3xl:max-w-[450px]"
                         {...field}
                         rows={4}
@@ -732,7 +723,10 @@ export default function AddLeaveApplication({
                         }}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.employee_remarks}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -756,11 +750,11 @@ export default function AddLeaveApplication({
                 >
                   {addMutation.isPending || editMutation.isPending
                     ? selectedRowData
-                      ? "Updating..."
-                      : "Applying..."
+                      ? translations.buttons.updating || "Updating..."
+                      : translations.buttons.applying || "Applying..."
                     : selectedRowData
-                      ? "Update"
-                      : "Apply"
+                      ? translations.buttons.update || "Update"
+                      : translations.buttons.apply || "Apply"
                   }
                 </Button>
               </div>

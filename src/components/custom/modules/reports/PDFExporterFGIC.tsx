@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -7,7 +6,9 @@ interface PDFExporterFGICProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
-  logoUrl?: string; onProgress?: (current: number, total: number, phase: string) => void;
+  logoUrl?: string; 
+  onProgress?: (current: number, total: number, phase: string) => void;
+  showToast: (type: "success" | "error" , key: string, options?: { duration?: number }) => void;
 }
 
 export class PDFExporterFGIC {
@@ -16,13 +17,15 @@ export class PDFExporterFGIC {
   private calculateSummaryTotals: (data: any[]) => any;
   private logoUrl?: string;
   private onProgress?: (current: number, total: number, phase: string) => void;
+  private showToast: (type: "success" | "error" , key: string, options?: { duration?: number }) => void;
 
-  constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress }: PDFExporterFGICProps) {
+  constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress, showToast }: PDFExporterFGICProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
     this.logoUrl = logoUrl;
     this.onProgress = onProgress;
+    this.showToast = showToast;
   }
 
   private async loadLogoAsBase64(): Promise<string | null> {
@@ -65,6 +68,7 @@ export class PDFExporterFGIC {
   private async yieldToMain(): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, 0));
   }
+  
   private buildQueryParams(): Record<string, string> {
     const params: Record<string, string> = {};
 
@@ -76,10 +80,8 @@ export class PDFExporterFGIC {
       params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
     }
 
-    // Check if specific employees are selected
     const hasSpecificEmployees = this.formValues.employee_ids?.length > 0;
 
-    // Add manager_id ONLY if no specific employees are selected
     if (!hasSpecificEmployees && this.formValues.manager_id) {
       params.manager_id = this.formValues.manager_id.toString();
     }
@@ -88,7 +90,6 @@ export class PDFExporterFGIC {
       params.employee_type = this.formValues.employee_type.toString();
     }
 
-    // Organization hierarchy
     if (this.formValues.department) {
       params.organization_id = this.formValues.department.toString();
     } else if (this.formValues.division) {
@@ -106,18 +107,14 @@ export class PDFExporterFGIC {
     return params;
   }
 
-  // Update buildUrl()
   private buildUrl(params: Record<string, string>): string {
     const queryParts: string[] = [];
 
-    // Special handling for employee_ids - add as raw array format
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
-      // Create array format: employee_id=[2,17]
       const ids = this.formValues.employee_ids.join(',');
       queryParts.push(`employee_id=[${ids}]`);
     }
 
-    // Add all other params
     Object.entries(params)
       .filter(([_, value]) => value !== undefined && value !== null && value !== '')
       .forEach(([key, value]) => {
@@ -150,12 +147,10 @@ export class PDFExporterFGIC {
         const url = this.buildUrl(params);
         const response = await apiRequest(url, "GET");
 
-        // Handle API response structure consistently
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
         const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
-        // Set total from first API response
         if (offset === 0 && total > 0) {
           apiTotal = total;
         }
@@ -190,7 +185,6 @@ export class PDFExporterFGIC {
   }
 
   private getEmployeeDetails(data: any[]) {
-    // Check if multiple employees are selected
     const hasMultipleEmployees = this.formValues.employee_ids && this.formValues.employee_ids.length > 1;
     const hasSingleEmployee = this.formValues.employee_ids && this.formValues.employee_ids.length === 1;
     const isSpecificEmployee = this.formValues.employee || hasSingleEmployee;
@@ -459,7 +453,7 @@ export class PDFExporterFGIC {
       const allData = await this.fetchDataInBatches();
 
       if (allData.length === 0) {
-        toast.error("No data available to export.");
+        this.showToast("error", "no_data_export");
         return;
       }
 
@@ -471,10 +465,7 @@ export class PDFExporterFGIC {
         : allData;
 
       if (allData.length > MAX_PDF_ROWS) {
-        toast.loading(
-          `Dataset has ${allData.length.toLocaleString()} records. PDF will show first ${MAX_PDF_ROWS.toLocaleString()} rows. Summary totals include all records.`,
-          { duration: 4000 }
-        );
+        this.showToast("error", "pdf_limited_rows", { duration: 4000 });
       }
 
       const html2pdf = await import('html2pdf.js').then(module => module.default);
@@ -519,19 +510,15 @@ export class PDFExporterFGIC {
 
       this.onProgress?.(allData.length, allData.length, 'complete');
 
-      const recordMessage = allData.length > MAX_PDF_ROWS
-        ? `First ${MAX_PDF_ROWS.toLocaleString()} of ${allData.length.toLocaleString()} records`
-        : `${allData.length.toLocaleString()} records`;
-
-      toast.success(`PDF downloaded successfully! (${recordMessage})`);
+      this.showToast("success", "pdf_export_success");
 
     } catch (error) {
       console.error("Error generating PDF:", error);
 
       if (error instanceof Error && error.message.includes('Session expired')) {
-        toast.error(error.message);
+        this.showToast("error", "session_expired");
       } else {
-        toast.error("Error generating PDF. Please try again.");
+        this.showToast("error", "pdf_export_error");
       }
       throw error;
     }

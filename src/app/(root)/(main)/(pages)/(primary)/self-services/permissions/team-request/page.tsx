@@ -16,20 +16,21 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("short_permission_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
@@ -37,31 +38,37 @@ export default function Page() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedOption, setSelectedOption] = useState<string>("all");
-  const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.selfServices || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
 
-  const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }));
-  };
-  
-  const options = [
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.selfServices || {};
+
+  const offset = useMemo(() => currentPage, [currentPage]);
+
+  const options = useMemo(() => [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
     { value: "1", label: t.approved || "Approved" },
     { value: "2", label: t.rejected || "Rejected" },
-  ];
+  ], [t]);
 
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+  const closePopover = useCallback((key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  }, []);
 
-  const getEmployeeDisplayInfo = useCallback((permission: any, language: string = 'en') => {
+  const formatDateForAPI = useCallback((date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const getEmployeeDisplayInfo = useCallback((permission: any, lang: string = 'en') => {
     const employeeMaster = permission.employee_master;
-    
+
     if (!employeeMaster) {
       return {
         emp_no: `EMP${permission.employee_id}`,
@@ -77,29 +84,29 @@ export default function Page() {
     const firstNameAr = employeeMaster.firstname_arb || '';
     const lastNameAr = employeeMaster.lastname_arb || '';
 
-    const firstName = language === 'ar' ? firstNameAr : firstNameEn;
-    const lastName = language === 'ar' ? lastNameAr : lastNameEn;
-    
-    const fullName = language === 'ar' 
+    const firstName = lang === 'ar' ? firstNameAr : firstNameEn;
+    const lastName = lang === 'ar' ? lastNameAr : lastNameEn;
+
+    const fullName = lang === 'ar'
       ? `${firstNameAr} ${lastNameAr}`.trim()
       : `${firstNameEn} ${lastNameEn}`.trim();
 
     return {
       emp_no: employeeMaster.emp_no || `EMP${permission.employee_id}`,
       employee_name: fullName || firstName || `Employee ${permission.employee_id}`,
-      firstName: firstName,
-      lastName: lastName,
+      firstName,
+      lastName,
       fullName: fullName || firstName || `Employee ${permission.employee_id}`,
       employee_id: permission.employee_id
     };
-  }, [language]);
+  }, []);
 
   const getPermissionTypeName = useCallback((permissionTypes: any) => {
     if (!permissionTypes) {
       return language === "ar" ? "غير معروف" : "Unknown";
     }
-    
-    return language === "ar" 
+
+    return language === "ar"
       ? permissionTypes.permission_type_arb || permissionTypes.permission_type_eng || "غير معروف"
       : permissionTypes.permission_type_eng || permissionTypes.permission_type_arb || "Unknown";
   }, [language]);
@@ -124,16 +131,9 @@ export default function Page() {
       { field: "status", headerName: t.status || "Status" },
     ]);
   }, [language, t]);
-
-  const formatDateForAPI = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
+  
   const { data: permissionsData, isLoading: isLoadingPermissions, error, refetch } = useFetchAllEntity(
-    "employeeShortPermission", 
+    "employeeShortPermission",
     {
       searchParams: {
         limit: String(rowsPerPage),
@@ -153,16 +153,16 @@ export default function Page() {
       return [];
     }
 
-    const filteredData = permissionsData.data.filter((permission: any) => 
+    const filteredData = permissionsData.data.filter((permission: any) =>
       permission.employee_id !== employeeId
     );
 
-    const processedData = filteredData.map((permission: any) => {
+    return filteredData.map((permission: any) => {
       const employeeInfo = getEmployeeDisplayInfo(permission, language);
-      const permissionDate = permission.from_date 
+      const permissionDate = permission.from_date
         ? new Date(permission.from_date).toISOString().split('T')[0]
         : '';
-      
+
       return {
         ...permission,
         id: permission.short_permission_id,
@@ -180,8 +180,6 @@ export default function Page() {
         employee_master: permission.employee_master,
       };
     });
-
-    return processedData;
   }, [permissionsData, language, employeeId, getEmployeeDisplayInfo, getPermissionTypeName, getStatusLabel]);
 
   const handlePageChange = useCallback((newPage: number) => {
@@ -211,22 +209,26 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = useCallback((value: string) => {
     setSelectedOption(value);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleFromDateChange = (date: Date | undefined) => {
+  const handleFromDateChange = useCallback((date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleToDateChange = (date: Date | undefined) => {
+  const handleToDateChange = useCallback((date: Date | undefined) => {
     setToDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const props = {
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -248,11 +250,24 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
-  };
-
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-  }, []);
+  }), [
+    data,
+    columns,
+    open,
+    selectedRows,
+    isLoadingPermissions,
+    isChecking,
+    sortField,
+    currentPage,
+    sortDirection,
+    searchValue,
+    permissionsData,
+    rowsPerPage,
+    filter_open,
+    handlePageChange,
+    handleSearchChange,
+    handleRowsPerPageChange
+  ]);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -291,8 +306,10 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeShortPermission"
-        isAddNewPagePath="/self-services/permissions/team-request/add"
+        disableAdd
+        disableDelete
       />
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
         <div>
           <Select onValueChange={handleStatusChange} value={selectedOption}>
@@ -300,7 +317,7 @@ export default function Page() {
               <Label className="font-normal text-secondary">
                 {t.status || "Status"} :
               </Label>
-              <SelectValue placeholder={t.placeholder_status || "Choose status"}/>
+              <SelectValue placeholder={t.placeholder_status || "Choose status"} />
             </SelectTrigger>
             <SelectContent>
               {options.map((option) => (
@@ -311,17 +328,23 @@ export default function Page() {
             </SelectContent>
           </Select>
         </div>
+
         <div>
-          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button
+                size="lg"
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     {t.from_date || "From Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
+                  <span className="px-1 text-sm text-text-primary">
                     {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
@@ -340,17 +363,23 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
+
         <div>
-          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button
+                size="lg"
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
                   <Label className="font-normal text-secondary">
-                    {t.to_date || "To Date"} : 
+                    {t.to_date || "To Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
+                  <span className="px-1 text-sm text-text-primary">
                     {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
@@ -358,22 +387,23 @@ export default function Page() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar 
-                mode="single" 
-                selected={toDate} 
+              <Calendar
+                mode="single"
+                selected={toDate}
                 onSelect={(date) => {
                   handleToDateChange(date);
                   closePopover('toDate');
-                }} 
+                }}
               />
             </PopoverContent>
           </Popover>
         </div>
       </div>
+
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Team Permission Requests
+            {t.perm_team_requests || "Team Permission Requests"}
           </h1>
         </div>
         <div className="px-6">

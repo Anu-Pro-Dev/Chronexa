@@ -5,17 +5,30 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 
 export function useDeleteEntityMutation({
   onSelectionClear,
-}: { onSelectionClear?: () => void } = {}) {
+  onSuccess: customOnSuccess,
+}: { 
+  onSelectionClear?: () => void;
+  onSuccess?: (result: any, variables: { entityName: string; ids: (string | number)[] }) => void;
+} = {}) {
   const queryClient = useQueryClient();
   const showToast = useShowToast();
   const { translations } = useLanguage();
+
+  const formatEntityName = (name: string): string => {
+    return name
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
+  };
 
   const getEntityDisplayName = (entityName: string) => {
     const subModules = translations?.sub_modules || {};
     const key = entityName.toLowerCase();
     const pluralKey = key.endsWith("s") ? key : key + "s";
 
-    return subModules[key] || subModules[pluralKey] || entityName;
+    const translatedName = subModules[key] || subModules[pluralKey];
+    
+    return translatedName || formatEntityName(entityName);
   };
 
   return useMutation({
@@ -29,7 +42,7 @@ export function useDeleteEntityMutation({
         return apiRequest(`/${entityName}/delete`, "DELETE", { ids });
       }
     },
-    onSuccess: (_result, variables) => {
+    onSuccess: (result, variables) => {
       const displayText = getEntityDisplayName(variables.entityName);
       const count = variables.ids.length;
 
@@ -41,11 +54,28 @@ export function useDeleteEntityMutation({
 
       queryClient.invalidateQueries({ queryKey: [variables.entityName] });
       onSelectionClear?.();
+      
+      customOnSuccess?.(result, variables);
     },
-    onError: (error, variables) => {
+    onError: (error: any, variables) => {
       const displayText = getEntityDisplayName(variables.entityName);
       console.error("Delete operation failed:", error);
-      showToast("error", "form_error", { displayText });
+      
+      let errorMessage = null;
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      if (errorMessage) {
+        showToast("error", errorMessage, null, false);
+      } else {
+        showToast("error", "delete_error", { displayText });
+      }
     },
   });
 }

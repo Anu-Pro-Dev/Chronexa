@@ -1,8 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
@@ -12,10 +11,18 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addDeviceRequest, editDeviceRequest } from "@/src/lib/apiHandler";
 import Switch from "@/src/components/ui/switch";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  device_no: z.string().default(""),
-  device_name: z.string().default(""),
+  device_no: z
+    .string()
+    .min(1, { message: "device_no_required" })
+    .max(50, { message: "device_no_max_length" }),
+  device_name: z
+    .string()
+    .min(1, { message: "device_name_required" })
+    .max(100, { message: "device_name_max_length" }),
   device_status: z.boolean().default(false).optional(),
 });
 
@@ -32,13 +39,15 @@ export default function AddDevices({
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
   const t = translations?.modules?.devices || {};
+  const errT = translations?.formErrors || {};
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       device_no: "",
-      device_name:"",
+      device_name: "",
       device_status: false,
     },
   });
@@ -51,23 +60,28 @@ export default function AddDevices({
         device_status: selectedRowData.device_status ?? false,
       });
     } else {
-      form.reset();
+      form.reset({
+        device_no: "",
+        device_name: "",
+        device_status: false,
+      });
     }
-  }, [selectedRowData, language]);
+  }, [selectedRowData, form]);
 
   const addMutation = useMutation({
     mutationFn: addDeviceRequest,
     onSuccess: (data) => {
-      toast.success("Device added successfully!");
+      showToast("success", "adddevice_success");
       onSave(null, data.data);
       on_open_change(false);
       queryClient.invalidateQueries({ queryKey: ["device"] });
+      form.reset();
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -75,16 +89,16 @@ export default function AddDevices({
   const editMutation = useMutation({
     mutationFn: editDeviceRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Device updated successfully!");
+      showToast("success", "updatedevice_success");
       onSave(variables.device_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["device"] });
       on_open_change(false);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -96,9 +110,9 @@ export default function AddDevices({
     
     try {
       const payload: any = {
-        device_no: values.device_no,
-        device_name: values.device_name,
-        device_status: values.device_status,
+        device_no: values.device_no.trim(),
+        device_name: values.device_name.trim(),
+        device_status: values.device_status ?? false,
       };
 
       if (selectedRowData) {
@@ -125,16 +139,20 @@ export default function AddDevices({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t.device_no}<Required />
+                    {t.device_no || "Device No"}<Required />
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder={t.placeholder_device_no}
+                      placeholder={t.placeholder_device_no || "Enter the device no"}
                       {...field}
+                      disabled={isSubmitting}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.device_no}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -144,35 +162,41 @@ export default function AddDevices({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t.device_name}<Required />
+                    {t.device_name || "Device Name"}<Required />
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder={t.placeholder_device_name}
+                      placeholder={t.placeholder_device_name || "Enter the device name"}
                       {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.device_name}
+                    translations={errT}
+                  />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="device_status"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-4">
+                  <FormLabel className="mb-0">
+                    {t.device_status || "Device Status"}
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={!!field.value}
+                      onChange={(val: boolean) => field.onChange(val)}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-							control={form.control}
-							name="device_status"
-							render={({ field }) => (
-								<FormItem className="flex items-center space-x-4">
-									<FormLabel className="mb-0">{t.device_status}</FormLabel>
-									<FormControl>
-										<Switch
-											checked={!!field.value}
-											onChange={(val: boolean) => field.onChange(val)}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
           </div>
           <div className="w-full flex gap-2 items-center py-3">
             <Button
@@ -181,17 +205,23 @@ export default function AddDevices({
               size={"lg"}
               className="w-full"
               onClick={() => on_open_change(false)}
+              disabled={isSubmitting}
             >
-              {translations.buttons.cancel}
+              {translations?.buttons?.cancel || "Cancel"}
             </Button>
-            <Button type="submit" size={"lg"} className="w-full" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              size={"lg"} 
+              className="w-full" 
+              disabled={isSubmitting}
+            >
               {isSubmitting
-              ? selectedRowData
-                ? translations.buttons.updating
-                : translations.buttons.saving
-              : selectedRowData
-                ? translations.buttons.update
-                : translations.buttons.save}
+                ? selectedRowData
+                  ? translations?.buttons?.updating || "Updating..."
+                  : translations?.buttons?.saving || "Saving..."
+                : selectedRowData
+                  ? translations?.buttons?.update || "Update"
+                  : translations?.buttons?.save || "Save"}
             </Button>
           </div>
         </div>

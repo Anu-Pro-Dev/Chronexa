@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import LoginForm from "@/src/components/custom/modules/auth/LoginForm";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import LanguageSwitcher from '@/src/components/custom/common/language-switcher';
+import TextLanguageSwitcher from '@/src/components/custom/common/text-language-switcher';
 
 export default function Login() {
   const { language, translations } = useLanguage();
@@ -41,7 +41,7 @@ export default function Login() {
   return (
     <main className="relative h-screen">
       <div className={`absolute top-2 ${language === "ar" ? "left-2" : "right-2"} z-[100]`}>
-        <LanguageSwitcher />
+        <TextLanguageSwitcher />
       </div>
       <div className="main-container h-full flex flex-col sm:flex-row">
         <div className="hidden sm:flex sm:flex-1 relative">

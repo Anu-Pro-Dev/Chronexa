@@ -81,7 +81,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1">
-                  {t.join_date || "Join date"} <Required />
+                  {t.join_date || "Join date"}
                 </FormLabel>
                 <Popover open={popoverStates.joinDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, joinDate: open }))}>
                   <PopoverTrigger asChild>
@@ -184,7 +184,7 @@ export default function PersonalForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex gap-1">
-                  {t.email || "Email"} <Required />
+                  {t.email || "Email"}
                 </FormLabel>
                 <FormControl>
                   <Input 

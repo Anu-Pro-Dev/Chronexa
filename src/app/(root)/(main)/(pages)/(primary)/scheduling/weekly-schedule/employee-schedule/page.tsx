@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, use } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
@@ -8,14 +8,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 import { useEmpScheduleEditStore } from "@/src/store/useEmployeeScheduleEditStore";
 
 type Column = {
-  field: string;
-  headerName: string;
-  cellRenderer?: (row: any) => React.ReactNode;
+    field: string;
+    headerName: string;
+    cellRenderer?: (row: any) => React.ReactNode;
 };
 
 export default function Page() {
@@ -32,7 +32,9 @@ export default function Page() {
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const debouncedSearchValue = useDebounce(searchValue, 300);
     const t = translations?.modules?.scheduling || {};
-    
+    const commonT = translations?.common || {};
+    const buttonsT = translations?.buttons || {};
+
     const setSelectedRowData = useEmpScheduleEditStore((state) => state.setSelectedRowData);
 
     const offset = useMemo(() => {
@@ -41,51 +43,57 @@ export default function Page() {
 
     useEffect(() => {
         setColumns([
-            { 
-                field: "employee_name", 
-                headerName: "Employee",
+            {
+                field: "employee_name",
+                headerName: t.employee || "Employee",  
             },
-            { field: "from_date", headerName: "From" },
-            { field: "to_date", headerName: "To" },
-            { 
-                field: "monday_schedule_id", 
-                headerName: "Mon",
+            {
+                field: "from_date",
+                headerName: t.from_date || "From Date",
+            },
+            {
+                field: "to_date",
+                headerName: t.to_date || "To Date",
+            },
+            {
+                field: "monday_schedule_id",
+                headerName: t.monday || "Mon",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.monday_schedule_color }}>
                         {row.monday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "tuesday_schedule_id", 
-                headerName: "Tue",
+            {
+                field: "tuesday_schedule_id",
+                headerName: t.tuesday || "Tue", 
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.tuesday_schedule_color }}>
                         {row.tuesday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "wednesday_schedule_id", 
-                headerName: "Wed",
+            {
+                field: "wednesday_schedule_id",
+                headerName: t.wednesday || "Wed",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.wednesday_schedule_color }}>
                         {row.wednesday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "thursday_schedule_id", 
-                headerName: "Thu",
+            {
+                field: "thursday_schedule_id",
+                headerName: t.thursday || "Thu",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.thursday_schedule_color }}>
                         {row.thursday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "friday_schedule_id", 
-                headerName: "Fri",
+            {
+                field: "friday_schedule_id",
+                headerName: t.friday || "Fri", 
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.friday_schedule_color }}>
                         {row.friday_schedule_id}
@@ -93,7 +101,7 @@ export default function Page() {
                 ),
             },
         ]);
-    }, [language]);
+    }, [language, t]);  
 
     const { data: employeeScheduleData, isLoading, refetch } = useFetchAllEntity("employeeSchedule", {
         searchParams: {
@@ -153,7 +161,6 @@ export default function Page() {
                 saturday_schedule_color: scheduleColorMap[empSch.saturday_schedule_id] ?? "#000",
                 sunday_schedule_color: scheduleColorMap[empSch.sunday_schedule_id] ?? "#000",
                 employee_name: employeeName || "-",
-                // Store original data for edit
                 _original: empSch,
             };
         });
@@ -205,7 +212,7 @@ export default function Page() {
 
     const handleEditClick = useCallback((row: any) => {
         const originalData = row._original;
-        
+
         if (originalData) {
             setSelectedRowData({
                 id: originalData.employee_schedule_id,
@@ -223,7 +230,7 @@ export default function Page() {
                 sunday_schedule_id: originalData.sunday_schedule_id,
             });
         }
-        
+
         router.push(`/scheduling/weekly-schedule/employee-schedule/edit?id=${row.id}`);
     }, [router, setSelectedRowData]);
 
@@ -274,7 +281,7 @@ export default function Page() {
             <div className="bg-accent rounded-2xl">
                 <div className="col-span-2 p-6 pb-6">
                     <h1 className="font-bold text-xl text-primary">
-                        Employee Schedule
+                        {t.employee_schedule || "Employee Schedule"}
                     </h1>
                 </div>
                 <div className="px-6">

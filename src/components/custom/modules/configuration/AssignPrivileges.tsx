@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ResponsiveModal,
@@ -27,6 +26,7 @@ import {
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { addRolePrivilegeRequest, editRolePrivilegeRequest, addRoleTabPrivilegeRequest, editRoleTabPrivilegeRequest } from "@/src/lib/apiHandler";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useShowToast } from "@/src/utils/toastHelper";
 
 const privilegeKeys = ["view", "create", "edit", "delete"] as const;
 type PrivilegeKey = typeof privilegeKeys[number];
@@ -71,6 +71,8 @@ export default function AssignPrivileges({
   const { translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
+  const t = translations?.modules?.configurations || {};
   
   const { data: modulesData, isLoading: modulesLoading } = useFetchAllEntity("secModule", {
     removeAll: true,
@@ -292,7 +294,7 @@ export default function AssignPrivileges({
   
   const onSubmit = async (data: PrivilegeFormValues) => {    
     if (!roleId) {
-      toast.error("Role ID is required");
+      showToast("error", "role_id_required");
       return;
     }
 
@@ -383,7 +385,7 @@ export default function AssignPrivileges({
       });
 
       if (operations.length === 0) {
-        toast.error("No changes to save");
+        showToast("error", "no_changes_to_save");
         setIsSubmitting(false);
         return;
       }
@@ -395,20 +397,31 @@ export default function AssignPrivileges({
 
       if (failed > 0) {
         console.error("Failed operations:", results.filter(r => r.status === "rejected"));
-        toast.error(`Failed to save ${failed} privileges. ${successful} saved successfully.`);
+        showToast("error", "save_privileges_partial_error");
       } else {
-        toast.success(`Successfully saved ${successful} privileges!`);
+        showToast("success", "save_privileges_success");
         modal_props.on_open_change(false);
       }
     } catch (error) {
       console.error("Error saving privileges:", error);
-      toast.error("Failed to save privileges");
+      showToast("error", "save_privileges_error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   function formatName(name: string) {
+
+    const translationKey = name.toLowerCase().replace(/\s+/g, '_');
+    
+    if (translations?.modules?.items?.[translationKey]) {
+      return translations.modules.items[translationKey];
+    }
+    
+    if (translations?.sub_modules?.[translationKey]) {
+      return translations.sub_modules[translationKey];
+    }
+    
     return name
       .toLowerCase()
       .split(/[_\s]+/)
@@ -422,7 +435,7 @@ export default function AssignPrivileges({
         <ResponsiveModalContent size="extraLarge">
           <ResponsiveModalHeader className="text-left">
             <ResponsiveModalTitle className="text-primary">
-              Loading {formatName(roleName || "Role")} Privileges...
+              {translations.buttons.loading} {formatName(roleName || t.role_name || "Role")} {t.privileges || "Privileges"}...
             </ResponsiveModalTitle>
           </ResponsiveModalHeader>
           <div className="flex justify-center items-center py-8">
@@ -439,11 +452,11 @@ export default function AssignPrivileges({
         <ResponsiveModalContent size="extraLarge">
           <ResponsiveModalHeader className="text-left">
             <ResponsiveModalTitle className="text-primary">
-              {formatName(roleName || "Role")} Privileges
+              {formatName(roleName || t.role_name || "Role")} {t.privileges || "Privileges"}
             </ResponsiveModalTitle>
           </ResponsiveModalHeader>
           <div className="flex justify-center items-center py-8">
-            <p className="text-secondary">No modules or sub-modules available.</p>
+            <p className="text-secondary">{t.no_modules_available || "No modules or sub-modules available."}</p>
           </div>
         </ResponsiveModalContent>
       </ResponsiveModal>
@@ -458,9 +471,9 @@ export default function AssignPrivileges({
             <ResponsiveModalHeader className="text-left">
               <ResponsiveModalTitle className="text-primary">
                 {roleName ? (
-                  <><span>{formatName(roleName)}</span> Privileges</>
+                  <><span>{formatName(roleName)}</span> {t.privileges || "Privileges"}</>
                 ) : (
-                  "Role Privileges"
+                  `${t.role_name || "Role"} ${t.privileges || "Privileges"}`
                 )}
               </ResponsiveModalTitle>
             </ResponsiveModalHeader>
@@ -478,17 +491,17 @@ export default function AssignPrivileges({
                         <table className="w-full text-sm text-left border">
                           <thead className="border-b bg-gray-50">
                             <tr className="text-secondary">
-                              <th className="px-4 py-2 font-medium">Sub-Module / Tab</th>
+                              <th className="px-4 py-2 font-medium">{t.sub_module_tab || "Sub-Module / Tab"}</th>
                               {privilegeKeys.map((label) => (
                                 <th key={label} className="px-4 py-2 text-center capitalize text-sm font-medium">
-                                  {label}
+                                  {translations.actions?.[label] || label}
                                 </th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
                             <tr className="border-b bg-blue-50">
-                              <td className="px-4 py-2 text-text-primary text-sm font-bold">Select All</td>
+                              <td className="px-4 py-2 text-text-primary text-sm font-bold">{t.select_all || "Select All"}</td>
                               {privilegeKeys.map((perm) => (
                                 <td key={perm} className="px-4 py-2 text-center">
                                   <Checkbox
@@ -629,7 +642,7 @@ export default function AssignPrivileges({
                   }
                 }}
               >
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? translations.buttons.saving : translations.buttons.save}
               </Button>
             </div>
           </ResponsiveModalContent>

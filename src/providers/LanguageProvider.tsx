@@ -42,7 +42,7 @@ const allLanguages: { [key: string]: LanguageData } = {
 
 const getInitialLanguage = (): string => {
   if (typeof window === 'undefined') return 'en';
-  
+
   try {
     const storedLanguage = localStorage.getItem("language");
     return storedLanguage && allLanguages[storedLanguage] ? storedLanguage : 'en';
@@ -58,10 +58,10 @@ export default function LanguageProvider({
 }) {
   const [language, setLanguage] = useState<string>(() => getInitialLanguage());
   const [isLoading, setIsLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);  
+  const [isMounted, setIsMounted] = useState(false);
 
   const authData: AuthGuardReturn = useAuthGuard();
-  
+
   const currentLanguageData = allLanguages[language] || allLanguages["en"];
 
   const modules = useMemo(() => {
@@ -86,7 +86,7 @@ export default function LanguageProvider({
           value: "geo_fence",
         });
       }
-      
+
       return baseItems;
     };
 
@@ -115,10 +115,10 @@ export default function LanguageProvider({
           path: "/company-master/designations/",
           value: "designations",
         },
-        { 
+        {
           label: currentLanguageData.translations?.modules?.companyMaster?.grades || "Grades",
-          path: "/company-master/grades/", 
-          value: "grades" 
+          path: "/company-master/grades/",
+          value: "grades"
         },
       ],
     };
@@ -127,15 +127,15 @@ export default function LanguageProvider({
       route_name: "Organization",
       path: "/organization/",
       items: [
-        { 
+        {
           label: currentLanguageData.translations?.modules?.organization?.organization_types || "Organization Types",
-          path: "/organization/organization-types/", 
-          value: "organization-types" 
+          path: "/organization/organization-types/",
+          value: "organization-types"
         },
-        { 
+        {
           label: currentLanguageData.translations?.modules?.organization?.organization || "Organization",
-          path: "/organization/organization/", 
-          value: "organization" 
+          path: "/organization/organization/",
+          value: "organization"
         },
         {
           label: currentLanguageData.translations?.modules?.organization?.organization_structure || "Organization Structure",
@@ -263,19 +263,19 @@ export default function LanguageProvider({
           label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
           path: "/self-services/permissions/manage/add/",
           value: "permissions",
-          hide:true
+          hide: true
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
           path: "/self-services/permissions/my-request/",
           value: "permissions",
-          hide:true,
+          hide: true,
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.permissions || "Permissions",
           path: "/self-services/permissions/my-request/add/",
           value: "permissions",
-          hide:true
+          hide: true
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
@@ -286,19 +286,19 @@ export default function LanguageProvider({
           label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
           path: "/self-services/leaves/manage/add/",
           value: "leaves",
-          hide:true
+          hide: true
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
           path: "/self-services/leaves/my-request/",
           value: "leaves",
-          hide:true,
+          hide: true,
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.leaves || "Leaves",
           path: "/self-services/leaves/my-request/add/",
           value: "leaves",
-          hide:true
+          hide: true
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
@@ -309,22 +309,22 @@ export default function LanguageProvider({
           label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
           path: "/self-services/punches/my-punches/add/",
           value: "punches",
-          hide:true
+          hide: true
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
           path: "/self-services/punches/my-request/",
           value: "punches",
-          hide:true,
+          hide: true,
         },
         {
           label: currentLanguageData.translations?.modules?.selfServices?.punches || "Punches",
           path: "/self-services/punches/my-request/add/",
           value: "punches",
-          hide:true
+          hide: true
         },
       ],
-      permissions: { 
+      permissions: {
         items: [
           {
             label: currentLanguageData.translations?.modules?.selfServices?.manage || "Manage",
@@ -332,18 +332,18 @@ export default function LanguageProvider({
             value: "permission manage",
           },
           {
-            label: currentLanguageData.translations?.modules?.selfServices?.my_requests || "My Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.my_request || "My Request",
             url: "/self-services/permissions/my-request/",
             value: "permission requests",
           },
           {
-            label: currentLanguageData.translations?.modules?.selfServices?.team_requests || "Team Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.team_request || "Team Request",
             url: "/self-services/permissions/team-request/",
             value: "permission requests",
           },
         ],
       },
-      leaves: { 
+      leaves: {
         items: [
           {
             label: currentLanguageData.translations?.modules?.selfServices?.manage || "Manage",
@@ -351,12 +351,12 @@ export default function LanguageProvider({
             value: "leaves manage",
           },
           {
-            label: currentLanguageData.translations?.modules?.selfServices?.my_requests || "My Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.my_request || "My Request",
             url: "/self-services/leaves/my-request/",
             value: "leaves requests",
           },
           {
-            label: currentLanguageData.translations?.modules?.selfServices?.team_requests || "Team Requests",
+            label: currentLanguageData.translations?.modules?.selfServices?.team_request || "Team Request",
             url: "/self-services/leaves/team-request/",
             value: "leaves requests",
           },
@@ -387,7 +387,7 @@ export default function LanguageProvider({
           path: "/manage-approvals/team-request/",
         },
       ],
-      teamrequests: { 
+      teamrequests: {
         items: [
           {
             label: currentLanguageData.translations?.modules?.manageApprovals?.permissions || "Permissions",
@@ -408,7 +408,7 @@ export default function LanguageProvider({
       path: "/devices/",
       items: [
         {
-          label: "Device Status",
+          label: currentLanguageData.translations?.modules?.devices?.device_status || "Device Status",
           path: "/devices/device-status/",
           value: "devices",
         },
@@ -420,7 +420,7 @@ export default function LanguageProvider({
       path: "/reports/",
       items: [
         {
-          label: "Employee Reports",
+          label: currentLanguageData.translations?.modules?.reports?.employee_reports || "Employee Reports",
           path: "/reports/employee-reports/",
           value: "reports",
         },
@@ -448,23 +448,23 @@ export default function LanguageProvider({
     const settings = {
       route_name: "Settings",
       path: "/settings/",
-        items: [
-          {
-            label: currentLanguageData.translations?.modules?.settings?.db_settings || "DB Settings",
-            path: "/settings/db-settings/",
-            value: "db_settings",
-          },
-          {
-            label: currentLanguageData.translations?.modules?.settings?.email_settings || "Email Settings",
-            path: "/settings/email-settings/",
-            value: "email_settings",
-          },
-          {
-            label: currentLanguageData.translations?.modules?.settings?.app_settings || "App Settings",
-            path: "/settings/app-settings/",
-            value: "app_settings",
-          },
-        ],
+      items: [
+        {
+          label: currentLanguageData.translations?.modules?.settings?.db_settings || "DB Settings",
+          path: "/settings/db-settings/",
+          value: "db_settings",
+        },
+        {
+          label: currentLanguageData.translations?.modules?.settings?.email_settings || "Email Settings",
+          path: "/settings/email-settings/",
+          value: "email_settings",
+        },
+        {
+          label: currentLanguageData.translations?.modules?.settings?.app_settings || "App Settings",
+          path: "/settings/app-settings/",
+          value: "app_settings",
+        },
+      ],
     };
 
     const alerts = {
@@ -497,18 +497,18 @@ export default function LanguageProvider({
 
   useEffect(() => {
     setIsMounted(true);
-    
+
     if (typeof window !== 'undefined') {
       const storedLanguage = localStorage.getItem("language");
       if (storedLanguage && allLanguages[storedLanguage] && storedLanguage !== language) {
         setLanguage(storedLanguage);
       }
     }
-    
+
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [language]);
 
@@ -516,7 +516,7 @@ export default function LanguageProvider({
     if (isMounted && typeof window !== 'undefined') {
       const dir = currentLanguageData.dir || "ltr";
       const lang = currentLanguageData.code;
-      
+
       requestAnimationFrame(() => {
         document.documentElement.setAttribute("dir", dir);
         document.documentElement.setAttribute("lang", lang);

@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
 import { apiRequest } from "@/src/lib/apiHandler"; 
 
 export interface ExcelExporterProps {
@@ -7,6 +6,7 @@ export interface ExcelExporterProps {
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
   onProgress?: (current: number, total: number, phase: string) => void;
+  showToast: (type: 'success' | 'error', messageKey: string, params?: Record<string, any>) => void;
 }
 
 export class ExcelExporter {
@@ -14,12 +14,14 @@ export class ExcelExporter {
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
   private onProgress?: (current: number, total: number, phase: string) => void;
+  private showToast: (type: 'success' | 'error', messageKey: string, params?: Record<string, any>) => void;
   
-  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress }: ExcelExporterProps) {
+  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress, showToast }: ExcelExporterProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
     this.onProgress = onProgress;
+    this.showToast = showToast;
   }
 
   private getFilteredHeaders() {   
@@ -247,12 +249,10 @@ export class ExcelExporter {
         const url = this.buildUrl(params);
         const response = await apiRequest(url, "GET");
 
-        // Handle API response structure: {success, data, total, hasNext}
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
         const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
-        // Set total from first API response
         if (offset === 0 && total > 0) {
           apiTotal = total;
         }
@@ -266,10 +266,8 @@ export class ExcelExporter {
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
         
-        // Update hasMore based on API response
         hasMore = hasNext && batch.length === BATCH_SIZE;
 
-        // Report progress with actual values
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
         await this.yieldToMain();
@@ -278,9 +276,11 @@ export class ExcelExporter {
         console.error('Error fetching batch:', error);
         
         if (error && typeof error === 'object' && 'requireLogin' in error) {
+          this.showToast('error', 'excel_session_expired');
           throw new Error('Session expired. Please login again.');
         }
         
+        this.showToast('error', 'excel_fetch_error');
         throw new Error('Failed to fetch data from server');
       }
     }
@@ -295,7 +295,7 @@ export class ExcelExporter {
       const allData = await this.fetchDataInBatches();
 
       if (allData.length === 0) {
-        toast.error("No data available to export.");
+        this.showToast('error', 'excel_no_data_error');
         return;
       }
 
@@ -418,8 +418,6 @@ export class ExcelExporter {
           processedRows++;
         });
 
-        // Update progress while generating Excel rows
-        // This keeps the progress bar moving during the generation phase
         this.onProgress?.(processedRows, allData.length, 'generating');
         
         await this.yieldToMain();
@@ -457,7 +455,6 @@ export class ExcelExporter {
         currentRow++;
       });
 
-      // Auto-sizing columns
       worksheet.columns = filteredHeaders.map(header => ({
         header: this.headerMap[header] || header,
         key: header,
@@ -477,7 +474,6 @@ export class ExcelExporter {
         column.width = Math.min(Math.max(maxWidth + 1, 6), 40);
       });
 
-      // Auto-sizing rows
       for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
         const row = worksheet.getRow(rowIndex);
         if (rowIndex === 1) {
@@ -512,14 +508,13 @@ export class ExcelExporter {
       this.onProgress?.(allData.length, allData.length, 'complete');
       saveAs(blob, filename);
       
-      toast.success(`Excel file generated successfully! (${allData.length.toLocaleString()} records)`);
+      this.showToast('success', 'excel_export_success', { count: allData.length.toLocaleString() });
     } catch (error) {
       console.error("Excel export error:", error);
       
       if (error instanceof Error && error.message.includes('Session expired')) {
-        toast.error(error.message);
       } else {
-        toast.error("Error generating Excel file. Please try again.");
+        this.showToast('error', 'excel_export_error');
       }
       throw error;
     }

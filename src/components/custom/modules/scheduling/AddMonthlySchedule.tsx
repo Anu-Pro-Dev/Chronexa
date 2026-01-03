@@ -32,12 +32,14 @@ import { cn } from "@/src/lib/utils";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  organization_id: z.coerce.number().min(1, { message: "organization_required" }),
-  employee_id: z.coerce.number().min(1, { message: "employee_required" }),
+  organization_id: z.number().optional()
+    .refine(val => val && val > 0, { message: "organization_required" }),
+  employee_id: z.number().optional()
+    .refine(val => val && val > 0, { message: "employee_required" }),
   from_date: z.string().min(1, { message: "from_date_required" }),
   to_date: z.string().min(1, { message: "to_date_required" }),
   version_no: z.coerce.number().min(1, { message: "version_required" }).default(1),
-  manager_id: z.coerce.number().optional(),
+  manager_id: z.number().optional(),
   finalize_flag: z.boolean().optional().default(false),
 }).refine((data) => {
   if (data.from_date && data.to_date) {
@@ -64,6 +66,7 @@ export default function AddMonthlySchedule({
   const router = useRouter();
   const t = translations?.modules?.scheduling || {};
   const errT = translations?.formErrors || {};
+  const buttonsT = translations?.buttons || {};
 
   const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
@@ -97,7 +100,7 @@ export default function AddMonthlySchedule({
   const selectedOrganization = form.watch("organization_id");
 
   const { data: organizations, isLoading: loadingOrgs } = useFetchAllEntity("organization", {
-    searchParams: { 
+    searchParams: {
       limit: "1000",
       ...(organizationSearchTerm && { search: organizationSearchTerm }),
     },
@@ -133,14 +136,14 @@ export default function AddMonthlySchedule({
 
   const getEmployeesData = () => {
     if (!employees?.data || !Array.isArray(employees.data)) return [];
-    
+
     let filteredEmployees = employees.data.filter((emp: any) =>
       emp?.employee_id &&
       emp.employee_id.toString().trim() !== ''
     );
 
     if (selectedOrganization) {
-      filteredEmployees = filteredEmployees.filter((emp: any) => 
+      filteredEmployees = filteredEmployees.filter((emp: any) =>
         emp.organization_id === selectedOrganization
       );
     }
@@ -163,6 +166,18 @@ export default function AddMonthlySchedule({
     return language === 'ar' ? org.organization_arb : org.organization_eng;
   };
 
+  const getEmployeeName = (empId: number) => {
+    const emp = employees?.data?.find((e: any) => e.employee_id === empId);
+    if (!emp) return "";
+    return language === 'ar' ? emp.firstname_arb : emp.firstname_eng;
+  };
+
+  const getManagerName = (empId: number) => {
+    const emp = managerEmployees?.data?.find((e: any) => e.employee_id === empId);
+    if (!emp) return "";
+    return language === 'ar' ? emp.firstname_arb : emp.firstname_eng;
+  };
+
   useEffect(() => {
     if (selectedRowData) {
       form.reset({
@@ -178,19 +193,21 @@ export default function AddMonthlySchedule({
   }, [selectedRowData]);
 
   const addMutation = useMutation({
-    mutationFn: addMonthlyScheduleRequest,
-    onSuccess: (data) => {
-      showToast("success", "add_roster_success");
-      router.push("/scheduling/monthly-schedule");
-    },
-    onError: (error: any) => {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message;
-      showToast("error", errorMessage);
-      setIsSubmitting(false);
-    },
-  });
+  mutationFn: addMonthlyScheduleRequest,
+  onSuccess: (data) => {
+    showToast("success", "add_roster_success");
+    if (onSave) {
+      onSave(null, data);
+    }
+  },
+  onError: (error: any) => {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error?.message;
+    showToast("error", errorMessage);
+    setIsSubmitting(false);
+  },
+});
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
@@ -247,7 +264,7 @@ export default function AddMonthlySchedule({
                           <span className="truncate">
                             {field.value
                               ? getOrganizationName(field.value)
-                              : t.select_organization || "Select Organization"}
+                              : t.placeholder_organization || "Choose Organization"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -255,15 +272,15 @@ export default function AddMonthlySchedule({
                     </PopoverTrigger>
                     <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown" align="start">
                       <Command shouldFilter={false}>
-                        <CommandInput 
-                          placeholder={t.search || "Search organization..."} 
+                        <CommandInput
+                          placeholder={t.search_organizations || "Search organization..."}
                           className="border-none"
                           onValueChange={setOrganizationSearchTerm}
                         />
                         <CommandEmpty>
                           {loadingOrgs && organizationSearchTerm.length > 0
                             ? t.searching || "Searching..."
-                            : t.no_results || "No organization found"}
+                            : t.no_organization_found || "No organization found"}
                         </CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
                           {getOrganizationsData().map((org: any) => {
@@ -299,6 +316,7 @@ export default function AddMonthlySchedule({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="employee_id"
@@ -325,12 +343,10 @@ export default function AddMonthlySchedule({
                         >
                           <span className="truncate">
                             {field.value
-                              ? getEmployeesData().find(
-                                (emp: any) => emp.employee_id === field.value
-                              )?.firstname_eng
-                              : !selectedOrganization 
-                                ? "Select organization first"
-                                : t.select_employee || "Select Employee"}
+                              ? getEmployeeName(field.value)
+                              : !selectedOrganization
+                                ? t.placeholder_organization_first || "Choose organization first"
+                                : t.placeholder_emp || "Choose Employee"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -338,8 +354,8 @@ export default function AddMonthlySchedule({
                     </PopoverTrigger>
                     <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown" align="start">
                       <Command shouldFilter={false}>
-                        <CommandInput 
-                          placeholder={t.search || "Search employee..."} 
+                        <CommandInput
+                          placeholder={translations?.search || "Search employee..."}
                           className="border-none"
                           onValueChange={setEmployeeSearchTerm}
                         />
@@ -349,24 +365,27 @@ export default function AddMonthlySchedule({
                             : t.no_results || "No employee found"}
                         </CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
-                          {getEmployeesData().map((emp: any) => (
-                            <CommandItem
-                              key={emp.employee_id}
-                              value={emp.firstname_eng}
-                              onSelect={() => {
-                                field.onChange(emp.employee_id);
-                                closePopover('employee');
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === emp.employee_id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {emp.firstname_eng}
-                            </CommandItem>
-                          ))}
+                          {getEmployeesData().map((emp: any) => {
+                            const name = language === "ar" ? emp.firstname_arb : emp.firstname_eng;
+                            return (
+                              <CommandItem
+                                key={emp.employee_id}
+                                value={name}
+                                onSelect={() => {
+                                  field.onChange(emp.employee_id);
+                                  closePopover('employee');
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === emp.employee_id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {name}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </Command>
                     </PopoverContent>
@@ -378,6 +397,7 @@ export default function AddMonthlySchedule({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="from_date"
@@ -396,7 +416,7 @@ export default function AddMonthlySchedule({
                             format(new Date(field.value), "dd/MM/yyyy")
                           ) : (
                             <span className="font-normal text-sm text-text-secondary">
-                              {t.pick_date || "Pick Date"}
+                              {t.placeholder_date || "Choose Date"}
                             </span>
                           )}
                           <CalendarIcon />
@@ -421,6 +441,7 @@ export default function AddMonthlySchedule({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="to_date"
@@ -439,7 +460,7 @@ export default function AddMonthlySchedule({
                             format(new Date(field.value), "dd/MM/yyyy")
                           ) : (
                             <span className="font-normal text-sm text-text-secondary">
-                              {t.pick_date || "Pick Date"}
+                              {t.placeholder_date || "Choose Date"}
                             </span>
                           )}
                           <CalendarIcon />
@@ -478,13 +499,14 @@ export default function AddMonthlySchedule({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="version_no"
               render={({ field }) => (
                 <FormItem className="min-w-0">
                   <FormLabel>
-                    {t.version_number || "Version Number"}
+                    {t.version_number || "Version Number"} 
                     <Required />
                   </FormLabel>
                   <FormControl>
@@ -502,11 +524,12 @@ export default function AddMonthlySchedule({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="manager_id"
               render={({ field }) => (
-                <FormItem className="flex flex-col min-w-0">
+                <FormItem className="min-w-0 mt-2">
                   <FormLabel className="flex gap-1">
                     {t.manager || "Manager"} ({t.optional || "Optional"})
                   </FormLabel>
@@ -521,17 +544,15 @@ export default function AddMonthlySchedule({
                           role="combobox"
                           aria-expanded={popoverStates.manager}
                           className={cn(
-                            "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
+                            "mt-2 flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
                           disabled={loadingManagers}
                         >
                           <span className="truncate">
                             {field.value
-                              ? getManagersData().find(
-                                (emp: any) => emp.employee_id === field.value
-                              )?.firstname_eng
-                              : t.select_manager || "Select Manager"}
+                              ? getManagerName(field.value)
+                              : t.placeholder_manager || "Choose manager"}
                           </span>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -539,8 +560,8 @@ export default function AddMonthlySchedule({
                     </PopoverTrigger>
                     <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown" align="start">
                       <Command shouldFilter={false}>
-                        <CommandInput 
-                          placeholder={t.search || "Search manager..."} 
+                        <CommandInput
+                          placeholder={translations?.search || "Search manager..."}
                           className="border-none"
                           onValueChange={setManagerSearchTerm}
                         />
@@ -550,24 +571,27 @@ export default function AddMonthlySchedule({
                             : t.no_results || "No manager found"}
                         </CommandEmpty>
                         <CommandGroup className="max-h-64 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
-                          {getManagersData().map((emp: any) => (
-                            <CommandItem
-                              key={emp.employee_id}
-                              value={emp.firstname_eng}
-                              onSelect={() => {
-                                field.onChange(emp.employee_id);
-                                closePopover('manager');
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === emp.employee_id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {emp.firstname_eng}
-                            </CommandItem>
-                          ))}
+                          {getManagersData().map((emp: any) => {
+                            const name = language === "ar" ? emp.firstname_arb : emp.firstname_eng;
+                            return (
+                              <CommandItem
+                                key={emp.employee_id}
+                                value={name}
+                                onSelect={() => {
+                                  field.onChange(emp.employee_id);
+                                  closePopover('manager');
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === emp.employee_id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {name}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </Command>
                     </PopoverContent>
@@ -580,6 +604,7 @@ export default function AddMonthlySchedule({
               )}
             />
           </div>
+
           <div className="flex gap-10 items-center mb-5">
             <FormField
               control={form.control}
@@ -603,6 +628,7 @@ export default function AddMonthlySchedule({
             />
           </div>
         </div>
+
         <div className="flex justify-end gap-2 items-center">
           <div className="flex gap-4">
             <Button
@@ -612,7 +638,7 @@ export default function AddMonthlySchedule({
               className="w-full"
               onClick={() => on_open_change(false)}
             >
-              {translations?.buttons?.cancel || "Cancel"}
+              {buttonsT?.cancel || "Cancel"}
             </Button>
             <Button
               type="submit"
@@ -621,8 +647,8 @@ export default function AddMonthlySchedule({
               disabled={isSubmitting}
             >
               {isSubmitting
-                ? translations?.buttons?.saving || "Saving..."
-                : translations?.buttons?.save || "Save"}
+                ? buttonsT?.saving || "Saving..."
+                : buttonsT?.save || "Save"}
             </Button>
           </div>
         </div>

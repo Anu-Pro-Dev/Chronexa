@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 import { useLanguage } from "@/src/providers/LanguageProvider";
@@ -13,30 +13,51 @@ export default function SchedulesRedirectPage() {
   const t = translations?.modules?.scheduling || {};
   const commonT = translations?.buttons || {};
 
-  const tabPathMapping: Record<string, string> = {
+  const staticTabPathMapping: Record<string, string> = {
     'Organization Schedule': 'organization-schedule',
     'Employee Schedule': 'employee-schedule',
   };
 
-  const getTabPath = (tabName: string): string => {
-    if (tabPathMapping[tabName]) {
-      return tabPathMapping[tabName];
+  const translatedTabPathMapping = useMemo(() => {
+    const mapping: Record<string, string> = {};
+    
+    if (t.organization_schedule) {
+      mapping[t.organization_schedule] = 'organization-schedule';
+      mapping[t.organization_schedule.toLowerCase()] = 'organization-schedule';
     }
     
-    const normalizedTabName = tabName.toLowerCase().trim();
+    if (t.employee_schedule) {
+      mapping[t.employee_schedule] = 'employee-schedule';
+      mapping[t.employee_schedule.toLowerCase()] = 'employee-schedule';
+    }
     
-    if (normalizedTabName === t.organization_schedule?.toLowerCase() || 
-        normalizedTabName.includes('organization')) {
+    return mapping;
+  }, [t.organization_schedule, t.employee_schedule]);
+
+  const getTabPath = useCallback((tabName: string): string => {
+    if (staticTabPathMapping[tabName]) {
+      return staticTabPathMapping[tabName];
+    }
+    
+    if (translatedTabPathMapping[tabName]) {
+      return translatedTabPathMapping[tabName];
+    }
+    
+    const lowerTabName = tabName.toLowerCase().trim();
+    if (translatedTabPathMapping[lowerTabName]) {
+      return translatedTabPathMapping[lowerTabName];
+    }
+    
+    if (lowerTabName.includes('organization') || lowerTabName.includes('organisasi')) {
       return 'organization-schedule';
     }
     
-    if (normalizedTabName === t.employee_schedule?.toLowerCase() || 
-        normalizedTabName.includes('employee')) {
+    if (lowerTabName.includes('employee') || lowerTabName.includes('karyawan') || lowerTabName.includes('pegawai')) {
       return 'employee-schedule';
     }
     
     return tabName.toLowerCase().replace(/\s+/g, "-");
-  };
+  }, [translatedTabPathMapping]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -67,7 +88,6 @@ export default function SchedulesRedirectPage() {
     
     if (firstAllowedTab) {
       const actualPath = getTabPath(firstAllowedTab.tab_name);
-      
       router.replace(`/scheduling/weekly-schedule/${actualPath}`);
     } else {
       const firstAllowedSubmodule = schedulingModule.subModules?.find(
@@ -79,7 +99,7 @@ export default function SchedulesRedirectPage() {
         router.replace('/dashboard/my-attendance');
       }
     }
-  }, [privilegeMap, isLoading, router]);
+  }, [privilegeMap, isLoading, router, getTabPath]);
 
   return (
     <div className="flex justify-center items-center min-h-screen">

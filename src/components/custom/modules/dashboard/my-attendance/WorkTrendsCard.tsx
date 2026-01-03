@@ -23,9 +23,9 @@ const CustomLegend = ({ payload }: any) => {
   const t = translations?.modules?.dashboard || {};
 
   const customLabels: { [key in "worked" | "missed" | "expected"]: string } = {
-    worked: t?.worked_hrs || "Worked Hrs",
-    missed: t?.missed_hrs || "Missed Hrs",
-    expected: t?.expected_hrs || "Expected Hrs",
+    worked: t?.worked_hrs,
+    missed: t?.missed_hrs,
+    expected: t?.expected_hrs,
   };
 
   return (
@@ -91,7 +91,6 @@ function WorkTrendsCard() {
     const daysInMonth = new Date(currentYear, selectedMonth, 0).getDate();
 
     if (!workHourTrends?.length) {
-      // Return empty data structure for the chart
       return Array.from({ length: daysInMonth }, (_, i) => ({
         date: (i + 1).toString(),
         worked: 0,
@@ -114,9 +113,9 @@ function WorkTrendsCard() {
         };
       }
 
-      // Use 12 hours (720 minutes) as default if ExpectedWork is null or 0
+      // Use 8 hours (480 minutes) as default if ExpectedWork is null or 0
       const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0) 
-        ? 720 
+        ? 480 
         : dayData.ExpectedWork;
       
       const expectedHours = expectedMinutes / 60;
@@ -149,7 +148,7 @@ function WorkTrendsCard() {
     <div className="shadow-card rounded-[10px] bg-accent p-4">
       <div className="flex flex-row justify-between p-3">
         <h5 className="text-lg text-text-primary font-bold">
-          {t?.work_hrs_trends || "Work Hour Trends"}
+          {t?.work_hrs_trends}
         </h5>
 
         <Select 
@@ -160,7 +159,7 @@ function WorkTrendsCard() {
             <Calendar1Icon width="14" height="16" />
             <SelectValue>
               {selectedMonth === currentMonth
-                ? translations?.this_month || "This Month"
+                ? translations?.this_month || "هذا الشهر"
                 : months[selectedMonth - 1]}
             </SelectValue>
           </SelectTrigger>
@@ -174,7 +173,7 @@ function WorkTrendsCard() {
                   className="text-text-primary bg-accent"
                 >
                   {monthValue === currentMonth 
-                    ? translations?.this_month || "This Month"
+                    ? translations?.this_month || "هذا الشهر"
                     : month}
                 </SelectItem>
               );
@@ -185,7 +184,7 @@ function WorkTrendsCard() {
 
       {loading ? (
         <div className="flex justify-center items-center h-[300px]">
-          <p className="text-text-secondary">Loading...</p>
+          <p className="text-text-secondary">{translations?.buttons?.loading || "جارٍ التحميل"}</p>
         </div>
       ) : (
         <div className="relative">
@@ -237,7 +236,7 @@ function WorkTrendsCard() {
           {!hasAnyData && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <p className="text-text-secondary font-medium text-center">
-                  {t?.no_data || "No data available for this month"}
+                  {translations?.no_data || "لا توجد بيانات متاحة"}
                 </p>
             </div>
           )}

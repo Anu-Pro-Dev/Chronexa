@@ -17,15 +17,17 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 import { downloadUploadedFile } from "@/src/lib/apiHandler";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 
 export default function Page() {
   const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  const showToast = useShowToast();
+
   const [columns, setColumns] = useState<{ field: string; headerName: string; cellRenderer?: (data: any) => any }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("leave_id");
@@ -40,11 +42,6 @@ export default function Page() {
   const [selectedOption, setSelectedOption] = useState<string>("all");
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
   const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("");
-  const debouncedSearchValue = useDebounce(searchValue, 300);
-  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
-  const debouncedLeaveTypeFilter = useDebounce(leaveTypeFilter, 300);
-  const t = translations?.modules?.selfServices || {};
-  
   const [selectedOrganization, setSelectedOrganization] = useState<string>("");
   const [selectedEmployeeType, setSelectedEmployeeType] = useState<string>("");
   const [selectedVertical, setSelectedVertical] = useState<string>("");
@@ -55,83 +52,40 @@ export default function Page() {
     organization: false,
     employeeType: false,
   });
-  
-  const options = [
+
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
+  const debouncedLeaveTypeFilter = useDebounce(leaveTypeFilter, 300);
+  const t = translations?.modules?.selfServices || {};
+
+  const offset = useMemo(() => currentPage, [currentPage]);
+
+  const options = useMemo(() => [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
     { value: "1", label: t.approved || "Approved" },
     { value: "2", label: t.rejected || "Rejected" },
-  ];
+  ], [t]);
 
-  const closePopover = (key: 'fromDate'| 'toDate' |'organization' | 'employeeType' | 'vertical' ) => {
+  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'organization' | 'employeeType' | 'vertical') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
-  };
+  }, []);
 
-  const handleOrganizationChange = (value: string) => {
-    setSelectedOrganization(value);
-    setCurrentPage(1);
-    closePopover('organization');
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  };
+  const formatDateForAPI = useCallback((date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
 
-  const handleEmployeeTypeChange = (value: string) => {
-    setSelectedEmployeeType(value);
-    setCurrentPage(1);
-    closePopover('employeeType');
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  };
+  const formatDateForDisplay = useCallback((dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toISOString().split('T')[0];
+  }, []);
 
-  const { data: organizationData } = useFetchAllEntity("organization", {
-    searchParams: {
-      limit: "1000",
-    },
-  });
-
-  const { data: employeeTypeData } = useFetchAllEntity("employeeType", {
-    removeAll: true,
-  });
-
-  const getVerticalData = () => {
-    if (!organizationData?.data) return [];
-
-    const parentMap = new Map();
-
-    organizationData.data.forEach((item: any) => {
-      if (item.organizations) {
-        parentMap.set(item.organizations.organization_id, {
-          organization_id: item.organizations.organization_id,
-          organization_eng: item.organizations.organization_eng,
-          organization_arb: item.organizations.organization_arb,
-        });
-      }
-    });
-
-    return Array.from(parentMap.values());
-  };
-
-  const getOrganizationsData = () => {
-    if (!organizationData?.data) return [];
-
-    return organizationData.data.filter(
-      (item: any) => String(item.parent_id) === selectedVertical
-    );
-  };
-
-  const getEmployeeTypesData = () =>
-    (employeeTypeData?.data || []).filter(
-      (item: any) => item.employee_type_id
-  );
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
-
-  const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
+  const getEmployeeDisplayInfo = useCallback((leave: any, lang: string = 'en') => {
     const employeeMaster = leave.employee_master_employee_leaves_employee_idToemployee_master;
-    
+
     if (!employeeMaster) {
       return {
         emp_no: `EMP${leave.employee_id}`,
@@ -147,29 +101,29 @@ export default function Page() {
     const firstNameAr = employeeMaster.firstname_arb || '';
     const lastNameAr = employeeMaster.lastname_arb || '';
 
-    const firstName = language === 'ar' ? firstNameAr : firstNameEn;
-    const lastName = language === 'ar' ? lastNameAr : lastNameEn;
-    
-    const fullName = language === 'ar' 
+    const firstName = lang === 'ar' ? firstNameAr : firstNameEn;
+    const lastName = lang === 'ar' ? lastNameAr : lastNameEn;
+
+    const fullName = lang === 'ar'
       ? `${firstNameAr} ${lastNameAr}`.trim()
       : `${firstNameEn} ${lastNameEn}`.trim();
 
     return {
       emp_no: employeeMaster.emp_no || `EMP${leave.employee_id}`,
       employee_name: fullName || firstName || `Employee ${leave.employee_id}`,
-      firstName: firstName,
-      lastName: lastName,
+      firstName,
+      lastName,
       fullName: fullName || firstName || `Employee ${leave.employee_id}`,
       employee_id: leave.employee_id
     };
-  }, [language]);
+  }, []);
 
   const getLeaveTypeName = useCallback((leaveTypes: any) => {
     if (!leaveTypes) {
       return language === "ar" ? "غير معروف" : "Unknown";
     }
-    
-    return language === "ar" 
+
+    return language === "ar"
       ? leaveTypes.leave_type_arb || leaveTypes.leave_type_eng || "غير معروف"
       : leaveTypes.leave_type_eng || leaveTypes.leave_type_arb || "Unknown";
   }, [language]);
@@ -185,23 +139,23 @@ export default function Page() {
 
   const AttachmentCellRenderer = useCallback((data: any) => {
     const filePath = data.leave_doc_filename_path;
-    
+
     if (!filePath || filePath === '-') {
       return <span className="text-gray-400">-</span>;
     }
-    
+
     const handleDownload = async () => {
       try {
         await downloadUploadedFile(filePath);
-        toast.success('File downloaded successfully');
+        showToast("success", "file_download_success");
       } catch (error) {
         console.error('Download error:', error);
-        toast.error('Failed to download file');
+        showToast("error", "file_download_error");
       }
     };
-    
+
     return (
-      <button 
+      <button
         onClick={handleDownload}
         className="flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer"
         title="Download attachment"
@@ -210,38 +164,71 @@ export default function Page() {
         <span>Download</span>
       </button>
     );
-  }, []);
+  }, [showToast]);
 
-  useEffect(() => {
+
+  const { data: organizationData } = useFetchAllEntity("organization", {
+    searchParams: {
+      limit: "1000",
+    },
+  });
+
+
+  const { data: employeeTypeData } = useFetchAllEntity("employeeType", {
+    removeAll: true,
+  });
+
+  const getVerticalData = useCallback(() => {
+    if (!organizationData?.data) return [];
+
+    const parentMap = new Map();
+
+    organizationData.data.forEach((item: any) => {
+      if (item.organizations) {
+        parentMap.set(item.organizations.organization_id, {
+          organization_id: item.organizations.organization_id,
+          organization_eng: item.organizations.organization_eng,
+          organization_arb: item.organizations.organization_arb,
+        });
+      }
+    });
+
+    return Array.from(parentMap.values());
+  }, [organizationData]);
+
+  const getOrganizationsData = useCallback(() => {
+    if (!organizationData?.data) return [];
+
+    return organizationData.data.filter(
+      (item: any) => String(item.parent_id) === selectedVertical
+    );
+  }, [organizationData, selectedVertical]);
+
+  const getEmployeeTypesData = useCallback(() =>
+    (employeeTypeData?.data || []).filter(
+      (item: any) => item.employee_type_id
+    ), [employeeTypeData]);
+
+
+    useEffect(() => {
     setColumns([
       { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
       { field: "firstName", headerName: t.employee_name || "Employee Name" },
       { field: "from_date", headerName: t.from_date || "From Date" },
       { field: "to_date", headerName: t.to_date || "To Date" },
-      { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
-      { 
-        field: "leave_doc_filename_path", 
-        headerName: "Attachment",
+      { field: "number_of_leaves", headerName: t.no_of_days || "No of Days" },
+      {
+        field: "leave_doc_filename_path",
+        headerName: t.attachment || "Attachment",
         cellRenderer: AttachmentCellRenderer
       },
       { field: "leave_status", headerName: t.status || "Status" },
     ]);
   }, [language, t, AttachmentCellRenderer]);
 
-  const formatDateForAPI = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatDateForDisplay = (dateString: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toISOString().split('T')[0];
-  };
 
   const { data: leavesData, isLoading: isLoadingLeaves, error, refetch } = useFetchAllEntity(
-    "employeeLeave", 
+    "employeeLeave",
     {
       searchParams: {
         limit: String(rowsPerPage),
@@ -263,12 +250,11 @@ export default function Page() {
       return [];
     }
 
-    const processedData = leavesData.data.map((leave: any) => {
+    return leavesData.data.map((leave: any) => {
       const employeeInfo = getEmployeeDisplayInfo(leave, language);
-      
       const formattedFromDate = formatDateForDisplay(leave.from_date);
       const formattedToDate = formatDateForDisplay(leave.to_date);
-            
+
       return {
         ...leave,
         id: leave.employee_leave_id,
@@ -287,9 +273,8 @@ export default function Page() {
         employee_master: leave.employee_master_employee_leaves_employee_idToemployee_master,
       };
     });
+  }, [leavesData, language, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel, formatDateForDisplay]);
 
-    return processedData;
-  }, [leavesData, language, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -318,32 +303,60 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = useCallback((value: string) => {
     setSelectedOption(value);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleFromDateChange = (date: Date | undefined) => {
+  const handleFromDateChange = useCallback((date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleToDateChange = (date: Date | undefined) => {
+  const handleToDateChange = useCallback((date: Date | undefined) => {
     setToDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleEmployeeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOrganizationChange = useCallback((value: string) => {
+    setSelectedOrganization(value);
+    setCurrentPage(1);
+    closePopover('organization');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
+
+  const handleEmployeeTypeChange = useCallback((value: string) => {
+    setSelectedEmployeeType(value);
+    setCurrentPage(1);
+    closePopover('employeeType');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
+
+  const handleVerticalChange = useCallback((value: string) => {
+    setSelectedVertical(value);
+    setSelectedOrganization("");
+    closePopover('vertical');
+  }, [closePopover]);
+
+  const handleEmployeeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setEmployeeFilter(event.target.value);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleLeaveTypeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLeaveTypeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setLeaveTypeFilter(event.target.value);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const props = {
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -365,11 +378,24 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
-  };
-
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-  }, []);
+  }), [
+    data,
+    columns,
+    open,
+    selectedRows,
+    isLoadingLeaves,
+    isChecking,
+    sortField,
+    currentPage,
+    sortDirection,
+    searchValue,
+    leavesData,
+    rowsPerPage,
+    filter_open,
+    handlePageChange,
+    handleSearchChange,
+    handleRowsPerPageChange
+  ]);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -408,26 +434,32 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeLeave"
+        disableAdd
       />
+
+      {/* Filter Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
-        {/* Filter 1: VERTICAL ORGANIZATION */}
         <div>
           <Popover
             open={popoverStates.vertical}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, vertical: open }))
-            }
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, vertical: open }))}
           >
             <PopoverTrigger asChild>
-              <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
                 <p>
-                  <Label className="font-normal text-secondary">Vertical :</Label>
+                  <Label className="font-normal text-secondary">
+                    {t.vertical || "Vertical"} :
+                  </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedVertical
                       ? getVerticalData().find((item: any) =>
-                          String(item.organization_id) === selectedVertical
-                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                      : "Choose Vertical"}
+                        String(item.organization_id) === selectedVertical
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                      : (t.placeholder_vertical || "Choose Vertical")}
                   </span>
                 </p>
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
@@ -436,16 +468,12 @@ export default function Page() {
 
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
               <Command>
-                <CommandInput placeholder="Search vertical..." />
+                <CommandInput placeholder={t.search_vertical || "Search vertical..."} />
                 <CommandGroup className="max-h-64 overflow-auto">
                   {getVerticalData().map((item: any) => (
                     <CommandItem
                       key={item.organization_id}
-                      onSelect={() => {
-                        setSelectedVertical(String(item.organization_id));
-                        setSelectedOrganization("");
-                        closePopover("vertical");
-                      }}
+                      onSelect={() => handleVerticalChange(String(item.organization_id))}
                     >
                       {language === "ar" ? item.organization_arb : item.organization_eng}
                     </CommandItem>
@@ -455,24 +483,28 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
-        {/* Filter 2: ORGANIZATION (Filtered by parent_id = selectedVertical) */}
+
         <div>
           <Popover
             open={popoverStates.organization}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, organization: open }))
-            }
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, organization: open }))}
           >
             <PopoverTrigger asChild>
-              <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
-                <p className="truncate w-64">
-                  <Label className="font-normal text-secondary">Organization :</Label>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.organization || "Organization"} :
+                  </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedOrganization
                       ? getOrganizationsData().find((item: any) =>
-                          String(item.organization_id) === selectedOrganization
-                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                      : "Choose Organization"}
+                        String(item.organization_id) === selectedOrganization
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                      : (t.placeholder_org || "Choose Organization")}
                   </span>
                 </p>
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
@@ -481,7 +513,7 @@ export default function Page() {
 
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
               <Command>
-                <CommandInput placeholder="Search organization..." />
+                <CommandInput placeholder={t.search_organization || "Search organization..."} />
                 <CommandGroup className="max-h-64 overflow-auto">
                   {getOrganizationsData().map((item: any) => (
                     <CommandItem
@@ -496,26 +528,28 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
-        {/* Filter 3: EMPLOYEE TYPE (Already existed - no change except position) */}
+
         <div>
-          <Popover 
-            open={popoverStates.employeeType} 
+          <Popover
+            open={popoverStates.employeeType}
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
           >
             <PopoverTrigger asChild>
-              <Button 
-                size={"lg"} 
-                variant={"outline"}
+              <Button
+                size="lg"
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
-                  <Label className="font-normal text-secondary">Employee Type :</Label>
+                  <Label className="font-normal text-secondary">
+                    {t.employee_type || "Employee Type"} :
+                  </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedEmployeeType
-                      ? getEmployeeTypesData().find((item: any) => 
-                          String(item.employee_type_id) === selectedEmployeeType
-                        )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
-                      : "Choose type"}
+                      ? getEmployeeTypesData().find((item: any) =>
+                        String(item.employee_type_id) === selectedEmployeeType
+                      )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
+                      : (t.placeholder_employee_type || "Choose type")}
                   </span>
                 </p>
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
@@ -524,7 +558,7 @@ export default function Page() {
 
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
               <Command>
-                <CommandInput placeholder="Search employee type..." />
+                <CommandInput placeholder={t.search_employee_type || "Search employee type..."} />
                 <CommandGroup className="max-h-64 overflow-auto">
                   {getEmployeeTypesData().map((item: any) => (
                     <CommandItem
@@ -538,12 +572,13 @@ export default function Page() {
               </Command>
             </PopoverContent>
           </Popover>
-        </div>   
+        </div>
       </div>
+      
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Team Leave Requests
+            {t.team_request || "Team Leave Requests"}
           </h1>
         </div>
         <div className="px-6">

@@ -39,7 +39,6 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
                 TotalPermission: parsePermissionHours("06:00") * progress,
                 PendingPermission: parsePermissionHours(data?.PermBalanceHrs || "00:00") * progress,
                 AppliedPermission: parsePermissionHours(data?.PermAppliedHrs || "00:00") * progress,
-                // PermissionsTaken: parsePermissionHours(data?.PermissionsTaken || "00:00") * progress,
                 RejectedPermission: parsePermissionHours(data?.RejectedPermissionMts || "00:00") * progress,
                 ApprovedPermission: parsePermissionHours(data?.ApprovedPermissionHrs || "00:00") * progress,
             };
@@ -156,21 +155,13 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
             isHours: true
         },
         { 
-            label: "Applied Permission", 
+            label: t?.applied_perms, 
             value: displayValues.AppliedPermission,
             color: "text-primary", 
             icon: WorkingDaysIcon(), 
             shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]",
             isHours: true
         },
-        // { 
-        //     label: t?.prems_taken, 
-        //     value: displayValues.PermissionsTaken,
-        //     color: "text-[#FFBF00]", 
-        //     icon: LeaveTakenIcon(), 
-        //     shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]",
-        //     isHours: true
-        // },
         { 
             label: t?.approved_perms, 
             value: displayValues.ApprovedPermission,
@@ -180,7 +171,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
             isHours: true
         },
         { 
-            label: t?.unapproved_perms || "Rejected Permissions", 
+            label: t?.rejected_perms, 
             value: displayValues.RejectedPermission,
             color: "text-[#DA153E]", 
             icon: <AbsentIcon color="#DA153E"/>, 

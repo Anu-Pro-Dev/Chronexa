@@ -173,20 +173,21 @@ export default function AddEmailSettings({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-16 gap-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 gap-y-4 min-w-0">
             <FormField
               control={form.control}
               name="host"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {t.host || "Host"} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter the IP or domain name"
+                      placeholder={t.placeholder_host || "Enter the IP or domain name"}
                       type="text"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -196,19 +197,21 @@ export default function AddEmailSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="port"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {t.port || "Port"} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter port number"
+                      placeholder={t.placeholder_port || "Enter port number"}
                       type="text"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -218,19 +221,21 @@ export default function AddEmailSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
                     {t.name || "Name"} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter SMTP configuration name"
+                      placeholder={t.placeholder_smtp_name || "Enter SMTP configuration name"}
                       type="text"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -246,14 +251,14 @@ export default function AddEmailSettings({
               control={form.control}
               name="encryption"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
-                    Encryption <Required />
+                    {t.encryption || "Encryption"} <Required />
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
-                        <SelectValue placeholder="Choose encryption" />
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.placeholder_encryption || "Choose encryption"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -271,19 +276,21 @@ export default function AddEmailSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="from_email"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
-                    From Email <Required />
+                    {t.from_email || "From Email"} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter from email address"
+                      placeholder={t.placeholder_from_email || "Enter from email address"}
                       type="email"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -293,19 +300,21 @@ export default function AddEmailSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormLabel>
-                    Password <Required />
+                    {t.password || "Password"} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter SMTP password"
+                      placeholder={t.placeholder_smtp_password || "Enter SMTP password"}
                       type="password"
                       {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
                     />
                   </FormControl>
                   <TranslatedError
@@ -315,29 +324,33 @@ export default function AddEmailSettings({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="active"
-              render={({ field }) => (
-                <FormItem className="flex items-center space-x-4">
-                  <FormLabel className="mb-0">
-                    {t.active || "Active"} SMTP
-                  </FormLabel>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="active"
+            render={({ field }) => (
+              <FormItem>
+                <div className={`flex items-center gap-2 ${language === "ar" ? "flex-row-reverse justify-end" : ""}`}>
                   <FormControl>
                     <Switch
                       checked={!!field.value}
                       onChange={(val: boolean) => field.onChange(val)}
                     />
                   </FormControl>
-                  <TranslatedError
-                    fieldError={form.formState.errors.active}
-                    translations={errT}
-                  />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="flex justify-end gap-2 items-center py-5">
+                  <FormLabel className="!mt-0 cursor-pointer">
+                    {t.active || "Active"} SMTP
+                  </FormLabel>
+                </div>
+                <TranslatedError
+                  fieldError={form.formState.errors.active}
+                  translations={errT}
+                />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-end gap-2 items-center py-2">
             <div className="flex gap-4">
               <Button
                 variant="outline"

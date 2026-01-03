@@ -31,15 +31,6 @@ export default function PowerMultiStepForm({ Pages, Page, SetPage, validateCurre
 
   return (
     <div className="flex flex-col gap-6 bg-accent p-6 rounded-2xl">
-      {/* {Pages.filter((page) => page.state_route === Page).map((page) => (
-        <div key={page.state_route}>
-          <h1 className="font-bold text-xl text-primary">{page.title}</h1>
-          {page.description && (
-            <h1 className="font-semibold text-sm text-text-secondary">{page.description}</h1>
-          )}
-        </div>
-      ))} */}
-
       <div className="flex gap-40 border-b border-border-accent">
         {Pages.map((page) => (
           <div

@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import * as z from "zod";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
@@ -15,11 +14,13 @@ import { format } from "date-fns";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addRamadanScheduleRequest, editRamadanScheduleRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  ramadan_name: z.string().default(""),
-  from_date: z.date().nullable().optional(),
-  to_date: z.date().nullable().optional(),
+  ramadan_name: z.string().min(1, { message: "ramadan_name_required" }),
+  from_date: z.date({ required_error: "from_date_required" }),
+  to_date: z.date({ required_error: "to_date_required" }),
   remarks: z.string().optional(),
 });
 
@@ -37,6 +38,9 @@ export default function AddRamadanDate({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [originalValues, setOriginalValues] = useState<any>(null);
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
+  const t = translations?.modules?.scheduling || {};
+  const errT = translations?.formErrors || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -50,16 +54,16 @@ export default function AddRamadanDate({
     resolver: zodResolver(formSchema),
     defaultValues: {
       ramadan_name: "",
-      from_date: null,
-      to_date: null,
-      remarks:"",
+      from_date: undefined,
+      to_date: undefined,
+      remarks: "",
     },
   });
   
   useEffect(() => {
     if (selectedRowData) {
-      const fromDate = selectedRowData.from_date ? new Date(selectedRowData.from_date) : null;
-      const toDate = selectedRowData.to_date ? new Date(selectedRowData.to_date) : null;
+      const fromDate = selectedRowData.from_date ? new Date(selectedRowData.from_date) : undefined;
+      const toDate = selectedRowData.to_date ? new Date(selectedRowData.to_date) : undefined;
 
       form.reset({
         ramadan_name:
@@ -71,7 +75,6 @@ export default function AddRamadanDate({
         remarks: selectedRowData.remarks ?? "",
       });
 
-      // Store original values for comparison
       setOriginalValues({
         ramadan_name_eng: selectedRowData.ramadan_name_eng ?? "",
         ramadan_name_arb: selectedRowData.ramadan_name_arb ?? "",
@@ -80,7 +83,12 @@ export default function AddRamadanDate({
         remarks: selectedRowData.remarks ?? "",
       });
     } else {
-      form.reset();
+      form.reset({
+        ramadan_name: "",
+        from_date: undefined,
+        to_date: undefined,
+        remarks: "",
+      });
       setOriginalValues(null);
     }
   }, [selectedRowData, language, form]);
@@ -88,18 +96,16 @@ export default function AddRamadanDate({
   const handleError = (error: any) => {
     console.error("API Error:", error);
     
-    // Try to extract the error message from various possible error structures
     const errorMessage = 
       error?.response?.data?.message || 
       error?.message || 
+      translations?.toastNotifications?.formsubmission_error || 
       "Form submission error.";
     
     const overlappingDates = error?.response?.data?.overlapping_dates;
 
-    // Display the main error message
-    toast.error(errorMessage, { duration: 5000 });
+    showToast("error", "formsubmission_error");
 
-    // If there are overlapping dates, show additional details
     if (overlappingDates && Array.isArray(overlappingDates) && overlappingDates.length > 0) {
       overlappingDates.forEach((overlap: any, index: number) => {
         const fromDate = new Date(overlap.from_date).toLocaleDateString();
@@ -109,25 +115,20 @@ export default function AddRamadanDate({
           : overlap.ramadan_name_arb;
         
         setTimeout(() => {
-          toast.error(
-            `Overlap ${index + 1}: ${name} (${fromDate} - ${toDate})`,
-            { duration: 6000 }
-          );
+          showToast("error", `Overlap ${index + 1}: ${name} (${fromDate} - ${toDate})`);
         }, (index + 1) * 100);
       });
     }
 
-    // Handle specific status codes if needed
     if (error?.response?.status === 409) {
-      // Duplicate/conflict is already handled by the message above
-      return;
+      showToast("error", "findduplicate_error");
     }
   };
 
   const addMutation = useMutation({
     mutationFn: addRamadanScheduleRequest,
     onSuccess: (data) => {
-      toast.success("Ramadan dates added successfully!");
+      showToast("success", "addramadan_success");
       onSave(null, data.data);
       on_open_change(false);
       queryClient.invalidateQueries({ queryKey: ["ramadan"] });
@@ -138,7 +139,7 @@ export default function AddRamadanDate({
   const editMutation = useMutation({
     mutationFn: editRamadanScheduleRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Ramadan dates updated successfully!");
+      showToast("success", "updateramadan_success");
       onSave(variables.ramadan_id?.toString() ?? null, variables);
       queryClient.invalidateQueries({ queryKey: ["ramadan"] });
       on_open_change(false);
@@ -153,25 +154,20 @@ export default function AddRamadanDate({
     
     try {
       if (selectedRowData) {
-        // EDIT MODE - Send only changed fields
-        // Extract the ID from possible field names
         const ramadanId = selectedRowData.ramadan_id || selectedRowData.id;
         
         if (!ramadanId) {
           console.error("No valid ramadan ID found. selectedRowData:", selectedRowData);
-          toast.error("Unable to update: Ramadan ID not found. Please try again.");
+          showToast("error", "formsubmission_error");
           setIsSubmitting(false);
           return;
         }
 
-        // Start with ramadan_id in payload
         const payload: any = {
           ramadan_id: Number(ramadanId),
         };
 
-        // Only add fields that have changed
         if (originalValues) {
-          // Check ramadan name based on current language
           if (language === "en") {
             if (values.ramadan_name !== originalValues.ramadan_name_eng) {
               payload.ramadan_name_eng = values.ramadan_name;
@@ -182,25 +178,21 @@ export default function AddRamadanDate({
             }
           }
 
-          // Check from date
           const fromDateString = values.from_date ? format(values.from_date, "yyyy-MM-dd") : null;
           if (fromDateString !== originalValues.from_date) {
             payload.from_date = fromDateString;
           }
 
-          // Check to date
           const toDateString = values.to_date ? format(values.to_date, "yyyy-MM-dd") : null;
           if (toDateString !== originalValues.to_date) {
             payload.to_date = toDateString;
           }
 
-          // Check remarks
           const currentRemarks = values.remarks ?? "";
           if (currentRemarks !== originalValues.remarks) {
             payload.remarks = currentRemarks;
           }
         } else {
-          // Fallback: if no original values, send all fields (shouldn't happen)
           if (language === "en") {
             payload.ramadan_name_eng = values.ramadan_name;
           } else {
@@ -211,20 +203,14 @@ export default function AddRamadanDate({
           payload.remarks = values.remarks;
         }
 
-        // Check if there are any changes to submit
-        const hasChanges = Object.keys(payload).length > 1; // More than just ramadan_id
+        const hasChanges = Object.keys(payload).length > 1;
 
         if (!hasChanges) {
           setIsSubmitting(false);
           return;
         }
-
-        console.log("Editing ramadan with ID:", ramadanId);
-        console.log("Changed fields payload:", payload);
-
         editMutation.mutate(payload);
       } else {
-        // ADD MODE - Send all required fields
         const payload: any = {
           from_date: values.from_date ? format(values.from_date, "yyyy-MM-dd") : null,
           to_date: values.to_date ? format(values.to_date, "yyyy-MM-dd") : null,  
@@ -236,8 +222,6 @@ export default function AddRamadanDate({
         } else {
           payload.ramadan_name_arb = values.ramadan_name;
         }
-
-        console.log("Adding new ramadan. Payload:", payload);
         addMutation.mutate(payload);
       }
     } finally {
@@ -254,18 +238,27 @@ export default function AddRamadanDate({
               control={form.control}
               name="ramadan_name"
               render={({ field }) => (
-              <FormItem>
+                <FormItem>
                   <FormLabel>
                     {language === "ar"
-                      ? "Ramadan Name (العربية) "
-                      : "Ramadan Name (English) "}
+                      ? `${t.ramadan_name || "Ramadan Name"} (العربية)`
+                      : `${t.ramadan_name || "Ramadan Name"} (English)`}
                     <Required />
                   </FormLabel>
                   <FormControl>
-                  <Input placeholder="Enter ramadan name" type="text" {...field} />
+                    <Input 
+                      placeholder={t.Placeholder_ramadan_name || "Enter ramadan name"} 
+                      type="text" 
+                      {...field}
+                      disabled={isSubmitting}
+                      className={language === "ar" ? "text-right" : "text-left"}
+                    />
                   </FormControl>
-                  <FormMessage />
-              </FormItem>
+                  <TranslatedError
+                    fieldError={form.formState.errors.ramadan_name}
+                    translations={errT}
+                  />
+                </FormItem>
               )}
             />
             <FormField
@@ -273,11 +266,15 @@ export default function AddRamadanDate({
               name="remarks"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Remarks</FormLabel>
+                  <FormLabel>{t.remarks || "Remarks"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter the remark" type="text" {...field} />
+                    <Input 
+                      placeholder={t.Placeholder_remark || "Enter the remark"} 
+                      type="text" 
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
@@ -288,18 +285,23 @@ export default function AddRamadanDate({
               render={({ field }) => (
                 <FormItem className="">
                   <FormLabel>
-                    From Date <Required />
+                    {t.from_date || "From Date"} <Required />
                   </FormLabel>
                   <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button size={"lg"} variant={"outline"}
+                        <Button 
+                          size={"lg"} 
+                          variant={"outline"}
                           className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+                          disabled={isSubmitting}
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
                           ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            <span className="font-normal text-sm text-text-secondary">
+                              {t.placeholder_date || "Choose date"}
+                            </span>
                           )}
                           <CalendarIcon />
                         </Button>
@@ -316,14 +318,15 @@ export default function AddRamadanDate({
                         disabled={(date) => {
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
-                          
                           return date < today;
                         }}
                       />
                     </PopoverContent>
                   </Popover>
-
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.from_date}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -333,18 +336,23 @@ export default function AddRamadanDate({
               render={({ field }) => (
                 <FormItem className="">
                   <FormLabel>
-                    To Date <Required />
+                    {t.to_date || "To Date"} <Required />
                   </FormLabel>
                   <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button size={"lg"} variant={"outline"}
+                        <Button 
+                          size={"lg"} 
+                          variant={"outline"}
                           className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+                          disabled={isSubmitting}
                         >
                           {field.value ? (
                             format(field.value, "dd/MM/yy")
                           ) : (
-                            <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                            <span className="font-normal text-sm text-text-secondary">
+                              {t.placeholder_date || "Choose date"}
+                            </span>
                           )}
                           <CalendarIcon />
                         </Button>
@@ -375,7 +383,10 @@ export default function AddRamadanDate({
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.to_date}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -390,7 +401,7 @@ export default function AddRamadanDate({
                 onClick={() => on_open_change(false)}
                 disabled={addMutation.isPending || editMutation.isPending}
               >
-                {translations.buttons.cancel}
+                {translations?.buttons?.cancel || "Cancel"}
               </Button>
               <Button 
                 type="submit" 
@@ -400,11 +411,11 @@ export default function AddRamadanDate({
               >
                 {addMutation.isPending || editMutation.isPending
                   ? selectedRowData
-                    ? "Updating..."
-                    : "Saving..."
+                    ? translations?.buttons?.updating || "Updating..."
+                    : translations?.buttons?.saving || "Saving..."
                   : selectedRowData
-                    ? "Update"
-                    : "Save"
+                    ? translations?.buttons?.update || "Update"
+                    : translations?.buttons?.save || "Save"
                 }
               </Button>
             </div>

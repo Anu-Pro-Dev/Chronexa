@@ -30,16 +30,10 @@ const CurrentDate: React.FC = () => {
           <div 
             className="flex justify-center items-center gap-2" 
           >
-            <div className="w-7 h-7 bg-backdrop rounded-full flex justify-center items-center"><CalendarIcon className="w-4 h-4" /></div> {/* Calendar Icon */}
+            <div className="w-7 h-7 bg-backdrop rounded-full flex justify-center items-center"><CalendarIcon className="w-4 h-4" /></div>
             <p className="text-sm text-text-primary font-semibold">
               {formattedDate}
             </p>
-          
-            {/* {false && showCalendar ? (
-              <FaChevronUpIcon className="w-4 h-4 text-text-primary" />
-            ) : (
-              <FaChevronDownIcon className="w-4 h-4 text-text-primary" />
-            )} */}
           </div>
         </div>
 

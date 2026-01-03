@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 import dynamic from "next/dynamic";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { serverTimeRequest, serverTimeZoneRequest, addEventTransaction } from "@/src/lib/apiHandler";
@@ -64,6 +64,7 @@ const safeLocalStorage = {
 export default function Geolocation() {
   const router = useRouter();
   const { dir, translations } = useLanguage();
+  const showToast = useShowToast();
   const t = translations?.modules?.dashboard || {};
   const locationErrorShown = useRef(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -115,11 +116,10 @@ export default function Geolocation() {
       safeLocalStorage.setItem("userData", JSON.stringify(updatedUser));
       safeLocalStorage.setItem("lastpunchtime", new Date().toISOString());
 
-      toast.success(result?.message || "Punch successful.");
+      showToast("success", "punch_success");
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || error?.message || "Failed to record punch.";
-      toast.error(errorMessage);
+      showToast("error", "punch_error");
     }
   });
 
@@ -131,10 +131,7 @@ export default function Geolocation() {
     if (!isMounted) return;
 
     if (safeLocalStorage.getItem("showLocationToast")) {
-      toast(
-        "⚠️ You cleared the cache. To reset Location Permission, please check browser settings manually.",
-        { duration: 5000 }
-      );
+      showToast("error", "location_cache_cleared");
       safeLocalStorage.removeItem("showLocationToast");
     }
 
@@ -155,7 +152,7 @@ export default function Geolocation() {
       try {
         parsedCoordinates = JSON.parse(sanitized);
       } catch {
-        toast.error("Invalid geocoordinates format.");
+        showToast("error", "invalid_coordinates_format");
         return;
       }
 
@@ -164,14 +161,14 @@ export default function Geolocation() {
       const lastPunch = parsedUserData.lastpunchtype;
       setTransactionType(lastPunch === "IN" ? "OUT" : "IN");
     } catch {
-      toast.error("Error processing user data.");
+      showToast("error", "user_data_processing_error");
     }
-  }, [isMounted, router]);
+  }, [isMounted, router, showToast]);
 
   useEffect(() => {
     if (!isMounted || typeof navigator === 'undefined' || !navigator.geolocation) {
       if (isMounted) {
-        toast.error("Geolocation is not supported.");
+        showToast("error", "geolocation_not_supported");
       }
       return;
     }
@@ -192,25 +189,20 @@ export default function Geolocation() {
       },
       (error: GeolocationPositionError) => {
         if (!locationErrorShown.current) {
-          let errorMessage = "Unknown geolocation error";
-          let userMessage = "Unable to get location. Please check your browser settings.";
+          let toastKey = "geolocation_error";
           
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              errorMessage = "User denied the request for Geolocation";
-              userMessage = "Location access denied. Please enable location permissions in your browser settings.";
+              toastKey = "location_permission_denied";
               break;
             case error.POSITION_UNAVAILABLE:
-              errorMessage = "Location information is unavailable";
-              userMessage = "Location information is unavailable. Please check your GPS settings.";
+              toastKey = "location_unavailable";
               break;
             case error.TIMEOUT:
-              errorMessage = "The request to get user location timed out";
-              userMessage = "Location request timed out. Please try again.";
+              toastKey = "location_timeout";
               break;
             default:
-              errorMessage = `Geolocation error: ${error.message}`;
-              userMessage = "Unable to get location. Please check your browser settings.";
+              toastKey = "geolocation_error";
           }
           
           console.error("Geolocation error:", {
@@ -219,7 +211,7 @@ export default function Geolocation() {
             timestamp: new Date().toISOString()
           });
           
-          toast.error(userMessage);
+          showToast("error", toastKey);
           locationErrorShown.current = true;
         }
       },
@@ -236,7 +228,7 @@ export default function Geolocation() {
       }
     };
 
-  }, [isMounted, tobevalidated, officeCoordinates, radius]);
+  }, [isMounted, tobevalidated, officeCoordinates, radius, showToast]);
 
   useEffect(() => {
     if (!isMounted || !serverTimeData) return;
@@ -268,10 +260,10 @@ export default function Geolocation() {
         console.warn("Server time not available, using client time");
       }
     } catch (error) {
-      toast.error("Error setting up time.");
+      showToast("error", "time_setup_error");
       console.error("Time setup error:", error);
     }
-  }, [isMounted, serverTimeData]);
+  }, [isMounted, serverTimeData, showToast]);
 
   useEffect(() => {
     if (!liveServerTime) return;
@@ -295,12 +287,12 @@ export default function Geolocation() {
 
   const handlePunch = async () => {
     if (!userLocation) {
-      toast.error("Unable to get location.");
+      showToast("error", "location_not_available");
       return;
     }
 
     if (!userData?.employeenumber) {
-      toast.error("User data not found.");
+      showToast("error", "user_data_not_found");
       return;
     }
 
@@ -308,7 +300,7 @@ export default function Geolocation() {
   
     if (tobevalidated === "1") {
       if (!officeCoordinates || officeCoordinates.length === 0) {
-        toast.error("No COORDINATES found.");
+        showToast("error", "no_coordinates_found");
         return;
       }
 
@@ -318,7 +310,7 @@ export default function Geolocation() {
       });
 
       if (!matchedOffice) {
-        toast.error("You are outside the geofenced area.");
+        showToast("error", "outside_geofence");
         setIsOutsideGeofence(true);
         return;
       }
@@ -333,7 +325,7 @@ export default function Geolocation() {
       : Infinity;
 
     if (minimumpunchgap !== null && timeDiff < minimumpunchgap) {
-      toast.error(`Minimum gap of ${minimumpunchgap} minutes required.`);
+      showToast("error", "minimum_gap_required");
       return;
     }
 

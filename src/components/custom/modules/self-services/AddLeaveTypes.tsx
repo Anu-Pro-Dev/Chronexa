@@ -22,36 +22,38 @@ import { BasicIcon, SetupIcon, RestrictIcon, PolicyIcon, CheckMark } from "@/src
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addLeaveTypeRequest, editLeaveTypeRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchemaBasciSetup = z.object({
   leave_type_code: z
-    .string({ required_error: "Leave type code is required" })
-    .min(1, { message: "Leave type code is required" })
+    .string({ required_error: "leave_type_code_required" })
+    .min(1, { message: "leave_type_code_required" })
     .transform((val) => val.toUpperCase()),
   leave_type_name: z
-    .string({ required_error: "Leave type name is required" })
-    .min(1, { message: "Leave type name is required" }),
+    .string({ required_error: "leave_type_name_required" })
+    .min(1, { message: "leave_type_name_required" }),
   workflows: z.string().optional(),
-  specific_gender:z.string().optional(),
+  specific_gender: z.string().optional(),
   total_entitled_days: z
     .number({
-      invalid_type_error: "Total entitled days must be a number.",
+      invalid_type_error: "total_entitled_days_invalid",
     }).optional(),
   apply_prior_to_days: z
     .number({
-      invalid_type_error: "Apply prior to days must be a number.",
+      invalid_type_error: "apply_prior_to_days_invalid",
     }).optional(),
   full_pay_days: z
     .number({
-      invalid_type_error: "Full pay days must be a number.",
+      invalid_type_error: "full_pay_days_invalid",
     }).optional(),
   half_pay_days: z
     .number({
-      invalid_type_error: "Half pay days must be a number.",
+      invalid_type_error: "half_pay_days_invalid",
     }).optional(),
   unpaid_days: z
     .number({
-      invalid_type_error: "Unpaid days must be a number.",
+      invalid_type_error: "unpaid_days_invalid",
     }).optional(),
 })
 
@@ -74,18 +76,20 @@ export default function AddLeaveTypes({
   const [basicFormData, setBasicFormData] = useState<any>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
-
+  const showToast = useShowToast();
+  const t = translations?.modules?.selfServices || {};
+  const formErrors = translations?.formErrors || {};
   const { data: workflowData, isLoading: isWorkflowLoading, error: workflowError } = useFetchAllEntity("workflowType");
 
   const addMutation = useMutation({
     mutationFn: addLeaveTypeRequest,
     onSuccess: (data) => {
-      toast.success("Leave type added successfully!");
+      showToast("success", "add_leavetype_success");
       formBasciSetup.reset();
       formPolicy.reset();
       setBasicFormData(null);
       setPageNumber(0);
-      
+
       if (onSave) {
         onSave(null, data.data);
       }
@@ -98,9 +102,9 @@ export default function AddLeaveTypes({
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -108,7 +112,7 @@ export default function AddLeaveTypes({
   const editMutation = useMutation({
     mutationFn: editLeaveTypeRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Leave type updated successfully!");
+      showToast("success", "update_leavetype_success");
       if (onSave) {
         onSave(variables.leave_type_id?.toString() ?? null, variables);
       }
@@ -121,9 +125,9 @@ export default function AddLeaveTypes({
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -149,7 +153,6 @@ export default function AddLeaveTypes({
         (workflow: any) => workflow.workflow_id.toString() === values.workflows
       );
 
-      // Fix gender mapping - convert form values to database codes
       let genderCode = null;
       if (values.specific_gender === "ALL") genderCode = "A";
       else if (values.specific_gender === "F") genderCode = "F";
@@ -158,7 +161,7 @@ export default function AddLeaveTypes({
       const basicData: any = {
         leave_type_code: values.leave_type_code,
         leave_type_name: values.leave_type_name,
-        specific_gender: genderCode, // Will be null if no selection
+        specific_gender: genderCode,
         total_entitled_days: values.total_entitled_days,
         apply_prior_to_days: values.apply_prior_to_days,
         full_pay_days: values.full_pay_days,
@@ -166,13 +169,12 @@ export default function AddLeaveTypes({
         unpaid_days: values.unpaid_days,
       };
 
-      // Only add workflow_id if it exists
       if (selectedWorkflow?.workflow_id !== null && selectedWorkflow?.workflow_id !== undefined) {
         basicData.workflow_id = selectedWorkflow.workflow_id;
       }
 
       setBasicFormData(basicData);
-      
+
       setPageNumber(1);
     } catch (error) {
       console.error("Form submission error", error);
@@ -201,7 +203,7 @@ export default function AddLeaveTypes({
         full_pay_days: basicFormData.full_pay_days,
         half_pay_days: basicFormData.half_pay_days,
         unpaid_days: basicFormData.unpaid_days,
-        
+
         need_approval_flag: leaveAttributes.includes("Need Approval"),
         status_flag: leaveAttributes.includes("Status"),
         official_flag: leaveAttributes.includes("Official"),
@@ -217,12 +219,10 @@ export default function AddLeaveTypes({
         apply_not_laterthandays_flag: leaveAttributes.includes("Apply Not Later than Days"),
       };
 
-      // Only add workflow_id if it exists
       if (basicFormData.workflow_id !== null && basicFormData.workflow_id !== undefined) {
         combinedPayload.workflow_id = basicFormData.workflow_id;
       }
 
-      // Only add specific_gender if it exists and is valid (A, F, or M)
       if (basicFormData.specific_gender && ['A', 'F', 'M'].includes(basicFormData.specific_gender)) {
         combinedPayload.specific_gender = basicFormData.specific_gender;
       }
@@ -243,7 +243,7 @@ export default function AddLeaveTypes({
       }
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("An error occurred while saving.");
+      showToast("error", "formsubmission_error");
     } finally {
       setIsSubmitting(false);
     }
@@ -252,14 +252,13 @@ export default function AddLeaveTypes({
   useEffect(() => {
     if (selectedRowData && workflowData?.data) {
       formBasciSetup.setValue("leave_type_code", selectedRowData.leave_type_code || "");
-      formBasciSetup.setValue("leave_type_name", 
+      formBasciSetup.setValue("leave_type_name",
         language === "en"
           ? selectedRowData.leave_type_eng || ""
           : selectedRowData.leave_type_arb || ""
       );
       formBasciSetup.setValue("workflows", selectedRowData.workflow_id?.toString() || "");
-      
-      // Fix gender mapping - convert database codes to form values
+
       let genderValue = "";
       if (selectedRowData.specific_gender === "A") genderValue = "ALL";
       else if (selectedRowData.specific_gender === "F") genderValue = "F";
@@ -272,7 +271,7 @@ export default function AddLeaveTypes({
       formBasciSetup.setValue("full_pay_days", selectedRowData.full_pay_days || undefined);
       formBasciSetup.setValue("half_pay_days", selectedRowData.half_pay_days || undefined);
       formBasciSetup.setValue("unpaid_days", selectedRowData.unpaid_days || undefined);
-      
+
       const leaveAttributes: string[] = [];
       if (selectedRowData.need_approval_flag) leaveAttributes.push("Need Approval");
       if (selectedRowData.status_flag) leaveAttributes.push("Status");
@@ -322,9 +321,9 @@ export default function AddLeaveTypes({
                     <SetupIcon />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                    <span className="font-semibold text-base text-text-primary">Basic Setup</span>
-                    <span className="text-primary text-[13px]">In progress</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step1 || "Step 1"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.basic_setup || "Basic Setup"}</span>
+                    <span className="text-primary text-[13px]">{t.in_progress || "In progress"}</span>
                   </div>
                 </div>
 
@@ -335,8 +334,8 @@ export default function AddLeaveTypes({
                     <PolicyIcon />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                    <span className="font-semibold text-base text-text-primary">Policy</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step2 || "Step 2"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.policy || "Policy"}</span>
                   </div>
                 </div>
               </div>
@@ -349,16 +348,19 @@ export default function AddLeaveTypes({
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Leave type code <Required />
+                      {t.leave_type_code || "Leave type code"} <Required />
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter the code" {...field} />
+                      <Input type="text" placeholder={t.Placeholder_code || "Enter the code"} {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.leave_type_code}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={formBasciSetup.control}
                 name="leave_type_name"
@@ -366,40 +368,44 @@ export default function AddLeaveTypes({
                   <FormItem className=" ">
                     <FormLabel>
                       {language === "ar"
-                        ? "Leave type (العربية) "
-                        : "Leave type (English) "}
+                        ? t.leave_type_name_arb || "Leave type (العربية)"
+                        : t.leave_type_name_eng || "Leave type (English)"}
                       <Required />
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter the name" {...field} />
+                      <Input type="text" placeholder={t.placeholder_name || "Enter the name"} {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.leave_type_name}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="workflows"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Workflows
+                      {t.workflows || "Workflows"}
                     </FormLabel>
-                    <Select 
-                      value={field.value} 
+                    <Select
+                      value={field.value}
                       onValueChange={field.onChange}
                       disabled={isWorkflowLoading}
                     >
                       <FormControl>
                         <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
-                          <SelectValue 
+                          <SelectValue
                             placeholder={
-                              isWorkflowLoading 
-                                ? "Loading workflows..." 
-                                : workflowError 
-                                ? "Error loading workflows" 
-                                : "Choose workflows"
-                            } 
+                              isWorkflowLoading
+                                ? t.loading_workflows || "Loading workflows..."
+                                : workflowError
+                                  ? t.error_loading_workflows || "Error loading workflows"
+                                  : t.placeholder_workflows || "Choose workflows"
+                            }
                           />
                         </SelectTrigger>
                       </FormControl>
@@ -409,58 +415,66 @@ export default function AddLeaveTypes({
                             key={workflow.workflow_id}
                             value={workflow.workflow_id.toString()}
                           >
-                            {language === "ar" && workflow.workflow_name_arb 
-                              ? workflow.workflow_name_arb 
+                            {language === "ar" && workflow.workflow_name_arb
+                              ? workflow.workflow_name_arb
                               : workflow.workflow_name_eng
                             }
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.workflows}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="specific_gender"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Gender
+                      {t.gender || "Gender"}
                     </FormLabel>
-                    <Select 
-                      value={field.value} 
+                    <Select
+                      value={field.value}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
                         <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
-                          <SelectValue 
-                            placeholder="Choose Gender"
+                          <SelectValue
+                            placeholder={t.placeholder_gender || "Choose Gender"}
                           />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ALL">All</SelectItem>
-                        <SelectItem value="F">Female</SelectItem>
-                        <SelectItem value="M">Male</SelectItem>
+                        <SelectItem value="ALL">{t.gender_all || "All"}</SelectItem>
+                        <SelectItem value="F">{t.gender_female || "Female"}</SelectItem>
+                        <SelectItem value="M">{t.gender_male || "Male"}</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.specific_gender}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="total_entitled_days"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Total entitled days
+                      {t.total_entitled_days || "Total entitled days"}
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter the days"
+                        placeholder={t.placeholder_days || "Enter the days"}
                         type="number"
                         min="0"
                         {...field}
@@ -468,95 +482,114 @@ export default function AddLeaveTypes({
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.total_entitled_days}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="apply_prior_to_days"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Apply prior to days
+                      {t.Apply_prior_days || "Apply prior to days"}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
-                        placeholder="Enter the days"
+                        placeholder={t.placeholder_days || "Enter the days"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.apply_prior_to_days}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="full_pay_days"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Full Pay Days
+                      {t.full_pay_days || "Full Pay Days"}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
-                        placeholder="Enter the days"
+                        placeholder={t.placeholder_days || "Enter the days"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.full_pay_days}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="half_pay_days"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Half Pay Days
+                      {t.half_pay_days || "Half Pay Days"}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
-                        placeholder="Enter the days"
+                        placeholder={t.placeholder_days || "Enter the days"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.half_pay_days}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="unpaid_days"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Unpaid Days
+                      {t.unpaid_days || "Unpaid Days"}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
-                        placeholder="Enter the days"
+                        placeholder={t.placeholder_days || "Enter the days"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.unpaid_days}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -598,9 +631,9 @@ export default function AddLeaveTypes({
                     <CheckMark />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                    <span className="font-semibold text-base text-text-primary">Basic Setup</span>
-                    <span className="text-success text-[13px]">Completed</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step1 || "Step 1"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.basic_setup || "Basic Setup"}</span>
+                    <span className="text-success text-[13px]">{t.completed || "Completed"}</span>
                   </div>
                 </div>
 
@@ -611,9 +644,9 @@ export default function AddLeaveTypes({
                     <PolicyIcon />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                    <span className="font-semibold text-base text-text-primary">Policy</span>
-                    <span className="text-primary text-[13px]">In progress</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step2 || "Step 2"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.policy || "Policy"}</span>
+                    <span className="text-primary text-[13px]">{t.in_progress || "In progress"}</span>
                   </div>
                 </div>
               </div>
@@ -625,39 +658,55 @@ export default function AddLeaveTypes({
                 name="leave_attributes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel><div className="mb-6 font-bold text-[15px]">Leave Attributes:</div></FormLabel>
+                    <FormLabel><div className="mb-6 font-bold text-[15px]">{t.leave_attributes || "Leave Attributes:"}</div></FormLabel>
                     <FormControl>
                       <div className="grid grid-cols-3 gap-y-3 text-sm">
-                        {["Need Approval", "Official", "Status", "Carryforward", "Allow Attachment", "Mandatory Justification", "Annual Leave", "Sick Leave", "Exclude Holiday", "Exclude Weekend", "Validation Mandatory", "Leave by Overtime", "Apply Not Later than Days"].map((option) => (
+                        {[
+                          { key: "Need Approval", label: t.need_approval || "Need Approval" },
+                          { key: "Official", label: t.official || "Official" },
+                          { key: "Status", label: t.status || "Status" },
+                          { key: "Carryforward", label: t.carryforward || "Carryforward" },
+                          { key: "Allow Attachment", label: t.allow_attachments || "Allow Attachment" },
+                          { key: "Mandatory Justification", label: t.mandatory_justification || "Mandatory Justification" },
+                          { key: "Annual Leave", label: t.annual_leaves || "Annual Leave" },
+                          { key: "Sick Leave", label: t.sick_leave || "Sick Leave" },
+                          { key: "Exclude Holiday", label: t.exclude_holiday || "Exclude Holiday" },
+                          { key: "Exclude Weekend", label: t.exclude_weekend || "Exclude Weekend" },
+                          { key: "Validation Mandatory", label: t.validation_mandatory || "Validation Mandatory" },
+                          { key: "Leave by Overtime", label: t.leave_by_overtime || "Leave by overtime" },
+                          { key: "Apply Not Later than Days", label: t.Apply_not_later || "Apply Not Later Than Days" }
+                        ].map((option) => (
                           <FormField
-                            key={option}
+                            key={option.key}
                             control={formPolicy.control}
                             name="leave_attributes"
                             render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2">
+                              <FormItem className={cn(
+                                "flex items-center",
+                                language === "ar" ? "space-x-reverse space-x-2" : "space-x-2"
+                              )}>
                                 <FormControl>
                                   <Checkbox
-                                    id={option}
-                                    checked={field.value?.includes(option)}
+                                    id={option.key}
+                                    checked={field.value?.includes(option.key)}
                                     onCheckedChange={(checked) => {
                                       const updated = checked
-                                        ? [...(field.value || []), option]
-                                        : field.value?.filter((item: string) => item !== option);
+                                        ? [...(field.value || []), option.key]
+                                        : field.value?.filter((item: string) => item !== option.key);
                                       field.onChange(updated);
                                     }}
                                   />
                                 </FormControl>
                                 <FormLabel
-                                  htmlFor={option}
+                                  htmlFor={option.key}
                                   className="text-sm text-text-primary font-semibold !mt-0"
                                 >
-                                  {option}
+                                  {option.label}
                                 </FormLabel>
                               </FormItem>
                             )}
                           />
                         ))}
-
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -676,19 +725,19 @@ export default function AddLeaveTypes({
                   >
                     {translations?.buttons?.back}
                   </Button>
-                  <Button 
-                    type="submit" 
-                    size={"lg"} 
+                  <Button
+                    type="submit"
+                    size={"lg"}
                     className=" px-10 "
                     disabled={addMutation.isPending || editMutation.isPending}
                   >
                     {addMutation.isPending || editMutation.isPending
                       ? selectedRowData
-                        ? "Updating..."
-                        : "Saving..."
+                        ? translations.buttons?.updating || "Updating..."
+                        : translations.buttons?.saving || "Saving..."
                       : selectedRowData
-                        ? "Update"
-                        : "Save"
+                        ? translations.buttons?.update || "Update"
+                        : translations.buttons?.save || "Save"
                     }
                   </Button>
                 </div>

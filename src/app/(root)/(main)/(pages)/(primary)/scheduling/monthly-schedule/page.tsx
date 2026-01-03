@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import FilterForm from "@/src/components/custom/modules/scheduling/MonthlyScheduleFilterForm";
@@ -13,12 +13,17 @@ import {
   ImportIcon,
   PasteIcon,
 } from "@/src/icons/icons";
-import toast from "react-hot-toast";
-import { importMonthlyScheduleRequest } from "@/src/lib/apiHandler";
-import { getAuthToken } from "@/src/utils/authToken";
+import { useShowToast } from "@/src/utils/toastHelper";
+import { 
+  importMonthlyScheduleRequest, 
+  filterMonthlyScheduleRequest, 
+  getAllMonthlySchedules,
+  exportMonthlyScheduleRequest 
+} from "@/src/lib/apiHandler";
 
 export default function Page() {
   const { translations, modules } = useLanguage();
+  const showToast = useShowToast();
   const [SearchValue, SetSearchValue] = useState<string>("");
   const [filterData, setFilterData] = useState<any>(null);
   const [filterParams, setFilterParams] = useState<any>(null);
@@ -27,6 +32,7 @@ export default function Page() {
   const [selectedRowIds, setSelectedRowIds] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const props = {
@@ -36,20 +42,67 @@ export default function Page() {
     on_open_change: setOpen,
   };
 
-  const handleFilterSubmit = (data: any) => {
-    setFilterData(data);
-    setRefreshKey(prev => prev + 1);
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const data = await getAllMonthlySchedules();
+        setFilterData(data);
+        setIsInitialLoad(false);
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+        setIsInitialLoad(false);
+      }
+    };
+
+    if (isInitialLoad) {
+      loadInitialData();
+    }
+  }, [isInitialLoad]);
+
+  const handleFilterSubmit = async (data: any) => {
+    if (data === null) {
+      try {
+        const allData = await getAllMonthlySchedules();
+        setFilterData(allData);
+        setFilterParams(null);
+        setRefreshKey(prev => prev + 1);
+      } catch (error) {
+        console.error("Error loading all data:", error);
+        showToast("error", "Failed to load data");
+      }
+    } else {
+      setFilterData(data);
+      setRefreshKey(prev => prev + 1);
+    }
   };
 
-  const handleSave = () => {
-    setRefreshKey(prev => prev + 1);
+  const handleFilterParamsChange = (params: any) => {
+    setFilterParams(params);
+  };
+
+  const handleSave = async () => {
+    setOpen(false);
+    
+    try {
+      if (filterParams) {
+        const data = await filterMonthlyScheduleRequest(filterParams);
+        setFilterData(data);
+      } else {
+        const data = await getAllMonthlySchedules();
+        setFilterData(data);
+      }
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error("Refresh error:", error);
+      showToast("error", "Failed to refresh data");
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.name.endsWith('.csv')) {
-        toast.error('Please select a CSV file');
+        showToast("error", "invalid_file_format");
         return;
       }
       setSelectedFile(file);
@@ -63,14 +116,22 @@ export default function Page() {
   const handleImport = async (file: File) => {
     try {
       const result = await importMonthlyScheduleRequest(file);
-      toast.success('Import successful');
+      showToast("success", "import_schedule_success");
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      
+      if (filterParams) {
+        const data = await filterMonthlyScheduleRequest(filterParams);
+        setFilterData(data);
+      } else {
+        const data = await getAllMonthlySchedules();
+        setFilterData(data);
+      }
       setRefreshKey(prev => prev + 1);
     } catch (error) {
-      toast.error('Import failed');
+      showToast("error", "import_schedule_error");
     }
   };
 
@@ -78,7 +139,7 @@ export default function Page() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.name.endsWith('.csv')) {
-        toast.error('Please select a CSV file');
+        showToast("error", "invalid_file_format");
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
@@ -90,62 +151,20 @@ export default function Page() {
 
   const handleExport = async () => {
     try {
-      const requestBody: any = {};
-      if (selectedRowIds.size > 0) {
-        requestBody.schedule_roster_ids = Array.from(selectedRowIds);
-      } else {
-        if (filterParams) {
-          if (filterParams.organization_id) requestBody.organization_id = filterParams.organization_id;
-          if (filterParams.month) requestBody.month = filterParams.month;
-          if (filterParams.year) requestBody.year = filterParams.year;
-          if (filterParams.day) requestBody.day = filterParams.day;
-          if (filterParams.employee_id) requestBody.employee_id = filterParams.employee_id;
-          if (filterParams.employee_group_id) requestBody.employee_group_id = filterParams.employee_group_id;
-          if (filterParams.manager_id) requestBody.manager_id = filterParams.manager_id;
-          if (filterParams.schedule_id) requestBody.schedule_id = filterParams.schedule_id;
-          if (filterParams.finalize_flag !== undefined) requestBody.finalize_flag = filterParams.finalize_flag;
-        }
-      }
-
-      const token = getAuthToken();
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-      const response = await fetch(`${API_URL}/employeeMonthlyRoster/export`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-          'ngrok-skip-browser-warning': 'true',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-
-      const blob = await response.blob();
+      const selectedIdsArray = Array.from(selectedRowIds);
       
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const fileName = selectedRowIds.size > 0 
-        ? `selected_rosters_${Date.now()}.csv`
-        : `employee_monthly_rosters_${Date.now()}.csv`;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      await exportMonthlyScheduleRequest(
+        selectedIdsArray.length > 0 ? null : filterParams,
+        selectedIdsArray
+      );
 
-      const successMessage = selectedRowIds.size > 0
-        ? `Exported ${selectedRowIds.size} selected roster(s)`
-        : 'Export successful';
-      toast.success(successMessage);
+      showToast(
+        "success", 
+        selectedRowIds.size > 0 ? "export_selected_success" : "export_schedule_success"
+      );
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Export failed');
+      showToast("error", "export_schedule_error");
     }
   };
   
@@ -154,7 +173,7 @@ export default function Page() {
       <PowerHeader
         props={props}
         items={modules?.scheduling?.items}
-        modal_title={translations?.modules?.scheduling?.add_monthly_roster || "Add Monthly Roster"}
+        modal_title={translations?.modules?.scheduling?.add_monthly_schedule|| "Add Monthly Schedule"}
         modal_component={
           <AddMonthlySchedule
             on_open_change={setOpen}
@@ -169,7 +188,7 @@ export default function Page() {
         <div className="w-full py-3">
           <FilterForm 
             onFilterSubmit={handleFilterSubmit}
-            onFilterParamsChange={setFilterParams}
+            onFilterParamsChange={handleFilterParamsChange}
           />
         </div>
       </div>

@@ -78,14 +78,6 @@ export default function PowerTakeAction({
                   {modal_description}
                 </ResponsiveModalDescription>
               </div>
-              {/* <span
-                className="cursor-pointer hover:scale-125 transition-all"
-                onClick={() => {
-                  modal_props?.on_open_change(false);
-                }}
-              >
-                <IoMdClose />
-              </span> */}
             </div>
             <ResponsiveModalTitle></ResponsiveModalTitle>
           </ResponsiveModalHeader>

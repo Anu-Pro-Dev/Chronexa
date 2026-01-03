@@ -12,12 +12,13 @@ import Required from "@/src/components/ui/required";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addRoleRequest, editRoleRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
   role_name: z
     .string()
-    .min(1, { message: "Role name is required" })
-    .max(100),
+    .min(1, { message: "role_name_required" })
+    .max(100, { message: "role_name_max_length" }),
   editable_flag: z.boolean().default(true),
 });
 
@@ -34,6 +35,8 @@ export default function AddRole({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const showToast = useShowToast();
+  const t = translations?.modules?.configurations || {};
+  const errT = translations?.formErrors || {};
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -120,12 +123,19 @@ export default function AddRole({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Role Name <Required />
+                  {t.role_name || "Role Name"} <Required />
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter the role name" type="text" {...field} />
+                  <Input 
+                    placeholder={t.placeholder_role_name || "Enter the role name"} 
+                    type="text" 
+                    {...field} 
+                  />
                 </FormControl>
-                <FormMessage />
+                <TranslatedError
+                  fieldError={form.formState.errors.role_name}
+                  translations={errT}
+                />
               </FormItem>
             )}
           />
@@ -141,8 +151,8 @@ export default function AddRole({
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <FormLabel className="font-normal">
-                  Editable
+                <FormLabel className="font-normal px-2">
+                  {t.editable || "Editable"}
                 </FormLabel>
               </FormItem>
             )}

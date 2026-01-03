@@ -82,13 +82,11 @@ export default function AppSidebar() {
     return () => observer.disconnect();
   }, []);
 
-  // Check screen size and force collapse on mobile/tablet
   React.useEffect(() => {
     const checkScreenSize = () => {
       const desktop = window.innerWidth >= 1024;
       setIsDesktop(desktop);
       
-      // Force collapse on mobile/tablet
       if (!desktop) {
         setOpen(false);
       }
@@ -99,7 +97,6 @@ export default function AppSidebar() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, [setOpen]);
 
-  // Only allow expand on desktop (1024px and above)
   const handleExpand = () => { 
     if (isDesktop) {
       setOpen(true); 
@@ -127,7 +124,6 @@ export default function AppSidebar() {
             <Image width={125} height={100} alt="logo" src={getMainLogo()} />
           </div>
         )}
-        {/* Show collapse button only on desktop (1024px+) when sidebar is open */}
         {open && isDesktop && (
           <Button 
             variant="ghost" 
@@ -139,7 +135,6 @@ export default function AppSidebar() {
             <MenuFold className='text-primary' />
           </Button>
         )}
-        {/* Show mono logo when collapsed - only clickable on desktop */}
         {!open && (
           <div 
             className={cn(

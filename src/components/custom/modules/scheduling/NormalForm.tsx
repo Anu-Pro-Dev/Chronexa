@@ -178,7 +178,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                 >
                   <FormControl>
                     <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
-                      <SelectValue placeholder={t.placeholder_org || "Choose organization"} />
+                      <SelectValue placeholder={t.placeholder_organization || "Choose organization"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent

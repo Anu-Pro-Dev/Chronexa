@@ -8,14 +8,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 import { useOrgScheduleEditStore } from "@/src/store/useOrgScheduleEditStore";
 
 type Column = {
-  field: string;
-  headerName: string;
-  cellRenderer?: (row: any) => React.ReactNode;
+    field: string;
+    headerName: string;
+    cellRenderer?: (row: any) => React.ReactNode;
 };
 
 export default function Page() {
@@ -31,10 +31,10 @@ export default function Page() {
     const queryClient = useQueryClient();
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const debouncedSearchValue = useDebounce(searchValue, 300);
-    
+
     const t = translations?.modules?.scheduling || {};
     const commonT = translations || {};
-    
+
     const setSelectedRowData = useOrgScheduleEditStore((state) => state.setSelectedRowData);
 
     const offset = useMemo(() => {
@@ -43,51 +43,57 @@ export default function Page() {
 
     useEffect(() => {
         setColumns([
-            { 
-                field: "organization_name", 
+            {
+                field: "organization_name",
                 headerName: t.organization || "Organization",
             },
-            { field: "from_date", headerName: "From" },
-            { field: "to_date", headerName: "To" },
-            { 
-                field: "monday_schedule_id", 
-                headerName: "Mon",
+            {
+                field: "from_date",
+                headerName: t.from_date || "From Date"  
+            },
+            {
+                field: "to_date",
+                headerName: t.to_date || "To Date"  
+            },
+            {
+                field: "monday_schedule_id",
+                headerName: t.monday || "Mon",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.monday_schedule_color }}>
                         {row.monday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "tuesday_schedule_id", 
-                headerName: "Tue",
+            {
+                field: "tuesday_schedule_id",
+                headerName: t.tuesday || "Tue",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.tuesday_schedule_color }}>
                         {row.tuesday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "wednesday_schedule_id", 
-                headerName: "Wed",
+            {
+                field: "wednesday_schedule_id",
+                headerName: t.wednesday || "Wed",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.wednesday_schedule_color }}>
                         {row.wednesday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "thursday_schedule_id", 
-                headerName: "Thu",
+            {
+                field: "thursday_schedule_id",
+                headerName: t.thursday || "Thu",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.thursday_schedule_color }}>
                         {row.thursday_schedule_id}
                     </span>
                 ),
             },
-            { 
-                field: "friday_schedule_id", 
-                headerName: "Fri",
+            {
+                field: "friday_schedule_id",
+                headerName: t.friday || "Fri",  
                 cellRenderer: (row: any) => (
                     <span style={{ color: row.friday_schedule_color }}>
                         {row.friday_schedule_id}
@@ -131,8 +137,8 @@ export default function Page() {
         if (!Array.isArray(organizationScheduleData?.data)) return [];
 
         return organizationScheduleData.data.map((orgSch: any) => {
-            const organizationName = language === 'ar' 
-                ? orgSch.organizations?.organization_arb 
+            const organizationName = language === 'ar'
+                ? orgSch.organizations?.organization_arb
                 : orgSch.organizations?.organization_eng;
 
             return {
@@ -206,7 +212,7 @@ export default function Page() {
 
     const handleEditClick = useCallback((row: any) => {
         const originalData = row._original;
-        
+
         if (originalData) {
             setSelectedRowData({
                 id: originalData.organization_schedule_id,
@@ -224,7 +230,7 @@ export default function Page() {
                 sunday_schedule_id: originalData.sunday_schedule_id,
             });
         }
-        
+
         router.push(`/scheduling/weekly-schedule/organization-schedule/edit?id=${row.id}`);
     }, [router, setSelectedRowData]);
 

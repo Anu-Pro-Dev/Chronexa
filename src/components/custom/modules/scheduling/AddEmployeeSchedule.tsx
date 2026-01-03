@@ -24,10 +24,27 @@ import TranslatedError from "@/src/utils/translatedError";
 import { cn } from "@/src/lib/utils";
 
 const formSchema = z.object({
-  from_date: z.date({ required_error: "from_date_required" }).optional(),
-  to_date: z.date({ required_error: "to_date_required" }).optional(),
-  employee_id: z.coerce.number({ required_error: "employee_required" }).min(1, { message: "employee_required" }),
-  schedule_id: z.coerce.number({ required_error: "schedule_required" }).min(1, { message: "schedule_required" }),
+  from_date: z.date({ required_error: "from_date_required" }),
+  to_date: z.date({ required_error: "to_date_required" }),
+  
+  employee_id: z.coerce
+    .number({ 
+      required_error: "employee_required",
+      invalid_type_error: "employee_required" 
+    })
+    .refine((val) => val > 0, { 
+      message: "employee_required" 
+    }),
+  
+  schedule_id: z.coerce
+    .number({ 
+      required_error: "schedule_required",
+      invalid_type_error: "schedule_required"
+    })
+    .refine((val) => val > 0, { 
+      message: "schedule_required" 
+    }),
+  
   sunday_schedule_id: z.coerce.number().nullable().optional(),
   monday_schedule_id: z.coerce.number().nullable().optional(),
   tuesday_schedule_id: z.coerce.number().nullable().optional(),
@@ -35,26 +52,21 @@ const formSchema = z.object({
   thursday_schedule_id: z.coerce.number().nullable().optional(),
   friday_schedule_id: z.coerce.number().nullable().optional(),
   saturday_schedule_id: z.coerce.number().nullable().optional(),
-  attachment: z.custom<any>(
-    (value) => {
-      if (!value) return true;
-      if (!(value instanceof File)) {
-        return false;
-      }
-      const maxSize = 5 * 1024 * 1024;
-      if (value.size > maxSize) {
-        return false;
-      }
-      const allowedTypes = ["image/jpeg", "image/png"];
-      if (!allowedTypes.includes(value.type)) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "attachment_invalid",
-    }
-  ).optional(),
+  
+  attachment: z
+    .custom<any>(
+      (value) => {
+        if (!value) return true;
+        if (!(value instanceof File)) return false;
+        const maxSize = 5 * 1024 * 1024;
+        if (value.size > maxSize) return false;
+        const allowedTypes = ["image/jpeg", "image/png"];
+        if (!allowedTypes.includes(value.type)) return false;
+        return true;
+      },
+      { message: "attachment_invalid" }
+    )
+    .optional(),
 });
 
 export default function AddEmployeeSchedule({
@@ -72,7 +84,7 @@ export default function AddEmployeeSchedule({
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [scheduleSearchTerm, setScheduleSearchTerm] = useState("");
   const showToast = useShowToast();
-  const t = translations?.modules?.schedulingModule || {};
+  const t = translations?.modules?.scheduling || {};
   const errT = translations?.formErrors || {};
   
   const [popoverStates, setPopoverStates] = useState({
@@ -98,8 +110,8 @@ export default function AddEmployeeSchedule({
     defaultValues: {
       from_date: undefined,
       to_date: undefined,
-      employee_id: undefined,
-      schedule_id: undefined,
+      employee_id: 0,
+      schedule_id: 0,
       sunday_schedule_id: undefined,
       monday_schedule_id: undefined,
       tuesday_schedule_id: undefined,
@@ -198,7 +210,6 @@ export default function AddEmployeeSchedule({
     let shouldUpdate = false;
 
     days.forEach((dayKey) => {
-      // Only auto-fill if the field is undefined (not if it's null or has a value)
       if (currentValues[dayKey] === undefined) {
         updatedFields[dayKey] = scheduleId;
         shouldUpdate = true;
@@ -279,7 +290,6 @@ export default function AddEmployeeSchedule({
         schedule_id: values.schedule_id,
       };
 
-      // Only add weekday schedules if they have a value (including null)
       if (values.sunday_schedule_id !== null) {
         payload.sunday_schedule_id = values.sunday_schedule_id;
       }

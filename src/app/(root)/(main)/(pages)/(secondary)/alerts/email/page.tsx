@@ -12,7 +12,7 @@ import { Input } from "@/src/components/ui/input";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { format } from "date-fns";
 
 export default function Page() {
@@ -33,7 +33,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedRecipient = useDebounce(recipient, 300);
-  const t = translations?.modules?.organization || {};
+  const t = translations?.modules?.alerts || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -62,20 +62,20 @@ export default function Page() {
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
-  
+
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
   const stripHtmlTags = useCallback((html: string): string => {
     if (!html) return "";
-    
+
     try {
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = html;
-      
+
       const cleanText = tempDiv.textContent || tempDiv.innerText || "";
-      
+
       return cleanText.replace(/\s+/g, ' ').trim();
     } catch (error) {
       return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
@@ -89,17 +89,17 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "to_text", headerName: "Email" },
-      { field: "subject_text", headerName: "Subject" },
-      { field: "body_text", headerName: "Body" },
-      { field: "email_status_display", headerName: "Status"},
-      { field: "processed_date", headerName: "Sent At" },
-      { field: "cc_email", headerName: "CC Email" },
-      { field: "bcc_email", headerName: "BCC Email" },
+      { field: "to_text", headerName: t.email || "Email" },
+      { field: "subject_text", headerName: t.subject || "Subject" },
+      { field: "body_text", headerName: t.body || "Body" },
+      { field: "email_status_display", headerName: t.status || "Status" },
+      { field: "processed_date", headerName: t.sent_at || "Sent At" },
+      { field: "cc_email", headerName: t.cc_email || "CC Email" },
+      { field: "bcc_email", headerName: t.bcc_email || "BCC Email" },
     ]);
-  }, [language]);
+  }, [language, t]);
 
-  const { data: taEmailData, isLoading, refetch } = useFetchAllEntity("ta-emails",{
+  const { data: taEmailData, isLoading, refetch } = useFetchAllEntity("ta-emails", {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -257,16 +257,16 @@ export default function Page() {
     },
 
   };
- 
+
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["taEmail"] });
   };
- 
+
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
     setOpen(true);
   }, []);
- 
+
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -281,7 +281,7 @@ export default function Page() {
     const selectedRowsForExport = selectedRows.map((item: any) => ({
       ...item,
       body_text: item.body_text_full,
-      email_status: item.email_status_display, 
+      email_status: item.email_status_display,
     }));
 
     return {
@@ -303,42 +303,51 @@ export default function Page() {
         disableAdd
         disableDelete
       />
-      
+
+      {/* Filter Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
         <div>
           <Select onValueChange={handleStatusChange} value={status}>
             <SelectTrigger className="bg-accent border-grey">
-              <Label className="font-normal text-secondary">
-                Status :
-              </Label>
-              <SelectValue placeholder="Choose status" />
+              <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
+                <Label className="font-normal text-secondary">
+                  {t.status} :
+                </Label>
+                <span className="px-1 text-sm text-text-primary">
+                  <SelectValue placeholder={t.status} />
+                </span>
+              </p>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="0">Pending</SelectItem>
-              <SelectItem value="1">Processed</SelectItem>
+              <SelectItem value="all">{translations?.buttons?.show_all || "All Status"}</SelectItem>
+              <SelectItem value="0">{translations?.dashboard?.pending || "Pending"}</SelectItem>
+              <SelectItem value="1">{translations?.dashboard?.completed || "Processed"}</SelectItem>
               <SelectItem value="2">Failed</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button 
-                size={"lg"} 
-                variant={"outline"}
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+              <Button
+                size="lg"
+                variant="outline"
+                className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
               >
-                <p>
+                {language === "ar" && <CalendarIcon />}
+                <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
                   <Label className="font-normal text-secondary">
-                    From Date :
+                    {t.from_date} :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {fromDate ? format(fromDate, "dd/MM/yy") : "Choose date"}
+                    {fromDate ? format(fromDate, "dd/MM/yy") : t.placeholder_date}
                   </span>
                 </p>
-                <CalendarIcon />
+                {language !== "ar" && <CalendarIcon />}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -353,34 +362,38 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
-        
+
         <div>
-          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button 
-                size={"lg"} 
-                variant={"outline"}
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+              <Button
+                size="lg"
+                variant="outline"
+                className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
               >
-                <p>
+                {language === "ar" && <CalendarIcon />}
+                <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
                   <Label className="font-normal text-secondary">
-                    To Date :
+                    {t.to_date} :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {toDate ? format(toDate, "dd/MM/yy") : "Choose date"}
+                    {toDate ? format(toDate, "dd/MM/yy") : t.placeholder_date}
                   </span>
                 </p>
-                <CalendarIcon />
+                {language !== "ar" && <CalendarIcon />}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar 
-                mode="single" 
-                selected={toDate} 
+              <Calendar
+                mode="single"
+                selected={toDate}
                 onSelect={(date) => {
                   handleToDateChange(date);
                   closePopover('toDate');
-                }} 
+                }}
                 disabled={(date) => {
                   if (!fromDate) return false;
 
@@ -404,9 +417,9 @@ export default function Page() {
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
         overrideCheckbox={true}
-        // customColDef={{
-        //   flex: 0,
-        // }}
+      // customColDef={{
+      //   flex: 0,
+      // }}
       />
     </div>
   );

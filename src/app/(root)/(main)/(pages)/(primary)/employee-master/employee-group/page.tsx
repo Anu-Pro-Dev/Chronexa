@@ -112,14 +112,6 @@ export default function Page() {
     setCurrentPage(1);
   }, []);
 
-  // const handleCellClickPath = useCallback((data: any) => {
-  //   if (data?.group_code) {
-  //     router.push(`/employee-master/employee-group/group-members?group=${data.group_code}`);
-  //   } else {
-  //     console.error("Error: No code found for this row", data);
-  //   }
-  // }, [router]);
-
   const handleCellClickPath = useCallback((row: any) => {
     if (!row?.employee_group_id || !row?.group_code) {
       console.error("Invalid group row", row);

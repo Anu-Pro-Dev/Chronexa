@@ -13,17 +13,18 @@ import { Button } from "@/src/components/ui/button";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { approvePermissionRequest } from "@/src/lib/apiHandler";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
   const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  const showToast = useShowToast();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("short_permission_id");
@@ -41,7 +42,7 @@ export default function Page() {
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const [approveOpen, setApproveOpen] = useState<boolean>(false);
   const [rejectOpen, setRejectOpen] = useState<boolean>(false);
-  const t = translations?.modules?.selfServices || {};
+  const t = translations?.modules?.manageApprovals || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -55,7 +56,7 @@ export default function Page() {
 
   const getEmployeeDisplayInfo = useCallback((permission: any, language: string = 'en') => {
     const employeeMaster = permission.employee_master;
-    
+
     if (!employeeMaster) {
       return {
         emp_no: `EMP${permission.employee_id}`,
@@ -73,8 +74,8 @@ export default function Page() {
 
     const firstName = language === 'ar' ? firstNameAr : firstNameEn;
     const lastName = language === 'ar' ? lastNameAr : lastNameEn;
-    
-    const fullName = language === 'ar' 
+
+    const fullName = language === 'ar'
       ? `${firstNameAr} ${lastNameAr}`.trim()
       : `${firstNameEn} ${lastNameEn}`.trim();
 
@@ -92,8 +93,8 @@ export default function Page() {
     if (!permissionTypes) {
       return language === "ar" ? "غير معروف" : "Unknown";
     }
-    
-    return language === "ar" 
+
+    return language === "ar"
       ? permissionTypes.permission_type_arb || permissionTypes.permission_type_eng || "غير معروف"
       : permissionTypes.permission_type_eng || permissionTypes.permission_type_arb || "Unknown";
   }, [language]);
@@ -105,9 +106,9 @@ export default function Page() {
       { field: "permission_date", headerName: t.date || "Date" },
       { field: "from_time", headerName: t.from_time || "From Time" },
       { field: "to_time", headerName: t.to_time || "To Time" },
-      { field: "perm_minutes", headerName: t.perm_mins || "Permission Minutes" },
+      { field: "perm_minutes", headerName: t.perm_mins || "Permission Minutes" }, 
     ]);
-  }, [language, t]);
+  }, [language, t, translations]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
@@ -117,7 +118,7 @@ export default function Page() {
   };
 
   const { data: permissionsData, isLoading: isLoadingPermissions, error, refetch } = useFetchAllEntity(
-    "employeeShortPermission", 
+    "employeeShortPermission",
     {
       searchParams: {
         pending: "true",
@@ -138,16 +139,16 @@ export default function Page() {
       return [];
     }
 
-    const filteredData = permissionsData.data.filter((permission: any) => 
+    const filteredData = permissionsData.data.filter((permission: any) =>
       permission.employee_id !== employeeId
     );
 
     const processedData = filteredData.map((permission: any) => {
       const employeeInfo = getEmployeeDisplayInfo(permission, language);
-      const permissionDate = permission.from_date 
+      const permissionDate = permission.from_date
         ? new Date(permission.from_date).toISOString().split('T')[0]
         : '';
-      
+
       return {
         ...permission,
         id: permission.short_permission_id,
@@ -207,7 +208,7 @@ export default function Page() {
 
   const handleApprove = async () => {
     if (selectedRows.length === 0) {
-      toast.error("No row selected");
+      showToast("error", "no_row_selected");
       return;
     }
 
@@ -221,22 +222,19 @@ export default function Page() {
         )
       );
 
-      results.forEach((res) => {
-        toast.success(res?.message || "Approved successfully");
-      });
-
+      showToast("success", "approve_permission_success");
       setSelectedRows([]);
       setApproveOpen(false);
       await refetch();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Approval failed");
+      showToast("error", "approve_permission_error");
       console.error("Approval error:", error);
     }
   };
 
   const handleReject = async () => {
     if (selectedRows.length === 0) {
-      toast.error("No row selected");
+      showToast("error", "no_row_selected");
       return;
     }
 
@@ -250,15 +248,12 @@ export default function Page() {
         )
       );
 
-      results.forEach((res) => {
-        toast.success(res?.message || "Rejected successfully");
-      });
-
+      showToast("success", "reject_permission_success");
       setSelectedRows([]);
-      setRejectOpen(false); 
+      setRejectOpen(false);
       await refetch();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Rejection failed");
+      showToast("error", "reject_permission_error");
       console.error("Rejection error:", error);
     }
   };
@@ -337,10 +332,10 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.manageApprovals.items}
         entityName="employeeShortPermission"
-        approve_modal_title="Approve Permission"
-        approve_modal_description="Are you sure you want to approve the selected permission request(s)?"
-        reject_modal_title="Reject Permission"
-        reject_modal_description="Are you sure you want to reject the selected permission request(s)?"
+        approve_modal_title={t.approve_permission || "Approve Permission"}
+        approve_modal_description={t.approve_permission_desc || "Are you sure you want to approve the selected permission request(s)?"}
+        reject_modal_title={t.reject_permission || "Reject Permission"}
+        reject_modal_description={t.reject_permission_desc || "Are you sure you want to reject the selected permission request(s)?"}
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
@@ -353,7 +348,7 @@ export default function Page() {
                   <Label className="font-normal text-secondary">
                     {t.from_date || "From Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
+                  <span className="px-1 text-sm text-text-primary">
                     {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
@@ -380,9 +375,9 @@ export default function Page() {
               >
                 <p>
                   <Label className="font-normal text-secondary">
-                    {t.to_date || "To Date"} : 
+                    {t.to_date || "To Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
+                  <span className="px-1 text-sm text-text-primary">
                     {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
@@ -390,25 +385,22 @@ export default function Page() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar 
-                mode="single" 
-                selected={toDate} 
+              <Calendar
+                mode="single"
+                selected={toDate}
                 onSelect={(date) => {
                   handleToDateChange(date);
                   closePopover('toDate');
                 }}
                 disabled={(date) => {
-                  // Use the fromDate state variable instead of form.getValues
                   if (!fromDate) return false;
 
-                  // Normalize both dates (remove time)
                   const from = new Date(fromDate);
                   from.setHours(0, 0, 0, 0);
 
                   const current = new Date(date);
                   current.setHours(0, 0, 0, 0);
 
-                  // Block selecting To Date earlier than From Date
                   return current < from;
                 }}
               />
@@ -419,7 +411,7 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Permission Approval
+            {t.perms_approvals || "Permission Approval"}
           </h1>
         </div>
         <div className="px-6">

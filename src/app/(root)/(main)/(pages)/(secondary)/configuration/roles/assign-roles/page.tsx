@@ -12,17 +12,18 @@ import { apiRequest } from "@/src/lib/apiHandler";
 import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function MembersTable() {
-  const { modules, language } = useLanguage();
+  const { modules, language, translations } = useLanguage();
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
+  const t = translations?.modules?.configurations || {};
 
   const [columns, setColumns] = useState([
-    { field: "user_id", headerName: "User ID" },
-    { field: "employee_no", headerName: "Employee No" },
-    { field: "user_name", headerName: "Employee Name" },
-    { field: "designation", headerName: "Designation" },
-    { field: "organization", headerName: "Organization" },
-    { field: "created_date", headerName: "Assigned Date" },
+    { field: "user_id", headerName: t.user_id || "User ID" },
+    { field: "employee_no", headerName: t.employee_no || "Employee No" },
+    { field: "user_name", headerName: t.employee_name || "Employee Name" },
+    { field: "designation", headerName: t.designation || "Designation" },
+    { field: "organization", headerName: t.organization || "Organization" },
+    { field: "created_date", headerName: t.assigned_date || "Assigned Date" },
   ]);
 
   const [open, setOpen] = useState(false);
@@ -50,12 +51,12 @@ export default function MembersTable() {
   }, [role, rolesData]);
 
   const currentRoleName = useMemo(() => {
-    if (!roleId || !rolesData?.data) return role || "Role";
+    if (!roleId || !rolesData?.data) return role || t.role_name || "Role";
     const foundRole = rolesData.data.find(
       (r: any) => (r.id || r.role_id) === roleId
     );
-    return foundRole?.role_name || foundRole?.name || role || "Role";
-  }, [roleId, rolesData, role]);
+    return foundRole?.role_name || foundRole?.name || role || t.role_name || "Role";
+  }, [roleId, rolesData, role, t]);
 
   const {
     data: userRolesData,
@@ -156,6 +157,17 @@ export default function MembersTable() {
   const isLoading = isLoadingRoles || isLoadingUserRoles;
 
   useEffect(() => {
+    setColumns([
+      { field: "user_id", headerName: t.user_id || "User ID" },
+      { field: "employee_no", headerName: t.employee_no || "Employee No" },
+      { field: "user_name", headerName: t.employee_name || "Employee Name" },
+      { field: "designation", headerName: t.designation || "Designation" },
+      { field: "organization", headerName: t.organization || "Organization" },
+      { field: "created_date", headerName: t.assigned_date || "Assigned Date" },
+    ]);
+  }, [t, language]);
+
+  useEffect(() => {
     if (!open) setSelectedRowData(null);
   }, [open]);
 
@@ -223,7 +235,7 @@ export default function MembersTable() {
         selectedRows={selectedRows}
         items={modules?.configuration?.items}
         entityName="secUserRole"
-        modal_title={`Add User to ${currentRoleName}`}
+        modal_title={`${t.add_user_to || "Add User to"} ${currentRoleName}`}
         modal_component={
           <AddRoleToUser
             on_open_change={setOpen}
@@ -237,7 +249,7 @@ export default function MembersTable() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-0">
             <h1 className="font-bold text-xl text-primary">
-              {`${currentRoleName} USERS`}
+              {`${currentRoleName} ${t.users || "USERS"}`}
             </h1>
         </div>
         <PowerTable

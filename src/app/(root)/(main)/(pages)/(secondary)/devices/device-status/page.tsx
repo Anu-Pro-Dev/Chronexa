@@ -29,9 +29,9 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
-      { field: "device_no", headerName: "Device No" },
-      { field: "device_name", headerName: "Device Name" },
-      { field: "device_status", headerName: "Device Status" }
+      { field: "device_no", headerName: t.device_no || "Device No" },
+      { field: "device_name", headerName: t.device_name || "Device Name" },
+      { field: "device_status", headerName: t.device_status || "Device Status" }
     ]);
   }, [t, language]);
 
@@ -125,7 +125,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.devices.items}
         entityName="device"
-        modal_title="Devices"
+        modal_title={t.devices || "Devices"}
         modal_component={
           <AddDevices
             on_open_change={setOpen}

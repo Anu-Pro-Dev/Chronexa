@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -9,6 +8,7 @@ interface PDFExporterProps {
   calculateSummaryTotals: (data: any[]) => any;
   logoUrl?: string;
   onProgress?: (current: number, total: number, phase: string) => void;
+  showToast: (type: 'success' | 'error' | 'loading', messageKey: string, params?: Record<string, any>) => void;
 }
 
 export class PDFExporter {
@@ -17,13 +17,15 @@ export class PDFExporter {
   private calculateSummaryTotals: (data: any[]) => any;
   private logoUrl?: string;
   private onProgress?: (current: number, total: number, phase: string) => void;
+  private showToast: (type: 'success' | 'error' | 'loading', messageKey: string, params?: Record<string, any>) => void;
 
-  constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress }: PDFExporterProps) {
+  constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress, showToast }: PDFExporterProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
     this.logoUrl = logoUrl;
     this.onProgress = onProgress;
+    this.showToast = showToast;
   }
 
   private async loadLogoAsBase64(): Promise<string | null> {
@@ -140,13 +142,10 @@ export class PDFExporter {
         const url = this.buildUrl(params);
         const response = await apiRequest(url, "GET");
 
-        // Handle API response structure: {success, data, total, hasNext}
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
         const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
-
-        // Set total from first API response
         if (offset === 0 && total > 0) {
           apiTotal = total;
         }
@@ -160,10 +159,8 @@ export class PDFExporter {
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
         
-        // Update hasMore based on API response
         hasMore = hasNext && batch.length === BATCH_SIZE;
 
-        // Report progress with actual values
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
         await this.yieldToMain();
@@ -172,9 +169,11 @@ export class PDFExporter {
         console.error('Error fetching batch:', error);
         
         if (error && typeof error === 'object' && 'requireLogin' in error) {
+          this.showToast('error', 'pdf_session_expired');
           throw new Error('Session expired. Please login again.');
         }
         
+        this.showToast('error', 'pdf_fetch_error');
         throw new Error('Failed to fetch data from server');
       }
     }
@@ -224,7 +223,6 @@ export class PDFExporter {
     ];
   }
 
-  // Define column widths to fit all columns on page
   private getColumnWidth(header: string): string {
     const widthMap: Record<string, string> = {
       'employee_number': '4%',
@@ -431,9 +429,8 @@ export class PDFExporter {
 
       const allData = await this.fetchDataInBatches();
 
-
       if (allData.length === 0) {
-        toast.error("No data available to export.");
+        this.showToast('error', 'pdf_no_data_error');
         return;
       }
 
@@ -445,10 +442,10 @@ export class PDFExporter {
         : allData;
 
       if (allData.length > MAX_PDF_ROWS) {
-        toast.loading(
-          `Dataset has ${allData.length.toLocaleString()} records. PDF will show first ${MAX_PDF_ROWS.toLocaleString()} rows. Summary totals include all records.`,
-          { duration: 4000 }
-        );
+        this.showToast('loading', 'pdf_limited_rows', { 
+          count: allData.length.toLocaleString(),
+          limit: MAX_PDF_ROWS.toLocaleString()
+        });
       }
 
       const html2pdf = await import('html2pdf.js').then(module => module.default);
@@ -479,37 +476,37 @@ export class PDFExporter {
         }
       };
       
-      // Create a temporary container to render HTML
       const container = document.createElement('div');
       container.innerHTML = htmlContent;
       document.body.appendChild(container);
       
-      // Wait a moment for rendering
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Generate and open PDF
       await html2pdf().set(opt).from(container).save();
       
-      // Clean up after a delay
       setTimeout(() => {
         document.body.removeChild(container);
       }, 1000);
                   
       this.onProgress?.(allData.length, allData.length, 'complete');
       
-      const recordMessage = allData.length > MAX_PDF_ROWS 
-        ? `First ${MAX_PDF_ROWS.toLocaleString()} of ${allData.length.toLocaleString()} records`
-        : `${allData.length.toLocaleString()} records`;
-      
-      toast.success(`PDF downloaded successfully! (${recordMessage})`);
+      if (allData.length > MAX_PDF_ROWS) {
+        this.showToast('success', 'pdf_export_success_limited', {
+          limit: MAX_PDF_ROWS.toLocaleString(),
+          total: allData.length.toLocaleString()
+        });
+      } else {
+        this.showToast('success', 'pdf_export_success', {
+          count: allData.length.toLocaleString()
+        });
+      }
 
     } catch (error) {
       console.error("Error generating PDF:", error);
       
       if (error instanceof Error && error.message.includes('Session expired')) {
-        toast.error(error.message);
       } else {
-        toast.error("Error generating PDF. Please try again.");
+        this.showToast('error', 'pdf_export_error');
       }
       throw error;
     }

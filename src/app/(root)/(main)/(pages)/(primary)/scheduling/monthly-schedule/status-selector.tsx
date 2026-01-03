@@ -17,12 +17,14 @@ interface Schedule {
 interface StatusSelectorProps {
   status: string | null;
   scheduleId?: number | null;
+  disabled?: boolean;
   onStatusChange: (scheduleId: number, statusCode: string) => void;
 }
 
 export function StatusSelector({
   status,
   scheduleId,
+  disabled = false,
   onStatusChange,
 }: StatusSelectorProps) {
   const { language, translations } = useLanguage();
@@ -72,12 +74,21 @@ export function StatusSelector({
   );
 
   return (
-    <Popover open={popoverStates.statusColor} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, statusColor: open }))}>
+    <Popover
+      open={disabled ? false : popoverStates.statusColor}
+      onOpenChange={(open) => {
+        if (disabled) return;
+        setPopoverStates(prev => ({ ...prev, statusColor: open }));
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           size="sm"
           variant="ghost"
-          className="w-10 h-7 rounded text-white text-xs font-semibold mx-1 my-3"
+          disabled={disabled}
+          className={`w-10 h-7 rounded text-xs font-semibold mx-1 my-3
+            ${disabled ? "cursor-not-allowed" : "cursor-pointer"}
+          `}
           style={{
             backgroundColor:
               typeof status === "string" && status.trim() !== ""
@@ -95,14 +106,14 @@ export function StatusSelector({
             <Button
               key={schedule.schedule_id}
               size="sm"
+              disabled={disabled}
               onClick={() => {
+                if (disabled) return;
                 onStatusChange(schedule.schedule_id, schedule.schedule_code);
                 closePopover("statusColor");
               }}
               className="w-full rounded-md text-white text-xs capitalize"
-              style={{
-                backgroundColor: schedule.sch_color,
-              }}
+              style={{ backgroundColor: schedule.sch_color }}
             >
               {formatStatusCode(schedule.schedule_code)}
             </Button>

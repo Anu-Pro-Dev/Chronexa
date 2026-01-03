@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
 import Papa from "papaparse";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { formatInTimeZone } from "date-fns-tz";
@@ -9,6 +8,7 @@ export interface CSVExporterProps {
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
   onProgress?: (current: number, total: number, phase: string) => void;
+  showToast: (type: 'success' | 'error', messageKey: string, params?: Record<string, any>) => void;
 }
 
 export class CSVExporter {
@@ -16,12 +16,14 @@ export class CSVExporter {
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
   private onProgress?: (current: number, total: number, phase: string) => void;
+  private showToast: (type: 'success' | 'error', messageKey: string, params?: Record<string, any>) => void;
   
-  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress }: CSVExporterProps) {
+  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress, showToast }: CSVExporterProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
     this.onProgress = onProgress;
+    this.showToast = showToast;
   }
 
   private getFilteredHeaders() {   
@@ -150,12 +152,10 @@ export class CSVExporter {
           const url = this.buildUrl(params);
           const response = await apiRequest(url, "GET");
 
-          // Handle API response structure: {success, data, total, hasNext}
           const batch = Array.isArray(response) ? response : (response.data || []);
           const total = response?.total || 0;
           const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
-          // Set total from first API response
           if (offset === 0 && total > 0) {
             apiTotal = total;
           }
@@ -177,10 +177,8 @@ export class CSVExporter {
           fetchedRecords += batch.length;
           offset += BATCH_SIZE;
           
-          // Update hasMore based on API response
           hasMore = hasNext && batch.length === BATCH_SIZE;
 
-          // Report progress with actual values
           this.onProgress?.(fetchedRecords, apiTotal || totalRecords, 'fetching');
 
           await this.yieldToMain();
@@ -189,23 +187,23 @@ export class CSVExporter {
           console.error('Error fetching batch:', error);
           
           if (error && typeof error === 'object' && 'requireLogin' in error) {
+            this.showToast('error', 'csv_session_expired');
             throw new Error('Session expired. Please login again.');
           }
           
+          this.showToast('error', 'csv_fetch_error');
           throw new Error('Failed to fetch data from server');
         }
       }
 
       if (totalRecords === 0) {
-        toast.error("No data available to export.");
+        this.showToast('error', 'csv_no_data_error');
         return;
       }
 
-      // Processing phase
       this.onProgress?.(totalRecords, totalRecords, 'processing');
       await this.yieldToMain();
 
-      // Generating phase
       this.onProgress?.(totalRecords, totalRecords, 'generating');
 
       const BOM = '\uFEFF';
@@ -227,15 +225,14 @@ export class CSVExporter {
       URL.revokeObjectURL(url);
 
       this.onProgress?.(totalRecords, totalRecords, 'complete');
-      toast.success(`CSV file generated successfully! (${totalRecords.toLocaleString()} records)`);
+      this.showToast('success', 'csv_export_success', { count: totalRecords.toLocaleString() });
       
     } catch (error) {
       console.error("CSV export error:", error);
       
       if (error instanceof Error && error.message.includes('Session expired')) {
-        toast.error(error.message);
       } else {
-        toast.error("Error generating CSV file. Please try again.");
+        this.showToast('error', 'csv_export_error');
       }
       throw error;
     }
@@ -248,7 +245,7 @@ export class CSVExporter {
       const allData = await this.fetchDataInBatches();
 
       if (allData.length === 0) {
-        toast.error("No data available to export.");
+        this.showToast('error', 'csv_no_data_error');
         return;
       }
 
@@ -325,15 +322,14 @@ export class CSVExporter {
 
       this.onProgress?.(allData.length, allData.length, 'complete');
       
-      toast.success(`CSV file generated successfully! (${allData.length.toLocaleString()} records)`);
+      this.showToast('success', 'csv_export_success', { count: allData.length.toLocaleString() });
       
     } catch (error) {
       console.error("CSV export error:", error);
       
       if (error instanceof Error && error.message.includes('Session expired')) {
-        toast.error(error.message);
       } else {
-        toast.error("Error generating CSV file. Please try again.");
+        this.showToast('error', 'csv_export_error');
       }
       throw error;
     }
@@ -359,12 +355,10 @@ export class CSVExporter {
         const url = this.buildUrl(params);
         const response = await apiRequest(url, "GET");
 
-        // Handle API response structure: {success, data, total, hasNext}
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
         const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
-        // Set total from first API response
         if (offset === 0 && total > 0) {
           apiTotal = total;
         }
@@ -378,10 +372,8 @@ export class CSVExporter {
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
         
-        // Update hasMore based on API response
         hasMore = hasNext && batch.length === BATCH_SIZE;
 
-        // Report progress with actual values
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
         await this.yieldToMain();
@@ -390,9 +382,11 @@ export class CSVExporter {
         console.error('Error fetching batch:', error);
         
         if (error && typeof error === 'object' && 'requireLogin' in error) {
+          this.showToast('error', 'csv_session_expired');
           throw new Error('Session expired. Please login again.');
         }
         
+        this.showToast('error', 'csv_fetch_error');
         throw new Error('Failed to fetch data from server');
       }
     }

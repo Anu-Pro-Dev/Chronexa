@@ -2,28 +2,38 @@
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
-import FilterPendingApproval from "@/src/components/custom/modules/self-services/FilterPendingApproval";
+
 export default function Page() {
-  const { modules } = useLanguage();
+  const { modules, language, translations } = useLanguage();
+  const t = translations?.modules?.manageApprovals || {};
+  
   const [Data, SetData] = useState<any>([]);
 
   const [Columns, setColumns] = useState([
-    { field: "number" },
-    { field: "employee" },
-    { field: "type" },
+    { field: "number", headerName: t.number || "Number" },
+    { field: "employee", headerName: t.employee || "Employee" },
+    { field: "type", headerName: t.type || "Type" },
   ]);
 
   const [open, on_open_change] = useState<boolean>(false);
 
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
-  const [CurrentPage, SetCurrentPage] = useState<number>(1)
-  const [SortField, SetSortField] = useState<string>("")
-  const [SortDirection, SetSortDirection] = useState<string>("asc")
-  const [SearchValue, SetSearchValue] = useState<string>("")
+  const [CurrentPage, SetCurrentPage] = useState<number>(1);
+  const [SortField, SetSortField] = useState<string>("");
+  const [SortDirection, SetSortDirection] = useState<string>("asc");
+  const [SearchValue, SetSearchValue] = useState<string>("");
+
+  useEffect(() => {
+    setColumns([
+      { field: "number", headerName: t.number || "Number" },
+      { field: "employee", headerName: t.employee || "Employee" },
+      { field: "type", headerName: t.type || "Type" },
+    ]);
+  }, [language, t, translations]);
 
   const props = {
     Data,
@@ -54,7 +64,9 @@ export default function Page() {
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">Punches Approval</h1>
+          <h1 className="font-bold text-xl text-primary">
+            {t.punches_approval || "Punches Approval"}
+          </h1>
         </div>
         <div className="px-6">
           <PowerTabs />

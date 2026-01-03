@@ -7,14 +7,8 @@ export const personalFormSchema = z.object({
   firstname: z.string().min(1, { message: "firstname_required" }),
   lastname: z.string().min(1, { message: "lastname_required" }),
   mobile: z.string().optional(),
-  email: z
-    .string()
-    .min(1, { message: "email_required" })
-    .regex(
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      { message: "email_invalid" }
-    ),  
-  join_date: z.date({ required_error: "join_date_required" }),
+  email: z.string().nullable().optional(),
+  join_date: z.date().nullable().optional(),
   active_date: z.date().nullable().optional(),
   inactive_date: z.date().nullable().optional(),
   card_number: z.string().optional(),

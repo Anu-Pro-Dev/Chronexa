@@ -19,36 +19,45 @@ import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("transaction_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.selfServices || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
+  
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.selfServices || {};
 
-  const closePopover = (key: string) => {
+  const offset = useMemo(() => currentPage, [currentPage]);
+
+  const closePopover = useCallback((key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
-  };
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+  }, []);
 
-  const getEmployeeDisplayInfo = useCallback((transaction: any, language: string = 'en') => {
+  const formatDateForAPI = useCallback((date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const getEmployeeDisplayInfo = useCallback((transaction: any, lang: string = 'en') => {
     const employeeMaster = transaction.employee_master;
     
     if (!employeeMaster) {
@@ -66,22 +75,22 @@ export default function Page() {
     const firstNameAr = employeeMaster.firstname_arb || '';
     const lastNameAr = employeeMaster.lastname_arb || '';
 
-    const firstName = language === 'ar' ? firstNameAr : firstNameEn;
-    const lastName = language === 'ar' ? lastNameAr : lastNameEn;
+    const firstName = lang === 'ar' ? firstNameAr : firstNameEn;
+    const lastName = lang === 'ar' ? lastNameAr : lastNameEn;
     
-    const fullName = language === 'ar' 
-      ? `${firstNameAr}`.trim()
-      : `${firstNameEn}`.trim();
+    const fullName = lang === 'ar' 
+      ? `${firstNameAr} ${lastNameAr}`.trim()
+      : `${firstNameEn} ${lastNameEn}`.trim();
 
     return {
       emp_no: employeeMaster.emp_no || `EMP${transaction.employee_id}`,
       employee_name: fullName || firstName || `Employee ${transaction.employee_id}`,
-      firstName: firstName,
-      lastName: lastName,
+      firstName,
+      lastName,
       fullName: fullName || firstName || `Employee ${transaction.employee_id}`,
       employee_id: transaction.employee_id
     };
-  }, [language]);
+  }, []);
 
   useEffect(() => {
     setColumns([
@@ -107,17 +116,10 @@ export default function Page() {
       },
       {
         field: "remarks",
-        headerName: "Remarks"
+        headerName: t.remarks || "Remarks"
       }
     ]);
   }, [language, t]);
-
-  const formatDateForAPI = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
 
   const { data: punchesData, isLoading: isLoadingTransactions, error, refetch } = useFetchAllEntity(
     "employeeEventTransaction", 
@@ -139,7 +141,7 @@ export default function Page() {
       return [];
     }
 
-    const processedData = punchesData.data.map((transaction: any) => {
+    return punchesData.data.map((transaction: any) => {
       const employeeInfo = getEmployeeDisplayInfo(transaction, language);
       
       const transactionTimeStr = transaction.transaction_time || '';
@@ -167,8 +169,6 @@ export default function Page() {
         employee_master: transaction.employee_master,
       };
     });
-
-    return processedData;
   }, [punchesData, language, getEmployeeDisplayInfo]);
 
   const handlePageChange = useCallback((newPage: number) => {
@@ -198,17 +198,41 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleFromDateChange = (date: Date | undefined) => {
+  const handleFromDateChange = useCallback((date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleToDateChange = (date: Date | undefined) => {
+  const handleToDateChange = useCallback((date: Date | undefined) => {
     setToDate(date);
     handleFilterChange();
-  };
-  
-  const props = {
+  }, [handleFilterChange]);
+
+  const handleEditClick = useCallback((rowData: any) => {
+    try {
+      const editData = {
+        ...rowData,
+        employeeInfo: {
+          emp_no: rowData.emp_no,
+          firstName: rowData.firstName,
+          lastName: rowData.lastName,
+          fullName: rowData.fullName,
+          employee_master: rowData.employee_master
+        }
+      };
+      
+      sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
+    } catch (error) {
+      console.error("Error setting edit data:", error);
+      toast.error("Failed to load transaction data for editing");
+    }
+  }, []);
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -230,33 +254,24 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
-  };
- 
-  const handleEditClick = (rowData: any) => {
-    try {
-      const editData = {
-        ...rowData,
-        employeeInfo: {
-          emp_no: rowData.emp_no,
-          firstName: rowData.firstName,
-          lastName: rowData.lastName,
-          fullName: rowData.fullName,
-          employee_master: rowData.employee_master
-        }
-      };
-      
-      sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
-      
-    } catch (error) {
-      console.error("Error setting edit data:", error);
-      toast.error("Failed to load transaction data for editing");
-    }
-  };
- 
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-    
-  }, []);
+  }), [
+    data, 
+    columns, 
+    open, 
+    selectedRows, 
+    isLoadingTransactions, 
+    isChecking, 
+    sortField, 
+    currentPage, 
+    sortDirection, 
+    searchValue, 
+    punchesData, 
+    rowsPerPage, 
+    filter_open,
+    handlePageChange,
+    handleSearchChange,
+    handleRowsPerPageChange
+  ]);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -297,11 +312,17 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
-          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+          <Popover 
+            open={popoverStates.fromDate} 
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button 
+                size="lg" 
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
@@ -327,10 +348,16 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
+
         <div>
-          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
+          <Popover 
+            open={popoverStates.toDate} 
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button 
+                size="lg" 
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
@@ -357,9 +384,12 @@ export default function Page() {
           </Popover>
         </div>
       </div>
+
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">{t.manage_my_punches || "Manage My Punches"}</h1>
+          <h1 className="font-bold text-xl text-primary">
+            {t.manage_my_punches || "Manage My Punches"}
+          </h1>
         </div>
         <div className="px-6">
           <PowerTabs />

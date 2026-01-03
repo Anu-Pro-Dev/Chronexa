@@ -3,16 +3,12 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/src/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
+import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -25,8 +21,11 @@ import GroupPunchModal from "@/src/components/custom/modules/self-services/Group
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  
   type Columns = {
     field: string;
     headerName?: string;
@@ -34,13 +33,13 @@ export default function Page() {
     onCellClick?: (data: any) => void;
     cellRenderer?: (data: any) => any;
   };
+
   const [columns, setColumns] = useState<Columns[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("transaction_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -50,28 +49,89 @@ export default function Page() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
-  const debouncedSearchValue = useDebounce(searchValue, 300);
-  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
-  const t = translations?.modules?.selfServices || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
+  
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
+  const t = translations?.modules?.selfServices || {};
 
-  const closePopover = (key: string) => {
-    setPopoverStates((prev) => ({ ...prev, [key]: false }));
-  };
+  const offset = useMemo(() => currentPage, [currentPage]);
 
-  const formatDate = (date: Date) => {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
-  };
+  const closePopover = useCallback((key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  }, []);
 
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+  const formatDateForAPI = useCallback((date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const formatTime = useCallback((timeString: string | null) => {
+    if (!timeString) return null;
+
+    if (/^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
+      return timeString;
+    }
+
+    try {
+      const date = new Date(timeString);
+      if (!isNaN(date.getTime())) {
+        const hours = String(date.getUTCHours()).padStart(2, '0');
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
+      }
+      return timeString;
+    } catch {
+      return timeString;
+    }
+  }, []);
+
+  const formatDateDisplay = useCallback((dateString: string | null) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
+      return dateString;
+    } catch {
+      return dateString;
+    }
+  }, []);
+
+  const getEmployeeName = useCallback((transaction: any) => {
+    const txEmployeeId = transaction.Employee_Id;
+
+    if (userInfo && txEmployeeId === employeeId) {
+      const name = language === "ar"
+        ? `${userInfo.employeename?.firstarb || ""}`.trim()
+        : `${userInfo.employeename?.firsteng || ""}`.trim();
+
+      if (name) return name;
+    }
+
+    const employee = transaction.employee_master;
+
+    if (employee) {
+      const fullName = language === "ar"
+        ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
+        : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
+
+      if (fullName) return fullName;
+    }
+
+    return `Emp ${txEmployeeId ?? "-"}`;
+  }, [language, userInfo, employeeId]);
 
   const handleCellClick = useCallback((data: any, field: string) => {
     const completeData = {
@@ -98,7 +158,7 @@ export default function Page() {
       if (isPending || isRejected) {
         return (
           <span className="text-gray-400 cursor-not-allowed">
-            Applied
+            {t.applied || "Applied"}
           </span>
         );
       }
@@ -112,7 +172,7 @@ export default function Page() {
       );
     }
     return <span>{value}</span>;
-  }, [handleCellClick]);
+  }, [handleCellClick, t]);
 
   const TimeOutCellRenderer = useCallback((data: any) => {
     const value = data.Trans_OUT;
@@ -139,7 +199,7 @@ export default function Page() {
       );
     }
     return <span>{value}</span>;
-  }, [handleCellClick]);
+  }, [handleCellClick, t]);
 
   useEffect(() => {
     setColumns([
@@ -153,31 +213,24 @@ export default function Page() {
       },
       {
         field: "TransDate",
-        headerName: "Date",
+        headerName: t.date || "Date",
       },
       {
         field: "Trans_IN",
-        headerName: "Time In",
+        headerName: t.time_in || "Time In",
         cellRenderer: TimeInCellRenderer,
       },
       {
         field: "Trans_OUT",
-        headerName: "Time Out",
+        headerName: t.time_out || "Time Out",
         cellRenderer: TimeOutCellRenderer,
       },
       {
         field: "Status",
-        headerName: "Status",
+        headerName: t.status || "Status",
       },
     ]);
   }, [language, t, TimeInCellRenderer, TimeOutCellRenderer]);
-
-  const formatDateForAPI = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
 
   const {
     data: punchesData,
@@ -197,70 +250,6 @@ export default function Page() {
     enabled: !!employeeId && isAuthenticated && !isChecking,
     endpoint: `/missingMovement/all`,
   });
-
-  const getEmployeeName = (transaction: any) => {
-    const txEmployeeId = transaction.Employee_Id;
-
-    if (userInfo && txEmployeeId === employeeId) {
-      const name =
-        language === "ar"
-          ? `${userInfo.employeename?.firstarb || ""}`.trim()
-          : `${userInfo.employeename?.firsteng || ""}`.trim();
-
-      if (name) return name;
-    }
-
-    const employee = transaction.employee_master;
-
-    if (employee) {
-      const fullName =
-        language === "ar"
-          ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
-          : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
-
-      if (fullName) return fullName;
-    }
-
-    return `Emp ${txEmployeeId ?? "-"}`;
-  };
-
-  const formatTime = (timeString: string | null) => {
-    if (!timeString) return null;
-
-    if (/^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
-      return timeString;
-    }
-
-    try {
-      const date = new Date(timeString);
-      if (!isNaN(date.getTime())) {
-        const hours = String(date.getUTCHours()).padStart(2, '0');
-        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-        const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-        return `${hours}:${minutes}:${seconds}`;
-      }
-      return timeString;
-    } catch {
-      return timeString;
-    }
-  };
-
-  const formatDateDisplay = (dateString: string | null) => {
-    if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-      }
-      return dateString;
-    } catch {
-      return dateString;
-    }
-  };
 
   const data = useMemo(() => {
     if (!Array.isArray(punchesData?.data)) return [];
@@ -290,28 +279,22 @@ export default function Page() {
         Status: status,
       };
     });
-  }, [punchesData, language, userInfo, employeeId]);
+  }, [punchesData, getEmployeeName, formatTime, formatDateDisplay]);
 
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      setCurrentPage(newPage);
-      if (refetch) {
-        setTimeout(() => refetch(), 100);
-      }
-    },
-    [refetch]
-  );
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
 
-  const handleRowsPerPageChange = useCallback(
-    (newRowsPerPage: number) => {
-      setRowsPerPage(newRowsPerPage);
-      setCurrentPage(1);
-      if (refetch) {
-        setTimeout(() => refetch(), 100);
-      }
-    },
-    [refetch]
-  );
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -325,24 +308,45 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleFromDateChange = (date: Date | undefined) => {
+  const handleFromDateChange = useCallback((date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleToDateChange = (date: Date | undefined) => {
+  const handleToDateChange = useCallback((date: Date | undefined) => {
     setToDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleEmployeeFilterChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleEmployeeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setEmployeeFilter(event.target.value);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const props = {
+  const handleSave = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["employeeEventTransaction", employeeId],
+    });
+  }, [queryClient, employeeId]);
+
+  const handleEditClick = useCallback((rowData: any) => {
+    try {
+      const editData = {
+        ...rowData,
+      };
+
+      sessionStorage.setItem("editTransactionsData", JSON.stringify(editData));
+    } catch (error) {
+      console.error("Error setting edit data:", error);
+      toast.error("Failed to load transaction data for editing");
+    }
+  }, []);
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -364,30 +368,24 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
-  };
-
-  const handleSave = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["employeeEventTransaction", employeeId],
-    });
-  };
-
-  const handleEditClick = (rowData: any) => {
-    try {
-      const editData = {
-        ...rowData,
-      };
-
-      sessionStorage.setItem("editTransactionsData", JSON.stringify(editData));
-    } catch (error) {
-      console.error("Error setting edit data:", error);
-      toast.error("Failed to load transaction data for editing");
-    }
-  };
-
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-  }, []);
+  }), [
+    data, 
+    columns, 
+    open, 
+    selectedRows, 
+    isLoadingTransactions, 
+    isChecking, 
+    sortField, 
+    currentPage, 
+    sortDirection, 
+    searchValue, 
+    punchesData, 
+    rowsPerPage, 
+    filter_open,
+    handlePageChange,
+    handleSearchChange,
+    handleRowsPerPageChange
+  ]);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -431,101 +429,98 @@ export default function Page() {
           <>
             {userInfo?.role?.toLowerCase() === "admin" && (
               <Button
-                variant={"success"}
-                size={"sm"}
+                variant="success"
+                size="sm"
                 className="flex items-center space-y-0.5"
                 onClick={handleGroupApplyClick}
               >
-                <span>Group Apply</span>
+                <span>{t.group_apply || "Group Apply"}</span>
               </Button>
             )}
           </>
         }
       />
-      <div className="">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
-          <div className="">
-            <Popover
-              open={popoverStates.fromDate}
-              onOpenChange={(open) =>
-                setPopoverStates((prev) => ({ ...prev, fromDate: open }))
-              }
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  size={"lg"}
-                  variant={"outline"}
-                  className="w-full bg-accent px-4 flex justify-between border-grey"
-                >
-                  <p>
-                    <Label className="font-normal text-secondary">
-                      {t.from_date || "From Date"} :
-                    </Label>
-                    <span className="px-1 text-sm text-text-primary">
-                      {fromDate
-                        ? formatDate(fromDate)
-                        : t.placeholder_date || "Choose date"}
-                    </span>
-                  </p>
-                  <CalendarIcon />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={fromDate}
-                  onSelect={(date) => {
-                    handleFromDateChange(date);
-                    closePopover("fromDate");
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div>
-            <Popover
-              open={popoverStates.toDate}
-              onOpenChange={(open) =>
-                setPopoverStates((prev) => ({ ...prev, toDate: open }))
-              }
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  size={"lg"}
-                  variant={"outline"}
-                  className="w-full bg-accent px-4 flex justify-between border-grey"
-                >
-                  <p>
-                    <Label className="font-normal text-secondary">
-                      {t.to_date || "To Date"} :
-                    </Label>
-                    <span className="px-1 text-sm text-text-primary">
-                      {toDate
-                        ? formatDate(toDate)
-                        : t.placeholder_date || "Choose date"}
-                    </span>
-                  </p>
-                  <CalendarIcon />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={toDate}
-                  onSelect={(date) => {
-                    handleToDateChange(date);
-                    closePopover("toDate");
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+        <div>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.from_date || "From Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {fromDate
+                      ? format(fromDate, "dd/MM/yy")
+                      : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={fromDate}
+                onSelect={(date) => {
+                  handleFromDateChange(date);
+                  closePopover("fromDate");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.to_date || "To Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {toDate
+                      ? format(toDate, "dd/MM/yy")
+                      : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={toDate}
+                onSelect={(date) => {
+                  handleToDateChange(date);
+                  closePopover("toDate");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
+
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Manage Missing Punches
+            {t.missing_punches_tab || "Manage Missing Punches"}
           </h1>
         </div>
         <div className="px-6">
@@ -533,6 +528,7 @@ export default function Page() {
         </div>
         {renderPowerTable()}
       </div>
+
       {isModalOpen && selectedRowData && (
         <MissingPunchModal
           open={isModalOpen}

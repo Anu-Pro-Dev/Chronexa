@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
 import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
-import { toast } from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
+import { useLanguage } from "@/src/providers/LanguageProvider";
 import { PDFExporter } from './PDFExporter';
 import { ExcelExporter } from './ExcelExporter';
 import { CSVExporter } from './CSVExporter';
@@ -32,6 +33,10 @@ const formSchema = z.object({
 });
 
 export default function EmployeeReports() {
+  const { language, translations } = useLanguage();
+  const t = translations?.modules?.reports || {};
+  const showToast = useShowToast();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
@@ -41,19 +46,18 @@ export default function EmployeeReports() {
     fromDate: false,
     toDate: false,
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
-  
-  // Search terms for all dropdowns
+
   const [verticalSearchTerm, setVerticalSearchTerm] = useState("");
   const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
-  
+
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
     total: 0,
@@ -64,16 +68,16 @@ export default function EmployeeReports() {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
 
-  const { data: organizations } = useFetchAllEntity("organization", { 
+  const { data: organizations } = useFetchAllEntity("organization", {
     searchParams: { limit: "1000" }
   });
-  
+
   const selectedVertical = form.watch("vertical");
   const selectedCompany = form.watch("company");
   const selectedDepartment = form.watch("department");
   const selectedEmployeeType = form.watch("employee_type");
   const selectedManagerId = form.watch("manager_id");
-  
+
   const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
     queryKey: ["departmentsByOrg", selectedCompany],
     queryFn: async () => {
@@ -83,10 +87,10 @@ export default function EmployeeReports() {
     },
     enabled: !!selectedCompany,
   });
-  
+
   const { data: managers } = useFetchAllEntity("employee", {
-    searchParams: { 
-      manager_flag: "true", 
+    searchParams: {
+      manager_flag: "true",
       limit: "1000",
       offset: "1"
     }
@@ -118,7 +122,6 @@ export default function EmployeeReports() {
 
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
-  // Debounced search functions for all dropdowns
   const debouncedVerticalSearch = useCallback(
     debounce((searchTerm: string) => {
       setVerticalSearchTerm(searchTerm);
@@ -191,46 +194,44 @@ export default function EmployeeReports() {
         });
       }
     });
-    
+
     const verticals = Array.from(parentMap.values());
-    
-    // Filter by search term
+
     if (verticalSearchTerm) {
-      return verticals.filter((item: any) => 
+      return verticals.filter((item: any) =>
         item.organization_eng?.toLowerCase().includes(verticalSearchTerm.toLowerCase()) ||
         item.organization_arb?.toLowerCase().includes(verticalSearchTerm.toLowerCase())
       );
     }
-    
+
     return verticals;
   };
 
   const getCompanyData = () => {
     if (!organizations?.data || !selectedVertical) return [];
-    
+
     const companies = organizations.data.filter(
       (item: any) => String(item.parent_id) === selectedVertical
     );
-    
-    // Filter by search term
+
     if (companySearchTerm) {
-      return companies.filter((item: any) => 
+      return companies.filter((item: any) =>
         item.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
         item.organization_arb?.toLowerCase().includes(companySearchTerm.toLowerCase())
       );
     }
-    
+
     return companies;
   };
 
   const getDepartmentData = () => {
     if (!departmentsByOrg?.data || !selectedCompany) return [];
-    
+
     const departmentsMap = new Map();
-    const mappings = Array.isArray(departmentsByOrg.data) 
-      ? departmentsByOrg.data 
+    const mappings = Array.isArray(departmentsByOrg.data)
+      ? departmentsByOrg.data
       : [departmentsByOrg.data];
-    
+
     mappings.forEach((mapping: any) => {
       if (mapping.departments && mapping.departments.department_id && mapping.is_active) {
         departmentsMap.set(mapping.departments.department_id, {
@@ -241,60 +242,58 @@ export default function EmployeeReports() {
         });
       }
     });
-    
+
     const departments = Array.from(departmentsMap.values());
-    
-    // Filter by search term
+
     if (departmentSearchTerm) {
-      return departments.filter((item: any) => 
+      return departments.filter((item: any) =>
         item.department_name_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
         item.department_name_arb?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
         item.department_code?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
       );
     }
-    
+
     return departments;
   };
 
   const getEmployeeTypesData = () => {
     if (!employeeTypes?.data) return [];
-    
+
     const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
-    
-    // Filter by search term
+
     if (employeeTypeSearchTerm) {
-      return types.filter((item: any) => 
+      return types.filter((item: any) =>
         item.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase()) ||
         item.employee_type_arb?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
       );
     }
-    
+
     return types;
   };
 
   const getManagerData = () => {
     if (managerSearchTerm.length > 0) {
       const searchData = searchedManagers?.data || [];
-      return searchData.filter((item: any) => 
-        item.employee_id && 
+      return searchData.filter((item: any) =>
+        item.employee_id &&
         item.employee_id.toString().trim() !== ''
       );
     }
-    
+
     const baseData = managers?.data || [];
-    return baseData.filter((item: any) => 
-      item.employee_id && 
+    return baseData.filter((item: any) =>
+      item.employee_id &&
       item.employee_id.toString().trim() !== '' &&
       item.manager_flag === true
     );
   };
 
   const getFilteredEmployees = () => {
-    const baseData = employeeSearchTerm.length > 0 
+    const baseData = employeeSearchTerm.length > 0
       ? searchedEmployees?.data || []
       : employees?.data || [];
-    
-    return baseData.filter((item: any) => 
+
+    return baseData.filter((item: any) =>
       item.employee_id && item.employee_id.toString().trim() !== ''
     );
   };
@@ -323,9 +322,9 @@ export default function EmployeeReports() {
   const calculateSummaryTotals = (dataArray: any[]) => {
     const parseTimeToMinutes = (value: any) => {
       if (!value) return 0;
-      
+
       const strValue = String(value).trim();
-      
+
       if (strValue.includes(':')) {
         const parts = strValue.split(':').map(Number);
         const hours = parts[0] || 0;
@@ -333,7 +332,7 @@ export default function EmployeeReports() {
         const seconds = parts[2] || 0;
         return hours * 60 + minutes + (seconds / 60);
       }
-      
+
       const hours = parseFloat(strValue) || 0;
       return hours * 60;
     };
@@ -371,14 +370,14 @@ export default function EmployeeReports() {
   };
 
   const handleProgressUpdate = (current: number, total: number, phase: string) => {
-    setProgressDetails({ 
-      current, 
-      total, 
+    setProgressDetails({
+      current,
+      total,
       phase: phase as 'initializing' | 'fetching' | 'processing' | 'generating' | 'complete'
     });
-    
+
     let percentage = 0;
-    
+
     if (phase === 'initializing') {
       percentage = 0;
     } else if (phase === 'fetching') {
@@ -392,7 +391,7 @@ export default function EmployeeReports() {
     } else if (phase === 'complete') {
       percentage = 100;
     }
-    
+
     setExportProgress(percentage);
   };
 
@@ -401,20 +400,20 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('csv');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new CSVExporter({
         formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
+        showToast,
       });
-      
+
       await exporter.exportStreaming();
-      
+
     } catch (error) {
       console.error("CSV export error:", error);
-      toast.error("Error exporting CSV. Please try again.");
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -430,20 +429,20 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('excel');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new ExcelExporter({
         formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
+        showToast,
       });
-      
+
       await exporter.export();
-      
+
     } catch (error) {
       console.error("Excel export error:", error);
-      toast.error("Error exporting Excel. Please try again.");
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -459,7 +458,7 @@ export default function EmployeeReports() {
     setExportProgress(0);
     setExportType('pdf');
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
-    
+
     try {
       const exporter = new PDFExporter({
         formValues: form.getValues(),
@@ -467,13 +466,13 @@ export default function EmployeeReports() {
         calculateSummaryTotals,
         logoUrl: '/Logo.png',
         onProgress: handleProgressUpdate,
+        showToast,
       });
-      
+
       await exporter.export();
-      
+
     } catch (error) {
       console.error("PDF export error:", error);
-      toast.error("Error generating PDF. Please try again.");
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -493,8 +492,8 @@ export default function EmployeeReports() {
       debouncedEmployeeSearch.cancel();
       debouncedManagerSearch.cancel();
     };
-  }, [debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch, 
-      debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
+  }, [debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch,
+    debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -502,46 +501,46 @@ export default function EmployeeReports() {
 
   const getProgressMessage = () => {
     const { current, total, phase } = progressDetails;
-    
+
     switch (phase) {
       case 'initializing':
-        return 'Initializing export...';
+        return t.initializing_export || 'Initializing export...';
       case 'fetching':
         if (total > 0) {
-          return `Fetching data from server... (${current.toLocaleString()} of ${total.toLocaleString()} records)`;
+          return `${t.fetching_data || 'Fetching data from server'}... (${current.toLocaleString()} ${t.of || 'of'} ${total.toLocaleString()} ${t.records || 'records'})`;
         }
-        return 'Fetching data from server...';
+        return `${t.fetching_data || 'Fetching data from server'}...`;
       case 'processing':
-        return `Processing ${total.toLocaleString()} records...`;
+        return `${t.processing || 'Processing'} ${total.toLocaleString()} ${t.records || 'records'}...`;
       case 'generating':
-        if (exportType === 'csv') return 'Generating CSV file...';
-        if (exportType === 'excel') return 'Generating Excel file...';
-        if (exportType === 'pdf') return 'Generating PDF file...';
-        return 'Generating file...';
+        if (exportType === 'csv') return t.generating_csv || 'Generating CSV file...';
+        if (exportType === 'excel') return t.generating_excel || 'Generating Excel file...';
+        if (exportType === 'pdf') return t.generating_pdf || 'Generating PDF file...';
+        return t.generating_file || 'Generating file...';
       case 'complete':
-        return 'Export complete!';
+        return t.export_complete || 'Export complete!';
       default:
-        return 'Processing...';
+        return t.processing || 'Processing...';
     }
   };
 
   const getProgressTip = () => {
     const { total } = progressDetails;
-    
+
     if (exportType === 'csv') {
-      return 'CSV exports are fastest for large datasets';
+      return t.csv_fastest || 'CSV exports are fastest for large datasets';
     }
     if (exportType === 'excel') {
       if (total > 10000) {
-        return `Processing ${total.toLocaleString()} records... This may take a moment`;
+        return `${t.processing || 'Processing'} ${total.toLocaleString()} ${t.records || 'records'}... ${t.may_take_moment || 'This may take a moment'}`;
       }
-      return 'Excel export includes formatting and formulas';
+      return t.excel_includes_formatting || 'Excel export includes formatting and formulas';
     }
     if (exportType === 'pdf') {
       if (total > 1000) {
-        return `Large dataset detected. Showing last 1,000 records in PDF`;
+        return t.large_dataset_pdf || 'Large dataset detected. Showing last 1,000 records in PDF';
       }
-      return 'PDF includes charts and summary statistics';
+      return t.pdf_includes_charts || 'PDF includes charts and summary statistics';
     }
     return '';
   };
@@ -550,6 +549,18 @@ export default function EmployeeReports() {
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
+          <div className="col-span-2 py-6">
+            <h1 className="font-bold text-xl text-primary">
+              {t.employee_time_attendance_report || 'Employee Time Attendance Report'}          </h1>
+          </div>
+          <div className="relative">
+            <p
+              className={`text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"
+                }`}
+            >
+              <strong>💡 {t.tip || 'Tip'}:</strong> {t.csv_fastest || 'For datasets over 5,000 records, use CSV export for best performance. Excel export works great for up to 20,000 records. PDF shows last 1,000 records for large datasets.'}
+            </p>
+          </div>
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
@@ -559,7 +570,7 @@ export default function EmployeeReports() {
                   name="vertical"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Vertical</FormLabel>
+                      <FormLabel className="flex gap-1">{t.vertical || 'Vertical'}</FormLabel>
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
@@ -572,23 +583,23 @@ export default function EmployeeReports() {
                       >
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose vertical" />
+                            <SelectValue placeholder={t.placeholder_vertical || "Choose vertical"} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
-                          searchPlaceholder="Search verticals..."
+                          searchPlaceholder={t.search_verticals || "Search verticals..."}
                           onSearchChange={debouncedVerticalSearch}
                           className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {getVerticalData().length === 0 && verticalSearchTerm && (
                             <div className="p-3 text-sm text-text-secondary">
-                              No verticals found
+                              {t.no_verticals_found || "No verticals found"}
                             </div>
                           )}
                           {getVerticalData().map((item: any) => (
                             <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                              {item.organization_eng}
+                              {language === 'ar' ? item.organization_arb : item.organization_eng}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -604,7 +615,7 @@ export default function EmployeeReports() {
                   name="company"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Company</FormLabel>
+                      <FormLabel className="flex gap-1">{t.company || 'Company'}</FormLabel>
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
@@ -617,23 +628,23 @@ export default function EmployeeReports() {
                       >
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose company" />
+                            <SelectValue placeholder={t.placeholder_company || "Choose company"} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
-                          searchPlaceholder="Search companies..."
+                          searchPlaceholder={t.search_companies || "Search companies..."}
                           onSearchChange={debouncedCompanySearch}
                           className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {getCompanyData().length === 0 && companySearchTerm && (
                             <div className="p-3 text-sm text-text-secondary">
-                              No companies found
+                              {t.no_companies_found || "No companies found"}
                             </div>
                           )}
                           {getCompanyData().map((item: any) => (
                             <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                              {item.organization_eng}
+                              {language === 'ar' ? item.organization_arb : item.organization_eng}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -649,7 +660,7 @@ export default function EmployeeReports() {
                   name="department"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Department</FormLabel>
+                      <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
@@ -662,26 +673,29 @@ export default function EmployeeReports() {
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder={
-                              isDepartmentsLoading 
-                                ? "Loading departments..." 
-                                : "Choose department"
+                              isDepartmentsLoading
+                                ? (t.loading_departments || "Loading departments...")
+                                : (t.placeholder_department || "Choose department")
                             } />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
-                          searchPlaceholder="Search departments..."
+                          searchPlaceholder={t.search_departments || "Search departments..."}
                           onSearchChange={debouncedDepartmentSearch}
                           className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {getDepartmentData().length === 0 && departmentSearchTerm && (
                             <div className="p-3 text-sm text-text-secondary">
-                              No departments found
+                              {t.no_departments_found || "No departments found"}
                             </div>
                           )}
                           {getDepartmentData().map((item: any) => (
                             <SelectItem key={item.department_id} value={item.department_id.toString()}>
-                              {item.department_name_eng || item.department_code}
+                              {language === 'ar'
+                                ? (item.department_name_arb || item.department_code)
+                                : (item.department_name_eng || item.department_code)
+                              }
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -697,30 +711,30 @@ export default function EmployeeReports() {
                   name="employee_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Employee Type</FormLabel>
+                      <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
                       <Select
                         onValueChange={(val) => field.onChange(val)}
                         value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose type" />
+                            <SelectValue placeholder={t.placeholder_employee_type || "Choose type"} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent 
+                        <SelectContent
                           showSearch={true}
-                          searchPlaceholder="Search employee types..."
+                          searchPlaceholder={t.search_employee_types || "Search employee types..."}
                           onSearchChange={debouncedEmployeeTypeSearch}
                           className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {getEmployeeTypesData().length === 0 && employeeTypeSearchTerm && (
                             <div className="p-3 text-sm text-text-secondary">
-                              No employee types found
+                              {t.no_employee_types_found || "No employee types found"}
                             </div>
                           )}
                           {getEmployeeTypesData().map((item: any) => (
                             <SelectItem key={item.employee_type_id} value={item.employee_type_eng || item.employee_type_id.toString()}>
-                              {item.employee_type_eng}
+                              {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -736,7 +750,7 @@ export default function EmployeeReports() {
                   name="manager_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Manager</FormLabel>
+                      <FormLabel className="flex gap-1">{t.manager || 'Manager'}</FormLabel>
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
@@ -746,28 +760,31 @@ export default function EmployeeReports() {
                       >
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose manager" />
+                            <SelectValue placeholder={t.placeholder_manager || "Choose manager"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
                           showSearch={true}
-                          searchPlaceholder="Search managers..."
+                          searchPlaceholder={t.search_managers || "Search managers..."}
                           onSearchChange={debouncedManagerSearch}
                           className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {isSearchingManagers && managerSearchTerm.length > 0 && (
                             <div className="p-3 text-sm text-text-secondary">
-                              Searching...
+                              {t.searching || "Searching..."}
                             </div>
                           )}
                           {getManagerData().length === 0 && managerSearchTerm.length > 0 && !isSearchingManagers && (
                             <div className="p-3 text-sm text-text-secondary">
-                              No managers found
+                              {t.no_managers_found || "No managers found"}
                             </div>
                           )}
                           {getManagerData().map((item: any) => (
                             <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
-                              {item.firstname_eng} {item.lastname_eng ? item.lastname_eng : ''} {item.emp_no ? `(${item.emp_no})` : ''}
+                              {language === 'ar'
+                                ? `${item.firstname_arb || item.firstname_eng} ${item.lastname_arb || item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                : `${item.firstname_eng} ${item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                              }
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -776,42 +793,45 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* EMPLOYEE */}
                 <FormField
                   control={form.control}
                   name="employee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">Employee</FormLabel>
+                      <FormLabel className="flex gap-1">{t.employee || 'Employee'}</FormLabel>
                       <Select
                         onValueChange={(val) => field.onChange(val)}
                         value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder="Choose employee" />
+                            <SelectValue placeholder={t.choose_employee || "Choose employee"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
                           showSearch={true}
-                          searchPlaceholder="Search employees..."
+                          searchPlaceholder={t.search_employees || "Search employees..."}
                           onSearchChange={debouncedEmployeeSearch}
                           className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
                           {isSearchingEmployees && employeeSearchTerm.length > 0 && (
                             <div className="p-3 text-sm text-text-secondary">
-                              Searching...
+                              {t.searching || "Searching..."}
                             </div>
                           )}
                           {getFilteredEmployees().length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
                             <div className="p-3 text-sm text-text-secondary">
-                              No employees found
+                              {t.no_employees_found || "No employees found"}
                             </div>
                           )}
                           {getFilteredEmployees().map((item: any) => (
                             <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
-                              {item.firstname_eng} {item.emp_no ? `(${item.emp_no})` : ''}
+                              {language === 'ar'
+                                ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                              }
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -827,7 +847,7 @@ export default function EmployeeReports() {
                   name="from_date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel>From Date</FormLabel>
+                      <FormLabel>{t.from_date || 'From Date'}</FormLabel>
                       <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -837,7 +857,9 @@ export default function EmployeeReports() {
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
                               ) : (
-                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                                <span className="font-normal text-sm text-text-secondary">
+                                  {t.placeholder_date || 'Choose date'}
+                                </span>
                               )}
                               <CalendarIcon />
                             </Button>
@@ -865,7 +887,7 @@ export default function EmployeeReports() {
                   name="to_date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel>To Date</FormLabel>
+                      <FormLabel>{t.to_date || 'To Date'}</FormLabel>
                       <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -875,7 +897,9 @@ export default function EmployeeReports() {
                               {field.value ? (
                                 format(field.value, "dd/MM/yy")
                               ) : (
-                                <span className="font-normal text-sm text-text-secondary">Choose date</span>
+                                <span className="font-normal text-sm text-text-secondary">
+                                  {t.placeholder_date || 'Choose date'}
+                                </span>
                               )}
                               <CalendarIcon />
                             </Button>
@@ -913,7 +937,7 @@ export default function EmployeeReports() {
                     </span>
                   </div>
                   <div className="w-full bg-blue-200 rounded-full h-2.5">
-                    <div 
+                    <div
                       className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${exportProgress}%` }}
                     />
@@ -936,9 +960,9 @@ export default function EmployeeReports() {
                   disabled={loading}
                 >
                   <Trash2Icon />
-                  Clear Filters
+                  {translations?.buttons?.clear || 'Clear Filters'}
                 </Button>
-                
+
                 <Button
                   type="button"
                   size={"sm"}
@@ -947,10 +971,9 @@ export default function EmployeeReports() {
                   disabled={loading}
                 >
                   <LoginIcon />
-                  Show PDF
-                  {/* {loading && exportType === 'pdf' ? `${exportProgress}%` : "Show PDF"} */}
+                  {translations?.buttons?.show_pdf || 'Show PDF'}
                 </Button>
-                
+
                 <Button
                   type="button"
                   size={"sm"}
@@ -959,10 +982,9 @@ export default function EmployeeReports() {
                   disabled={loading}
                 >
                   <FileText className="w-4 h-4" />
-                  Export CSV
-                  {/* {loading && exportType === 'csv' ? `${exportProgress}%` : "Export CSV"} */}
+                  {translations?.buttons?.export_csv || 'Export CSV'}
                 </Button>
-                
+
                 <Button
                   type="button"
                   variant={"success"}
@@ -972,18 +994,8 @@ export default function EmployeeReports() {
                   disabled={loading}
                 >
                   <ExportExcelIcon />
-                  Export Excel
-                  {/* {loading && exportType === 'excel' ? `${exportProgress}%` : "Export Excel"} */}
+                  {translations?.buttons?.export_excel || 'Export Excel'}
                 </Button>
-              </div>
-            </div>
-
-            <div className="px-8 pb-2">
-              <div className="border border-blue-200 rounded-md px-3 py-2 font-semibold bg-blue-400 bg-opacity-10">
-                <p className="text-xs text-primary">
-                  <strong>💡 Tip:</strong> For datasets over 5,000 records, use <strong>CSV export</strong> for best performance. 
-                  Excel export works great for up to 20,000 records. PDF shows last 1,000 records for large datasets.
-                </p>
               </div>
             </div>
           </div>

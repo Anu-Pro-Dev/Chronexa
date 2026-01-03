@@ -10,7 +10,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
 import Required from "@/src/components/ui/required";
-import toast from "react-hot-toast";
 import { GenerateIcon, AddIcon } from "@/src/icons/icons";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -21,11 +20,21 @@ import {
   editWorkflowTypeStepRequest,
 } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
-  workflow_code: z.string().min(1, { message: "Required" }).max(100),
-  workflow_category: z.string().min(1, { message: "Required" }).max(100),
-  workflow_name: z.string().min(1, { message: "Required" }).max(100),
+  workflow_code: z
+    .string()
+    .min(1, { message: "workflow_code_required" })
+    .max(100, { message: "workflow_code_max" }),
+  workflow_category: z
+    .string()
+    .min(1, { message: "workflow_category_required" }),
+  workflow_name: z
+    .string()
+    .min(1, { message: "workflow_name_required" })
+    .max(100, { message: "workflow_name_max" }),
 });
 
 interface StepData {
@@ -43,6 +52,7 @@ export default function AddWorkflow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
   const [rows, setRows] = useState<number[]>([]);
   const [showTable, setShowTable] = useState(false);
   const [workflowId, setWorkflowId] = useState<string | null>(null);
@@ -50,9 +60,11 @@ export default function AddWorkflow() {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [existingWorkflowData, setExistingWorkflowData] = useState<any>(null);
   const [isGenerateMode, setIsGenerateMode] = useState(false);
-  
+
   const [roleSearchTerm, setRoleSearchTerm] = useState("");
   const [showRoleSearch, setShowRoleSearch] = useState(false);
+
+  const t = translations?.modules?.selfServices || {};
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,11 +82,11 @@ export default function AddWorkflow() {
 
   const getFilteredRoles = () => {
     const baseData = rolesData?.data || [];
-    
+
     if (roleSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.role_id && 
+
+    return baseData.filter((item: any) =>
+      item.role_id &&
       item.role_id.toString().trim() !== '' &&
       item.role_name?.toLowerCase().includes(roleSearchTerm.toLowerCase())
     );
@@ -90,7 +102,7 @@ export default function AddWorkflow() {
       let categoryValue = '';
       const engCategory = workflowData.workflow_category_eng;
       const arbCategory = workflowData.workflow_category_arb;
-      
+
       const validCategories = ['Permissions', 'Leaves', 'Punches'];
       if (validCategories.includes(engCategory)) {
         categoryValue = engCategory;
@@ -103,8 +115,8 @@ export default function AddWorkflow() {
       setTimeout(() => {
         form.setValue('workflow_code', workflowData.workflow_code || '');
         form.setValue('workflow_category', categoryValue);
-        form.setValue('workflow_name', 
-          language === 'ar' 
+        form.setValue('workflow_name',
+          language === 'ar'
             ? workflowData.workflow_name_arb || workflowData.workflow_name_eng || ''
             : workflowData.workflow_name_eng || workflowData.workflow_name_arb || ''
         );
@@ -114,7 +126,7 @@ export default function AddWorkflow() {
         setShowTable(true);
         const stepRows = workflowData.workflow_type_steps.map((_: any, index: number) => index + 1);
         setRows(stepRows);
-        
+
         const stepDataMap: Record<number, StepData> = {};
         workflowData.workflow_type_steps.forEach((step: any, index: number) => {
           stepDataMap[index + 1] = {
@@ -136,10 +148,10 @@ export default function AddWorkflow() {
 
   useEffect(() => {
     if (selectedRow && existingWorkflowData) {
-      const nameValue = language === 'ar' 
+      const nameValue = language === 'ar'
         ? existingWorkflowData.workflow_name_arb || existingWorkflowData.workflow_name_eng || ''
         : existingWorkflowData.workflow_name_eng || existingWorkflowData.workflow_name_arb || '';
-      
+
       form.setValue('workflow_name', nameValue);
     }
   }, [language, selectedRow, existingWorkflowData, form]);
@@ -153,24 +165,32 @@ export default function AddWorkflow() {
   const addWorkflowMutation = useMutation({
     mutationFn: addWorkflowTypeRequest,
     onSuccess: (response) => {
-      toast.success("Workflow added successfully!");
+      showToast("success", "addworkflow_success");
       queryClient.invalidateQueries({ queryKey: ["workflowType"] });
       const workflowId = response.data?.workflow_id || response.workflow_id;
       setWorkflowId(workflowId?.toString());
     },
     onError: (error: any) => {
-      toast.error("Failed to add workflow.");
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
+      } else {
+        showToast("error", "formsubmission_error");
+      }
     },
   });
 
   const editWorkflowMutation = useMutation({
     mutationFn: editWorkflowTypeRequest,
     onSuccess: (response) => {
-      toast.success("Workflow updated successfully!");
+      showToast("success", "updateworkflow_success");
       queryClient.invalidateQueries({ queryKey: ["workflowType"] });
     },
     onError: (error: any) => {
-      toast.error("Failed to update workflow.");
+      if (error?.response?.status === 409) {
+        showToast("error", "findduplicate_error");
+      } else {
+        showToast("error", "formsubmission_error");
+      }
     },
   });
 
@@ -180,7 +200,7 @@ export default function AddWorkflow() {
     const newRows = [...rows];
     newRows.splice(index + 1, 0, newId);
     setRows(newRows);
-    
+
     setStepData(prev => ({
       ...prev,
       [newId]: {
@@ -276,7 +296,7 @@ export default function AddWorkflow() {
       });
 
       if (incompleteSteps.length > 0) {
-        toast.error("Please fill in all required fields for all steps.");
+        showToast("error", "fill_all_fields_steps");
         return;
       }
 
@@ -304,7 +324,7 @@ export default function AddWorkflow() {
       const stepPromises = rows.map(async (rowId, index) => {
         const step = stepData[rowId];
         const stepOrder = index + 1;
-        
+
         const stepPayload: any = {
           workflow_id: currentWorkflowId ? parseInt(currentWorkflowId) : undefined,
           step_order: stepOrder,
@@ -327,15 +347,15 @@ export default function AddWorkflow() {
       });
 
       await Promise.all(stepPromises);
-      
-      toast.success(`Workflow and steps ${selectedRow ? 'updated' : 'created'} successfully!`);
+
+      showToast("success", selectedRow ? "updateworkflow_success" : "addworkflow_success");
       queryClient.invalidateQueries({ queryKey: ["workflowType"] });
       queryClient.invalidateQueries({ queryKey: ["workflowSteps"] });
       router.push("/self-services/workflow");
-      
+
     } catch (error) {
       console.error("Error processing workflow and steps:", error);
-      toast.error(`Failed to ${selectedRow ? 'update' : 'create'} workflow and steps.`);
+      showToast("error", selectedRow ? "updateworkflow_error" : "addworkflow_error");
     }
   };
 
@@ -346,7 +366,7 @@ export default function AddWorkflow() {
       options.push({ value: `step${i}`, label: `Step ${i}` });
     }
 
-    options.push({ value: "approved", label: "Approved" });
+    options.push({ value: "approved", label: t.approved || "Approved" });
     return options;
   };
 
@@ -356,7 +376,7 @@ export default function AddWorkflow() {
         <div className="bg-accent p-6 rounded-2xl">
           <div className="pb-5">
             <h1 className="font-bold text-xl text-primary">
-              {selectedRow ? "Edit Workflow" : "Generate the workflows"}
+              {selectedRow ? t.edit_workflow || "Edit Workflow" : t.generate_workflows || "Generate the workflows"}
             </h1>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-10">
@@ -365,52 +385,63 @@ export default function AddWorkflow() {
               name="workflow_code"
               render={({ field }) => (
                 <FormItem className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
-                  <FormLabel>Code <Required/></FormLabel>
+                  <FormLabel>{t.code || "Code"} <Required /></FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter the code" type="text" {...field} />
+                    <Input placeholder={t.Placeholder_code || "Enter the code"} type="text" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.workflow_code}
+                    translations={translations?.formErrors || {}}
+                  />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="workflow_category"
               render={({ field }) => (
                 <FormItem className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
-                  <FormLabel>Workflows <Required/></FormLabel>
+                  <FormLabel>{t.workflows || "Workflows"} <Required /></FormLabel>
                   <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose workflows category" />
+                        <SelectValue placeholder={t.Placeholder_workflow_category || "Choose workflows category"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Permissions">Permissions</SelectItem>
-                      <SelectItem value="Leaves">Leaves</SelectItem>
-                      <SelectItem value="Punches">Punches</SelectItem>
+                      <SelectItem value="Permissions">{t.permissions || "Permissions"}</SelectItem>
+                      <SelectItem value="Leaves">{t.leaves || "Leaves"}</SelectItem>
+                      <SelectItem value="Punches">{t.punches || "Punches"}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <TranslatedError
+                    fieldError={form.formState.errors.workflow_category}
+                    translations={translations?.formErrors || {}}
+                  />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="workflow_name"
               render={({ field }) => (
-              <FormItem className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
+                <FormItem className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
                   <FormLabel>
                     {language === "ar"
-                      ? "Workflow name (العربية) "
-                      : "Workflow name (English) "}
+                      ? t.workflow_name_arb || "Workflow name (العربية)"
+                      : t.workflow_name_eng || "Workflow name (English)"}
                     <Required />
                   </FormLabel>
                   <FormControl>
-                  <Input placeholder="Enter Workflow name" type="text" {...field} />
+                    <Input placeholder={t.Placeholder_workflow_name || "Enter Workflow name"} type="text" {...field} />
                   </FormControl>
-                  <FormMessage />
-              </FormItem>
+                  <TranslatedError
+                    fieldError={form.formState.errors.workflow_name}
+                    translations={translations?.formErrors || {}}
+                  />
+                </FormItem>
               )}
             />
           </div>
@@ -422,7 +453,7 @@ export default function AddWorkflow() {
                 size="sm"
                 disabled={editWorkflowMutation.isPending}
               >
-                {editWorkflowMutation.isPending ? "Updating..." : "Update"}
+                {editWorkflowMutation.isPending ? translations?.buttons?.updating || "Updating..." : translations?.buttons?.update || "Update"}
               </Button>
             ) : (
               <Button
@@ -432,7 +463,7 @@ export default function AddWorkflow() {
                 onClick={handleGenerate}
               >
                 <GenerateIcon />
-                Generate
+                 {translations?.buttons?.generate || "Generate"}
               </Button>
             )}
           </div>
@@ -443,11 +474,11 @@ export default function AddWorkflow() {
             <div className="grid gap-4">
               <div className="grid grid-cols-[24px,80px,1fr,1fr,1fr,1fr] gap-4 text-[15px] font-semibold text-text-content text-center">
                 <div></div>
-                <div>Step Order</div>
-                <div>Step Name</div>
-                <div>Role</div>
-                <div>On Success</div>
-                <div>On Failure</div>
+                <div>{t.step_order || "Step Order"}</div>
+                <div>{t.step_name || "Step Name"}</div>
+                <div>{t.role || "Role"}</div>
+                <div>{t.on_success || "On Success"}</div>
+                <div>{t.on_failure || "On Failure"}</div>
               </div>
               {rows.map((rowId, index) => (
                 <div
@@ -470,31 +501,31 @@ export default function AddWorkflow() {
                     {index + 1}
                   </div>
 
-                  <Input 
-                    type="text" 
-                    placeholder="Enter step name" 
+                  <Input
+                    type="text"
+                    placeholder={t.placeholder_step_name || "Enter step name"}
                     className="w-full"
                     value={stepData[rowId]?.stepName || ""}
                     onChange={(e) => updateStepData(rowId, 'stepName', e.target.value)}
                   />
-                  
+
                   <Select
                     value={stepData[rowId]?.roleId || ""}
                     onValueChange={(value) => updateStepData(rowId, 'roleId', value)}
                     onOpenChange={(open) => setShowRoleSearch(open)}
                   >
                     <SelectTrigger className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
-                      <SelectValue placeholder="Choose role" />
+                      <SelectValue placeholder={t.placeholder_role || "Choose role"} />
                     </SelectTrigger>
                     <SelectContent
                       showSearch={true}
-                      searchPlaceholder="Search roles..."
+                      searchPlaceholder={t.search_roles || "Search roles..."}
                       onSearchChange={debouncedRoleSearch}
                       className="mt-2"
                     >
                       {getFilteredRoles().length === 0 && roleSearchTerm.length > 0 && (
                         <div className="p-3 text-sm text-text-secondary">
-                          No roles found
+                          {t.no_roles_found || "No roles found"}
                         </div>
                       )}
                       {getFilteredRoles().map((item: any) => {
@@ -507,13 +538,13 @@ export default function AddWorkflow() {
                       })}
                     </SelectContent>
                   </Select>
-                  
+
                   <Select
                     value={stepData[rowId]?.onSuccess || ""}
                     onValueChange={(value) => updateStepData(rowId, 'onSuccess', value)}
                   >
                     <SelectTrigger className="w-full lg:max-w-[350px] 3xl:max-w-[450px]">
-                      <SelectValue placeholder="Choose Step" />
+                      <SelectValue placeholder={t.placeholder_step || "Choose Step"} />
                     </SelectTrigger>
                     <SelectContent>
                       {getOnSuccessOptions(index).map((option) => (
@@ -524,11 +555,11 @@ export default function AddWorkflow() {
                     </SelectContent>
                   </Select>
 
-                  <Input 
-                    type="text" 
-                    placeholder="Rejected" 
+                  <Input
+                    type="text"
+                    placeholder={t.rejected || "Rejected"}
                     className="w-full"
-                    value={stepData[rowId]?.onFailure || "Rejected"}
+                    value={stepData[rowId]?.onFailure || t.rejected || "Rejected"}
                     onChange={(e) => updateStepData(rowId, 'onFailure', e.target.value)}
                   />
 
@@ -549,19 +580,19 @@ export default function AddWorkflow() {
                   router.push("/self-services/workflow");
                 }}
               >
-                {translations.buttons.cancel}
+                {translations?.buttons?.cancel || "Cancel"}
               </Button>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 size="lg"
                 onClick={handleSaveSteps}
                 disabled={addWorkflowMutation.isPending || addStepMutation.isPending || editStepMutation.isPending}
               >
                 {addWorkflowMutation.isPending || addStepMutation.isPending || editStepMutation.isPending
-                  ? "Saving..."
+                  ? translations?.buttons?.saving || "Saving..."
                   : selectedRow
-                  ? "Update"
-                  : "Save"}
+                    ? translations?.buttons?.update || "Update"
+                    : translations?.buttons?.save || "Save"}
               </Button>
 
             </div>

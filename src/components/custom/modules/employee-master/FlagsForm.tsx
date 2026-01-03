@@ -83,7 +83,7 @@ export default function FlagsForm({
           }`}
         >
           {t.flags_note ||
-            "Note: Active, Punch & On report flags should be enabled."}
+            "Note: Active, Punch & On Report flags should be enabled."}
         </p>
       </div>
       <div className="flex flex-col gap-6">

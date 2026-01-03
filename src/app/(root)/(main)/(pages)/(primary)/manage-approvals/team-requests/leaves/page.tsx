@@ -16,15 +16,16 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { approveLeaveRequest, downloadUploadedFile } from "@/src/lib/apiHandler";
-import toast from "react-hot-toast";
 import { InlineLoading } from "@/src/app/loading";
+import { useShowToast } from "@/src/utils/toastHelper";
 
 export default function Page() {
   const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  const showToast = useShowToast();
   const [columns, setColumns] = useState<{ field: string; headerName: string; cellRenderer?: (data: any) => any }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("leave_id");
@@ -45,7 +46,7 @@ export default function Page() {
   const [approveOpen, setApproveOpen] = useState<boolean>(false);
   const [rejectOpen, setRejectOpen] = useState<boolean>(false);
   const t = translations?.modules?.manageApprovals || {};
-  
+
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -61,7 +62,7 @@ export default function Page() {
 
   const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
     const employeeMaster = leave.employee_master_employee_leaves_employee_idToemployee_master;
-    
+
     if (!employeeMaster) {
       return {
         emp_no: `EMP${leave.employee_id}`,
@@ -79,8 +80,8 @@ export default function Page() {
 
     const firstName = language === 'ar' ? firstNameAr : firstNameEn;
     const lastName = language === 'ar' ? lastNameAr : lastNameEn;
-    
-    const fullName = language === 'ar' 
+
+    const fullName = language === 'ar'
       ? `${firstNameAr} ${lastNameAr}`.trim()
       : `${firstNameEn} ${lastNameEn}`.trim();
 
@@ -98,31 +99,31 @@ export default function Page() {
     if (!leaveTypes) {
       return language === "ar" ? "غير معروف" : "Unknown";
     }
-    
-    return language === "ar" 
+
+    return language === "ar"
       ? leaveTypes.leave_type_arb || leaveTypes.leave_type_eng || "غير معروف"
       : leaveTypes.leave_type_eng || leaveTypes.leave_type_arb || "Unknown";
   }, [language]);
 
   const AttachmentCellRenderer = useCallback((data: any) => {
     const filePath = data.leave_doc_filename_path;
-    
+
     if (!filePath || filePath === '-') {
       return <span className="text-gray-400">-</span>;
     }
-    
+
     const handleDownload = async () => {
       try {
         await downloadUploadedFile(filePath);
-        toast.success('File downloaded successfully');
+        showToast("success", "file_download_success");
       } catch (error) {
         console.error('Download error:', error);
-        toast.error('Failed to download file');
+        showToast("error", "file_download_error");
       }
     };
-    
+
     return (
-      <button 
+      <button
         onClick={handleDownload}
         className="flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer"
         title="Download attachment"
@@ -131,7 +132,7 @@ export default function Page() {
         <span>Download</span>
       </button>
     );
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     setColumns([
@@ -140,9 +141,9 @@ export default function Page() {
       { field: "from_date", headerName: t.from_date || "From Date" },
       { field: "to_date", headerName: t.to_date || "To Date" },
       { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
-      { 
-        field: "leave_doc_filename_path", 
-        headerName: "Attachment",
+      {
+        field: "leave_doc_filename_path",
+        headerName: t.attachment || "Attachment",
         cellRenderer: AttachmentCellRenderer
       },
     ]);
@@ -161,10 +162,10 @@ export default function Page() {
   };
 
   const { data: leavesData, isLoading: isLoadingLeaves, error, refetch } = useFetchAllEntity(
-    "employeeLeave", 
+    "employeeLeave",
     {
       searchParams: {
-        pending: "true", 
+        pending: "true",
         limit: String(rowsPerPage),
         offset: String(offset),
         ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
@@ -185,13 +186,13 @@ export default function Page() {
 
     const processedData = leavesData.data.map((leave: any) => {
       const employeeInfo = getEmployeeDisplayInfo(leave, language);
-      
+
       const formattedFromDate = formatDateForDisplay(leave.from_date);
       const formattedToDate = formatDateForDisplay(leave.to_date);
-            
+
       return {
         ...leave,
-        id: leave.employee_leave_id, 
+        id: leave.employee_leave_id,
         emp_no: employeeInfo.emp_no,
         employee_name: employeeInfo.employee_name,
         firstName: employeeInfo.firstName,
@@ -264,7 +265,7 @@ export default function Page() {
 
   const handleApprove = async () => {
     if (selectedRows.length === 0) {
-      toast.error("No row selected");
+      showToast("error", "no_row_selected");
       return;
     }
 
@@ -278,22 +279,19 @@ export default function Page() {
         )
       );
 
-      results.forEach((res) => {
-        toast.success(res?.message || "Approved successfully");
-      });
-
+      showToast("success", "approve_leave_success");
       setSelectedRows([]);
       setApproveOpen(false);
       await refetch();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Approval failed");
+      showToast("error", "approve_leave_error");
       console.error("Approval error:", error);
     }
   };
 
   const handleReject = async () => {
     if (selectedRows.length === 0) {
-      toast.error("No row selected");
+      showToast("error", "no_row_selected");
       return;
     }
 
@@ -302,20 +300,17 @@ export default function Page() {
         selectedRows.map((row) =>
           approveLeaveRequest({
             employee_leave_id: row.id,
-            approve_reject_flag: 2, 
+            approve_reject_flag: 2,
           })
         )
       );
 
-      results.forEach((res) => {
-        toast.success(res?.message || "Rejected successfully");
-      });
-
+      showToast("success", "reject_leave_success");
       setSelectedRows([]);
-      setRejectOpen(false); 
+      setRejectOpen(false);
       await refetch();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Rejection failed");
+      showToast("error", "reject_leave_error");
       console.error("Rejection error:", error);
     }
   };
@@ -394,10 +389,10 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.manageApprovals.items}
         entityName="employeeLeave"
-        approve_modal_title="Approve Leave"
-        approve_modal_description="Are you sure you want to approve the selected leave request(s)?"
-        reject_modal_title="Reject Leave"
-        reject_modal_description="Are you sure you want to reject the selected leave request(s)?"
+        approve_modal_title={t.approve_leave || "Approve Leave"}
+        approve_modal_description={t.approve_leave_desc || "Are you sure you want to approve the selected leave request(s)?"}
+        reject_modal_title={t.reject_leave || "Reject Leave"}
+        reject_modal_description={t.reject_leave_desc || "Are you sure you want to reject the selected leave request(s)?"}
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
@@ -410,7 +405,7 @@ export default function Page() {
                   <Label className="font-normal text-secondary">
                     {t.from_date || "From Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
+                  <span className="px-1 text-sm text-text-primary">
                     {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
@@ -437,9 +432,9 @@ export default function Page() {
               >
                 <p>
                   <Label className="font-normal text-secondary">
-                    {t.to_date || "To Date"} : 
+                    {t.to_date || "To Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary"> 
+                  <span className="px-1 text-sm text-text-primary">
                     {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
@@ -447,13 +442,13 @@ export default function Page() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar 
-                mode="single" 
-                selected={toDate} 
+              <Calendar
+                mode="single"
+                selected={toDate}
                 onSelect={(date) => {
                   handleToDateChange(date);
                   closePopover('toDate');
-                }} 
+                }}
                 disabled={(date) => {
                   if (!fromDate) return false;
 
@@ -473,7 +468,7 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            Leave Approval
+            {t.leaves_approval || "Leave Approval"}
           </h1>
         </div>
         <div className="px-6">

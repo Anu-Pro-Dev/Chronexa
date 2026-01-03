@@ -19,7 +19,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { PublicAxiosInstance } from "@/src/lib/axios";
 import TranslatedError from "@/src/utils/translatedError";
 import { IoEye, IoEyeOff } from "react-icons/io5";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 
 const formSchema = z.object({
   new_password: z
@@ -37,6 +37,7 @@ export default function ResetPasswordPage() {
   const token = searchParams?.get("token") || "";
   const loginId = searchParams?.get("loginId") || "";
   const router = useRouter();
+  const showToast = useShowToast();
 
   const [valid, setValid] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,18 +91,14 @@ export default function ResetPasswordPage() {
       );
       
       if (res.status === 200 || res.status === 201) {
-        toast.success(t.reset_success_redirecting || "Password reset successful! Redirecting...");
+        showToast("success", "reset_password_success");
         timeoutRef.current = window.setTimeout(
           () => router.push("/"),
           2000
         ) as unknown as number;
       }
     } catch (err: any) {
-      const errorMessage = 
-        err?.response?.data?.message || 
-        err?.message || 
-        "An error occurred. Please try again.";
-      toast.error(errorMessage);
+      showToast("error", "reset_password_error");
       setIsSubmitting(false);
     }
   }
@@ -114,7 +111,6 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="relative z-50 h-screen w-full grid place-items-center">
-      {/* Background Image */}
       <Image
         src="/AppBG.jpg"
         alt="Time Management"
@@ -127,20 +123,18 @@ export default function ResetPasswordPage() {
       <div className="bg-backdrop bg-opacity-50 backdrop-blur-sm relative z-10 w-full h-full flex flex-col justify-center items-center p-4">
         <div className="flex flex-col gap-5">
           <div className="w-10/12 max-w-[400px] sm:w-[400px] z-50 bg-accent p-6 shadow-popup rounded-[20px] flex flex-col gap-5">
-            {/* Header */}
             <div className="flex flex-col text-center gap-2">
               <div className="text-lg font-bold text-text-primary uppercase">
                 {t.reset_password || "RESET PASSWORD"}
               </div>
-              {/* <div className="text-base font-semibold text-text-secondary">
+              <div className="text-base font-semibold text-text-secondary">
                 {valid === null
                   ? t.checking_reset_link || "Checking reset link..."
                   : valid
                   ? t.reset_password_for || `Reset password for ${loginId || "your account"}`
                   : t.reset_link_invalid || "Reset link is invalid or expired"}
-              </div> */}
+              </div>
             </div>
-            {/* Content Card */}
             {valid && (
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>

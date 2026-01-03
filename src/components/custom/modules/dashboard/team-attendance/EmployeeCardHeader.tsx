@@ -48,7 +48,7 @@ export const EmployeeCardHeader = () => {
             onSelect={(newDate) => {
               if (newDate) {
                 setLocalDate(newDate);
-                setSelectedDate(newDate); // triggers provider fetch
+                setSelectedDate(newDate);
               }
             }}
             disabled={(d) => d > new Date() || d < new Date("1900-01-01")}

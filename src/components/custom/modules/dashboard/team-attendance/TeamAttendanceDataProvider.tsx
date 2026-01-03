@@ -22,7 +22,6 @@ export const useTeamAttendanceData = () => {
   return context;
 };
 
-// --- UTILITY: Local date formatting to avoid UTC shift ---
 const pad = (n: number) => (n < 10 ? `0${n}` : n);
 const formatLocalDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 

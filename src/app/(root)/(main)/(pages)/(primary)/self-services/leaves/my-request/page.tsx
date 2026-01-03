@@ -14,7 +14,7 @@ import { Download } from "lucide-react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce"; 
@@ -23,15 +23,17 @@ import { downloadUploadedFile } from "@/src/lib/apiHandler";
 
 export default function Page() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  const showToast = useShowToast();
+  
   const [columns, setColumns] = useState<{ field: string; headerName: string; cellRenderer?: (data: any) => any }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("leave_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
@@ -39,27 +41,40 @@ export default function Page() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedOption, setSelectedOption] = useState<string>("all");
-  const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.selfServices || {};
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
-  const closePopover = (key: string) => {
-    setPopoverStates(prev => ({ ...prev, [key]: false }));
-  };
-  const options = [
+  
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const t = translations?.modules?.selfServices || {};
+
+  const offset = useMemo(() => currentPage, [currentPage]);
+
+  const options = useMemo(() => [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
     { value: "1", label: t.approved || "Approved" },
     { value: "2", label: t.rejected || "Rejected" },
-  ];
+  ], [t]);
 
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+  const closePopover = useCallback((key: string) => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  }, []);
 
-  const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
+  const formatDateForAPI = useCallback((date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const formatDateForDisplay = useCallback((dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toISOString().split('T')[0];
+  }, []);
+
+  const getEmployeeDisplayInfo = useCallback((leave: any, lang: string = 'en') => {
     const employeeMaster = leave.employee_master;
     
     if (!employeeMaster) {
@@ -77,22 +92,22 @@ export default function Page() {
     const firstNameAr = employeeMaster.firstname_arb || '';
     const lastNameAr = employeeMaster.lastname_arb || '';
 
-    const firstName = language === 'ar' ? firstNameAr : firstNameEn;
-    const lastName = language === 'ar' ? lastNameAr : lastNameEn;
+    const firstName = lang === 'ar' ? firstNameAr : firstNameEn;
+    const lastName = lang === 'ar' ? lastNameAr : lastNameEn;
     
-    const fullName = language === 'ar' 
+    const fullName = lang === 'ar' 
       ? `${firstNameAr} ${lastNameAr}`.trim()
       : `${firstNameEn} ${lastNameEn}`.trim();
 
     return {
       emp_no: employeeMaster.emp_no || `EMP${leave.employee_id}`,
       employee_name: fullName || firstName || `Employee ${leave.employee_id}`,
-      firstName: firstName,
-      lastName: lastName,
+      firstName,
+      lastName,
       fullName: fullName || firstName || `Employee ${leave.employee_id}`,
       employee_id: leave.employee_id
     };
-  }, [language]);
+  }, []);
 
   const getLeaveTypeName = useCallback((leaveTypes: any) => {
     if (!leaveTypes) {
@@ -123,10 +138,10 @@ export default function Page() {
     const handleDownload = async () => {
       try {
         await downloadUploadedFile(filePath);
-        toast.success('File downloaded successfully');
+        showToast("success", "file_download_success");
       } catch (error) {
         console.error('Download error:', error);
-        toast.error('Failed to download file');
+        showToast("error", "file_download_error");
       }
     };
     
@@ -140,35 +155,23 @@ export default function Page() {
         <span>Download</span>
       </button>
     );
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     setColumns([
       { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
       { field: "from_date", headerName: t.from_date || "From Date" },
       { field: "to_date", headerName: t.to_date || "To Date" },
-      { field: "number_of_leaves", headerName: t.leave_days || "No of Days" },
+      { field: "number_of_leaves", headerName: t.no_of_days || "No of Days" },
       { field: "employee_remarks", headerName: t.justification || "Justification" },
       { 
         field: "leave_doc_filename_path", 
-        headerName: "Attachment",
+        headerName: t.attachment || "Attachment",
         cellRenderer: AttachmentCellRenderer
       },
       { field: "leave_status", headerName: t.status || "Status" },
     ]);
   }, [language, t, AttachmentCellRenderer]);
-
-  const formatDateForAPI = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatDateForDisplay = (dateString: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toISOString().split('T')[0];
-  };
 
   const { data: leavesData, isLoading: isLoadingLeaves, error, refetch } = useFetchAllEntity(
     "employeeLeave", 
@@ -191,12 +194,11 @@ export default function Page() {
       return [];
     }
 
-    const processedData = leavesData.data.map((leave: any) => {
+    return leavesData.data.map((leave: any) => {
       const employeeInfo = getEmployeeDisplayInfo(leave, language);
-      
       const formattedFromDate = formatDateForDisplay(leave.from_date);
       const formattedToDate = formatDateForDisplay(leave.to_date);
-            
+      
       return {
         ...leave,
         id: leave.leave_id,
@@ -215,9 +217,7 @@ export default function Page() {
         employee_master: leave.employee_master,
       };
     });
-
-    return processedData;
-  }, [leavesData, language, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel]);
+  }, [leavesData, language, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel, formatDateForDisplay]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -246,22 +246,51 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = useCallback((value: string) => {
     setSelectedOption(value);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleFromDateChange = (date: Date | undefined) => {
+  const handleFromDateChange = useCallback((date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleToDateChange = (date: Date | undefined) => {
+  const handleToDateChange = useCallback((date: Date | undefined) => {
     setToDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const props = {
+  const handleSave = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["employeeLeave"] });
+  }, [queryClient]);
+
+  const handleEditClick = useCallback((rowData: any) => {
+    try {
+      const editData = {
+        ...rowData,
+        employeeInfo: {
+          emp_no: rowData.emp_no,
+          firstName: rowData.firstName,
+          lastName: rowData.lastName,
+          fullName: rowData.fullName,
+          employee_master: rowData.employee_master
+        }
+      };
+      
+      sessionStorage.setItem('editLeaveRequestData', JSON.stringify(editData));
+      router.push("/self-services/leaves/my-request/add");
+    } catch (error) {
+      console.error("Error setting edit data:", error);
+      showToast("error", "load_leave_data_error");
+    }
+  }, [router, showToast]);
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -283,37 +312,24 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
-  };
-
-  const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["employeeLeave"] });
-  };
-
-  const handleEditClick = (rowData: any) => {
-    try {
-      const editData = {
-        ...rowData,
-        employeeInfo: {
-          emp_no: rowData.emp_no,
-          firstName: rowData.firstName,
-          lastName: rowData.lastName,
-          fullName: rowData.fullName,
-          employee_master: rowData.employee_master
-        }
-      };
-      
-      sessionStorage.setItem('editLeaveRequestData', JSON.stringify(editData));
-      
-      router.push("/self-services/leaves/my-request/add");
-    } catch (error) {
-      console.error("Error setting edit data:", error);
-      toast.error("Failed to load leave data for editing");
-    }
-  };
-
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-  }, []);
+  }), [
+    data, 
+    columns, 
+    open, 
+    selectedRows, 
+    isLoadingLeaves, 
+    isChecking, 
+    sortField, 
+    currentPage, 
+    sortDirection, 
+    searchValue, 
+    leavesData, 
+    rowsPerPage, 
+    filter_open,
+    handlePageChange,
+    handleSearchChange,
+    handleRowsPerPageChange
+  ]);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -355,6 +371,8 @@ export default function Page() {
         entityName="employeeLeave"
         isAddNewPagePath="/self-services/leaves/my-request/add"
       />
+      
+      {/* Filter Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
         <div>
           <Select onValueChange={handleStatusChange} value={selectedOption}>
@@ -373,10 +391,16 @@ export default function Page() {
             </SelectContent>
           </Select>
         </div>
+
         <div>
-          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
+          <Popover 
+            open={popoverStates.fromDate} 
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button 
+                size="lg" 
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
@@ -402,10 +426,16 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
+
         <div>
-          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
+          <Popover 
+            open={popoverStates.toDate} 
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+          >
             <PopoverTrigger asChild>
-              <Button size={"lg"} variant={"outline"}
+              <Button 
+                size="lg" 
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
@@ -420,20 +450,23 @@ export default function Page() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={toDate} 
+              <Calendar 
+                mode="single"
+                selected={toDate} 
                 onSelect={(date) => {
                   handleToDateChange(date);
                   closePopover('toDate');
                 }} 
-            />
+              />
             </PopoverContent>
           </Popover>
         </div>
       </div>
+
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            My Leave Requests
+            {t.my_request || "My Leave Requests"}
           </h1>
         </div>
         <div className="px-6">

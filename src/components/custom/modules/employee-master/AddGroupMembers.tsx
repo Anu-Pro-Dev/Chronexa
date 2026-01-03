@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 import { Button } from "@/src/components/ui/button";
 import PowerSearch from "@/src/components/custom/power-comps/power-search";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
@@ -26,6 +26,7 @@ export default function AddGroupMembers({
   groupCode?: string | null;
 }) {
   const { modules, language, translations } = useLanguage();
+  const showToast = useShowToast();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -91,8 +92,8 @@ export default function AddGroupMembers({
 
   const employeeSearchParams = useMemo(() => {
     const params: Record<string, string> = {
-      limit: String(rowsPerPage),
-      offset: String(currentPage),
+      limit: "9999", 
+      offset: "1",
     };
 
     if (debouncedSearchValue) {
@@ -103,7 +104,7 @@ export default function AddGroupMembers({
     if (sortDirection) params.sort_order = sortDirection;
 
     return params;
-  }, [rowsPerPage, currentPage, debouncedSearchValue, sortField, sortDirection]);
+  }, [debouncedSearchValue, sortField, sortDirection]);
 
   const { data: employeeData, isLoading, refetch: refetchEmployees } = useFetchAllEntity("employee", {
     searchParams: employeeSearchParams,
@@ -123,9 +124,9 @@ export default function AddGroupMembers({
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
       preserveUrlParams();
     },
@@ -136,12 +137,12 @@ export default function AddGroupMembers({
     const employee_group_id = group?.employee_group_id;
 
     if (!employee_group_id) {
-      toast.error("Group not found.");
+      showToast("error", "group_not_found");
       return;
     }
 
     if (selectedRows.length === 0) {
-      toast.error("Please select at least one employee.");
+      showToast("error", "select_at_least_one_employee");
       return;
     }
 
@@ -167,13 +168,13 @@ export default function AddGroupMembers({
         await addMutation.mutateAsync(payload);
       }
 
-      toast.success("Employee(s) added to the group successfully.");
+      showToast("success", "add_group_members_success");
       preserveUrlParams();
       onSave(null, null);
       on_open_change(false);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to add some or all employees.");
+      showToast("error", "add_group_members_error");
       preserveUrlParams();
     } finally {
       setIsSubmitting(false);
@@ -187,18 +188,12 @@ export default function AddGroupMembers({
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
-    if (refetchEmployees) {
-      setTimeout(() => refetchEmployees(), 100);
-    }
-  }, [refetchEmployees]);
+  }, []);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1);
-    if (refetchEmployees) {
-      setTimeout(() => refetchEmployees(), 100);
-    }
-  }, [refetchEmployees]);
+  }, []);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -209,10 +204,7 @@ export default function AddGroupMembers({
     setSortField(field);
     setSortDirection(direction);
     setCurrentPage(1);
-    if (refetchEmployees) {
-      setTimeout(() => refetchEmployees(), 100);
-    }
-  }, [refetchEmployees]);
+  }, []);
 
   useEffect(() => {
     setColumns([
@@ -232,7 +224,7 @@ export default function AddGroupMembers({
     setSelectedRows(rows);
   }, []);
 
-  const data = useMemo(() => {
+  const allAvailableEmployees = useMemo(() => {
     if (Array.isArray(employeeData?.data)) {
       return employeeData.data
         .filter((emp: any) => !existingEmployeeIds.has(emp.employee_id))
@@ -249,11 +241,14 @@ export default function AddGroupMembers({
     return [];
   }, [employeeData, existingEmployeeIds]);
 
-  const totalAvailableEmployees = useMemo(() => {
-    const totalEmployees = employeeData?.total || 0;
-    const existingCount = existingEmployeeIds.size;
-    return Math.max(0, totalEmployees - existingCount);
-  }, [employeeData?.total, existingEmployeeIds.size]);
+  const data = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return allAvailableEmployees.slice(startIndex, endIndex);
+  }, [allAvailableEmployees, currentPage, rowsPerPage]);
+
+  const totalAvailableEmployees = allAvailableEmployees.length;
+  const hasNext = currentPage * rowsPerPage < totalAvailableEmployees;
 
   const tableProps = {
     Data: data,
@@ -269,8 +264,8 @@ export default function AddGroupMembers({
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: employeeData?.total || 0,
-    hasNext: employeeData?.hasNext || false,
+    total: totalAvailableEmployees,
+    hasNext: hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
     onSortChange: handleSortChange,

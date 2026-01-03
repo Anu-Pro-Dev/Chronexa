@@ -43,9 +43,9 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       { field: "em_smtp_name", headerName: t.name || "Name" },
-      { field: "em_from_email", headerName: "From Email" },
+      { field: "em_from_email", headerName: t.from_email || "From Email" },
       { field: "em_active_smtp_flag", headerName: t.active || "Active" },
-      { field: "test", headerName: "Test Email", clickable: true, onCellClick: handleCellClick },
+      { field: "test", headerName: t.test_email || "Test Email", clickable: true, onCellClick: handleCellClick },
     ]);
   }, [t, language, handleCellClick]);
 

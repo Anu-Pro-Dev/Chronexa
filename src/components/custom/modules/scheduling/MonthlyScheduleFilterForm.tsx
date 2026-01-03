@@ -22,15 +22,15 @@ import {
 } from "@/src/icons/icons";
 
 const formSchema = z.object({
-  organization: z.string().min(1, { message: "Required" }).max(100),
+  organization: z.string().optional(),
   version_no: z.string().optional(),
   manager: z.string().optional(),
   apply_version_filter: z.boolean().optional(),
   day: z.string().optional(),
   employee: z.string().optional(),
-  month: z.string().min(1, { message: "Required" }).max(100),
+  month: z.string().optional(),
   schedule: z.string().optional(),
-  year: z.string().min(1, { message: "Required" }).max(100),
+  year: z.string().optional(),
   group: z.string().optional(),
 });
 
@@ -69,7 +69,6 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
   const { translations, language } = useLanguage();
   const t = translations?.modules?.scheduling || {};
   const [isLoading, setIsLoading] = useState(false);
-  const [autoFilter, setAutoFilter] = useState(true); 
   const [openOrganization, setOpenOrganization] = useState(false);
   const [openMonth, setOpenMonth] = useState(false);
   const [openYear, setOpenYear] = useState(false);
@@ -98,7 +97,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
   const { data: organizations, isLoading: loadingOrganizations } = useFetchAllEntity("organization", { removeAll: true });
   const { data: employees, isLoading: loadingEmployees } = useFetchAllEntity("employee/all", { removeAll: true });
   const { data: employeeGroups, isLoading: loadingGroups } = useFetchAllEntity("employeeGroup", { removeAll: true });
-  
+
   const { data: managerEmployees, isLoading: loadingManagers } = useQuery({
     queryKey: ["managerEmployees"],
     queryFn: getManagerEmployees,
@@ -110,67 +109,25 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
     enabled: !!selectedOrganization,
   });
 
-  const getOrganizationsData = () => (organizations?.data || []).filter((item: any) => 
+  const getOrganizationsData = () => (organizations?.data || []).filter((item: any) =>
     item.organization_id && item.organization_id.toString().trim() !== ''
   );
-  
-  const getEmployeesData = () => (employees?.data || []).filter((item: any) => 
+
+  const getEmployeesData = () => (employees?.data || []).filter((item: any) =>
     item.employee_id && item.employee_id.toString().trim() !== ''
   );
-  
-  const getGroupsData = () => (employeeGroups?.data || []).filter((item: any) => 
+
+  const getGroupsData = () => (employeeGroups?.data || []).filter((item: any) =>
     item.employee_group_id && item.employee_group_id.toString().trim() !== ''
   );
-  
-  const getManagersData = () => (managerEmployees?.data || []).filter((emp: any) => 
+
+  const getManagersData = () => (managerEmployees?.data || []).filter((emp: any) =>
     emp.employee_id != null
   );
 
-  const getSchedulesData = () => (schedules?.data || []).filter((item: any) => 
+  const getSchedulesData = () => (schedules?.data || []).filter((item: any) =>
     item.schedule_id && item.schedule_id.toString().trim() !== ''
   );
-
-  useEffect(() => {
-    if (!autoFilter) return; 
-    
-    const triggerFilter = async () => {
-      if (selectedOrganization && selectedMonth && selectedYear) {
-        try {
-          setIsLoading(true);
-
-          const requestBody = {
-            organization_id: parseInt(selectedOrganization),
-            month: parseInt(selectedMonth),
-            year: parseInt(selectedYear),
-            ...(selectedDay && { day: parseInt(selectedDay) }),
-            ...(selectedEmployee && { employee_id: parseInt(selectedEmployee) }),
-            ...(selectedManager && { manager_id: parseInt(selectedManager) }),
-            ...(selectedGroup && { employee_group_id: parseInt(selectedGroup) }),
-            ...(selectedSchedule && { schedule_id: parseInt(selectedSchedule) }),
-          };
-
-          if (onFilterParamsChange) {
-            onFilterParamsChange(requestBody);
-          }
-
-          const data = await filterMonthlyScheduleRequest(requestBody);
-          
-          if (onFilterSubmit) {
-            onFilterSubmit(data);
-          }
-          
-        } catch (error: any) {
-          console.error("Filter error", error);
-          const errorMessage = error?.response?.data?.message || "Failed to apply filters";
-          toast.error(errorMessage);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    triggerFilter();
-  }, [selectedOrganization, selectedMonth, selectedYear, selectedDay, selectedEmployee, selectedManager, selectedGroup, selectedSchedule, autoFilter]);
 
   const handleApplyFilters = async () => {
     if (!selectedOrganization || !selectedMonth || !selectedYear) {
@@ -197,17 +154,27 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
       }
 
       const data = await filterMonthlyScheduleRequest(requestBody);
-      
+
       if (onFilterSubmit) {
         onFilterSubmit(data);
       }
-      
+
     } catch (error: any) {
       console.error("Filter error", error);
       const errorMessage = error?.response?.data?.message || "Failed to apply filters";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleClearFilters = () => {
+    form.reset();
+    if (onFilterParamsChange) {
+      onFilterParamsChange(null);
+    }
+    if (onFilterSubmit) {
+      onFilterSubmit(null);
     }
   };
 
@@ -220,7 +187,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
             name="organization"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{t.organization || "Organization"} <Required /></FormLabel>
+                <FormLabel>{t.organization || "Organization"}</FormLabel>
                 <Popover open={openOrganization} onOpenChange={setOpenOrganization}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -237,7 +204,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         <span className="truncate">
                           {field.value
                             ? getOrganizationsData().find((item: any) => String(item.organization_id) === field.value)?.organization_eng
-                            : t.placeholder_org || "Choose organization"}
+                            : t.placeholder_organization || "Choose organization"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -275,7 +242,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
             name="month"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{t.month || "Month"} <Required /></FormLabel>
+                <FormLabel>{t.month || "Month"}</FormLabel>
                 <Popover open={openMonth} onOpenChange={setOpenMonth}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -329,7 +296,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
             name="year"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>{t.year || "Year"} <Required /></FormLabel>
+                <FormLabel>{t.year || "Year"}</FormLabel>
                 <Popover open={openYear} onOpenChange={setOpenYear}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -619,7 +586,9 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         <span className="truncate">
                           {field.value
                             ? getSchedulesData().find((item: any) => String(item.schedule_id) === field.value)?.schedule_code
-                            : selectedOrganization ? t.placeholder_schedule || "Choose schedule" : "Select organization first"}
+                            : selectedOrganization
+                              ? t.placeholder_schedule || "Choose schedule"
+                              : t.placeholder_organization_first || "Choose organization first"}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -652,20 +621,20 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
             )}
           />
         </div>
-        
-        <div className="flex justify-end gap-2 items-center pt-4">
-          <Button 
-            variant={"outline"} 
-            type="button" 
-            size={"sm"} 
-            onClick={() => form.reset()} 
+
+        <div className="flex justify-end gap-2 items-center pt-5">
+          <Button
+            variant={"outline"}
+            type="button"
+            size={"sm"}
+            onClick={handleClearFilters}
             disabled={isLoading}
           >
             {translations?.buttons?.clear_filters || "Clear Filters"}
           </Button>
-          <Button 
-            size={"sm"} 
-            type="button" 
+          <Button
+            size={"sm"}
+            type="button"
             onClick={handleApplyFilters}
             disabled={isLoading}
           >

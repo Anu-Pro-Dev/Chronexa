@@ -22,25 +22,23 @@ import { BasicIcon, SetupIcon, RestrictIcon, PolicyIcon, CheckMark } from "@/src
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addPermissionTypeRequest, editPermissionTypeRequest } from "@/src/lib/apiHandler";
+import TranslatedError from "@/src/utils/translatedError";
+import { useShowToast } from "@/src/utils/toastHelper";
 
 const formSchemaBasciSetup = z.object({
   permission_type_code: z
-    .string({ required_error: "Permission type code is required" })
-    .min(1, { message: "Permission type code is required" })
+    .string({ required_error: "permission_type_code_required" })
+    .min(1, { message: "permission_type_code_required" })
     .transform((val) => val.toUpperCase()),
   permission_type_name: z
-    .string({ required_error: "Permission type name is required" })
-    .min(1, { message: "Permission type name is required" }),
+    .string({ required_error: "permission_type_name_required" })
+    .min(1, { message: "permission_type_name_required" }),
   workflows: z.string().optional(),
   specific_gender: z.string().optional(),
-  max_minutes_per_day: z
-    .number().optional(),
-  max_perm_per_day: z
-    .number().optional(),
-  max_minutes_per_month: z
-    .number().optional(),
-  max_perm_per_month: z
-    .number().optional(),
+  max_minutes_per_day: z.number().optional(),
+  max_perm_per_day: z.number().optional(),
+  max_minutes_per_month: z.number().optional(),
+  max_perm_per_month: z.number().optional(),
 })
 
 const formSchemaPolicy = z.object({
@@ -63,13 +61,16 @@ export default function AddPermissionTypes({
   const [basicFormData, setBasicFormData] = useState<any>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const showToast = useShowToast();
+  const t = translations?.modules?.selfServices || {};
+  const formErrors = translations?.formErrors || {};
 
   const { data: workflowData, isLoading: isWorkflowLoading, error: workflowError } = useFetchAllEntity("workflowType");
 
   const addMutation = useMutation({
     mutationFn: addPermissionTypeRequest,
     onSuccess: (data) => {
-      toast.success("Permission type added successfully!");
+      showToast("success", "add_permissiontype_success");
       formBasciSetup.reset();
       formPolicy.reset();
       setBasicFormData(null);
@@ -82,9 +83,9 @@ export default function AddPermissionTypes({
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -92,7 +93,7 @@ export default function AddPermissionTypes({
   const editMutation = useMutation({
     mutationFn: editPermissionTypeRequest,
     onSuccess: (_data, variables) => {
-      toast.success("Permission type updated successfully!");
+      showToast("success", "update_permissiontype_success");
       if (onSave) {
         onSave(variables.permission_type_id?.toString() ?? null, variables);
       }
@@ -105,9 +106,9 @@ export default function AddPermissionTypes({
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        toast.error("Duplicate data detected. Please use different values.");
+        showToast("error", "findduplicate_error");
       } else {
-        toast.error("Form submission error.");
+        showToast("error", "formsubmission_error");
       }
     },
   });
@@ -132,7 +133,7 @@ export default function AddPermissionTypes({
         (workflow: any) => workflow.workflow_id.toString() === values.workflows
       );
 
-      let genderCode = null; // Change default to null instead of ""
+      let genderCode = null; 
       if (values.specific_gender === "ALL") genderCode = "A";
       else if (values.specific_gender === "F") genderCode = "F";
       else if (values.specific_gender === "M") genderCode = "M";
@@ -141,7 +142,7 @@ export default function AddPermissionTypes({
         permission_type_code: values.permission_type_code,
         permission_type_name: values.permission_type_name,
         workflow_id: selectedWorkflow?.workflow_id || null,
-        specific_gender: genderCode, // Will be null if no selection
+        specific_gender: genderCode, 
         max_minutes_per_day: values.max_minutes_per_day,
         max_perm_per_day: values.max_perm_per_day,
         max_minutes_per_month: values.max_minutes_per_month,
@@ -153,6 +154,9 @@ export default function AddPermissionTypes({
       setPageNumber(1);
     } catch (error) {
       console.error("Form submission error", error);
+      showToast("error", "formsubmission_error");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -215,12 +219,10 @@ export default function AddPermissionTypes({
         full_day_permission_flag: permissionType === "by_fulldays_permission",
       };
 
-      // Only add workflow_id if it exists
       if (basicFormData.workflow_id !== null && basicFormData.workflow_id !== undefined) {
         combinedPayload.workflow_id = basicFormData.workflow_id;
       }
 
-      // Only add specific_gender if it exists and is valid (A, F, or M)
       if (basicFormData.specific_gender && ['A', 'F', 'M'].includes(basicFormData.specific_gender)) {
         combinedPayload.specific_gender = basicFormData.specific_gender;
       }
@@ -257,7 +259,6 @@ export default function AddPermissionTypes({
       );
       formBasciSetup.setValue("workflows", selectedRowData.workflow_id?.toString() || "");
 
-      // Fix gender mapping - convert database codes to form values
       let genderValue = "";
       if (selectedRowData.specific_gender === "A") genderValue = "ALL";
       else if (selectedRowData.specific_gender === "F") genderValue = "F";
@@ -315,9 +316,9 @@ export default function AddPermissionTypes({
                     <SetupIcon />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                    <span className="font-semibold text-base text-text-primary">Basic Setup</span>
-                    <span className="text-primary text-[13px]">In progress</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step1 || "Step 1"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.basic_setup || "Basic Setup"}</span>
+                    <span className="text-primary text-[13px]">{t.in_progress || "In progress"}</span>
                   </div>
                 </div>
 
@@ -328,8 +329,8 @@ export default function AddPermissionTypes({
                     <PolicyIcon />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                    <span className="font-semibold text-base text-text-primary">Policy</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step2 || "Step 2"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.policy || "Policy"}</span>
                   </div>
                 </div>
               </div>
@@ -342,15 +343,19 @@ export default function AddPermissionTypes({
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Permission type code <Required />
+                      {t.Perm_type_code || "Permission type code"} <Required />
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter the code" {...field} />
+                      <Input type="text" placeholder={t.Placeholder_code || "Enter the code"} {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.permission_type_code}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="permission_type_name"
@@ -358,24 +363,28 @@ export default function AddPermissionTypes({
                   <FormItem className=" ">
                     <FormLabel>
                       {language === "ar"
-                        ? "Permission type (العربية) "
-                        : "Permission type (English) "}
+                        ? t.permission_type_name_arb || "Permission type (العربية)"
+                        : t.permission_type_name_eng || "Permission type (English)"}
                       <Required />
                     </FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter the name" {...field} />
+                      <Input type="text" placeholder={t.placeholder_name || "Enter the name"} {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.permission_type_name}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={formBasciSetup.control}
                 name="workflows"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Workflows
+                      {t.workflows || "Workflows"}
                     </FormLabel>
                     <Select
                       value={field.value}
@@ -383,14 +392,14 @@ export default function AddPermissionTypes({
                       disabled={isWorkflowLoading}
                     >
                       <FormControl>
-                        <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px] 3xl:max-w-[450px]">
+                        <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
                           <SelectValue
                             placeholder={
                               isWorkflowLoading
-                                ? "Loading workflows..."
+                                ? t.loading_workflows || "Loading workflows..."
                                 : workflowError
-                                  ? "Error loading workflows"
-                                  : "Choose workflows"
+                                  ? t.error_loading_workflows || "Error loading workflows"
+                                  : t.placeholder_workflows || "Choose workflows"
                             }
                           />
                         </SelectTrigger>
@@ -409,81 +418,94 @@ export default function AddPermissionTypes({
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={formBasciSetup.control}
-                name="specific_gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Gender
-                    </FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px] 3xl:max-w-[450px]">
-                          <SelectValue
-                            placeholder="Choose Gender"
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="ALL">All</SelectItem>
-                        <SelectItem value="F">Female</SelectItem>
-                        <SelectItem value="M">Male</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={formBasciSetup.control}
-                name="max_minutes_per_day"
-                render={({ field }) => (
-                  <FormItem className=" ">
-                    <FormLabel>
-                      Max. Minutes Per Day
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter the minutes"
-                        type="number"
-                        min="0"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.workflows}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
 
               <FormField
                 control={formBasciSetup.control}
-                name="max_perm_per_day"
+                name="specific_gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t.gender || "Gender"}
+                    </FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
+                          <SelectValue
+                            placeholder={t.placeholder_gender || "Choose Gender"}
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ALL">{t.gender_all || "All"}</SelectItem>
+                        <SelectItem value="F">{t.gender_female || "Female"}</SelectItem>
+                        <SelectItem value="M">{t.gender_male || "Male"}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.specific_gender}
+                      translations={formErrors}
+                    />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={formBasciSetup.control}
+                name="max_minutes_per_day"
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Max. No. Of Permissions Per Day
+                      {t.max_mins_per_day || "Max. Minutes Per Day"}
                     </FormLabel>
                     <FormControl>
                       <Input
+                        placeholder={t.placeholder_mins || "Enter the minutes"}
                         type="number"
                         min="0"
-                        placeholder="Enter the count"
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.max_minutes_per_day}
+                      translations={formErrors}
+                    />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={formBasciSetup.control}
+                name="max_perm_per_day"
+                render={({ field }) => (
+                  <FormItem className=" ">
+                    <FormLabel>
+                      {t.max_perms_per_day || "Max. No. Of Permissions Per Day"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder={t.placeholder_count || "Enter the count"}
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.max_perm_per_day}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -494,19 +516,22 @@ export default function AddPermissionTypes({
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Max. Minutes Per Month
+                      {t.max_mins_per_month || "Max. Minutes Per Month"}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
-                        placeholder="Enter the minutes"
+                        placeholder={t.placeholder_mins || "Enter the minutes"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.max_minutes_per_month}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -517,19 +542,22 @@ export default function AddPermissionTypes({
                 render={({ field }) => (
                   <FormItem className=" ">
                     <FormLabel>
-                      Max. No. Of Permissions Per Month
+                      {t.max_perms_per_month || "Max. No. Of Permissions Per Month"}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
-                        placeholder="Enter the count"
+                        placeholder={t.placeholder_count || "Enter the count"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formBasciSetup.formState.errors.max_perm_per_month}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -571,9 +599,9 @@ export default function AddPermissionTypes({
                     <CheckMark />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 1 </span>
-                    <span className="font-semibold text-base text-text-primary">Basic Setup</span>
-                    <span className="text-success text-[13px]">Completed</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step1 || "Step 1"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.basic_setup || "Basic Setup"}</span>
+                    <span className="text-primary text-[13px]">{t.completed || "Completed"}</span>
                   </div>
                 </div>
 
@@ -584,16 +612,19 @@ export default function AddPermissionTypes({
                     <PolicyIcon />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-text-secondary">Step 2 </span>
-                    <span className="font-semibold text-base text-text-primary">Policy</span>
-                    <span className="text-primary text-[13px]">In progress</span>
+                    <span className="text-[13px] font-semibold text-text-secondary">{t.step2 || "Step 2"} </span>
+                    <span className="font-semibold text-base text-text-primary">{t.policy || "Policy"}</span>
+                    <span className="text-primary text-[13px]">{t.in_progress || "In progress"}</span>
                   </div>
                 </div>
               </div>
             </div>
             <div className="mb-3 relative">
-              <p className="text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[75px] right-0">
-                Note: Status flag should be enabled.
+              <p className={cn(
+                "text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[75px]",
+                language === "ar" ? "left-0" : "right-0"
+              )}>
+                {t.status_flag_note || "Note: Status flag should be enabled."}
               </p>
             </div>
 
@@ -603,33 +634,48 @@ export default function AddPermissionTypes({
                 name="permission_attributes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel><div className="mb-6 font-bold text-[15px]">Permission Attributes:</div></FormLabel>
+                    <FormLabel>
+                      <div className="mb-6 font-bold text-[15px]">
+                        {t.perm_attributes || "Permission Attributes:"}
+                      </div>
+                    </FormLabel>
                     <FormControl>
                       <div className="grid grid-cols-2 gap-y-5 text-sm">
-                        {["Group Apply", "Medical Pass Attachment", "Status", "Mandatory Comments", "Official", "Mandatory Attachment", "Apply Ramadan Restriction"].map((option) => (
+                        {[
+                          { key: "Group Apply", label: t.group_apply || "Group Apply" },
+                          { key: "Medical Pass Attachment", label: t.medical_attachment || "Medical Pass Attachment" },
+                          { key: "Status", label: t.status || "Status" },
+                          { key: "Mandatory Comments", label: t.mandatory_comments || "Mandatory Comments" },
+                          { key: "Official", label: t.official || "Official" },
+                          { key: "Mandatory Attachment", label: t.mandatory_attachment || "Mandatory Attachment" },
+                          { key: "Apply Ramadan Restriction", label: t.apply_ramadan_restriction || "Apply Ramadan Restriction" }
+                        ].map((option) => (
                           <FormField
-                            key={option}
+                            key={option.key}
                             control={formPolicy.control}
                             name="permission_attributes"
                             render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2">
+                              <FormItem className={cn(
+                                "flex items-center",
+                                language === "ar" ? "space-x-reverse space-x-2" : "space-x-2"
+                              )}>
                                 <FormControl>
                                   <Checkbox
-                                    id={option}
-                                    checked={field.value?.includes(option)}
+                                    id={option.key}
+                                    checked={field.value?.includes(option.key)}
                                     onCheckedChange={(checked) => {
                                       const updated = checked
-                                        ? [...(field.value || []), option]
-                                        : field.value?.filter((item: string) => item !== option);
+                                        ? [...(field.value || []), option.key]
+                                        : field.value?.filter((item: string) => item !== option.key);
                                       field.onChange(updated);
                                     }}
                                   />
                                 </FormControl>
                                 <FormLabel
-                                  htmlFor={option}
+                                  htmlFor={option.key}
                                   className="text-sm text-text-primary font-semibold !mt-0"
                                 >
-                                  {option}
+                                  {option.label}
                                 </FormLabel>
                               </FormItem>
                             )}
@@ -637,7 +683,10 @@ export default function AddPermissionTypes({
                         ))}
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={formPolicy.formState.errors.permission_attributes}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -648,11 +697,18 @@ export default function AddPermissionTypes({
                   name="permission_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel><div className="mb-6 font-bold text-[15px]">Permission Types:</div></FormLabel>
+                      <FormLabel>
+                        <div className="mb-6 font-bold text-[15px]">
+                          {t.perm_types || "Permission Types:"}
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <div className="flex flex-col gap-5 text-sm">
                           <div>
-                            <label className="flex items-center space-x-2">
+                            <label className={cn(
+                              "flex items-center",
+                              language === "ar" ? "space-x-reverse space-x-2" : "space-x-2"
+                            )}>
                               <input
                                 type="radio"
                                 className="custom-radio"
@@ -660,11 +716,14 @@ export default function AddPermissionTypes({
                                 checked={field.value === "by_minutes_permission"}
                                 onChange={() => field.onChange("by_minutes_permission")}
                               />
-                              <span>By Minutes Permission</span>
+                              <span>{t.mins_perm || "By Minutes Permission"}</span>
                             </label>
                           </div>
                           <div>
-                            <label className="flex items-center space-x-2">
+                            <label className={cn(
+                              "flex items-center",
+                              language === "ar" ? "space-x-reverse space-x-2" : "space-x-2"
+                            )}>
                               <input
                                 type="radio"
                                 className="custom-radio"
@@ -672,11 +731,14 @@ export default function AddPermissionTypes({
                                 checked={field.value === "by_from_to_time_permission"}
                                 onChange={() => field.onChange("by_from_to_time_permission")}
                               />
-                              <span> By From Time / To Time Permisisons </span>
+                              <span>{t.time_perms || "By From Time / To Time Permisisons"}</span>
                             </label>
                           </div>
                           <div>
-                            <label className="flex items-center space-x-2">
+                            <label className={cn(
+                              "flex items-center",
+                              language === "ar" ? "space-x-reverse space-x-2" : "space-x-2"
+                            )}>
                               <input
                                 type="radio"
                                 className="custom-radio"
@@ -684,11 +746,14 @@ export default function AddPermissionTypes({
                                 checked={field.value === "by_weekdays_permission"}
                                 onChange={() => field.onChange("by_weekdays_permission")}
                               />
-                              <span> By Weekdays Permisisons </span>
+                              <span>{t.weekdays_perms || "By Weekdays Permisisons"}</span>
                             </label>
                           </div>
                           <div>
-                            <label className="flex items-center space-x-2">
+                            <label className={cn(
+                              "flex items-center",
+                              language === "ar" ? "space-x-reverse space-x-2" : "space-x-2"
+                            )}>
                               <input
                                 type="radio"
                                 className="custom-radio"
@@ -696,12 +761,15 @@ export default function AddPermissionTypes({
                                 checked={field.value === "by_fulldays_permission"}
                                 onChange={() => field.onChange("by_fulldays_permission")}
                               />
-                              <span> By Full Day Permisisons </span>
+                              <span>{t.full_day_perms || "By Full Day Permisisons"}</span>
                             </label>
                           </div>
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <TranslatedError
+                        fieldError={formPolicy.formState.errors.permission_type}
+                        translations={formErrors}
+                      />
                     </FormItem>
                   )}
                 />
@@ -726,11 +794,11 @@ export default function AddPermissionTypes({
                   >
                     {addMutation.isPending || editMutation.isPending
                       ? selectedRowData
-                        ? "Updating..."
-                        : "Saving..."
+                        ? translations?.buttons?.updating || "Updating..."
+                        : translations?.buttons?.saving || "Saving..."
                       : selectedRowData
-                        ? "Update"
-                        : "Save"
+                        ? translations?.buttons?.update || "Update"
+                        : translations?.buttons?.save || "Save"
                     }
                   </Button>
                 </div>

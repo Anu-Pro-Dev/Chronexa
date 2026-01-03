@@ -19,27 +19,35 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { addManualPunchRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
   employee: z
     .string()
     .min(1, {
-      message: "Employee is required.",
+      message: "employee_required",
     })
-    .max(100),
+    .max(100, {
+      message: "employee_max_length",
+    }),
   reason: z
     .string()
     .min(1, {
-      message: "Reason is required.",
+      message: "reason_required",
     })
-    .max(100),
+    .max(100, {
+      message: "reason_max_length",
+    }),
   date: z.date({
-    required_error: "Date is required.",
+    required_error: "date_required",
   }),
   time: z.date({
-    required_error: "Time is required.",
+    required_error: "time_required",
   }),
-  employee_remarks: z.string().optional(),
+  employee_remarks: z.string().max(500, {
+    message: "remarks_max_length",
+  }).optional(),
 });
 
 export default function ApplyMissingPunch({
@@ -60,6 +68,9 @@ export default function ApplyMissingPunch({
     fromDate: false,
     fromTime: false,
   });
+  const showToast = useShowToast();
+  const t = translations?.modules?.selfServices || {};
+  const formErrors = translations?.formErrors || {};
 
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
@@ -77,7 +88,7 @@ export default function ApplyMissingPunch({
   const applyMissingPunchMutation = useMutation({
     mutationFn: addManualPunchRequest,
     onSuccess: (data) => {
-      toast.success("Missing punch applied successfully!");
+      showToast("success", "apply_missing_punch_success");
       queryClient.invalidateQueries({ queryKey: ["missingMovement"] });
       setIsSubmitting(false);
       if (on_open_change) {
@@ -86,8 +97,8 @@ export default function ApplyMissingPunch({
     },
     onError: (error: any) => {
       console.error("API Error:", error);
-      toast.error(error?.response?.data?.message || "Failed to apply missing punch. Please try again.");
-      setIsSubmitting(false); 
+      showToast("error", "apply_missing_punch_error");
+      setIsSubmitting(false);
     },
     onSettled: () => {
       setIsSubmitting(false);
@@ -96,15 +107,15 @@ export default function ApplyMissingPunch({
 
   const parseTransDate = useCallback((dateString: string) => {
     if (!dateString) return new Date();
-    
+
     const parts = dateString.split('/');
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1; 
+      const month = parseInt(parts[1], 10) - 1;
       const year = parseInt(parts[2], 10);
       return new Date(year, month, day);
     }
-    
+
     return new Date(dateString);
   }, []);
 
@@ -112,9 +123,9 @@ export default function ApplyMissingPunch({
     if (rowData && punchType) {
       const employeeDisplay = `${rowData.employee_name} (${rowData.Employee_Id})`;
       form.setValue("employee", employeeDisplay);
-      
+
       form.setValue("reason", punchType);
-      
+
       if (rowData.TransDate) {
         const parsedDate = parseTransDate(rowData.TransDate);
         form.setValue("date", parsedDate);
@@ -133,14 +144,14 @@ export default function ApplyMissingPunch({
       combinedDateTime.setMinutes(values.time.getMinutes());
       combinedDateTime.setSeconds(values.time.getSeconds());
       combinedDateTime.setMilliseconds(0);
-      
+
       const year = combinedDateTime.getFullYear();
       const month = String(combinedDateTime.getMonth() + 1).padStart(2, '0');
       const day = String(combinedDateTime.getDate()).padStart(2, '0');
       const hours = String(combinedDateTime.getHours()).padStart(2, '0');
       const minutes = String(combinedDateTime.getMinutes()).padStart(2, '0');
       const seconds = String(combinedDateTime.getSeconds()).padStart(2, '0');
-      
+
       const transaction_time = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
 
       const payload = {
@@ -154,7 +165,7 @@ export default function ApplyMissingPunch({
       applyMissingPunchMutation.mutate(payload);
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      showToast("error", "formsubmission_error");
       setIsSubmitting(false);
     }
   }
@@ -173,7 +184,8 @@ export default function ApplyMissingPunch({
           <div className="flex items-center gap-4">
             {remarksLength > 500 && (
               <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center ">
-                <ExclamationIcon className="mr-2" width="14" height="14"/> Maximum 500 characters only allowed.
+                <ExclamationIcon className="mr-2" width="14" height="14" />
+                {formErrors.remarks_max_length || "Maximum 500 characters only allowed."}
               </p>
             )}
           </div>
@@ -187,7 +199,7 @@ export default function ApplyMissingPunch({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Employee <Required />
+                      {t.employee || "Employee"} <Required />
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -196,7 +208,10 @@ export default function ApplyMissingPunch({
                         className="bg-gray-50 cursor-not-allowed"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.employee}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -205,16 +220,19 @@ export default function ApplyMissingPunch({
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reason <Required /></FormLabel>
+                    <FormLabel>{t.reason || "Reason"} <Required /></FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         readOnly
                         className="bg-gray-50 cursor-not-allowed"
-                        placeholder="Punch Type"
+                        placeholder={t.placeholder_reason || "Punch Type"}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.reason}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -224,17 +242,20 @@ export default function ApplyMissingPunch({
                 render={({ field }) => (
                   <FormItem className="">
                     <FormLabel>
-                      Date <Required />
+                      {t.date || "Date"} <Required />
                     </FormLabel>
                     <FormControl>
                       <Input
                         value={field.value ? format(field.value, "dd/MM/yy") : ""}
                         readOnly
                         className="bg-gray-50 cursor-not-allowed"
-                        placeholder="Choose date"
+                        placeholder={t.placeholder_date || "Choose date"}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.date}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -243,7 +264,7 @@ export default function ApplyMissingPunch({
                 name="time"
                 render={({ field }) => (
                   <FormItem className="">
-                    <FormLabel>Time <Required/></FormLabel>
+                    <FormLabel>{t.trans_time || "Time"} <Required /></FormLabel>
                     <Popover open={popoverStates.fromTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromTime: open }))}>
                       <FormControl>
                         <PopoverTrigger asChild>
@@ -256,7 +277,7 @@ export default function ApplyMissingPunch({
                           >
                             {field.value
                               ? format(field.value, "HH:mm")
-                              : <span className="text-text-secondary">Choose time</span>
+                              : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
                             }
                             <ClockIcon />
                           </Button>
@@ -269,7 +290,10 @@ export default function ApplyMissingPunch({
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.time}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -278,11 +302,11 @@ export default function ApplyMissingPunch({
                 name="employee_remarks"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>Remarks </FormLabel>
+                    <FormLabel>{t.remarks || "Remarks"} </FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Add your remarks here"
-                        {...field} 
+                      <Textarea
+                        placeholder={t.placeholder_remarks || "Add your remarks here"}
+                        {...field}
                         rows={3}
                         onChange={(e) => {
                           field.onChange(e);
@@ -290,7 +314,10 @@ export default function ApplyMissingPunch({
                         }}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.employee_remarks}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -306,13 +333,16 @@ export default function ApplyMissingPunch({
                 >
                   {translations.buttons?.cancel || "Cancel"}
                 </Button>
-                <Button 
-                  type="submit" 
-                  size={"lg"} 
+                <Button
+                  type="submit"
+                  size={"lg"}
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Applying..." : "Apply"}
+                  {isSubmitting
+                    ? translations.buttons?.applying || "Applying..."
+                    : translations.buttons?.apply || "Apply"
+                  }
                 </Button>
               </div>
             </div>

@@ -24,10 +24,27 @@ import TranslatedError from "@/src/utils/translatedError";
 import { cn } from "@/src/lib/utils";
 
 const formSchema = z.object({
-  from_date: z.date({ required_error: "from_date_required" }).optional(),
-  to_date: z.date({ required_error: "to_date_required" }).optional(),
-  organization_id: z.coerce.number({ required_error: "organization_required" }).min(1, { message: "organization_required" }),
-  schedule_id: z.coerce.number({ required_error: "schedule_required" }).min(1, { message: "schedule_required" }),
+  from_date: z.date({ required_error: "from_date_required" }),
+  to_date: z.date({ required_error: "to_date_required" }),
+  
+  organization_id: z.coerce
+    .number({ 
+      required_error: "organization_required",
+      invalid_type_error: "organization_required" 
+    })
+    .refine((val) => val > 0, { 
+      message: "organization_required" 
+    }),
+  
+  schedule_id: z.coerce
+    .number({ 
+      required_error: "schedule_required",
+      invalid_type_error: "schedule_required"
+    })
+    .refine((val) => val > 0, { 
+      message: "schedule_required" 
+    }),
+  
   sunday_schedule_id: z.coerce.number().nullable().optional(),
   monday_schedule_id: z.coerce.number().nullable().optional(),
   tuesday_schedule_id: z.coerce.number().nullable().optional(),
@@ -35,26 +52,21 @@ const formSchema = z.object({
   thursday_schedule_id: z.coerce.number().nullable().optional(),
   friday_schedule_id: z.coerce.number().nullable().optional(),
   saturday_schedule_id: z.coerce.number().nullable().optional(),
-  attachment: z.custom<any>(
-    (value) => {
-      if (!value) return true;
-      if (!(value instanceof File)) {
-        return false;
-      }
-      const maxSize = 5 * 1024 * 1024;
-      if (value.size > maxSize) {
-        return false;
-      }
-      const allowedTypes = ["image/jpeg", "image/png"];
-      if (!allowedTypes.includes(value.type)) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "attachment_invalid",
-    }
-  ).optional(),
+  
+  attachment: z
+    .custom<any>(
+      (value) => {
+        if (!value) return true;
+        if (!(value instanceof File)) return false;
+        const maxSize = 5 * 1024 * 1024;
+        if (value.size > maxSize) return false;
+        const allowedTypes = ["image/jpeg", "image/png"];
+        if (!allowedTypes.includes(value.type)) return false;
+        return true;
+      },
+      { message: "attachment_invalid" }
+    )
+    .optional(),
 });
 
 export default function AddOrganizationSchedule({
@@ -72,7 +84,7 @@ export default function AddOrganizationSchedule({
   const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
   const [scheduleSearchTerm, setScheduleSearchTerm] = useState("");
   const showToast = useShowToast();
-  const t = translations?.modules?.schedulingModule || {};
+  const t = translations?.modules?.scheduling || {};
   const errT = translations?.formErrors || {};
 
   const [popoverStates, setPopoverStates] = useState({
@@ -98,8 +110,8 @@ export default function AddOrganizationSchedule({
     defaultValues: {
       from_date: undefined,
       to_date: undefined,
-      organization_id: undefined,
-      schedule_id: undefined,
+      organization_id: 0,
+      schedule_id: 0,
       sunday_schedule_id: undefined,
       monday_schedule_id: undefined,
       tuesday_schedule_id: undefined,
@@ -184,7 +196,6 @@ export default function AddOrganizationSchedule({
             <CommandInput placeholder={t.search_schedules || "Search schedules..."} className="border-none" />
             <CommandEmpty>{t.no_schedules_found || "No schedules found"}</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-auto">
-              {/* Add Nil/None option */}
               <CommandItem
                 value="nil-option"
                 onSelect={() => {
@@ -261,7 +272,6 @@ export default function AddOrganizationSchedule({
     let shouldUpdate = false;
 
     days.forEach((dayKey) => {
-      // Only auto-fill if the field is undefined (not if it's null or has a value)
       if (currentValues[dayKey] === undefined) {
         updatedFields[dayKey] = scheduleId;
         shouldUpdate = true;
@@ -342,7 +352,7 @@ export default function AddOrganizationSchedule({
         schedule_id: values.schedule_id,
       };
 
-      // Only add weekday schedules if they have a value (including null)
+
       if (values.sunday_schedule_id !== null) {
         payload.sunday_schedule_id = values.sunday_schedule_id;
       }
@@ -404,6 +414,7 @@ export default function AddOrganizationSchedule({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
+                          disabled={isSubmitting}
                           className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                         >
                           {field.value ? (
@@ -423,11 +434,7 @@ export default function AddOrganizationSchedule({
                           field.onChange(date)
                           closePopover('fromDate')
                         }}
-                      // disabled={(date) => {
-                      //   const today = new Date();
-                      //   today.setHours(0, 0, 0, 0);
-                      //   return date < today;
-                      // }}
+                        
                       />
                     </PopoverContent>
                   </Popover>
@@ -450,6 +457,7 @@ export default function AddOrganizationSchedule({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button size={"lg"} variant={"outline"}
+                          disabled={isSubmitting}
                           className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                         >
                           {field.value ? (
@@ -512,7 +520,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
-                          disabled={isSearchingOrganizations}
+                          disabled={isSearchingOrganizations || isSubmitting}
                         >
                           <span className="truncate">
                             {field.value
@@ -588,7 +596,7 @@ export default function AddOrganizationSchedule({
                               "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                               !field.value && "text-text-secondary"
                             )}
-                            disabled={isSearchingSchedules}
+                            disabled={isSearchingSchedules || isSubmitting}
                           >
                             <span className="truncate">
                               {field.value
@@ -659,6 +667,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
+                          disabled={isSubmitting}
                         >
                           <span className="truncate">
                             {field.value === null
@@ -739,6 +748,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
+                          disabled={isSubmitting}
                         >
                           <span className="truncate">
                             {field.value === null
@@ -818,6 +828,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
+                          disabled={isSubmitting}
                         >
                           <span className="truncate">
                             {field.value === null
@@ -896,6 +907,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
+                          disabled={isSubmitting}
                         >
                           <span className="truncate">
                             {field.value === null
@@ -975,6 +987,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
+                          disabled={isSubmitting}
                         >
                           <span className="truncate">
                             {field.value === null
@@ -1054,6 +1067,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
+                          disabled={isSubmitting}
                         >
                           <span className="truncate">
                             {field.value === null
@@ -1133,6 +1147,7 @@ export default function AddOrganizationSchedule({
                             "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
                             !field.value && "text-text-secondary"
                           )}
+                          disabled={isSubmitting}
                         >
                           <span className="truncate">
                             {field.value === null
@@ -1207,6 +1222,7 @@ export default function AddOrganizationSchedule({
                     <Input
                       className="border-0 p-0 rounded-none h-auto text-text-secondary"
                       type="file"
+                      disabled={isSubmitting}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         field.onChange(file);
@@ -1229,6 +1245,7 @@ export default function AddOrganizationSchedule({
               type="button"
               size={"lg"}
               className="w-full"
+              disabled={isSubmitting}
               onClick={() => router.push("/scheduling/weekly-schedule/organization-schedule")}
             >
               {translations.buttons.cancel}

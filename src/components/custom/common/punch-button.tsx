@@ -7,16 +7,6 @@ import { PunchInIcon, PunchOutIcon } from "@/src/icons/icons";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { addEventTransaction, serverTimeZoneRequest } from "@/src/lib/apiHandler";
 
-// const getDeviceId = () => {
-//   const userAgent = navigator.userAgent.toLowerCase();
-//   if (/mobile|android|iphone|ipad|tablet/.test(userAgent)) return 102;
-//   if (userAgent.includes("chrome")) return 103;
-//   if (userAgent.includes("firefox")) return 104;
-//   if (userAgent.includes("safari") && !userAgent.includes("chrome")) return 105;
-//   if (userAgent.includes("edge")) return 106;
-//   return 101;
-// };
-
 export function PunchButton() {
   const { translations } = useLanguage();
   const t = translations?.buttons || {};
@@ -52,7 +42,6 @@ export function PunchButton() {
         user_entry_flag: true,
         transaction_type: isPunchedIn ? "OUT" : "IN",
         remarks: "Web Punch",
-        // device_id: getDeviceId(),
         device_id: 2,
       };
 

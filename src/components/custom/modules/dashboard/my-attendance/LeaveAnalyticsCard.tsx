@@ -10,6 +10,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
 import { getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
+import { useLanguage } from "@/src/providers/LanguageProvider";
 
 interface LeaveAnalytic {
   LeaveYear: number;
@@ -17,48 +18,52 @@ interface LeaveAnalytic {
 }
 
 function LeaveAnalyticsCard() {
-  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
-  const translations = {
-    leave_analytics: "Leave Analytics",
-    select_year: "Select Year",
-    leaves_taken: "Leaves",
-    leaves_absent: "Absent",
-    no_data: "No leave data available",
-    january: "January",
-    february: "February",
-    march: "March",
-    april: "April",
-    may: "May",
-    june: "June",
-    july: "July",
-    august: "August",
-    september: "September",
-    october: "October",
-    november: "November",
-    december: "December",
+  const { dir, translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+  
+  const translationDefaults = {
+    leave_analytics: t?.leave_analytics || "تحليل الإجازات",
+    select_year: translations?.select_year || "Select year",
+    leaves: t?.leaves || "الإجازات",
+    absent: t?.absent || "الغيابية",
+    no_data: translations?.no_data || "لا توجد بيانات متاحة",
+    january: translations?.january || "يناير",
+    february: translations?.february || "فبراير",
+    march: translations?.march || "مارس",
+    april: translations?.april || "أبريل",
+    may: translations?.may || "مايو",
+    june: translations?.june || "يونيو",
+    july: translations?.july || "يوليو",
+    august: translations?.august || "أغسطس",
+    september: translations?.september || "سبتمبر",
+    october: translations?.october || "أكتوبر",
+    november: translations?.november || "نوفمبر",
+    december: translations?.december || "ديسمبر",
   };
 
   const monthNames = [
-    translations.january,
-    translations.february,
-    translations.march,
-    translations.april,
-    translations.may,
-    translations.june,
-    translations.july,
-    translations.august,
-    translations.september,
-    translations.october,
-    translations.november,
-    translations.december,
+    translationDefaults.january,
+    translationDefaults.february,
+    translationDefaults.march,
+    translationDefaults.april,
+    translationDefaults.may,
+    translationDefaults.june,
+    translationDefaults.july,
+    translationDefaults.august,
+    translationDefaults.september,
+    translationDefaults.october,
+    translationDefaults.november,
+    translationDefaults.december,
   ];
   
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytic[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchYearData = async () => {
+      setLoading(true);
       try {
         const response = await getLeaveAnalytics(selectedYear);
         if (response?.success && response.data?.length > 0) {
@@ -69,6 +74,8 @@ function LeaveAnalyticsCard() {
       } catch (error) {
         console.error('Error fetching leave analytics:', error);
         setLeaveAnalytics([]);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -96,11 +103,11 @@ function LeaveAnalyticsCard() {
 
   const chartConfig = {
     leaves: { 
-      label: translations.leaves_taken,
+      label: translationDefaults.leaves,
       color: "hsl(var(--chart-leaves))"
     },
     absent: { 
-      label: translations.leaves_absent,
+      label: translationDefaults.absent,
       color: "hsl(var(--chart-absent))"
     },
   };
@@ -109,11 +116,13 @@ function LeaveAnalyticsCard() {
     return Array.from({ length: 5 }, (_, i) => currentYear - i);
   }, [currentYear]);
 
+  const hasAnyData = chartData.some(d => d.leaves > 0 || d.absent > 0);
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex flex-row justify-between p-4">
         <h5 className="text-lg text-text-primary font-bold">
-          {translations.leave_analytics}
+          {translationDefaults.leave_analytics}
         </h5>
         <Select 
           value={selectedYear.toString()} 
@@ -121,7 +130,7 @@ function LeaveAnalyticsCard() {
         >
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translations?.select_year || "Select Year"}>
+            <SelectValue placeholder={translationDefaults.select_year}>
               {selectedYear}
             </SelectValue>
           </SelectTrigger>
@@ -139,60 +148,78 @@ function LeaveAnalyticsCard() {
         </Select>
       </div>
 
-      <ChartContainer 
-        config={chartConfig} 
-        className={`relative ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
-        dir={dir}
-      >
-        <BarChart data={chartData}>
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            tickMargin={10}
-            axisLine={false}
-            tickFormatter={(value) => value.slice(0, 3)}
-            interval={0}
-          />
-          <YAxis 
-            type="number" 
-            tickLine={false} 
-            tickMargin={2} 
-            axisLine={false} 
-            orientation={dir === "rtl" ? "right" : "left"} 
-          />
-          <ChartTooltip 
-            cursor={{ fill: 'rgba(0, 0, 0, 0.01)' }} 
-            content={<ChartTooltipContent />} 
-          />
-          <Legend 
-            verticalAlign="bottom" 
-            height={36}
-            iconType="circle"
-            wrapperStyle={{ paddingTop: '16px' }}
-          />
-          <Bar 
-            dataKey="leaves" 
-            stackId="a" 
-            fill="var(--color-leaves)" 
-            radius={[0, 0, 2, 2]}
-            name={translations.leaves_taken}
-            activeBar={{
-              fill: "hsl(var(--chart-leaves-hover))",
-            }}
-          />
-          <Bar 
-            dataKey="absent" 
-            stackId="a" 
-            fill="var(--color-absent)" 
-            radius={[2, 2, 0, 0]}
-            name={translations.leaves_absent}
-            activeBar={{
-              fill: "hsl(var(--chart-absent-hover))",
-            }}
-          />
-        </BarChart>
-      </ChartContainer>
+      {loading ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <p className="text-text-secondary">{translations?.buttons?.loading || "Loading..."}</p>
+        </div>
+      ) : (
+        <div className="relative">
+          <ChartContainer 
+            config={chartConfig} 
+            className={`relative h-[300px] ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
+            dir={dir}
+          >
+            <BarChart data={chartData}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                tickFormatter={(value) => value.slice(0, 3)}
+                interval={0}
+              />
+              <YAxis 
+                type="number" 
+                tickLine={false} 
+                tickMargin={2} 
+                axisLine={false} 
+                orientation={dir === "rtl" ? "right" : "left"} 
+              />
+              {hasAnyData && (
+                <ChartTooltip 
+                  cursor={{ fill: 'rgba(0, 0, 0, 0.01)' }} 
+                  content={<ChartTooltipContent />} 
+                />
+              )}
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                iconType="circle"
+                wrapperStyle={{ paddingTop: '16px' }}
+              />
+              <Bar 
+                dataKey="leaves" 
+                stackId="a" 
+                fill="var(--color-leaves)" 
+                radius={[0, 0, 2, 2]}
+                name={translationDefaults.leaves}
+                activeBar={{
+                  fill: "hsl(var(--chart-leaves-hover))",
+                }}
+              />
+              <Bar 
+                dataKey="absent" 
+                stackId="a" 
+                fill="var(--color-absent)" 
+                radius={[2, 2, 0, 0]}
+                name={translationDefaults.absent}
+                activeBar={{
+                  fill: "hsl(var(--chart-absent-hover))",
+                }}
+              />
+            </BarChart>
+          </ChartContainer>
+          
+          {!hasAnyData && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <p className="text-text-secondary font-medium text-center">
+                {translations?.no_data || translationDefaults.no_data}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

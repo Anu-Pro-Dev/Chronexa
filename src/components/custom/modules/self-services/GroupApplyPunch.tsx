@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -20,21 +19,27 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { groupApproveTransactionsRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
+import TranslatedError from "@/src/utils/translatedError";
 
 const formSchema = z.object({
   reason: z
     .string()
     .min(1, {
-      message: "Reason is required.",
+      message: "reason_required",
     })
-    .max(100),
+    .max(100, {
+      message: "reason_max_length",
+    }),
   date: z.date({
-    required_error: "Date is required.",
+    required_error: "date_required",
   }),
   time: z.date({
-    required_error: "Time is required.",
+    required_error: "time_required",
   }),
-  remarks: z.string().optional(),
+  remarks: z.string().max(500, {
+    message: "remarks_max_length",
+  }).optional(),
 });
 
 export default function GroupApplyPunch({
@@ -48,6 +53,11 @@ export default function GroupApplyPunch({
 }) {
   const { employeeId } = useAuthGuard();
   const { language, translations } = useLanguage();
+  const showToast = useShowToast();
+  
+  const t = translations?.modules?.selfServices || {};
+  const formErrors = translations?.formErrors || {};
+  
   const [remarksLength, setRemarksLength] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
@@ -71,7 +81,7 @@ export default function GroupApplyPunch({
   const GroupApplyPunchMutation = useMutation({
     mutationFn: groupApproveTransactionsRequest,
     onSuccess: (data) => {
-      toast.success("Missing punch applied successfully!");
+      showToast("success", "group_apply_punch_success");
       queryClient.invalidateQueries({ queryKey: ["missingMovement"] });
       setIsSubmitting(false);
       if (on_open_change) {
@@ -80,7 +90,7 @@ export default function GroupApplyPunch({
     },
     onError: (error: any) => {
       console.error("API Error:", error);
-      toast.error(error?.response?.data?.message || "Failed to apply missing punch. Please try again.");
+      showToast("error", "group_apply_punch_error");
       setIsSubmitting(false); 
     },
     onSettled: () => {
@@ -142,7 +152,7 @@ export default function GroupApplyPunch({
       GroupApplyPunchMutation.mutate(payload);
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      showToast("error", "formsubmission_error");
       setIsSubmitting(false);
     }
   }
@@ -161,7 +171,8 @@ export default function GroupApplyPunch({
           <div className="flex items-center gap-4">
             {remarksLength > 500 && (
               <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center ">
-                <ExclamationIcon className="mr-2" width="14" height="14"/> Maximum 500 characters only allowed.
+                <ExclamationIcon className="mr-2" width="14" height="14"/>
+                {formErrors.remarks_max_length || "Maximum 500 characters only allowed."}
               </p>
             )}
           </div>
@@ -174,11 +185,11 @@ export default function GroupApplyPunch({
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reason <Required /></FormLabel>
+                    <FormLabel>{t.reason || "Reason"} <Required /></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select punch type" />
+                          <SelectValue placeholder={t.placeholder_punch_type || "Select punch type"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -186,7 +197,10 @@ export default function GroupApplyPunch({
                         <SelectItem value="OUT">OUT</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.reason}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -196,7 +210,7 @@ export default function GroupApplyPunch({
                 render={({ field }) => (
                   <FormItem className="">
                     <FormLabel>
-                      Date <Required />
+                      {t.date || "Date"} <Required />
                     </FormLabel>
                     <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                       <FormControl>
@@ -211,7 +225,7 @@ export default function GroupApplyPunch({
                             {field.value ? (
                               format(field.value, "dd/MM/yy")
                             ) : (
-                              <span className="text-text-secondary">Choose date</span>
+                              <span className="text-text-secondary">{t.placeholder_date || "Choose date"}</span>
                             )}
                             <CalendarIcon />
                           </Button>
@@ -229,7 +243,10 @@ export default function GroupApplyPunch({
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.date}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -238,7 +255,7 @@ export default function GroupApplyPunch({
                 name="time"
                 render={({ field }) => (
                   <FormItem className="">
-                    <FormLabel>Time <Required/></FormLabel>
+                    <FormLabel>{t.trans_time || "Time"} <Required/></FormLabel>
                     <Popover open={popoverStates.fromTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromTime: open }))}>
                       <FormControl>
                         <PopoverTrigger asChild>
@@ -251,7 +268,7 @@ export default function GroupApplyPunch({
                           >
                             {field.value
                               ? format(field.value, "HH:mm")
-                              : <span className="text-text-secondary">Choose time</span>
+                              : <span className="text-text-secondary">{t.placeholder_time || "Choose time"}</span>
                             }
                             <ClockIcon />
                           </Button>
@@ -264,7 +281,10 @@ export default function GroupApplyPunch({
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.time}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -273,10 +293,10 @@ export default function GroupApplyPunch({
                 name="remarks"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Remarks </FormLabel>
+                    <FormLabel>{t.remarks || "Remarks"} </FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Add your remarks here"
+                        placeholder={t.placeholder_remarks || "Add your remarks here"}
                         {...field} 
                         rows={3}
                         onChange={(e) => {
@@ -285,7 +305,10 @@ export default function GroupApplyPunch({
                         }}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <TranslatedError
+                      fieldError={form.formState.errors.remarks}
+                      translations={formErrors}
+                    />
                   </FormItem>
                 )}
               />
@@ -307,7 +330,10 @@ export default function GroupApplyPunch({
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Applying..." : "Apply"}
+                  {isSubmitting 
+                    ? translations.buttons?.applying || "Applying..." 
+                    : translations.buttons?.apply || "Apply"
+                  }
                 </Button>
               </div>
             </div>

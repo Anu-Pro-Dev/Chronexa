@@ -20,7 +20,7 @@ import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useMutation } from "@tanstack/react-query";
 import { loginRequest, forgotPasswordRequest } from "@/src/lib/apiHandler";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import toast from "react-hot-toast";
+import { useShowToast } from "@/src/utils/toastHelper";
 import ThreeDotsLoader from "@/src/animations/ThreeDotsLoader";
 
 export const useLoginFormSchema = () => {
@@ -50,6 +50,7 @@ export default function LoginForm() {
   const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
   const [apiResponseMessage, setApiResponseMessage] = useState("");
   const { translations, language } = useLanguage();
+  const showToast = useShowToast();
   const loginFormSchema = useLoginFormSchema();
 
   const loginForm = useForm<z.infer<typeof loginFormSchema>>({
@@ -77,7 +78,7 @@ export default function LoginForm() {
       loginRequest(values.username, values.password, values.remember_me),
     onSuccess: (response) => {
       if (response?.token) {
-        toast.success(translations?.toastNotifications?.login_success || "Login successful!");
+        showToast("success", "login_success");
         router.push("/dashboard");
       } else {
         loginForm.setError("username", {
@@ -101,11 +102,7 @@ export default function LoginForm() {
       forgotPasswordForm.reset();
     },
     onError: (error: any) => {
-      const errorMessage = 
-        error?.response?.data?.message || 
-        error?.message || 
-        "Failed to send reset password link";
-      toast.error(errorMessage);
+      showToast("error", "forgot_password_error");
     },
   });
 
@@ -133,14 +130,14 @@ export default function LoginForm() {
     setApiResponseMessage("");
     forgotPasswordForm.reset();
   };
-  
+
   const handleAdLogin = () => {
-   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-    window.location.href = `${baseUrl}/auth/azure`;
-  } catch (error) {
-    console.error("Azure AD redirect failed:", error);
-  }
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+      window.location.href = `${baseUrl}/auth/azure`;
+    } catch (error) {
+      console.error("Azure AD redirect failed:", error);
+    }
   };
 
   return (
@@ -264,10 +261,10 @@ export default function LoginForm() {
               onClick={handleAdLogin}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0H10.9091V10.9091H0V0Z" fill="#F25022"/>
-                <path d="M12.0909 0H23V10.9091H12.0909V0Z" fill="#7FBA00"/>
-                <path d="M0 12.0909H10.9091V23H0V12.0909Z" fill="#00A4EF"/>
-                <path d="M12.0909 12.0909H23V23H12.0909V12.0909Z" fill="#FFB900"/>
+                <path d="M0 0H10.9091V10.9091H0V0Z" fill="#F25022" />
+                <path d="M12.0909 0H23V10.9091H12.0909V0Z" fill="#7FBA00" />
+                <path d="M0 12.0909H10.9091V23H0V12.0909Z" fill="#00A4EF" />
+                <path d="M12.0909 12.0909H23V23H12.0909V12.0909Z" fill="#FFB900" />
               </svg>
               {t.login_with_azure || "Sign in with Azure AD"}
             </Button>
@@ -277,7 +274,7 @@ export default function LoginForm() {
 
       <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={handleCloseForgotPasswordModal}>
         <ResponsiveModalContent size="medium">
-          <ResponsiveModalHeader  className="gap-1">
+          <ResponsiveModalHeader className="gap-1">
             <ResponsiveModalTitle>
               {t.forgot_password || "Forgot Password"}
             </ResponsiveModalTitle>
@@ -291,7 +288,7 @@ export default function LoginForm() {
               </ResponsiveModalDescription>
             )}
           </ResponsiveModalHeader>
-          
+
           {!apiResponseMessage ? (
             <Form {...forgotPasswordForm}>
               <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}>

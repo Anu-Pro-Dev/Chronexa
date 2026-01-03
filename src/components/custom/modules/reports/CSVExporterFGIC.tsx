@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
 import Papa from "papaparse";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { formatInTimeZone } from "date-fns-tz";
@@ -9,6 +8,7 @@ export interface CSVExporterFGICProps {
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
   onProgress?: (current: number, total: number, phase: string) => void;
+  showToast: (type: 'success' | 'error', messageKey: string, params?: Record<string, any>) => void;
 }
 
 export class CSVExporterFGIC {
@@ -16,12 +16,14 @@ export class CSVExporterFGIC {
   private headerMap: Record<string, string>;
   private calculateSummaryTotals: (data: any[]) => any;
   private onProgress?: (current: number, total: number, phase: string) => void;
+  private showToast: (type: 'success' | 'error', messageKey: string, params?: Record<string, any>) => void;
 
-  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress }: CSVExporterFGICProps) {
+  constructor({ formValues, headerMap, calculateSummaryTotals, onProgress, showToast }: CSVExporterFGICProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
     this.calculateSummaryTotals = calculateSummaryTotals;
     this.onProgress = onProgress;
+    this.showToast = showToast;
   }
 
   private getFilteredHeaders() {
@@ -127,10 +129,8 @@ export class CSVExporterFGIC {
       params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
     }
 
-    // Check if specific employees are selected
     const hasSpecificEmployees = this.formValues.employee_ids?.length > 0;
 
-    // Add manager_id ONLY if no specific employees are selected
     if (!hasSpecificEmployees && this.formValues.manager_id) {
       params.manager_id = this.formValues.manager_id.toString();
     }
@@ -139,7 +139,6 @@ export class CSVExporterFGIC {
       params.employee_type = this.formValues.employee_type.toString();
     }
 
-    // Organization hierarchy
     if (this.formValues.department) {
       params.organization_id = this.formValues.department.toString();
     } else if (this.formValues.division) {
@@ -157,18 +156,14 @@ export class CSVExporterFGIC {
     return params;
   }
 
-  // Update buildUrl()
   private buildUrl(params: Record<string, string>): string {
     const queryParts: string[] = [];
 
-    // Special handling for employee_ids - add as raw array format
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
-      // Create array format: employee_id=[2,17]
       const ids = this.formValues.employee_ids.join(',');
       queryParts.push(`employee_id=[${ids}]`);
     }
 
-    // Add all other params
     Object.entries(params)
       .filter(([_, value]) => value !== undefined && value !== null && value !== '')
       .forEach(([key, value]) => {
@@ -205,7 +200,6 @@ export class CSVExporterFGIC {
           };
 
           const url = this.buildUrl(params);
-          console.log('CSV Export - API URL:', url); // Debug log
 
           const response = await apiRequest(url, "GET");
 
@@ -244,15 +238,17 @@ export class CSVExporterFGIC {
           console.error('Error fetching batch:', error);
 
           if (error && typeof error === 'object' && 'requireLogin' in error) {
+            this.showToast('error', 'csv_session_expired');
             throw new Error('Session expired. Please login again.');
           }
 
+          this.showToast('error', 'csv_fetch_error');
           throw new Error('Failed to fetch data from server');
         }
       }
 
       if (totalRecords === 0) {
-        toast.error("No data available to export.");
+        this.showToast('error', 'csv_no_data_error');
         return;
       }
 
@@ -267,7 +263,6 @@ export class CSVExporterFGIC {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
 
-      // FIXED: Generate filename based on employee_ids
       let identifier = 'all';
       if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
         identifier = this.formValues.employee_ids.length === 1
@@ -288,15 +283,14 @@ export class CSVExporterFGIC {
       URL.revokeObjectURL(url);
 
       this.onProgress?.(totalRecords, totalRecords, 'complete');
-      toast.success(`CSV file generated successfully! (${totalRecords.toLocaleString()} records)`);
+      this.showToast('success', 'csv_export_success', { count: totalRecords.toLocaleString() });
 
     } catch (error) {
       console.error("CSV export error:", error);
 
       if (error instanceof Error && error.message.includes('Session expired')) {
-        toast.error(error.message);
       } else {
-        toast.error("Error generating CSV file. Please try again.");
+        this.showToast('error', 'csv_export_error');
       }
       throw error;
     }

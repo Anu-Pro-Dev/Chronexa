@@ -30,15 +30,15 @@ export default function Page() {
   
   useEffect(() => {
     setColumns([
-      { field: "permission_type_code", headerName: t.code },
+      { field: "permission_type_code", headerName: t.code || "Code" },
       {
         field: language === "ar" ? "permission_type_arb" : "permission_type_eng",
-        headerName: t.perm_name,
+        headerName: t.perm_name || "Permission Name",
       },
-      { field: "max_minutes_per_day", headerName: t.max_mins },
-      { field: "max_perm_per_day", headerName: t.max_perm },
+      { field: "max_minutes_per_day", headerName: t.max_mins || "Max Minutes" },
+      { field: "max_perm_per_day", headerName: t.max_perm || "Max Permissions" },
     ]);
-  }, [language]);
+  }, [language, t]);
 
   const { data: permissionTypeData, isLoading, refetch } = useFetchAllEntity("permissionType", {
     searchParams: {
@@ -50,12 +50,10 @@ export default function Page() {
 
   const data = useMemo(() => {
     if (Array.isArray(permissionTypeData?.data)) {
-      return permissionTypeData.data.map((permission: any) => {
-        return {
-          ...permission,
-          id: permission.permission_type_id, // Changed from permission_id
-        };
-      });
+      return permissionTypeData.data.map((permission: any) => ({
+        ...permission,
+        id: permission.permission_type_id,
+      }));
     }
     return [];
   }, [permissionTypeData]);
@@ -65,7 +63,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -73,7 +71,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -100,11 +98,11 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
   };
  
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["permissionType"] });
-  };
+  }, [queryClient]);
  
-  const handleEditClick = (rowData: any) => {
+  const handleEditClick = useCallback((rowData: any) => {
     try {
       const permissionId = rowData.permission_type_id || rowData.id;
       
@@ -119,13 +117,12 @@ export default function Page() {
       };
       
       sessionStorage.setItem('editPermissionsData', JSON.stringify(editData));
-      
       router.push("/self-services/permissions/manage/add");
     } catch (error) {
       console.error("Error setting edit data:", error);
       toast.error("Failed to load permission data for editing");
     }
-  };
+  }, [router]);
  
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
@@ -142,7 +139,9 @@ export default function Page() {
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6">
-          <h1 className="font-bold text-xl text-primary">{t.manage_perms}</h1>
+          <h1 className="font-bold text-xl text-primary">
+            {t.manage_perms || "Manage Permissions"}
+          </h1>
         </div>
         <div className="px-6">
           <PowerTabs />

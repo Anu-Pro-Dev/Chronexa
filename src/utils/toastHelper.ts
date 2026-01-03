@@ -10,13 +10,34 @@ export function useShowToast() {
 
   return (
     type: ToastType,
-    keyOrMessage: string,
-    params?: Record<string, any> | string,
+    keyOrMessage?: string | null,
+    params?: Record<string, any> | string | null,
     useTranslation: boolean = true
   ) => {
+    if (!keyOrMessage) {
+      const genericMessage = type === "success" 
+        ? "Operation completed successfully" 
+        : "An error occurred";
+      
+      switch (type) {
+        case "success":
+          toast.success(genericMessage);
+          break;
+        case "error":
+          toast.error(genericMessage);
+          break;
+        case "loading":
+          toast.loading(genericMessage);
+          break;
+        default:
+          toast(genericMessage);
+      }
+      return;
+    }
+
     let message = useTranslation ? toastT[keyOrMessage] || keyOrMessage : keyOrMessage;
 
-    if (params !== undefined) {
+    if (params !== undefined && params !== null) {
       if (typeof params === "string") {
         message = message.includes("{value}")
           ? message.replace("{value}", params)

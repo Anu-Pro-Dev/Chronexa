@@ -22,25 +22,23 @@ import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("transaction_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [filter_open, filter_on_open_change] = useState<boolean>(false);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
-  const debouncedSearchValue = useDebounce(searchValue, 300);
-  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
-  const t = translations?.modules?.selfServices || {};
-  
   const [selectedOrganization, setSelectedOrganization] = useState<string>("");
   const [selectedEmployeeType, setSelectedEmployeeType] = useState<string>("");
   const [selectedVertical, setSelectedVertical] = useState<string>("");
@@ -52,72 +50,85 @@ export default function Page() {
     employeeType: false,
   });
   
-    const closePopover = (key: 'fromDate'| 'toDate' |'organization' | 'employeeType' | 'vertical' ) => {
-      setPopoverStates(prev => ({ ...prev, [key]: false }));
-    };
-  
-    const handleOrganizationChange = (value: string) => {
-      setSelectedOrganization(value);
-      setCurrentPage(1);
-      closePopover('organization');
-      if (refetch) {
-        setTimeout(() => refetch(), 100);
-      }
-    };
-  
-    const handleEmployeeTypeChange = (value: string) => {
-      setSelectedEmployeeType(value);
-      setCurrentPage(1);
-      closePopover('employeeType');
-      if (refetch) {
-        setTimeout(() => refetch(), 100);
-      }
-    };
+  const debouncedSearchValue = useDebounce(searchValue, 300);
+  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
+  const t = translations?.modules?.selfServices || {};
 
-    const { data: organizationData } = useFetchAllEntity("organization", {
-        searchParams: {
-          limit: "1000",
-        },
-      });
+  const offset = useMemo(() => currentPage, [currentPage]);
+
+  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'organization' | 'employeeType' | 'vertical') => {
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
+  }, []);
+
+  const formatDateForAPI = useCallback((date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const getEmployeeName = useCallback((transaction: any) => {
+    if (userInfo && transaction.employee_id === employeeId) {
+      const name = language === "ar" 
+        ? `${userInfo.employeename?.firstarb || ""}`.trim()
+        : `${userInfo.employeename?.firsteng || ""}`.trim();
+      
+      if (name) return name;
+    }
     
-      const { data: employeeTypeData } = useFetchAllEntity("employeeType", {
-        removeAll: true,
-      });
+    const employee = transaction.employee_master;
     
-      const getVerticalData = () => {
-        if (!organizationData?.data) return [];
+    if (!employee) {
+      return `Emp ${transaction.employee_id}`;
+    }
     
-        const parentMap = new Map();
+    const fullName = language === "ar"
+      ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
+      : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
     
-        organizationData.data.forEach((item: any) => {
-          if (item.organizations) {
-            parentMap.set(item.organizations.organization_id, {
-              organization_id: item.organizations.organization_id,
-              organization_eng: item.organizations.organization_eng,
-              organization_arb: item.organizations.organization_arb,
-            });
-          }
+    return fullName || `Emp ${transaction.employee_id}`;
+  }, [language, userInfo, employeeId]);
+
+  const { data: organizationData } = useFetchAllEntity("organization", {
+    searchParams: {
+      limit: "1000",
+    },
+  });
+
+  const { data: employeeTypeData } = useFetchAllEntity("employeeType", {
+    removeAll: true,
+  });
+
+  const getVerticalData = useCallback(() => {
+    if (!organizationData?.data) return [];
+
+    const parentMap = new Map();
+
+    organizationData.data.forEach((item: any) => {
+      if (item.organizations) {
+        parentMap.set(item.organizations.organization_id, {
+          organization_id: item.organizations.organization_id,
+          organization_eng: item.organizations.organization_eng,
+          organization_arb: item.organizations.organization_arb,
         });
-    
-        return Array.from(parentMap.values());
-      };
-    
-      const getOrganizationsData = () => {
-        if (!organizationData?.data) return [];
-    
-        return organizationData.data.filter(
-          (item: any) => String(item.parent_id) === selectedVertical
-        );
-      };
-    
-      const getEmployeeTypesData = () =>
-        (employeeTypeData?.data || []).filter(
-          (item: any) => item.employee_type_id
-      );
+      }
+    });
 
-  const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+    return Array.from(parentMap.values());
+  }, [organizationData]);
+
+  const getOrganizationsData = useCallback(() => {
+    if (!organizationData?.data) return [];
+
+    return organizationData.data.filter(
+      (item: any) => String(item.parent_id) === selectedVertical
+    );
+  }, [organizationData, selectedVertical]);
+
+  const getEmployeeTypesData = useCallback(() => 
+    (employeeTypeData?.data || []).filter(
+      (item: any) => item.employee_type_id
+    ), [employeeTypeData]);
 
   useEffect(() => {
     setColumns([
@@ -143,17 +154,10 @@ export default function Page() {
       },
       {
         field: "remarks",
-        headerName: "Remarks"
+        headerName: t.remarks || "Remarks"
       }
     ]);
   }, [language, t]);
-
-  const formatDateForAPI = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
 
   const { data: punchesData, isLoading: isLoadingTransactions, error, refetch } = useFetchAllEntity(
     "employeeEventTransaction", 
@@ -171,56 +175,33 @@ export default function Page() {
     }
   );
 
-  const getEmployeeName = (transaction: any) => {
-    if (userInfo && transaction.employee_id === employeeId) {
-      const name = language === "ar" 
-        ? `${userInfo.employeename?.firstarb || ""}`.trim()
-        : `${userInfo.employeename?.firsteng || ""}`.trim();
-      
-      if (name) return name;
-    }
-    
-    const employee = transaction.employee_master;
-    
-    if (!employee) {
-      return `Emp ${transaction.employee_id}`;
-    }
-    
-    const fullName = language === "ar"
-      ? `${employee.firstname_arb || ""}`.trim()
-      : `${employee.firstname_eng || ""}`.trim();
-    
-    return fullName || `Emp ${transaction.employee_id}`;
-  };
-
   const data = useMemo(() => {
-    if (Array.isArray(punchesData?.data)) {
-      const processedData = punchesData.data.map((transaction: any) => {
-        const transactionTimeStr = transaction.transaction_time;
-        
-        let formattedTime = '';
-        let formattedDate = '';
-        
-        if (transactionTimeStr) {
-          const date = new Date(transactionTimeStr);
-          formattedTime = date.toISOString().substr(11, 8);
-          formattedDate = date.toISOString().substr(0, 10);
-        }
-
-        return {
-          ...transaction,
-          id: transaction.transaction_id,
-          emp_no: transaction.employee_master?.emp_no || `EMP${transaction.employee_id}`,
-          employee_name: getEmployeeName(transaction),
-          transaction_date: formattedDate,
-          transaction_time: formattedTime,
-        };
-      });
-
-      return processedData;
+    if (!Array.isArray(punchesData?.data)) {
+      return [];
     }
-    return [];
-  }, [punchesData, language, userInfo, employeeId, error]);
+
+    return punchesData.data.map((transaction: any) => {
+      const transactionTimeStr = transaction.transaction_time;
+      
+      let formattedTime = '';
+      let formattedDate = '';
+      
+      if (transactionTimeStr) {
+        const date = new Date(transactionTimeStr);
+        formattedTime = date.toISOString().substr(11, 8);
+        formattedDate = date.toISOString().substr(0, 10);
+      }
+
+      return {
+        ...transaction,
+        id: transaction.transaction_id,
+        emp_no: transaction.employee_master?.emp_no || `EMP${transaction.employee_id}`,
+        employee_name: getEmployeeName(transaction),
+        transaction_date: formattedDate,
+        transaction_time: formattedTime,
+      };
+    });
+  }, [punchesData, getEmployeeName]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -249,22 +230,67 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleFromDateChange = (date: Date | undefined) => {
+  const handleFromDateChange = useCallback((date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleToDateChange = (date: Date | undefined) => {
+  const handleToDateChange = useCallback((date: Date | undefined) => {
     setToDate(date);
     handleFilterChange();
-  };
+  }, [handleFilterChange]);
 
-  const handleEmployeeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOrganizationChange = useCallback((value: string) => {
+    setSelectedOrganization(value);
+    setCurrentPage(1);
+    closePopover('organization');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
+
+  const handleEmployeeTypeChange = useCallback((value: string) => {
+    setSelectedEmployeeType(value);
+    setCurrentPage(1);
+    closePopover('employeeType');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
+
+  const handleVerticalChange = useCallback((value: string) => {
+    setSelectedVertical(value);
+    setSelectedOrganization("");
+    closePopover('vertical');
+  }, [closePopover]);
+
+  const handleEmployeeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setEmployeeFilter(event.target.value);
     setCurrentPage(1);
-  };
-  
-  const props = {
+  }, []);
+
+  const handleSave = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction", employeeId] });
+  }, [queryClient, employeeId]);
+
+  const handleEditClick = useCallback((rowData: any) => {
+    try {
+      const editData = {
+        ...rowData,
+      };
+      
+      sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
+    } catch (error) {
+      console.error("Error setting edit data:", error);
+      toast.error("Failed to load transaction data for editing");
+    }
+  }, []);
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -286,28 +312,24 @@ export default function Page() {
     setRowsPerPage: handleRowsPerPageChange,
     filter_open,
     filter_on_open_change,
-  };
-
-  const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction", employeeId] });
-  };
- 
-  const handleEditClick = (rowData: any) => {
-    try {
-      const editData = {
-        ...rowData,
-      };
-      
-      sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
-    } catch (error) {
-      console.error("Error setting edit data:", error);
-      toast.error("Failed to load transaction data for editing");
-    }
-  };
- 
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-  }, []);
+  }), [
+    data, 
+    columns, 
+    open, 
+    selectedRows, 
+    isLoadingTransactions, 
+    isChecking, 
+    sortField, 
+    currentPage, 
+    sortDirection, 
+    searchValue, 
+    punchesData, 
+    rowsPerPage, 
+    filter_open,
+    handlePageChange,
+    handleSearchChange,
+    handleRowsPerPageChange
+  ]);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -348,136 +370,149 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
       />
+      
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
-        {/* Filter 1: VERTICAL ORGANIZATION */}
-        <Popover
-          open={popoverStates.vertical}
-          onOpenChange={(open) =>
-            setPopoverStates((prev) => ({ ...prev, vertical: open }))
-          }
-        >
-          <PopoverTrigger asChild>
-            <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
-              <p>
-                <Label className="font-normal text-secondary">Vertical :</Label>
-                <span className="px-1 text-sm text-text-primary">
-                  {selectedVertical
-                    ? getVerticalData().find((item: any) =>
-                        String(item.organization_id) === selectedVertical
-                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                    : "Choose Vertical"}
-                </span>
-              </p>
-              <ChevronsUpDown className="h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
+        <div>
+          <Popover
+            open={popoverStates.vertical}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, vertical: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.vertical || "Vertical"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {selectedVertical
+                      ? getVerticalData().find((item: any) =>
+                          String(item.organization_id) === selectedVertical
+                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                      : (t.placeholder_vertical || "Choose Vertical")}
+                  </span>
+                </p>
+                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
 
-          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-            <Command>
-              <CommandInput placeholder="Search vertical..." />
-              <CommandGroup className="max-h-64 overflow-auto">
-                {getVerticalData().map((item: any) => (
-                  <CommandItem
-                    key={item.organization_id}
-                    onSelect={() => {
-                      setSelectedVertical(String(item.organization_id));
-                      setSelectedOrganization("");
-                      closePopover("vertical");
-                    }}
-                  >
-                    {language === "ar" ? item.organization_arb : item.organization_eng}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+              <Command>
+                <CommandInput placeholder={t.search_vertical || "Search vertical..."} />
+                <CommandGroup className="max-h-64 overflow-auto">
+                  {getVerticalData().map((item: any) => (
+                    <CommandItem
+                      key={item.organization_id}
+                      onSelect={() => handleVerticalChange(String(item.organization_id))}
+                    >
+                      {language === "ar" ? item.organization_arb : item.organization_eng}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
 
-        {/* Filter 2: ORGANIZATION (Filtered by parent_id = selectedVertical) */}
-        <Popover
-          open={popoverStates.organization}
-          onOpenChange={(open) =>
-            setPopoverStates((prev) => ({ ...prev, organization: open }))
-          }
-        >
-          <PopoverTrigger asChild>
-            <Button size="lg" variant="outline" className="w-full bg-accent px-4 flex justify-between border-grey">
-              <p className="truncate w-64">
-                <Label className="font-normal text-secondary">Organization :</Label>
-                <span className="px-1 text-sm text-text-primary">
-                  {selectedOrganization
-                    ? getOrganizationsData().find((item: any) =>
-                        String(item.organization_id) === selectedOrganization
-                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                    : "Choose Organization"}
-                </span>
-              </p>
-              <ChevronsUpDown className="h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
+        <div>
+          <Popover
+            open={popoverStates.organization}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, organization: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.organization || "Organization"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {selectedOrganization
+                      ? getOrganizationsData().find((item: any) =>
+                          String(item.organization_id) === selectedOrganization
+                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                      : (t.placeholder_org || "Choose Organization")}
+                  </span>
+                </p>
+                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
 
-          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-            <Command>
-              <CommandInput placeholder="Search organization..." />
-              <CommandGroup className="max-h-64 overflow-auto">
-                {getOrganizationsData().map((item: any) => (
-                  <CommandItem
-                    key={item.organization_id}
-                    onSelect={() => handleOrganizationChange(String(item.organization_id))}
-                  >
-                    {language === "ar" ? item.organization_arb : item.organization_eng}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+              <Command>
+                <CommandInput placeholder={t.search_organization || "Search organization..."} />
+                <CommandGroup className="max-h-64 overflow-auto">
+                  {getOrganizationsData().map((item: any) => (
+                    <CommandItem
+                      key={item.organization_id}
+                      onSelect={() => handleOrganizationChange(String(item.organization_id))}
+                    >
+                      {language === "ar" ? item.organization_arb : item.organization_eng}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
 
-        {/* Filter 3: EMPLOYEE TYPE (Already existed - no change except position) */}
-        <Popover 
-          open={popoverStates.employeeType} 
-          onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
-        >
-          <PopoverTrigger asChild>
-            <Button 
-              size={"lg"} 
-              variant={"outline"}
-              className="w-full bg-accent px-4 flex justify-between border-grey"
-            >
-              <p>
-                <Label className="font-normal text-secondary">Employee Type :</Label>
-                <span className="px-1 text-sm text-text-primary">
-                  {selectedEmployeeType
-                    ? getEmployeeTypesData().find((item: any) => 
-                        String(item.employee_type_id) === selectedEmployeeType
-                      )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
-                    : "Choose type"}
-                </span>
-              </p>
-              <ChevronsUpDown className="h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
+        <div>
+          <Popover 
+            open={popoverStates.employeeType} 
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.employee_type || "Employee Type"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {selectedEmployeeType
+                      ? getEmployeeTypesData().find((item: any) => 
+                          String(item.employee_type_id) === selectedEmployeeType
+                        )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
+                      : (t.placeholder_employee_type || "Choose type")}
+                  </span>
+                </p>
+                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
 
-          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-            <Command>
-              <CommandInput placeholder="Search employee type..." />
-              <CommandGroup className="max-h-64 overflow-auto">
-                {getEmployeeTypesData().map((item: any) => (
-                  <CommandItem
-                    key={item.employee_type_id}
-                    onSelect={() => handleEmployeeTypeChange(String(item.employee_type_id))}
-                  >
-                    {language === "ar" ? item.employee_type_arb : item.employee_type_eng}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>   
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+              <Command>
+                <CommandInput placeholder={t.search_employee_type || "Search employee type..."} />
+                <CommandGroup className="max-h-64 overflow-auto">
+                  {getEmployeeTypesData().map((item: any) => (
+                    <CommandItem
+                      key={item.employee_type_id}
+                      onSelect={() => handleEmployeeTypeChange(String(item.employee_type_id))}
+                    >
+                      {language === "ar" ? item.employee_type_arb : item.employee_type_eng}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
+
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">Manage Team Punches</h1>
+          <h1 className="font-bold text-xl text-primary">
+            {t.team_punches_header || "Manage Team Punches"}
+          </h1>
         </div>
         <div className="px-6">
           <PowerTabs />
