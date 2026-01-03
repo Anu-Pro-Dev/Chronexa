@@ -295,7 +295,7 @@ export default function EmployeeReports() {
         formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
-        logoUrl: '/FGI_COLOR.png',
+        logoUrl: '/FGIC_COLOR.png',
         onProgress: handleProgressUpdate,
         showToast: pdfShowToast,
       });

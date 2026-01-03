@@ -3,7 +3,7 @@ import localFont from "next/font/local"
 import Providers from '@/src/providers/Providers'
 
 export const metadata = {
-  title: 'Chronexa',
+  title: 'Federal Geographic Information Center',
   description: 'Time & Attendance Management System',
   icons: {
     icon: '/favicon.ico'

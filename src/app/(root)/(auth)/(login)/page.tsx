@@ -35,7 +35,7 @@ export default function Login() {
   }, []);
 
   const getMainLogo = () => {
-    return isDarkMode ? "/LogoDark.png" : "/Logo.png";
+    return isDarkMode ? "/FGIC_COLOR.png" : "/FGIC_COLOR.png";
   };
 
   return (
@@ -44,18 +44,7 @@ export default function Login() {
         <TextLanguageSwitcher />
       </div>
       <div className="main-container h-full flex flex-col sm:flex-row">
-        <div className="hidden sm:flex sm:flex-1 relative">
-          <Image
-            src="/AppBG.jpg"
-            alt="Time Management"
-            fill
-            priority
-            unoptimized
-            className="object-cover"
-          />
-        </div>
-        {/* Center image wrapper */}
-        {/* <div className="hidden sm:flex sm:flex-1 justify-center">
+        <div className="hidden sm:flex sm:flex-1 justify-center">
           <div className="relative w-[55%] h-auto aspect-square">
             <Image
               src="/uaelogo.png"
@@ -66,16 +55,16 @@ export default function Login() {
               className="object-contain"
             />
           </div> 
-        </div> */}
+        </div>
         <div className="flex flex-1 justify-center items-center flex-col bg-fullpage">
           <div className="flex flex-col justify-center items-center">
             <div className="transition-all flex gap-2 items-center">
               <Image
-                width={124}
-                height={63}
+                width={275}
+                height={111}
                 alt="logo"
                 src={getMainLogo()}
-                className="pb-4"
+                className="pb-6"
               />
             </div>
             <div className="w-full min-w-[300px] lg:min-w-[320px] 3xl:min-w-[450px]">
