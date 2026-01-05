@@ -177,10 +177,11 @@ function ViolationsCard() {
               }
             }}
           />
+          
           <YAxis
             type="number"
             tickLine={false}
-            tickMargin={2}
+            tickMargin={10}
             axisLine={false}
             orientation={dir === "rtl" ? "right" : "left"}
           />

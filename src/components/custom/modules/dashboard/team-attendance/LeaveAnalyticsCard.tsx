@@ -26,6 +26,7 @@ import {
 } from "@/src/components/ui/select";
 
 import { getTeamLeaveAnalytics } from "@/src/lib/dashboardApiHandler";
+import { useLanguage } from "@/src/providers/LanguageProvider";
 
 interface LeaveAnalytic {
   employee_id: number;
@@ -36,38 +37,40 @@ interface LeaveAnalytic {
 }
 
 export default function LeaveAnalyticsCard() {
-  const [dir] = useState<"ltr" | "rtl">("ltr");
-
-  const translations = {
-    leave_analytics: "Leave Analytics",
-    select_year: "Select Year",
-    january: "January",
-    february: "February",
-    march: "March",
-    april: "April",
-    may: "May",
-    june: "June",
-    july: "July",
-    august: "August",
-    september: "September",
-    october: "October",
-    november: "November",
-    december: "December",
+  const { dir, translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+  
+  const translationDefaults = {
+    leave_analytics: t?.leave_analytics || "Leave Analytics",
+    select_year: translations?.select_year || "Select Year",
+    employee: translations?.employee || "Employee",
+    january: translations?.january || "January",
+    february: translations?.february || "February",
+    march: translations?.march || "March",
+    april: translations?.april || "April",
+    may: translations?.may || "May",
+    june: translations?.june || "June",
+    july: translations?.july || "July",
+    august: translations?.august || "August",
+    september: translations?.september || "September",
+    october: translations?.october || "October",
+    november: translations?.november || "November",
+    december: translations?.december || "December",
   };
 
   const monthNames = [
-    translations.january,
-    translations.february,
-    translations.march,
-    translations.april,
-    translations.may,
-    translations.june,
-    translations.july,
-    translations.august,
-    translations.september,
-    translations.october,
-    translations.november,
-    translations.december,
+    translationDefaults.january,
+    translationDefaults.february,
+    translationDefaults.march,
+    translationDefaults.april,
+    translationDefaults.may,
+    translationDefaults.june,
+    translationDefaults.july,
+    translationDefaults.august,
+    translationDefaults.september,
+    translationDefaults.october,
+    translationDefaults.november,
+    translationDefaults.december,
   ];
 
   const currentYear = new Date().getFullYear();
@@ -101,7 +104,7 @@ export default function LeaveAnalyticsCard() {
   }, [employees]);
 
   const chartData = useMemo(() => {
-    return monthNames.map((month, index) => {
+    const data = monthNames.map((month, index) => {
       const row: any = { month };
 
       leaveAnalytics.forEach(item => {
@@ -115,18 +118,20 @@ export default function LeaveAnalyticsCard() {
 
       return row;
     });
-  }, [leaveAnalytics, monthNames]);
+
+    return dir === "rtl" ? [...data].reverse() : data;
+  }, [leaveAnalytics, monthNames, dir]);
 
   const chartConfig: ChartConfig = useMemo(() => {
     const config: ChartConfig = {};
     employees.forEach(empId => {
       config[`emp${empId}`] = {
-        label: `Employee ${empId}`,
+        label: `${translationDefaults.employee} ${empId}`,
         color: employeeColors[empId],
       };
     });
     return config;
-  }, [employees, employeeColors]);
+  }, [employees, employeeColors, translationDefaults.employee]);
 
   const years = useMemo(
     () => Array.from({ length: 5 }, (_, i) => currentYear - i),
@@ -137,7 +142,7 @@ export default function LeaveAnalyticsCard() {
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex justify-between p-4">
         <h5 className="text-lg font-bold text-text-primary">
-          {translations.leave_analytics}
+          {translationDefaults.leave_analytics}
         </h5>
 
         <Select
@@ -166,16 +171,21 @@ export default function LeaveAnalyticsCard() {
             axisLine={false}
             tickFormatter={v => v.slice(0, 3)}
           />
-          <YAxis tickLine={false} axisLine={false} />
+          <YAxis type="number" tickLine={false} axisLine={false} tickMargin={10} orientation={dir === "rtl" ? "right" : "left"} />
 
           <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "rgba(0,0,0,0.01)" }}/>
-          <Legend />
+          <Legend 
+            verticalAlign="bottom" 
+            height={36}
+            iconType="circle"
+            wrapperStyle={{ paddingTop: '16px' }}
+          />
 
           {employees.map(empId => (
             <Bar
               key={empId}
               dataKey={`emp${empId}`}
-              name={`Employee ${empId}`}
+              name={`${translationDefaults.employee} ${empId}`}
               fill={employeeColors[empId]}
               barSize={18}
               radius={[2, 2, 0, 0]}

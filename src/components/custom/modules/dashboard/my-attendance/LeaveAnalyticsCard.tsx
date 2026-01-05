@@ -22,24 +22,24 @@ function LeaveAnalyticsCard() {
   const t = translations?.modules?.dashboard || {};
   
   const translationDefaults = {
-    leave_analytics: t?.leave_analytics || "تحليل الإجازات",
-    select_year: translations?.select_year || "Select year",
-    leaves: t?.leaves || "الإجازات",
-    absent: t?.absent || "الغيابية",
-    no_data: translations?.no_data || "لا توجد بيانات متاحة",
-    january: translations?.january || "يناير",
-    february: translations?.february || "فبراير",
-    march: translations?.march || "مارس",
-    april: translations?.april || "أبريل",
-    may: translations?.may || "مايو",
-    june: translations?.june || "يونيو",
-    july: translations?.july || "يوليو",
-    august: translations?.august || "أغسطس",
-    september: translations?.september || "سبتمبر",
-    october: translations?.october || "أكتوبر",
-    november: translations?.november || "نوفمبر",
-    december: translations?.december || "ديسمبر",
-  };
+  leave_analytics: t?.leave_analytics || "Leave Analytics",
+  select_year: translations?.select_year || "Select year",
+  leaves: t?.leaves || "Leaves",
+  absent: t?.absent || "Absent",
+  no_data: translations?.no_data || "No data available",
+  january: translations?.january || "January",
+  february: translations?.february || "February",
+  march: translations?.march || "March",
+  april: translations?.april || "April",
+  may: translations?.may || "May",
+  june: translations?.june || "June",
+  july: translations?.july || "July",
+  august: translations?.august || "August",
+  september: translations?.september || "September",
+  october: translations?.october || "October",
+  november: translations?.november || "November",
+  december: translations?.december || "December",
+};
 
   const monthNames = [
     translationDefaults.january,
