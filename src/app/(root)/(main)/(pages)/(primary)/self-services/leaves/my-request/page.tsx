@@ -155,7 +155,7 @@ export default function Page() {
         <span>Download</span>
       </button>
     );
-  }, [showToast]);
+  }, []);
 
   useEffect(() => {
     setColumns([
