@@ -61,6 +61,7 @@ export default function AppSidebar() {
   const { open, setOpen } = useSidebar();
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   const [isDesktop, setIsDesktop] = React.useState(true);
+  const [isMobile, setIsMobile] = React.useState(false);
 
   const getModuleTranslation = (moduleKey: string) => {
     const normalizedKey = moduleKey.toLowerCase().replace(/\s+/g, "_");
@@ -84,10 +85,14 @@ export default function AppSidebar() {
 
   React.useEffect(() => {
     const checkScreenSize = () => {
-      const desktop = window.innerWidth >= 1024;
-      setIsDesktop(desktop);
+      const width = window.innerWidth;
+      const desktop = width >= 1024;
+      const mobile = width < 768;
       
-      if (!desktop) {
+      setIsDesktop(desktop);
+      setIsMobile(mobile);
+      
+      if (!desktop && open) {
         setOpen(false);
       }
     };
@@ -95,10 +100,10 @@ export default function AppSidebar() {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
-  }, [setOpen]);
+  }, [setOpen, open]);
 
   const handleExpand = () => { 
-    if (isDesktop) {
+    if (!isMobile) {
       setOpen(true); 
     }
   };
@@ -139,7 +144,7 @@ export default function AppSidebar() {
           <div 
             className={cn(
               "p-1 rounded-lg",
-              isDesktop && "cursor-pointer hover:opacity-80"
+              !isMobile && "cursor-pointer hover:opacity-80"
             )} 
             onClick={handleExpand}
           >
