@@ -173,9 +173,7 @@ function Sidebar({
     )
   }
 
-  // Around line 167, replace the mobile condition:
   if (isMobile) {
-    // Instead of returning Sheet, return the collapsed sidebar for mobile
     return (
       <div
         className="group peer text-sidebar-foreground"
