@@ -108,7 +108,7 @@ export default function AppSidebar() {
     }
   };
   
-  const getMainLogo = () => isDarkMode ? "/FGIC_COLOR.png" : "/FGIC_COLOR.png";
+  const getMainLogo = () => isDarkMode ? "/LogoDark.png" : "/Logo.png";
   const getMonoLogo = () => "/MonoLogo.png";
 
   const normalizePathSegment = (name: string) =>
@@ -126,7 +126,7 @@ export default function AppSidebar() {
       <SidebarHeader className="flex items-center justify-between px-4 py-4">
         {open && (
           <div className="flex items-center gap-2">
-            <Image width={175} height={71} alt="logo" src={getMainLogo()} />
+            <Image width={125} height={71} alt="logo" src={getMainLogo()} />
           </div>
         )}
         {open && isDesktop && (
