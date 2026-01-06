@@ -105,7 +105,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
               borderRightColor: dir === "rtl" ? "#0078D4" : "transparent",
             }}
           >
-            {animatedValues.workedHours.toFixed(2)}<span className="px-1 font-medium text-sm text-text-secondary">hrs</span>
+            {animatedValues.workedHours.toFixed(2)}
           </p>
         </div>
 
@@ -121,7 +121,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
               borderRightColor: dir === "rtl" ? "#80BBE9" : "transparent",
             }}
           >
-            {animatedValues.overtimeHours.toFixed(2)}<span className="px-1 font-medium text-sm text-text-secondary">hrs</span>
+            {animatedValues.overtimeHours.toFixed(2)}
           </p>
         </div>
 
@@ -137,7 +137,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
               borderRightColor: dir === "rtl" ? "#D9EBF9" : "transparent",
             }}
           >
-            {animatedValues.pendingHours.toFixed(2)}<span className="px-1 font-medium text-sm text-text-secondary">hrs</span>
+            {animatedValues.pendingHours.toFixed(2)}
           </p>
         </div>
       </div>
