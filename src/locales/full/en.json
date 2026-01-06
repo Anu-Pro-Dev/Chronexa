@@ -168,6 +168,7 @@
         "working_days": "Working Days",
         "total_leaves": "Total Leaves",
         "leaves_taken": "Leaves Taken",
+        "monthly_absent": "Monthly Absent",
         "approved_leaves": "Approved Leaves",
         "pending_leaves": "Pending Leaves",
         "total_perms": "Total Permissions",

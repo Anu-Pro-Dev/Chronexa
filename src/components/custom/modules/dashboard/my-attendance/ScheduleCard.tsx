@@ -36,11 +36,11 @@ function ScheduleCard() {
     
     const pendingHours = timeStringToHours(workSchedule.PendingWorkHrs as string);
     
-    const overtimeHours = Math.max(0, workedHours - totalHours);
+    const overtimeHours = timeStringToHours(workSchedule.OvertimeHrs as string);
 
     return { 
       totalHours, 
-      workedHours: Math.min(workedHours, totalHours),
+      workedHours,
       overtimeHours, 
       pendingHours 
     };

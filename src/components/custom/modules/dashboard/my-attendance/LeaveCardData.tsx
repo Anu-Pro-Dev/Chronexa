@@ -112,7 +112,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
             isHours: false
         },
         { 
-            label: t?.leaves_absent, 
+            label: t?.monthly_absent, 
             value: displayValues.MonthlyAbsent,
             color: "text-[#DA153E]", 
             icon: <AbsentIcon color="#DA153E"/>,
