@@ -61,6 +61,7 @@ export default function AppSidebar() {
   const { open, setOpen } = useSidebar();
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   const [isDesktop, setIsDesktop] = React.useState(true);
+  const [isMobile, setIsMobile] = React.useState(false);
 
   const getModuleTranslation = (moduleKey: string) => {
     const normalizedKey = moduleKey.toLowerCase().replace(/\s+/g, "_");
@@ -84,10 +85,14 @@ export default function AppSidebar() {
 
   React.useEffect(() => {
     const checkScreenSize = () => {
-      const desktop = window.innerWidth >= 1024;
-      setIsDesktop(desktop);
+      const width = window.innerWidth;
+      const desktop = width >= 1024;
+      const mobile = width < 768;
       
-      if (!desktop) {
+      setIsDesktop(desktop);
+      setIsMobile(mobile);
+      
+      if (!desktop && open) {
         setOpen(false);
       }
     };
@@ -95,15 +100,15 @@ export default function AppSidebar() {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
-  }, [setOpen]);
+  }, [setOpen, open]);
 
   const handleExpand = () => { 
-    if (isDesktop) {
+    if (!isMobile) {
       setOpen(true); 
     }
   };
   
-  const getMainLogo = () => isDarkMode ? "/LogoDark.png" : "/Logo.png";
+  const getMainLogo = () => isDarkMode ? "/FGIC_COLOR.png" : "/FGIC_COLOR.png";
   const getMonoLogo = () => "/MonoLogo.png";
 
   const normalizePathSegment = (name: string) =>
@@ -121,7 +126,7 @@ export default function AppSidebar() {
       <SidebarHeader className="flex items-center justify-between px-4 py-4">
         {open && (
           <div className="flex items-center gap-2">
-            <Image width={125} height={100} alt="logo" src={getMainLogo()} />
+            <Image width={175} height={71} alt="logo" src={getMainLogo()} />
           </div>
         )}
         {open && isDesktop && (
@@ -139,7 +144,7 @@ export default function AppSidebar() {
           <div 
             className={cn(
               "p-1 rounded-lg",
-              isDesktop && "cursor-pointer hover:opacity-80"
+              !isMobile && "cursor-pointer hover:opacity-80"
             )} 
             onClick={handleExpand}
           >
