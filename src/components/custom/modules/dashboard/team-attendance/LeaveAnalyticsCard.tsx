@@ -27,9 +27,10 @@ import {
 
 import { getTeamLeaveAnalytics } from "@/src/lib/dashboardApiHandler";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { Calendar1Icon } from "@/src/icons/icons";
 
 interface LeaveAnalytic {
-  employee_id: number;
+  employeeid: number;
   LVMonth: number;
   LeaveYear: number;
   LeaveCount: number;
@@ -39,7 +40,7 @@ interface LeaveAnalytic {
 export default function LeaveAnalyticsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  
+
   const translationDefaults = {
     leave_analytics: t?.leave_analytics || "Leave Analytics",
     select_year: translations?.select_year || "Select Year",
@@ -92,13 +93,13 @@ export default function LeaveAnalyticsCard() {
   }, [selectedYear]);
 
   const employees = useMemo(() => {
-    return [...new Set(leaveAnalytics.map(e => e.employee_id))];
+    return [...new Set(leaveAnalytics.map(e => e.employeeid))];
   }, [leaveAnalytics]);
 
   const employeeColors = useMemo(() => {
     const colors: Record<number, string> = {};
     employees.forEach((id, i) => {
-      colors[id] = `hsl(${i * 9}, 100%, 64%)`;
+      colors[id] = `hsl(${i * 3}, 100%, 64%)`;
     });
     return colors;
   }, [employees]);
@@ -109,8 +110,8 @@ export default function LeaveAnalyticsCard() {
 
       leaveAnalytics.forEach(item => {
         if (item.LVMonth === index + 1) {
-          row[`emp${item.employee_id}`] =
-            (row[`emp${item.employee_id}`] || 0) +
+          row[`emp${item.employeeid}`] =
+            (row[`emp${item.employeeid}`] || 0) +
             item.LeaveCount +
             item.AbsentCount;
         }
@@ -149,8 +150,11 @@ export default function LeaveAnalyticsCard() {
           value={selectedYear.toString()}
           onValueChange={v => setSelectedYear(Number(v))}
         >
-          <SelectTrigger className="h-9 w-auto rounded-lg border shadow-button text-sm font-semibold">
-            <SelectValue>{selectedYear}</SelectValue>
+          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+            <Calendar1Icon width="14" height="16" />
+            <SelectValue placeholder={translationDefaults.select_year}>
+              {selectedYear}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {years.map(year => (
@@ -173,12 +177,12 @@ export default function LeaveAnalyticsCard() {
           />
           <YAxis type="number" tickLine={false} axisLine={false} tickMargin={10} orientation={dir === "rtl" ? "right" : "left"} />
 
-          <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "rgba(0,0,0,0.01)" }}/>
-          <Legend 
-            verticalAlign="bottom" 
+          <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "rgba(0,0,0,0.01)" }} />
+          <Legend
+            verticalAlign="bottom"
             height={36}
             iconType="circle"
-            wrapperStyle={{ paddingTop: '16px' }}
+            wrapperStyle={{ height: 'auto', width: '100%', justifyContent: 'center' }}
           />
 
           {employees.map(empId => (
