@@ -53,6 +53,25 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
     animate();
   }, [totalHours, workedHours, overtimeHours, pendingHours]);
 
+  // Helper function for RTL hrs placement
+  const formatHours = (value: number) => {
+    const formatted = value.toFixed(2);
+    if (dir === "rtl") {
+      return (
+        <>
+          <span className="px-1 font-medium text-sm text-text-secondary">hrs</span>
+          {formatted}
+        </>
+      );
+    }
+    return (
+      <>
+        {formatted}
+        <span className="px-1 font-medium text-sm text-text-secondary">hrs</span>
+      </>
+    );
+  };
+
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
@@ -96,48 +115,51 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         <div className="font-semibold text-xs text-text-secondary">
           {t?.worked || "Worked"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 border-[#0078D4] mt-1"
+            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,
               borderLeftWidth: dir === "rtl" ? 0 : 2,
               borderRightWidth: dir === "rtl" ? 2 : 0,
+              borderLeftColor: "#0078D4",
               borderRightColor: dir === "rtl" ? "#0078D4" : "transparent",
             }}
           >
-            {animatedValues.workedHours.toFixed(2)}
+            {formatHours(animatedValues.workedHours)}
           </p>
         </div>
 
         <div className="font-semibold text-xs text-text-secondary">
           {t?.overtime || "Overtime"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 border-[#80BBE9] mt-1"
+            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,
               borderLeftWidth: dir === "rtl" ? 0 : 2,
               borderRightWidth: dir === "rtl" ? 2 : 0,
+              borderLeftColor: "#80BBE9",
               borderRightColor: dir === "rtl" ? "#80BBE9" : "transparent",
             }}
           >
-            {animatedValues.overtimeHours.toFixed(2)}
+            {formatHours(animatedValues.overtimeHours)}
           </p>
         </div>
 
         <div className="font-semibold text-xs text-text-secondary">
           {t?.pending || "Pending"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 border-[#D9EBF9] mt-1"
+            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,
               borderLeftWidth: dir === "rtl" ? 0 : 2,
               borderRightWidth: dir === "rtl" ? 2 : 0,
+              borderLeftColor: "#D9EBF9",
               borderRightColor: dir === "rtl" ? "#D9EBF9" : "transparent",
             }}
           >
-            {animatedValues.pendingHours.toFixed(2)}
+            {formatHours(animatedValues.pendingHours)}
           </p>
         </div>
       </div>
