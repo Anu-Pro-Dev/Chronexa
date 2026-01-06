@@ -19,39 +19,43 @@ import Required from "@/src/components/ui/required";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useMutation } from "@tanstack/react-query";
 import { loginRequest, forgotPasswordRequest } from "@/src/lib/apiHandler";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import { useShowToast } from "@/src/utils/toastHelper";
 import ThreeDotsLoader from "@/src/animations/ThreeDotsLoader";
 
 export const useLoginFormSchema = () => {
-  const { translations } = useLanguage();
-  const t = translations?.modules?.login || {};
+  const { t } = useLiteLanguage();
 
   return z.object({
     username: z
       .string()
       .trim()
-      .min(1, { message: t.error_username }),
+      .min(1, { message: t('modules.login.error_username') }),
 
     password: z
       .string()
-      .min(1, { message: t.error_password }),
+      .min(1, { message: t('modules.login.error_password') }),
 
     remember_me: z.boolean().optional(),
   });
 };
 
-const forgotPasswordSchema = z.object({
-  username: z.string().trim().min(1, { message: "username_required" }),
-});
+const useForgotPasswordSchema = () => {
+  const { t } = useLiteLanguage();
+  
+  return z.object({
+    username: z.string().trim().min(1, { message: t('formErrors.username_required') }),
+  });
+};
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
   const [apiResponseMessage, setApiResponseMessage] = useState("");
-  const { translations, language } = useLanguage();
+  const { t, language } = useLiteLanguage();
   const showToast = useShowToast();
   const loginFormSchema = useLoginFormSchema();
+  const forgotPasswordSchema = useForgotPasswordSchema();
 
   const loginForm = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -70,8 +74,6 @@ export default function LoginForm() {
   });
 
   const router = useRouter();
-  const t = translations?.modules?.login || {};
-  const errT = translations?.formErrors || {};
 
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
@@ -83,14 +85,14 @@ export default function LoginForm() {
       } else {
         loginForm.setError("username", {
           type: "manual",
-          message: t.error_login
+          message: t('modules.login.error_login')
         });
       }
     },
     onError: (error: any) => {
       loginForm.setError("username", {
         type: "manual",
-        message: t.error_login
+        message: t('modules.login.error_login')
       });
     },
   });
@@ -98,7 +100,7 @@ export default function LoginForm() {
   const forgotPasswordMutation = useMutation({
     mutationFn: (login: string) => forgotPasswordRequest(login),
     onSuccess: (data) => {
-      setApiResponseMessage(data.message || "Reset password link has been sent to your email.");
+      setApiResponseMessage(data.message || t('toastNotifications.forgot_password_success') || "Reset password link has been sent to your email.");
       forgotPasswordForm.reset();
     },
     onError: (error: any) => {
@@ -136,17 +138,18 @@ export default function LoginForm() {
       <Form {...loginForm}>
         <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="">
           <div className="flex flex-col gap-4">
+            {/* Username Field */}
             <FormField
               control={loginForm.control}
               name="username"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t.username || "Username"} <Required />
+                    {t('modules.login.username')} <Required />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={t.placeholder_username || "Enter Your username"}
+                      placeholder={t('modules.login.placeholder_username')}
                       type="text"
                       {...field}
                     />
@@ -156,18 +159,19 @@ export default function LoginForm() {
               )}
             />
 
+            {/* Password Field */}
             <FormField
               control={loginForm.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t.password || "Password"} <Required />
+                    {t('modules.login.password')} <Required />
                   </FormLabel>
                   <div className="relative">
                     <FormControl>
                       <Input
-                        placeholder={t.placeholder_password || "Enter Your password"}
+                        placeholder={t('modules.login.placeholder_password')}
                         type={showPassword ? "text" : "password"}
                         {...field}
                       />
@@ -187,6 +191,7 @@ export default function LoginForm() {
               )}
             />
 
+            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <FormField
                 control={loginForm.control}
@@ -201,7 +206,7 @@ export default function LoginForm() {
                           onCheckedChange={(checked) => field.onChange(checked === true)}
                         />
                         <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">
-                          {t.remember_me || "Remember Me"}
+                          {t('modules.login.remember_me')}
                         </FormLabel>
                       </div>
                     </FormControl>
@@ -213,10 +218,11 @@ export default function LoginForm() {
                 className="text-sm text-primary font-bold"
                 onClick={handleForgotPasswordClick}
               >
-                {t.forgot_password || "Forgot Password ?"}
+                {t('modules.login.forgot_password')}
               </button>
             </div>
 
+            {/* Submit Button */}
             <Button
               type="submit"
               size={"lg"}
@@ -225,22 +231,23 @@ export default function LoginForm() {
             >
               {loginMutation.status === "pending" ? (
                 <div className="flex items-center gap-2">
-                  {translations?.buttons?.logging_in || "Logging in"}
+                  {t('buttons.logging_in')}
                   <ThreeDotsLoader />
                 </div>
               ) : (
-                translations?.buttons?.login || "Login"
+                t('buttons.login')
               )}
             </Button>
           </div>
         </form>
       </Form>
 
+      {/* Forgot Password Modal */}
       <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={handleCloseForgotPasswordModal}>
         <ResponsiveModalContent size="medium">
           <ResponsiveModalHeader className="gap-1">
             <ResponsiveModalTitle>
-              {t.forgot_password || "Forgot Password"}
+              {t('modules.login.forgot_password')}
             </ResponsiveModalTitle>
             {apiResponseMessage ? (
               <ResponsiveModalDescription className="text-green-600">
@@ -248,7 +255,7 @@ export default function LoginForm() {
               </ResponsiveModalDescription>
             ) : (
               <ResponsiveModalDescription>
-                {t.forgot_password_desc || "Enter your username to receive a password reset link"}
+                {t('modules.login.forgot_password_desc')}
               </ResponsiveModalDescription>
             )}
           </ResponsiveModalHeader>
@@ -263,11 +270,11 @@ export default function LoginForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          {t.username || "Username"} <Required />
+                          {t('modules.login.username')} <Required />
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder={t.placeholder_username || "Enter Your username"}
+                            placeholder={t('modules.login.placeholder_username')}
                             type="text"
                             {...field}
                           />
@@ -284,7 +291,7 @@ export default function LoginForm() {
                       className="w-full"
                       onClick={handleCloseForgotPasswordModal}
                     >
-                      {translations?.buttons?.cancel || "Cancel"}
+                      {t('buttons.cancel') || "Cancel"}
                     </Button>
                     <Button
                       type="submit"
@@ -294,11 +301,11 @@ export default function LoginForm() {
                     >
                       {forgotPasswordMutation.status === "pending" ? (
                         <div className="flex items-center gap-2">
-                          {translations?.buttons?.sending || "Sending"}
+                          {t('buttons.sending') || "Sending"}
                           <ThreeDotsLoader />
                         </div>
                       ) : (
-                        translations?.buttons?.send || "Send"
+                        t('buttons.send') || "Send"
                       )}
                     </Button>
                   </div>
@@ -312,7 +319,7 @@ export default function LoginForm() {
                 size="lg"
                 className="w-full"
               >
-                {translations?.buttons?.ok || "OK"}
+                {t('buttons.ok') || "OK"}
               </Button>
             </div>
           )}

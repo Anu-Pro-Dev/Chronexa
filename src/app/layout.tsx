@@ -1,13 +1,11 @@
 import '@/src/styles/globals.css'
 import localFont from "next/font/local"
-import Providers from '@/src/providers/Providers'
+import PublicProviders from '@/src/providers/PublicProviders'
 
 export const metadata = {
   title: 'Federal Geographic Information Center',
   description: 'Time & Attendance Management System',
-  icons: {
-    icon: '/favicon.ico'
-  }
+  icons: { icon: '/favicon.ico' }
 };
 
 const NunitoSans = localFont({
@@ -45,9 +43,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html suppressHydrationWarning>
       <body className={NunitoSans.className} suppressHydrationWarning>
-        <Providers>
+        <PublicProviders>
           {children}
-        </Providers>
+        </PublicProviders>
       </body>
     </html>
   )

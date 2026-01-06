@@ -1,0 +1,66 @@
+{
+  "code": "en",
+  "dir": "ltr",
+  "language": "English",
+  "translations": {
+    "product_name": "Federal Geographic Information Center",
+    "buttons": {
+      "login": "Login",
+      "logging_in": "Logging in",
+      "loading": "Loading",
+      "cancel": "Cancel",
+      "send": "Send",
+      "sending": "Sending",
+      "ok": "OK"
+    },
+    "modules": {
+      "auth": {
+        "reset_password": "Reset Password",
+        "new_password": "New Password",
+        "confirm_password": "Confirm Password",
+        "placeholder_new_password": "Enter new password",
+        "placeholder_confirm_password": "Confirm new password",
+        "checking_reset_link": "Checking reset link...",
+        "reset_password_for": "Reset password for your account",
+        "reset_link_invalid": "Reset link is invalid or expired",
+        "reset_success_redirecting": "Password reset successful! Redirecting...",
+        "reset_failed": "Password reset failed",
+        "request_new_reset_link": "Request New Reset Link"
+      },
+      "login": {
+        "login": "Login",
+        "welcome_text": "Welcome Back! Please Login to access",
+        "username": "Username",
+        "password": "Password",
+        "captcha": "Captcha",
+        "remember_me": "Remember Me",
+        "forgot_password": "Forgot Password ?",
+        "placeholder_username": "Enter Your username",
+        "placeholder_password": "Enter Your password",
+        "placeholder_captcha": "Enter captcha",
+        "create_password": "Create Password",
+        "password_generate": "Password Generate",
+        "error_username": "Username is required",
+        "error_login": "Invalid username or password",
+        "error_password": "Password is required",
+        "forgot_password_msg": "Please connect with IT Department",
+        "forgot_password_desc": "Enter your username to receive a password reset link"
+      }
+    },
+    "toastNotifications": {
+      "formsubmission_error": "Form submission error.",
+      "login_success": "Login successfully!",
+      "form_error": "Something went wrong please try again.",
+      "reset_password_success": "Password reset successful! Redirecting...",
+      "reset_password_error": "Failed to reset password. Please try again.",
+      "forgot_password_error": "Failed to send reset password link. Please try again.",
+      "forgot_password_success": "Reset password link has been sent to your email."
+    },
+    "formErrors": {
+      "username_min_length": "Username must be at least 6 characters",
+      "password_min_length": "Password must be at least 8 characters",
+      "username_required": "Username is required",
+      "password_required": "Password is required."
+    }
+  }
+}

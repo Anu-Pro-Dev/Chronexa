@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import LoginForm from "@/src/components/custom/modules/auth/LoginForm";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import TextLanguageSwitcher from '@/src/components/custom/common/text-language-switcher';
 
 export default function Login() {
-  const { language, translations } = useLanguage();
+  const { language } = useLiteLanguage(); // ✅ Changed from useLanguage
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
