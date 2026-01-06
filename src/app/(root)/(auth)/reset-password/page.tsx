@@ -15,7 +15,7 @@ import {
   FormLabel,
 } from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import { PublicAxiosInstance } from "@/src/lib/axios";
 import TranslatedError from "@/src/utils/translatedError";
 import { IoEye, IoEyeOff } from "react-icons/io5";
@@ -32,7 +32,7 @@ const formSchema = z.object({
 });
 
 export default function ResetPasswordPage() {
-  const { translations, language } = useLanguage();
+  const { translations, language } = useLiteLanguage();
   const searchParams = useSearchParams();
   const token = searchParams?.get("token") || "";
   const loginId = searchParams?.get("loginId") || "";

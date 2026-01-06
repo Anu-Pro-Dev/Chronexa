@@ -3,7 +3,7 @@
   "dir": "rtl",
   "language": "عربي",
   "translations": {
-    "product_name": "كرونكسا",
+    "product_name": "المركز الاتحادي للمعلومات الجغرافية",
     "records_per_page": "عدد السجلات في الصفحة",
     "search": "بحث",
     "logout": "تسجيل الخروج",
@@ -156,7 +156,9 @@
         "error_login": "حدث خطأ. يرجى المحاولة مرة أخرى.",
         "error_password": "كلمة المرور مطلوبة.",
         "forgot_password_msg": "يرجى التواصل مع قسم تكنولوجيا المعلومات",
-        "forgot_password_desc": "أدخل اسم المستخدم الخاص بك لتلقي رابط إعادة تعيين كلمة المرور"
+        "forgot_password_desc": "أدخل اسم المستخدم الخاص بك لتلقي رابط إعادة تعيين كلمة المرور",
+        "or": "أو",
+        "login_with_azure": "تسجيل الدخول باستخدام Azure AD"
       },
       "dashboard": {
         "my_attendance": "حضوري",

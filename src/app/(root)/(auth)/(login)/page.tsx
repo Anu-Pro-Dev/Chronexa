@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import LoginForm from "@/src/components/custom/modules/auth/LoginForm";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import TextLanguageSwitcher from '@/src/components/custom/common/text-language-switcher';
 
 export default function Login() {
-  const { language, translations } = useLanguage();
+  const { language } = useLiteLanguage();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function Login() {
               className="object-contain"
             />
           </div> 
-        </div> */}
+        </div>*/}
         <div className="flex flex-1 justify-center items-center flex-col bg-fullpage">
           <div className="flex flex-col justify-center items-center">
             <div className="transition-all flex gap-2 items-center">
@@ -75,7 +75,7 @@ export default function Login() {
                 height={63}
                 alt="logo"
                 src={getMainLogo()}
-                className="pb-4"
+                className="pb-6"
               />
             </div>
             <div className="w-full min-w-[300px] lg:min-w-[320px] 3xl:min-w-[450px]">

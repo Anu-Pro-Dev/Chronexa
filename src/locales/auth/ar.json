@@ -1,0 +1,68 @@
+{
+    "code": "ar",
+    "dir": "rtl",
+    "language": "العربية",
+    "translations": {
+        "product_name": "المركز الاتحادي للمعلومات الجغرافية",
+        "buttons": {
+            "login": "دخول",
+            "logging_in": "جاري تسجيل الدخول",
+            "loading": "جاري التحميل",
+            "cancel": "إلغاء",
+            "send": "إرسال",
+            "sending": "جاري الإرسال",
+            "ok": "موافق"
+        },
+        "modules": {
+            "auth": {
+                "reset_password": "إعادة تعيين كلمة المرور",
+                "new_password": "كلمة المرور الجديدة",
+                "confirm_password": "تأكيد كلمة المرور",
+                "placeholder_new_password": "أدخل كلمة المرور الجديدة",
+                "placeholder_confirm_password": "أكد كلمة المرور",
+                "checking_reset_link": "جاري التحقق من رابط إعادة التعيين...",
+                "reset_password_for": "إعادة تعيين كلمة المرور لحسابك",
+                "reset_link_invalid": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية",
+                "reset_success_redirecting": "تم إعادة تعيين كلمة المرور بنجاح! جاري التحويل...",
+                "reset_failed": "فشل إعادة تعيين كلمة المرور",
+                "request_new_reset_link": "طلب رابط جديد لإعادة التعيين"
+            },
+            "login": {
+                "login": "تسجيل الدخول",
+                "welcome_text": "مرحبًا بعودتك! يرجى تسجيل الدخول للوصول",
+                "username": "اسم المستخدم",
+                "password": "كلمة المرور",
+                "captcha": "رمز التحقق",
+                "remember_me": "تذكرني",
+                "forgot_password": "نسيت كلمة المرور ؟",
+                "placeholder_username": "أدخل اسم المستخدم",
+                "placeholder_password": "أدخل كلمة المرور",
+                "placeholder_captcha": "أدخل رمز التحقق",
+                "create_password": "إنشاء كلمة مرور",
+                "password_generate": "توليد كلمة مرور",
+                "error_username": "اسم المستخدم مطلوب",
+                "error_login": "اسم المستخدم أو كلمة المرور غير صحيحة",
+                "error_password": "كلمة المرور مطلوبة",
+                "forgot_password_msg": "يرجى التواصل مع قسم تكنولوجيا المعلومات",
+                "forgot_password_desc": "أدخل اسم المستخدم لتلقي رابط إعادة تعيين كلمة المرور",
+                "or": "أو",
+                "login_with_azure": "تسجيل الدخول باستخدام Azure AD"
+            }
+        },
+        "toastNotifications": {
+            "formsubmission_error": "خطأ في إرسال النموذج.",
+            "login_success": "تم تسجيل الدخول بنجاح!",
+            "form_error": "حدث خطأ ما، يرجى المحاولة مرة أخرى.",
+            "reset_password_success": "تم إعادة تعيين كلمة المرور بنجاح! جاري التحويل...",
+            "reset_password_error": "فشل إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.",
+            "forgot_password_error": "فشل إرسال رابط إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.",
+            "forgot_password_success": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."
+        },
+        "formErrors": {
+            "username_min_length": "يجب أن يكون اسم المستخدم 6 أحرف على الأقل",
+            "password_min_length": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+            "username_required": "اسم المستخدم مطلوب",
+            "password_required": "كلمة المرور مطلوبة."
+        }
+    }
+}

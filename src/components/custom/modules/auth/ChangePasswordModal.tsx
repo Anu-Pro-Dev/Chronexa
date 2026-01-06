@@ -19,7 +19,7 @@ import {
   ResponsiveModalTitle,
 } from "@/src/components/ui/responsive-modal";
 import Required from "@/src/components/ui/required";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import { useMutation } from "@tanstack/react-query";
 import { changePasswordRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
@@ -46,7 +46,7 @@ export default function ChangePasswordModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { translations, language } = useLanguage();
+  const { translations, language } = useLiteLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);

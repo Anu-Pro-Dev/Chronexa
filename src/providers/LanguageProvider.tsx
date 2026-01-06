@@ -32,8 +32,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined
 );
 
-import arData from "@/src/locales/ar.json";
-import enData from "@/src/locales/en.json";
+import arData from "@/src/locales/full/ar.json";
+import enData from "@/src/locales/full/en.json";
 
 const allLanguages: { [key: string]: LanguageData } = {
   ar: arData,
