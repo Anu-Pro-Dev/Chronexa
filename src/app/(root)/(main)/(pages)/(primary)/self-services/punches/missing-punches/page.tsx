@@ -124,14 +124,62 @@ export default function Page() {
 
     if (employee) {
       const fullName = language === "ar"
-        ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
-        : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
+        ? `${employee.firstname_arb || ""}`.trim()
+        : `${employee.firstname_eng || ""}`.trim();
 
       if (fullName) return fullName;
     }
 
     return `Emp ${txEmployeeId ?? "-"}`;
   }, [language, userInfo, employeeId]);
+
+  const { apiEndpoint, searchParams } = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    
+    const commonParams = {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+    };
+
+    if (userRole === "admin") {
+      return {
+        apiEndpoint: "/missingMovement/all",
+        searchParams: {
+          ...commonParams,
+          ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+        },
+      };
+    } else if (userRole === "manager") {
+      return {
+        apiEndpoint: "/missingMovement/team",
+        searchParams: {
+          ...commonParams,
+          ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+        },
+      };
+    } else {
+      return {
+        apiEndpoint: "/missingMovement/all",
+        searchParams: {
+          ...commonParams,
+          ...(employeeId && { employee_id: String(employeeId) }),
+        },
+      };
+    }
+  }, [
+    userInfo?.role,
+    employeeId,
+    rowsPerPage,
+    offset,
+    debouncedSearchValue,
+    fromDate,
+    toDate,
+    debouncedEmployeeFilter,
+    formatDateForAPI,
+  ]);
 
   const handleCellClick = useCallback((data: any, field: string) => {
     const completeData = {
@@ -238,17 +286,9 @@ export default function Page() {
     error,
     refetch,
   } = useFetchAllEntity("missingMovement", {
-    searchParams: {
-      ...(employeeId && { employee_id: String(employeeId) }),
-      limit: String(rowsPerPage),
-      offset: String(offset),
-      ...(debouncedSearchValue && { search: debouncedSearchValue }),
-      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-      ...(toDate && { to_date: formatDateForAPI(toDate) }),
-      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-    },
-    enabled: !!employeeId && isAuthenticated && !isChecking,
-    endpoint: `/missingMovement/all`,
+    searchParams,
+    enabled: !!employeeId && isAuthenticated && !isChecking && !!userInfo?.role,
+    endpoint: apiEndpoint,
   });
 
   const data = useMemo(() => {

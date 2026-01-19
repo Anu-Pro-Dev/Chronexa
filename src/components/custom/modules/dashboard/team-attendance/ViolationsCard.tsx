@@ -149,7 +149,7 @@ function ViolationsCard() {
 
       <ChartContainer 
         config={chartConfig} 
-        className={`relative w-full h-[300px] ${
+        className={`relative w-full h-[300px] 3xl:h-[450px] ${
           dir === "rtl" ? "-right-[45px]" : "-left-[35px]"
         }`}
         dir={dir}

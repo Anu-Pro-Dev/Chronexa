@@ -68,6 +68,7 @@
       "update": "Update",
       "updating": "Updating...",
       "chatbot": "Chatbot",
+      "previous": "Previous",
       "next": "Next",
       "create_password": "Create Password",
       "generate": "Generate",
@@ -84,7 +85,8 @@
       "clear_filters": "Clear Filters",
       "apply_filters": "Apply Filters",
       "filtering": "Filtering...",
-      "applying": "Applying..."
+      "applying": "Applying...",
+      "view_report": "View Report"
     },
     "actions": {
       "add": "Add",
@@ -876,7 +878,21 @@
         "search_employee_types": "Search employee types...",
         "no_employee_types_found": "No employee types found",
         "search_managers": "Search managers...",
-        "no_managers_found": "No managers found"
+        "no_managers_found": "No managers found",
+        "report_preview": "Report Preview",
+        "late": "Late",
+        "early": "Early",
+        "in_time": "In Time",
+        "out_time": "Out Time",
+        "page": "Page",
+        "summary_totals": "Summary Totals",
+        "current_page": "Current Page",
+        "total_late_hours": "Total Late In Hours",
+        "total_early_hours": "Total Early Out Hours",
+        "total_missed_hours": "Total Missed Hours",
+        "total_worked_hours": "Total Worked Hours",
+        "total_extra_hours": "Total Extra Hours",
+        "view_before_export":"View the report on-screen first, then export to PDF or CSV as needed."
       },
       "configurations": {
         "roles": "Roles",

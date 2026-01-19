@@ -143,7 +143,7 @@ function LeaveAnalyticsCard() {
 
       <ChartContainer 
         config={chartConfig} 
-        className={`relative ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
+        className={`relative w-full h-[300px] 3xl:h-[450px] ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
         dir={dir}
       >
         <BarChart data={chartData}>

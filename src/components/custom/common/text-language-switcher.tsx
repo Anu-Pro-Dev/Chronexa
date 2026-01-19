@@ -1,4 +1,5 @@
-// "use client";
+"use client";
+
 import React from 'react';
 import { useLanguage } from '@/src/providers/LanguageProvider';
 import { useLiteLanguage } from '@/src/providers/LiteLanguageProvider';

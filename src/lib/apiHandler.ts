@@ -95,7 +95,6 @@ export const logoutRequest = async () => {
   }
 };
 
-// Separate function to handle logout cleanup - PRESERVES punch timer state
 const performLogoutCleanup = () => {
   clearAuthToken();
   localStorage.removeItem("user");
@@ -821,6 +820,18 @@ export const approveLeaveRequest = async (data: {
   return apiRequest(`/employeeLeave/approve/${employee_leave_id}`, "PUT", payload);
 };
 
+// Function to add new a transaction
+export const addEventTransaction = async (data: {
+  transaction_id?: number;
+  employee_id: number;
+  transaction_time: string;
+  reason: string;
+  user_entry_flag: boolean;
+  [key: string]: any;
+}) => {
+  return apiRequest("/employeeEventTransaction/add", "POST", data);
+}
+
 // Function to fetch event transaction of specfic employee
 export const getEmployeeTransactionById = async (data: {
   employee_id?: number;
@@ -828,6 +839,11 @@ export const getEmployeeTransactionById = async (data: {
   const { employee_id } = data;
 
   return apiRequest(`/employeeEventTransaction/employee/${employee_id}`, "GET");
+};
+
+// Function to get last transaction details
+export const getLastTransaction = async () => {
+  return apiRequest(`/employeeEventTransaction/mylastTransaction`, "POST");
 };
 
 // Function to fetch all roles
@@ -955,18 +971,6 @@ export const addOrUpdateUserRole = async (data: {
   role_id: number;
 }) => {
   return apiRequest(`/secUserRole/update-roles`, "PATCH", data);
-}
-
-// Function to add new a transaction
-export const addEventTransaction = async (data: {
-  transaction_id?: number;
-  employee_id: number;
-  transaction_time: string;
-  reason: string;
-  user_entry_flag: boolean;
-  [key: string]: any;
-}) => {
-  return apiRequest("/employeeEventTransaction/add", "POST", data);
 }
 
 // Function to fetch reports of specfic employee

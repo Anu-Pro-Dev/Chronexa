@@ -53,7 +53,6 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
     animate();
   }, [totalHours, workedHours, overtimeHours, pendingHours]);
 
-  // Helper function for RTL hrs placement
   const formatHours = (value: number) => {
     const formatted = value.toFixed(2);
     if (dir === "rtl") {

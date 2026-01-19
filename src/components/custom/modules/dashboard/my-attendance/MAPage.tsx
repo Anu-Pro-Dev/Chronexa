@@ -10,7 +10,7 @@ import InsightsCard from "./InsightsCard";
 
 function MyAttendancePage() {
   return (
-    <AttendanceDataProvider>
+    <AttendanceDataProvider>       
       <div className="space-y-4">
         {/* Mobile & Tablet Layout (< 1024px) */}
         <div className="3xl:hidden space-y-4">

@@ -151,6 +151,7 @@ export default function LoginForm() {
                     <Input
                       placeholder={t('modules.login.placeholder_username')}
                       type="text"
+                      suppressHydrationWarning
                       {...field}
                     />
                   </FormControl>
@@ -173,6 +174,7 @@ export default function LoginForm() {
                       <Input
                         placeholder={t('modules.login.placeholder_password')}
                         type={showPassword ? "text" : "password"}
+                        suppressHydrationWarning
                         {...field}
                       />
                     </FormControl>
@@ -204,6 +206,7 @@ export default function LoginForm() {
                           id="remember_me"
                           checked={field.value}
                           onCheckedChange={(checked) => field.onChange(checked === true)}
+                          suppressHydrationWarning
                         />
                         <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">
                           {t('modules.login.remember_me')}
@@ -217,6 +220,7 @@ export default function LoginForm() {
                 type="button"
                 className="text-sm text-primary font-bold"
                 onClick={handleForgotPasswordClick}
+                suppressHydrationWarning
               >
                 {t('modules.login.forgot_password')}
               </button>
@@ -227,6 +231,7 @@ export default function LoginForm() {
               type="submit"
               size={"lg"}
               className="w-full min-w-[300px] mx-auto mt-2"
+              suppressHydrationWarning
               disabled={loginMutation.status === "pending"}
             >
               {loginMutation.status === "pending" ? (

@@ -44,11 +44,36 @@ export function middleware(req: NextRequest) {
     res.headers.set("Access-Control-Allow-Credentials", "true");
     res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, ngrok-skip-browser-warning");
+
+    return res;
+  }
+
+  const token = req.cookies.get("userToken")?.value;
+  const tokenExpiration = req.cookies.get("tokenExpiration")?.value;
+  const rememberMe = req.cookies.get("rememberMe")?.value;
+  const pathname = req.nextUrl.pathname;
+
+  const isLoginPage = pathname === "/" || pathname === "/login";
+  const isForgotPassword = pathname === "/forgot-password";
+  const isAuthRoute = pathname.startsWith("/auth/");
+  const isPublicRoute = isLoginPage || isForgotPassword || isAuthRoute;
+
+  const isTokenValid = token && (!tokenExpiration || Date.now() <= parseInt(tokenExpiration));
+
+  if (!isPublicRoute && !isTokenValid) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  if (isLoginPage && isTokenValid && rememberMe === "true") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return res;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)", "/api/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg)).*)",
+    "/api/:path*",
+  ],
 };

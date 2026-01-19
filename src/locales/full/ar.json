@@ -68,6 +68,7 @@
       "update": "تحديث",
       "updating": "جارٍ التحديث...",
       "chatbot": "روبوت الدردشة",
+      "previous": "السابق",
       "next": "التالي",
       "create_password": "إنشاء كلمة مرور",
       "generate": "إنشاء",
@@ -84,7 +85,8 @@
       "clear_filters": "مسح الفلاتر",
       "apply_filters": "تطبيق الفلاتر",
       "filtering": "جارٍ التصفية...",
-      "applying": "جارٍ التطبيق..."
+      "applying": "جارٍ التطبيق...",
+      "view_report": "عرض التقرير"
     },
     "actions": {
       "add": "إضافة",
@@ -875,7 +877,21 @@
         "search_employee_types": "البحث عن أنواع الموظفين...",
         "no_employee_types_found": "لم يتم العثور على أنواع موظفين",
         "search_managers": "البحث عن المدراء...",
-        "no_managers_found": "لم يتم العثور على مدراء"
+        "no_managers_found": "لم يتم العثور على مدراء",
+        "report_preview": "معاينة التقرير",
+        "late": "متأخر",
+        "early": "مبكر",
+        "in_time": "وقت الدخول",
+        "out_time": "وقت الانصراف",
+        "page": "الصفحة",
+        "summary_totals": "إجمالي الملخص",
+        "current_page": "الصفحة الحالية",
+        "total_late_hours": "إجمالي ساعات التأخير",
+        "total_early_hours": "إجمالي ساعات الخروج المبكر",
+        "total_missed_hours": "إجمالي الساعات المفقودة",
+        "total_worked_hours": "إجمالي ساعات العمل",
+        "total_extra_hours": "إجمالي ساعات العمل الإضافية",
+        "view_before_export": "قم بعرض التقرير على الشاشة أولاً، ثم قم بالتصدير إلى PDF أو CSV حسب الحاجة."
       },
       "configurations": {
         "roles": "الأدوار",

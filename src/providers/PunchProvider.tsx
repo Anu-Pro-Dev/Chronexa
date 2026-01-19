@@ -9,6 +9,7 @@ type PunchContextType = {
   elapsedSeconds: number;
   togglePunch: () => void;
   updateElapsedSeconds: (seconds: number) => void;
+  setIsPunchedIn: (value: boolean) => void;
   isClient: boolean;
 };
 
@@ -75,6 +76,66 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(userPunchStateKey);
   };
 
+  // Helper function to get last transaction from localStorage/sessionStorage
+  const getLastTransactionFromStorage = () => {
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        return parsedUser.lastTransaction || null;
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+    return null;
+  };
+
+  // Helper function to determine punch state from transaction
+  const determinePunchStateFromTransaction = (lastTransaction: any) => {
+    if (!lastTransaction) {
+      return { shouldBePunchedIn: false };
+    }
+
+    const { date, type, device_id } = lastTransaction;
+    
+    // Check if transaction is from today
+    const transactionDate = new Date(date);
+    const today = new Date();
+    const isToday = transactionDate.getDate() === today.getDate() &&
+                   transactionDate.getMonth() === today.getMonth() &&
+                   transactionDate.getFullYear() === today.getFullYear();
+    
+    let shouldBePunchedIn = false;
+    let punchTime = null;
+    let startTimestamp = null;
+    let elapsed = 0;
+    
+    if (!isToday) {
+      // If last transaction is not from today, user needs to punch in
+      shouldBePunchedIn = false;
+    } else if (type === "OUT") {
+      // User is punched out today
+      shouldBePunchedIn = false;
+    } else if (type === "IN" && (device_id === 102 || device_id === 103)) {
+      // Geo-punch done today, needs second punch
+      shouldBePunchedIn = false;
+    } else if (type === "IN") {
+      // Properly punched in today (via biometric/web)
+      shouldBePunchedIn = true;
+      
+      const punchDateTime = new Date(date);
+      punchTime = punchDateTime.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true 
+      });
+      startTimestamp = punchDateTime.getTime();
+      elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+    }
+    
+    return { shouldBePunchedIn, punchTime, startTimestamp, elapsed };
+  };
+
   useEffect(() => {
     setIsClient(true);
     
@@ -88,26 +149,43 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     
     setCurrentUserId(userId);
     
-    const userPunchStateKey = getPunchStateKey(userId);
-    const savedState = localStorage.getItem(userPunchStateKey);
+    // Get last transaction from login response stored in localStorage/sessionStorage
+    const lastTransaction = getLastTransactionFromStorage();
     
-    if (savedState) {
-      try {
-        const { 
-          isPunchedIn: savedIsPunchedIn, 
-          punchInTime: savedPunchInTime, 
-          startTime: savedStartTime 
-        } = JSON.parse(savedState);
-        
-        if (savedIsPunchedIn && savedStartTime) {
-          setIsPunchedIn(true);
-          setPunchInTime(savedPunchInTime);
-          setStartTime(savedStartTime);
-          setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
+    if (lastTransaction) {
+      const { shouldBePunchedIn, punchTime, startTimestamp, elapsed } = 
+        determinePunchStateFromTransaction(lastTransaction);
+      
+      setIsPunchedIn(shouldBePunchedIn);
+      
+      if (shouldBePunchedIn && punchTime && startTimestamp) {
+        setPunchInTime(punchTime);
+        setStartTime(startTimestamp);
+        setElapsedSeconds(elapsed || 0);
+      }
+    } else {
+      // Fallback to localStorage punch state if no transaction data
+      const userPunchStateKey = getPunchStateKey(userId);
+      const savedState = localStorage.getItem(userPunchStateKey);
+      
+      if (savedState) {
+        try {
+          const { 
+            isPunchedIn: savedIsPunchedIn, 
+            punchInTime: savedPunchInTime, 
+            startTime: savedStartTime 
+          } = JSON.parse(savedState);
+          
+          if (savedIsPunchedIn && savedStartTime) {
+            setIsPunchedIn(true);
+            setPunchInTime(savedPunchInTime);
+            setStartTime(savedStartTime);
+            setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
+          }
+        } catch (error) {
+          console.error('Error loading punch state:', error);
+          localStorage.removeItem(userPunchStateKey);
         }
-      } catch (error) {
-        console.error('Error loading punch state:', error);
-        localStorage.removeItem(userPunchStateKey);
       }
     }
   }, []);
@@ -129,26 +207,43 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
       if (!currentUserId) {
         setCurrentUserId(newUserId);
         
-        const userPunchStateKey = getPunchStateKey(newUserId);
-        const savedState = localStorage.getItem(userPunchStateKey);
+        // Get last transaction from storage
+        const lastTransaction = getLastTransactionFromStorage();
         
-        if (savedState) {
-          try {
-            const { 
-              isPunchedIn: savedIsPunchedIn, 
-              punchInTime: savedPunchInTime, 
-              startTime: savedStartTime 
-            } = JSON.parse(savedState);
-            
-            if (savedIsPunchedIn && savedStartTime) {
-              setIsPunchedIn(true);
-              setPunchInTime(savedPunchInTime);
-              setStartTime(savedStartTime);
-              setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
+        if (lastTransaction) {
+          const { shouldBePunchedIn, punchTime, startTimestamp, elapsed } = 
+            determinePunchStateFromTransaction(lastTransaction);
+          
+          setIsPunchedIn(shouldBePunchedIn);
+          
+          if (shouldBePunchedIn && punchTime && startTimestamp) {
+            setPunchInTime(punchTime);
+            setStartTime(startTimestamp);
+            setElapsedSeconds(elapsed || 0);
+          }
+        } else {
+          // Fallback to localStorage
+          const userPunchStateKey = getPunchStateKey(newUserId);
+          const savedState = localStorage.getItem(userPunchStateKey);
+          
+          if (savedState) {
+            try {
+              const { 
+                isPunchedIn: savedIsPunchedIn, 
+                punchInTime: savedPunchInTime, 
+                startTime: savedStartTime 
+              } = JSON.parse(savedState);
+              
+              if (savedIsPunchedIn && savedStartTime) {
+                setIsPunchedIn(true);
+                setPunchInTime(savedPunchInTime);
+                setStartTime(savedStartTime);
+                setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
+              }
+            } catch (error) {
+              console.error('Error loading user punch state:', error);
+              localStorage.removeItem(userPunchStateKey);
             }
-          } catch (error) {
-            console.error('Error loading user punch state:', error);
-            localStorage.removeItem(userPunchStateKey);
           }
         }
         return;
@@ -165,26 +260,43 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         
         setCurrentUserId(newUserId);
         
-        const userPunchStateKey = getPunchStateKey(newUserId);
-        const savedState = localStorage.getItem(userPunchStateKey);
+        // Get last transaction from storage for new user
+        const lastTransaction = getLastTransactionFromStorage();
         
-        if (savedState) {
-          try {
-            const { 
-              isPunchedIn: savedIsPunchedIn, 
-              punchInTime: savedPunchInTime, 
-              startTime: savedStartTime 
-            } = JSON.parse(savedState);
-            
-            if (savedIsPunchedIn && savedStartTime) {
-              setIsPunchedIn(true);
-              setPunchInTime(savedPunchInTime);
-              setStartTime(savedStartTime);
-              setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
+        if (lastTransaction) {
+          const { shouldBePunchedIn, punchTime, startTimestamp, elapsed } = 
+            determinePunchStateFromTransaction(lastTransaction);
+          
+          setIsPunchedIn(shouldBePunchedIn);
+          
+          if (shouldBePunchedIn && punchTime && startTimestamp) {
+            setPunchInTime(punchTime);
+            setStartTime(startTimestamp);
+            setElapsedSeconds(elapsed || 0);
+          }
+        } else {
+          // Fallback to localStorage
+          const userPunchStateKey = getPunchStateKey(newUserId);
+          const savedState = localStorage.getItem(userPunchStateKey);
+          
+          if (savedState) {
+            try {
+              const { 
+                isPunchedIn: savedIsPunchedIn, 
+                punchInTime: savedPunchInTime, 
+                startTime: savedStartTime 
+              } = JSON.parse(savedState);
+              
+              if (savedIsPunchedIn && savedStartTime) {
+                setIsPunchedIn(true);
+                setPunchInTime(savedPunchInTime);
+                setStartTime(savedStartTime);
+                setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
+              }
+            } catch (error) {
+              console.error('Error loading new user punch state:', error);
+              localStorage.removeItem(userPunchStateKey);
             }
-          } catch (error) {
-            console.error('Error loading new user punch state:', error);
-            localStorage.removeItem(userPunchStateKey);
           }
         }
       }
@@ -268,6 +380,7 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         elapsedSeconds,
         togglePunch,
         updateElapsedSeconds,
+        setIsPunchedIn,
         isClient
       }}
     >

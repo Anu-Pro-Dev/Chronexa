@@ -58,7 +58,6 @@ export function PunchButton() {
     }
   };
 
-
   if (!isClient) {
     return (
       <Button

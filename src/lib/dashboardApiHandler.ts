@@ -1,68 +1,72 @@
 import { apiRequest } from './apiHandler';
 
-const requestCache = new Map<string, {
-  promise: Promise<any>;
+// In-memory cache with timestamps
+const memoryCache = new Map<string, {
+  data: any;
   timestamp: number;
 }>();
 
-const CACHE_DURATION = 2000; 
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const REQUEST_DEBOUNCE = 500;
 
+// Cleanup interval for expired cache
 setInterval(() => {
   const now = Date.now();
-  for (const [key, value] of requestCache.entries()) {
+  for (const [key, value] of memoryCache.entries()) {
     if (now - value.timestamp > CACHE_DURATION) {
-      requestCache.delete(key);
+      memoryCache.delete(key);
     }
   }
-}, 5000);
+}, 60000); // Check every minute
 
-const deduplicatedRequest = async (key: string, requestFn: () => Promise<any>) => {
+// Generic cache handler
+const getCachedData = async (
+  key: string,
+  fetchFn: () => Promise<any>,
+  duration: number = CACHE_DURATION
+): Promise<any> => {
   const now = Date.now();
-  const cached = requestCache.get(key);
+  const cached = memoryCache.get(key);
   
-  if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-    return cached.promise;
+  if (cached && (now - cached.timestamp) < duration) {
+    return cached.data;
   }
   
-  const promise = requestFn().finally(() => {
-    setTimeout(() => {
-      const current = requestCache.get(key);
-      if (current && current.promise === promise) {
-        requestCache.delete(key);
-      }
-    }, CACHE_DURATION);
-  });
-  
-  requestCache.set(key, { promise, timestamp: now });
-  return promise;
+  try {
+    const data = await fetchFn();
+    memoryCache.set(key, { data, timestamp: now });
+    return data;
+  } catch (error) {
+    console.error(`Error fetching data for key ${key}:`, error);
+    // Return stale cache if available
+    return cached?.data || null;
+  }
 };
 
+// Dashboard individual endpoints
 export const getAttendanceDetails = async () => {
-  return deduplicatedRequest('attendance', () => 
-    apiRequest('/dashboard/attendance', "GET")
+  return getCachedData('attendance', () => 
+    apiRequest('/dashboard/attendance', 'GET')
   );
 };
 
 export const getWorkSchedule = async () => {
-  return deduplicatedRequest('work-schedule', () =>
-    apiRequest('/dashboard/work-schedule', "GET")
+  return getCachedData('work-schedule', () =>
+    apiRequest('/dashboard/work-schedule', 'GET')
   );
 };
 
 export const getLeaveAnalytics = async (year?: number) => {
-  const queryParam = year ? `?year=${year}` : '';
   const cacheKey = `leave-analytics-${year || 'current'}`;
-  return deduplicatedRequest(cacheKey, () =>
-    apiRequest(`/dashboard/leave-analytics${queryParam}`, "GET")
+  return getCachedData(cacheKey, () =>
+    apiRequest(`/dashboard/leave-analytics?year=${year || new Date().getFullYear()}`, 'GET')
   );
 };
 
 export const getWorkHourTrends = async (month?: string) => {
-  const queryParam = month ? `?month=${month}` : '';
   const cacheKey = `work-hour-trends-${month || 'current'}`;
-  return deduplicatedRequest(cacheKey, () =>
-    apiRequest(`/dashboard/work-hour-trends${queryParam}`, "GET")
+  return getCachedData(cacheKey, () =>
+    apiRequest(`/dashboard/work-hour-trends${month ? `?month=${month}` : ''}`, 'GET')
   );
 };
 
@@ -71,61 +75,60 @@ export const getTeamAttendanceDetails = async (
   month?: number,
   year?: number
 ) => {
-
   const queryParams = new URLSearchParams();
+  if (date) queryParams.append('date', date);
+  if (month) queryParams.append('month', String(month));
+  if (year) queryParams.append('year', String(year));
 
-  if (date) queryParams.append("date", date);
-  if (month) queryParams.append("month", String(month));
-  if (year) queryParams.append("year", String(year));
+  const cacheKey = `team-attendance-${date || month || year || 'current'}`;
+  const query = queryParams.toString();
 
-  const finalQuery = queryParams.toString();
-  const cacheKey = `team-attendance-${finalQuery || "default"}`;
-
-  return deduplicatedRequest(cacheKey, () =>
-    apiRequest(`/dashboard/teamAttendance${finalQuery ? `?${finalQuery}` : ''}`, "GET")
+  return getCachedData(cacheKey, () =>
+    apiRequest(`/dashboard/teamAttendance${query ? `?${query}` : ''}`, 'GET')
   );
 };
 
 export const getTeamLeaveAnalytics = async (year?: number) => {
-  const queryParam = year ? `?year=${year}` : '';
-  const cacheKey = `leave-analytics-${year || 'current'}`;
-  return deduplicatedRequest(cacheKey, () =>
-    apiRequest(`/dashboard/teamLeaveAnalytics${queryParam}`, "GET")
+  const cacheKey = `team-leave-analytics-${year || 'current'}`;
+  return getCachedData(cacheKey, () =>
+    apiRequest(`/dashboard/teamLeaveAnalytics?year=${year || new Date().getFullYear()}`, 'GET')
   );
 };
 
 export const getTeamViolationAnalytics = async (year?: number) => {
-  const queryParam = year ? `?year=${year}` : '';
-  const cacheKey = `violation-analytics-${year || 'current'}`;
-  return deduplicatedRequest(cacheKey, () =>
-    apiRequest(`/dashboard/teamViolationAnalytics${queryParam}`, "GET")
+  const cacheKey = `team-violation-analytics-${year || 'current'}`;
+  return getCachedData(cacheKey, () =>
+    apiRequest(`/dashboard/teamViolationAnalytics?year=${year || new Date().getFullYear()}`, 'GET')
   );
 };
 
-let dashboardFetchPromise: Promise<any> | null = null;
-let dashboardFetchTimestamp = 0;
-
+// Comprehensive dashboard data - single API call or aggregated
 export const getAllDashboardData = async () => {
-  const now = Date.now();
+  const cacheKey = 'all-dashboard-data';
   
-  if (dashboardFetchPromise && (now - dashboardFetchTimestamp) < CACHE_DURATION) {
-    return dashboardFetchPromise;
-  }
-  
-  dashboardFetchTimestamp = now;
-  
-  dashboardFetchPromise = (async () => {
-    try {    
-      const [attendance, schedule] = await Promise.all([
-        getAttendanceDetails(),
-        getWorkSchedule()
-      ]);
-    
+  return getCachedData(cacheKey, async () => {
+    try {
+      // Option 1: If backend supports single endpoint, use this:
+      // const response = await apiRequest('/dashboard/all', 'GET');
+      
+      // Option 2: Parallel requests for individual endpoints (current approach)
+      const [attendance, schedule, leaveAnalytics, workHours, teamAttendance] = 
+        await Promise.all([
+          getAttendanceDetails(),
+          getWorkSchedule(),
+          getLeaveAnalytics(),
+          getWorkHourTrends(),
+          getTeamAttendanceDetails()
+        ]);
+      
       return {
         success: true,
         data: {
-          getMyAttnDetails: attendance?.success ? attendance.data : [],
-          WorkSchedule: schedule?.success ? schedule.data : []
+          getMyAttnDetails: attendance?.data || [],
+          workSchedule: schedule?.data || [],
+          leaveAnalytics: leaveAnalytics?.data || [],
+          workHourTrends: workHours?.data || [],
+          teamAttendance: teamAttendance?.data || []
         }
       };
     } catch (error) {
@@ -135,18 +138,35 @@ export const getAllDashboardData = async () => {
         data: null,
         error: 'Failed to fetch dashboard data'
       };
-    } finally {
-      setTimeout(() => {
-        dashboardFetchPromise = null;
-      }, CACHE_DURATION);
     }
-  })();
-  
-  return dashboardFetchPromise;
+  });
 };
 
+// Store specific dashboard section
+export const updateDashboardSection = (section: string, data: any) => {
+  memoryCache.set(section, { data, timestamp: Date.now() });
+};
+
+// Get cache info for debugging
+export const getCacheInfo = () => {
+  return {
+    cacheSize: memoryCache.size,
+    keys: Array.from(memoryCache.keys()),
+    cacheDuration: `${CACHE_DURATION / 1000}s`
+  };
+};
+
+// Clear specific cache
+export const clearCacheSection = (key: string) => {
+  memoryCache.delete(key);
+};
+
+// Clear all dashboard cache
 export const clearDashboardCache = () => {
-  dashboardFetchPromise = null;
-  dashboardFetchTimestamp = 0;
-  requestCache.clear();
+  memoryCache.clear();
+};
+
+// Preload dashboard on app init
+export const preloadDashboardData = async () => {
+  return getAllDashboardData();
 };

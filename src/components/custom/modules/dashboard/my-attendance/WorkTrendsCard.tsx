@@ -14,18 +14,79 @@ import { getWorkHourTrends } from "@/src/lib/dashboardApiHandler";
 
 const colorMapping = {
   worked: "#0078D4",
-  missed: "#EBEBEB",
+  missed: "#C7E7FF",
   expected: "#C7E7FF",
+  holiday: "#FFD700",
+  dayoff: "#EBEBEB",
+};
+
+const CustomTooltip = ({ active, payload }: any) => {
+  const { translations } = useLanguage();
+  const t = translations?.modules?.dashboard || {};
+
+  if (!active || !payload || !payload.length) return null;
+
+  const data = payload[0].payload;
+  
+  if (data.dayoff > 0) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <p className="text-sm font-semibold text-gray-700">
+          {t?.day || "Day"} {data.date}
+        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.dayoff }}></div>
+          <span className="text-sm text-gray-600">{t?.dayoff || "Day Off"}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (data.holiday > 0) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <p className="text-sm font-semibold text-gray-700">
+          {t?.day || "Day"} {data.date}
+        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.holiday }}></div>
+          <span className="text-sm text-gray-600">{t?.holiday || "Holiday"}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+      <p className="text-sm font-semibold text-gray-700 mb-2">
+        {t?.day || "Day"} {data.date}
+      </p>
+      {data.worked > 0 && (
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.worked }}></div>
+          <span className="text-sm text-gray-600">{t?.worked_hrs || "Worked"}: {data.worked}hrs</span>
+        </div>
+      )}
+      {data.missed > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.missed }}></div>
+          <span className="text-sm text-gray-600">{t?.missed_hrs || "Missed"}: {data.missed}hrs</span>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const CustomLegend = ({ payload }: any) => {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
 
-  const customLabels: { [key in "worked" | "missed" | "expected"]: string } = {
+  const customLabels: { [key in "worked" | "missed" | "expected" | "holiday" | "dayoff"]: string } = {
     worked: t?.worked_hrs,
     missed: t?.missed_hrs,
     expected: t?.expected_hrs,
+    holiday: t?.holiday || "Holiday",
+    dayoff: t?.dayoff || "Day Off",
   };
 
   return (
@@ -37,7 +98,7 @@ const CustomLegend = ({ payload }: any) => {
             style={{ backgroundColor: entry.color }}
           ></div>
           <span className="text-sm text-gray-700 px-1">
-            {customLabels[entry.value as "worked" | "missed" | "expected"] || entry.value}
+            {customLabels[entry.value as "worked" | "missed" | "expected" | "holiday" | "dayoff"] || entry.value}
           </span>
         </div>
       ))}
@@ -96,6 +157,9 @@ function WorkTrendsCard() {
         worked: 0,
         missed: 0,
         expected: 0,
+        holiday: 0,
+        dayoff: 0,
+        isRestDay: false,
       }));
     }
 
@@ -110,23 +174,63 @@ function WorkTrendsCard() {
           worked: 0,
           missed: 0,
           expected: 0,
+          holiday: 0,
+          dayoff: 0,
+          isRestDay: false,
         };
       }
 
-      // Use 8 hours (480 minutes) as default if ExpectedWork is null or 0
+      if (dayData.restday === 1) {
+        return {
+          date: dayNumber.toString(),
+          worked: 0,
+          missed: 0,
+          expected: 0,
+          holiday: 0,
+          dayoff: 8,
+          isRestDay: true,
+        };
+      }
+
+      if (dayData.holiday === 1) {
+        return {
+          date: dayNumber.toString(),
+          worked: 0,
+          missed: 0,
+          expected: 0,
+          holiday: 8, 
+          dayoff: 0,
+          isRestDay: false,
+        };
+      }
+
       const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0) 
         ? 480 
         : dayData.ExpectedWork;
       
       const expectedHours = expectedMinutes / 60;
       const workedHours = (dayData.WorkMinutes || 0) / 60;
-      const missedHours = Math.max(0, expectedHours - workedHours);
+      
+      let worked, missed, expected;
+      
+      if (workedHours > expectedHours) {
+        worked = Number(workedHours.toFixed(2));
+        missed = 0;
+        expected = 0;
+      } else {
+        worked = Number(workedHours.toFixed(2));
+        missed = Number((expectedHours - workedHours).toFixed(2));
+        expected = Number(expectedHours.toFixed(2));
+      }
       
       return {
         date: dayNumber.toString(),
-        worked: Number(workedHours.toFixed(2)),
-        missed: Number(missedHours.toFixed(2)),
-        expected: Number(expectedHours.toFixed(2)),
+        worked,
+        missed,
+        expected,
+        holiday: 0,
+        dayoff: 0,
+        isRestDay: false,
       };
     });
 
@@ -140,9 +244,10 @@ function WorkTrendsCard() {
     0
   );
 
-  const yAxisMax = Math.ceil(maxExpectedHours) || 10;
+  const yAxisMax = Math.max(Math.ceil(maxExpectedHours / 2) * 2, 10);
+  const ticks = Array.from({ length: Math.floor(yAxisMax / 2) + 1 }, (_, i) => i * 2);
 
-  const hasAnyData = chartDataToRender.some(d => d.worked > 0 || d.missed > 0 || d.expected > 0);
+  const hasAnyData = chartDataToRender.some(d => d.worked > 0 || d.missed > 0 || d.expected > 0 || d.holiday > 0 || d.dayoff > 0);
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4">
@@ -190,7 +295,7 @@ function WorkTrendsCard() {
         <div className="relative">
           <ChartContainer
             dir={dir}
-            className={`relative w-full h-[300px] flex justify-center ${dir === "rtl" ? "-right-[35px]" : "-left-[25px]"}`}
+            className={`relative w-full h-[400px] 3xl:h-[450px] flex justify-center ${dir === "rtl" ? "-right-[35px]" : "-left-[25px]"}`}
             config={{
               type: { label: "Bar Chart", icon: undefined, color: "#0078D4" },
               options: {},
@@ -211,9 +316,10 @@ function WorkTrendsCard() {
                 tickMargin={2}
                 axisLine={false}
                 domain={[0, yAxisMax]}
+                ticks={ticks}
                 orientation={dir === "rtl" ? "right" : "left"}
               />
-              {hasAnyData && <ChartTooltip cursor={false} content={<ChartTooltipContent />} />}
+              {hasAnyData && <ChartTooltip cursor={false} content={<CustomTooltip />} />}
               <ChartLegend content={<CustomLegend />} />
 
               <Bar 
@@ -227,6 +333,20 @@ function WorkTrendsCard() {
                 dataKey="missed" 
                 stackId="b" 
                 fill={colorMapping.missed} 
+                radius={0} 
+                barSize={5} 
+              />
+              <Bar 
+                dataKey="holiday" 
+                stackId="b" 
+                fill={colorMapping.holiday} 
+                radius={0} 
+                barSize={5} 
+              />
+              <Bar 
+                dataKey="dayoff" 
+                stackId="b" 
+                fill={colorMapping.dayoff} 
                 radius={0} 
                 barSize={5} 
               />

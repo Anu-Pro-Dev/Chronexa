@@ -11,15 +11,15 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import Loading from "@/src/app/loading";
 import { Toaster } from "react-hot-toast";
-import AuthenticatedProviders from '@/src/providers/AuthenticatedProviders'; 
+import AuthenticatedProviders from '@/src/providers/AuthenticatedProviders';
 
-function DashboardContent({ children }: { children: React.ReactNode }) {
+function RootContent({ children }: { children: React.ReactNode }) {
   const { privilegeMap, isLoading } = usePrivileges();
   const router = useRouter();
   const { dir, language } = useLanguage();
-  
+
   const toasterPosition = language === 'ar' ? 'top-left' : 'top-right';
-  
+
   useEffect(() => {
     if (!isLoading) {
       const hasAccess = Object.values(privilegeMap).some(
@@ -39,7 +39,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       {/* Add Toaster here - uses Full LanguageProvider */}
-      <Toaster 
+      <Toaster
         position={toasterPosition}
         toastOptions={{
           style: {
@@ -63,7 +63,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           },
         }}
       />
-      
+
       <TooltipProvider delayDuration={0}>
         <SidebarProvider defaultOpen={true}>
           <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -76,7 +76,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <div className="p-4 md:p-6">
                   {children}
                 </div>
-                <ScrollBar orientation="vertical" className="hidden bg-[#84c0ed] hover:bg-[#767676] w-[5px]"/>
+                <ScrollBar orientation="vertical" className="hidden bg-[#84c0ed] hover:bg-[#767676] w-[5px]" />
                 <ScrollBar orientation="horizontal" className="hidden" />
               </ScrollArea>
             </div>
@@ -86,11 +86,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     </>
   );
 }
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthenticatedProviders>
       <ProtectedLayout>
-        <DashboardContent>{children}</DashboardContent>
+        <RootContent>{children}</RootContent>
       </ProtectedLayout>
     </AuthenticatedProviders>
   );

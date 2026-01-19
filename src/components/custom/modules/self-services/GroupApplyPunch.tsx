@@ -147,6 +147,8 @@ export default function GroupApplyPunch({
       const payload = {
         transaction_time: transaction_time,
         reason: values.reason,
+        transaction_type: values.reason,
+        device_id: 103,
         remarks: values.remarks || "",
       };
       GroupApplyPunchMutation.mutate(payload);

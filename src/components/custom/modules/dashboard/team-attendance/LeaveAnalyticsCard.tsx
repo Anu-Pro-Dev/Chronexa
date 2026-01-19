@@ -166,7 +166,7 @@ export default function LeaveAnalyticsCard() {
         </Select>
       </div>
 
-      <ChartContainer config={chartConfig} dir={dir} className={`relative w-full h-[300px] ${dir === "rtl" ? "-right-[30px]" : "-left-[25px]"}`}>
+      <ChartContainer config={chartConfig} dir={dir} className={`relative w-full h-[300px] 3xl:h-[450px] ${dir === "rtl" ? "-right-[30px]" : "-left-[25px]"}`}>
         <BarChart data={chartData}>
           <CartesianGrid vertical={false} />
           <XAxis

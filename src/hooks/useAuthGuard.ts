@@ -51,7 +51,7 @@ export function useAuthGuard() {
           setIsChecking(false);
         }, 500);
         
-        return () => clearTimeout(recheckTimer);
+        return;
       }
 
       try {
