@@ -14,19 +14,22 @@ import {
   EarlyOutIcon,
   LateInIcon,
 } from "@/src/icons/icons";
-import { useAttendanceData } from "../my-attendance/AttendanceData";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 
 function ViolationsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { attendanceDetails, loading } = useAttendanceData();
+  
+  const attendanceDetails = useDashboardStore((state) => state.attendanceDetails);
+  const loadingDashboard = useDashboardStore((state) => state.loadingDashboard);
+  
   const [animatedValues, setAnimatedValues] = useState<any>(null);
 
   useEffect(() => {
-    if (attendanceDetails && !loading) {
+    if (attendanceDetails && !loadingDashboard) {
       animateValues(attendanceDetails);
     }
-  }, [attendanceDetails, loading]);
+  }, [attendanceDetails, loadingDashboard]);
 
   const animateValues = (data: any) => {
     const startTime = Date.now();

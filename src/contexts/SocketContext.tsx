@@ -23,7 +23,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const token = getAuthToken();
     console.log('Token from getAuthToken():', token ? 'Found' : 'Not found');
     
-    // ✅ CHANGED: Looking for "user" instead of "userData"
     const userDataStr = localStorage.getItem('user') || sessionStorage.getItem('user');
     console.log('user from storage:', userDataStr ? 'Found' : 'Not found');
     

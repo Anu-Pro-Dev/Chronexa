@@ -10,7 +10,7 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getTeamViolationAnalytics } from '@/src/lib/dashboardApiHandler';
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 
 interface ViolationAnalytic {
   ViolationMnth: number;
@@ -26,25 +26,11 @@ function ViolationsCard() {
   const t = translations?.modules?.dashboard || {};
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [violationsData, setViolationsData] = useState<ViolationAnalytic[]>([]);
 
-  useEffect(() => {
-    const fetchYearData = async () => {
-      try {
-        const response = await getTeamViolationAnalytics(selectedYear);
-        if (response?.success && response.data?.length > 0) {
-          setViolationsData(response.data);
-        } else {
-          setViolationsData([]);
-        }
-      } catch (error) {
-        console.error('Error fetching violations analytics:', error);
-        setViolationsData([]);
-      }
-    };
+  const fetchTeamViolations = useDashboardStore((s) => s.fetchTeamViolationAnalyticsForYear);
+  const teamViolationAnalyticsCache = useDashboardStore((s) => s.teamViolationAnalyticsCache);
 
-    fetchYearData();
-  }, [selectedYear]);
+  const violationsData: ViolationAnalytic[] = teamViolationAnalyticsCache[selectedYear] || [];
 
   const formatValue = (value: any): number => {
     if (value === null || value === undefined) return 0;
@@ -117,6 +103,14 @@ function ViolationsCard() {
     return Array.from({ length: 5 }, (_, i) => currentYear - i);
   }, [currentYear]);
 
+  const handleYearChange = (year: string) => {
+    const newYear = Number(year);
+    setSelectedYear(newYear);
+    if (!teamViolationAnalyticsCache[newYear]) {
+      fetchTeamViolations(newYear);
+    }
+  };
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex flex-row justify-between p-4">
@@ -125,7 +119,7 @@ function ViolationsCard() {
         </h5>
         <Select 
           value={selectedYear.toString()} 
-          onValueChange={(value) => setSelectedYear(Number(value))}
+          onValueChange={handleYearChange}
         >
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />

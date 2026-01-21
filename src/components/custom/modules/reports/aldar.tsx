@@ -555,7 +555,7 @@ export default function EmployeeReports() {
           </div>
           <div className="relative">
             <p
-              className={`text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"
+              className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"
                 }`}
             >
               <strong>💡 {t.tip || 'Tip'}:</strong> {t.csv_fastest || 'For datasets over 5,000 records, use CSV export for best performance. Excel export works great for up to 20,000 records. PDF shows last 1,000 records for large datasets.'}

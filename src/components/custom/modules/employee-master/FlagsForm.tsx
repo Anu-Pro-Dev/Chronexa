@@ -78,7 +78,7 @@ export default function FlagsForm({
     <Form {...flagForm} className="w-11/12 mx-auto">
       <div className="mb-3 relative">
         <p
-          className={`text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[25px] ${
+          className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop absolute -top-[25px] ${
             dir === "rtl" ? "left-0" : "right-0"
           }`}
         >

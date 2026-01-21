@@ -6,11 +6,10 @@ import {
   ChartContainer,
   ChartLegend,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getWorkHourTrends } from "@/src/lib/dashboardApiHandler";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 
 const colorMapping = {
   worked: "#0078D4",
@@ -113,31 +112,16 @@ function WorkTrendsCard() {
   const currentMonth = new Date().getMonth() + 1; 
   const currentYear = new Date().getFullYear();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
-  const [workHourTrends, setWorkHourTrends] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const workHourTrendsCache = useDashboardStore((state) => state.workHourTrendsCache);
+  const loadingWorkHourTrends = useDashboardStore((state) => state.loadingWorkHourTrends);
+  const fetchWorkHourTrendsForMonth = useDashboardStore((state) => state.fetchWorkHourTrendsForMonth);
 
   useEffect(() => {
-    const fetchMonthData = async () => {
-      setLoading(true);
-      try {        
-        const response = await getWorkHourTrends(selectedMonth.toString());
-        
-        if (response?.success && response?.data) {
-          setWorkHourTrends(response.data);
-        } else {
-          console.warn('No data received');
-          setWorkHourTrends([]);
-        }
-      } catch (error) {
-        console.error('Error fetching work hour trends:', error);
-        setWorkHourTrends([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchWorkHourTrendsForMonth(selectedMonth);
+  }, [selectedMonth, fetchWorkHourTrendsForMonth]);
 
-    fetchMonthData();
-  }, [selectedMonth, currentYear]);
+  const workHourTrends = workHourTrendsCache[selectedMonth] || [];
 
   const monthKeys = [
     "january", "february", "march", "april", "may", "june",
@@ -287,7 +271,7 @@ function WorkTrendsCard() {
         </Select>
       </div>
 
-      {loading ? (
+      {loadingWorkHourTrends ? (
         <div className="flex justify-center items-center h-[300px]">
           <p className="text-text-secondary">{translations?.buttons?.loading || "جارٍ التحميل"}</p>
         </div>

@@ -19,6 +19,13 @@ export const EmployeeCardHeader = () => {
     setLocalDate(selectedDate);
   }, [selectedDate]);
 
+  const handleDateSelect = (newDate: Date | undefined) => {
+    if (newDate) {
+      setLocalDate(newDate);
+      setSelectedDate(newDate);
+    }
+  };
+
   return (
     <div className="flex flex-row justify-between p-4">
       <div className="flex gap-2">
@@ -45,12 +52,7 @@ export const EmployeeCardHeader = () => {
           <Calendar
             mode="single"
             selected={localDate}
-            onSelect={(newDate) => {
-              if (newDate) {
-                setLocalDate(newDate);
-                setSelectedDate(newDate);
-              }
-            }}
+            onSelect={handleDateSelect}
             disabled={(d) => d > new Date() || d < new Date("1900-01-01")}
           />
         </PopoverContent>

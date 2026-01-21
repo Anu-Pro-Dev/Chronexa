@@ -9,12 +9,14 @@ import {
 } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { getLeaveAnalytics } from '@/src/lib/dashboardApiHandler';
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 
 interface LeaveAnalytic {
   LeaveYear: number;
-  [key: string]: any;
+  LVMonth: number;
+  LeaveCount: number;
+  AbsentCount: number;
 }
 
 function LeaveAnalyticsCard() {
@@ -57,30 +59,21 @@ function LeaveAnalyticsCard() {
   
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytic[]>([]);
+  
+  const leaveAnalyticsCache = useDashboardStore((state) => state.leaveAnalyticsCache);
+  const loadingLeaveAnalytics = useDashboardStore((state) => state.loadingLeaveAnalytics);
+  const fetchLeaveAnalyticsForYear = useDashboardStore((state) => state.fetchLeaveAnalyticsForYear);
 
   useEffect(() => {
-    const fetchYearData = async () => {
-      try {
-        const response = await getLeaveAnalytics(selectedYear);
-        if (response?.success && response.data?.length > 0) {
-          setLeaveAnalytics(response.data);
-        } else {
-          setLeaveAnalytics([]);
-        }
-      } catch (error) {
-        console.error('Error fetching leave analytics:', error);
-        setLeaveAnalytics([]);
-      }
-    };
+    fetchLeaveAnalyticsForYear(selectedYear);
+  }, [selectedYear, fetchLeaveAnalyticsForYear]);
 
-    fetchYearData();
-  }, [selectedYear]);
+  const leaveAnalytics = leaveAnalyticsCache[selectedYear] || [];
 
   const chartData = useMemo(() => {
     const monthDataMap = new Map();
     
-    leaveAnalytics.forEach((item: any) => {
+    leaveAnalytics.forEach((item: LeaveAnalytic) => {
       monthDataMap.set(item.LVMonth, {
         leaves: item.LeaveCount || 0,
         absent: item.AbsentCount || 0,
@@ -105,7 +98,7 @@ function LeaveAnalyticsCard() {
       label: translationDefaults.absent,
       color: "hsl(var(--chart-absent))"
     },
-  };
+  } satisfies ChartConfig;
 
   const years = useMemo(() => {
     return Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -141,60 +134,66 @@ function LeaveAnalyticsCard() {
         </Select>
       </div>
 
-      <ChartContainer 
-        config={chartConfig} 
-        className={`relative w-full h-[300px] 3xl:h-[450px] ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
-        dir={dir}
-      >
-        <BarChart data={chartData}>
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            tickMargin={10}
-            axisLine={false}
-            tickFormatter={(value) => value.slice(0, 3)}
-            interval={0}
-          />
-          <YAxis 
-            type="number" 
-            tickLine={false} 
-            tickMargin={2} 
-            axisLine={false} 
-            orientation={dir === "rtl" ? "right" : "left"} 
-          />
-          <ChartTooltip 
-            cursor={{ fill: 'rgba(0, 0, 0, 0.01)' }} 
-            content={<ChartTooltipContent />} 
-          />
-          <Legend 
-            verticalAlign="bottom" 
-            height={36}
-            iconType="circle"
-            wrapperStyle={{ paddingTop: '16px' }}
-          />
-          <Bar 
-            dataKey="leaves" 
-            stackId="a" 
-            fill="var(--color-leaves)" 
-            radius={[0, 0, 2, 2]}
-            name={translationDefaults.leaves}
-            activeBar={{
-              fill: "hsl(var(--chart-leaves-hover))",
-            }}
-          />
-          <Bar 
-            dataKey="absent" 
-            stackId="a" 
-            fill="var(--color-absent)" 
-            radius={[2, 2, 0, 0]}
-            name={translationDefaults.absent}
-            activeBar={{
-              fill: "hsl(var(--chart-absent-hover))",
-            }}
-          />
-        </BarChart>
-      </ChartContainer>
+      {loadingLeaveAnalytics ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <p className="text-text-secondary">{translations?.buttons?.loading || "Loading..."}</p>
+        </div>
+      ) : (
+        <ChartContainer 
+          config={chartConfig} 
+          className={`relative w-full h-[300px] 3xl:h-[450px] ${dir === "rtl" ? "-right-[40px]" : "-left-[30px]"}`} 
+          dir={dir}
+        >
+          <BarChart data={chartData}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => value.slice(0, 3)}
+              interval={0}
+            />
+            <YAxis 
+              type="number" 
+              tickLine={false} 
+              tickMargin={2} 
+              axisLine={false} 
+              orientation={dir === "rtl" ? "right" : "left"} 
+            />
+            <ChartTooltip 
+              cursor={{ fill: 'rgba(0, 0, 0, 0.01)' }} 
+              content={<ChartTooltipContent />} 
+            />
+            <Legend 
+              verticalAlign="bottom" 
+              height={36}
+              iconType="circle"
+              wrapperStyle={{ paddingTop: '16px' }}
+            />
+            <Bar 
+              dataKey="leaves" 
+              stackId="a" 
+              fill="var(--color-leaves)" 
+              radius={[0, 0, 2, 2]}
+              name={translationDefaults.leaves}
+              activeBar={{
+                fill: "hsl(var(--chart-leaves-hover))",
+              }}
+            />
+            <Bar 
+              dataKey="absent" 
+              stackId="a" 
+              fill="var(--color-absent)" 
+              radius={[2, 2, 0, 0]}
+              name={translationDefaults.absent}
+              activeBar={{
+                fill: "hsl(var(--chart-absent-hover))",
+              }}
+            />
+          </BarChart>
+        </ChartContainer>
+      )}
     </div>
   );
 }

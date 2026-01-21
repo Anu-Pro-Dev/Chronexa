@@ -154,6 +154,7 @@ export default function AppSidebar() {
               alt="logo" 
               src={getMonoLogo()} 
               className="transition-opacity"
+              priority
             />
           </div>
         )}

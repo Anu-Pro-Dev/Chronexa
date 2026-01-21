@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/src/components/ui/select";
 
-import { getTeamLeaveAnalytics } from "@/src/lib/dashboardApiHandler";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { Calendar1Icon } from "@/src/icons/icons";
 
@@ -74,23 +74,13 @@ export default function LeaveAnalyticsCard() {
     translationDefaults.december,
   ];
 
+  const fetchTeamLeaveAnalytics = useDashboardStore((s) => s.fetchTeamLeaveAnalyticsForYear);
+  const teamLeaveAnalyticsCache = useDashboardStore((s) => s.teamLeaveAnalyticsCache);
+
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [leaveAnalytics, setLeaveAnalytics] = useState<LeaveAnalytic[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getTeamLeaveAnalytics(selectedYear);
-        setLeaveAnalytics(res?.success ? res.data || [] : []);
-      } catch (err) {
-        console.error("Leave analytics error:", err);
-        setLeaveAnalytics([]);
-      }
-    };
-
-    fetchData();
-  }, [selectedYear]);
+  const leaveAnalytics: LeaveAnalytic[] = teamLeaveAnalyticsCache[selectedYear] || [];
 
   const employees = useMemo(() => {
     return [...new Set(leaveAnalytics.map(e => e.employeeid))];
@@ -139,6 +129,14 @@ export default function LeaveAnalyticsCard() {
     [currentYear]
   );
 
+  const handleYearChange = (year: string) => {
+    const newYear = Number(year);
+    setSelectedYear(newYear);
+    if (!teamLeaveAnalyticsCache[newYear]) {
+      fetchTeamLeaveAnalytics(newYear);
+    }
+  };
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex justify-between p-4">
@@ -148,7 +146,7 @@ export default function LeaveAnalyticsCard() {
 
         <Select
           value={selectedYear.toString()}
-          onValueChange={v => setSelectedYear(Number(v))}
+          onValueChange={handleYearChange}
         >
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />

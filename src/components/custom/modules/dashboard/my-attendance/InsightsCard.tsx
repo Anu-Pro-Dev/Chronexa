@@ -40,7 +40,7 @@ function InsightsCard() {
         endpoint: '/ta-emails/all',
         searchParams: {
             recipient: userInfo?.email || '',
-            limit: '2',
+            limit: '1',
             offset: '0',
         },
         enabled: !!userInfo?.email,

@@ -154,7 +154,7 @@ export default function Page() {
       };
     } else if (userRole === "manager") {
       return {
-        apiEndpoint: "/missingMovement/team/all",
+        apiEndpoint: "/missingMovement/team",
         searchParams: {
           ...commonParams,
           ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),

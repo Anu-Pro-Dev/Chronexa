@@ -76,7 +76,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(userPunchStateKey);
   };
 
-  // Helper function to get last transaction from localStorage/sessionStorage
   const getLastTransactionFromStorage = () => {
     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (userData) {
@@ -90,7 +89,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     return null;
   };
 
-  // Helper function to determine punch state from transaction
   const determinePunchStateFromTransaction = (lastTransaction: any) => {
     if (!lastTransaction) {
       return { shouldBePunchedIn: false };
@@ -98,7 +96,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
 
     const { date, type, device_id } = lastTransaction;
     
-    // Check if transaction is from today
     const transactionDate = new Date(date);
     const today = new Date();
     const isToday = transactionDate.getDate() === today.getDate() &&
@@ -111,16 +108,12 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     let elapsed = 0;
     
     if (!isToday) {
-      // If last transaction is not from today, user needs to punch in
       shouldBePunchedIn = false;
     } else if (type === "OUT") {
-      // User is punched out today
       shouldBePunchedIn = false;
     } else if (type === "IN" && (device_id === 102 || device_id === 103)) {
-      // Geo-punch done today, needs second punch
       shouldBePunchedIn = false;
     } else if (type === "IN") {
-      // Properly punched in today (via biometric/web)
       shouldBePunchedIn = true;
       
       const punchDateTime = new Date(date);
@@ -149,7 +142,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     
     setCurrentUserId(userId);
     
-    // Get last transaction from login response stored in localStorage/sessionStorage
     const lastTransaction = getLastTransactionFromStorage();
     
     if (lastTransaction) {
@@ -164,7 +156,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         setElapsedSeconds(elapsed || 0);
       }
     } else {
-      // Fallback to localStorage punch state if no transaction data
       const userPunchStateKey = getPunchStateKey(userId);
       const savedState = localStorage.getItem(userPunchStateKey);
       
@@ -207,7 +198,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
       if (!currentUserId) {
         setCurrentUserId(newUserId);
         
-        // Get last transaction from storage
         const lastTransaction = getLastTransactionFromStorage();
         
         if (lastTransaction) {
@@ -222,7 +212,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
             setElapsedSeconds(elapsed || 0);
           }
         } else {
-          // Fallback to localStorage
           const userPunchStateKey = getPunchStateKey(newUserId);
           const savedState = localStorage.getItem(userPunchStateKey);
           
@@ -260,7 +249,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         
         setCurrentUserId(newUserId);
         
-        // Get last transaction from storage for new user
         const lastTransaction = getLastTransactionFromStorage();
         
         if (lastTransaction) {
@@ -275,7 +263,6 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
             setElapsedSeconds(elapsed || 0);
           }
         } else {
-          // Fallback to localStorage
           const userPunchStateKey = getPunchStateKey(newUserId);
           const savedState = localStorage.getItem(userPunchStateKey);
           

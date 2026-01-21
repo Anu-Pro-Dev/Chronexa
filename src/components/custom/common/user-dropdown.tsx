@@ -71,9 +71,9 @@ export function UserDropdown() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex gap-3 items-center outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
-              <Avatar className="w-10 h-10 rounded-full bg-backdrop flex justify-center items-center">
+              <Avatar className="w-10 h-10 rounded-full bg-primary flex justify-center items-center">
                 <AvatarImage alt={`${user?.firstName} ${user?.lastName}`} />
-                <AvatarFallback className="text-primary font-semibold text-xl uppercase">
+                <AvatarFallback className="text-white font-bold text-xl uppercase">
                   {user?.firstName?.[0]}
                 </AvatarFallback>
               </Avatar>

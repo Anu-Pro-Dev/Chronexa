@@ -1,6 +1,7 @@
 import '@/src/styles/globals.css'
 import localFont from "next/font/local"
 import PublicProviders from '@/src/providers/PublicProviders'
+import { RoleInitializer } from '../providers/RoleInitializer';
 
 export const metadata = {
   title: 'Federal Geographic Information Center',
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html suppressHydrationWarning>
       <body className={NunitoSans.className} suppressHydrationWarning>
         <PublicProviders>
+          <RoleInitializer />
           {children}
         </PublicProviders>
       </body>

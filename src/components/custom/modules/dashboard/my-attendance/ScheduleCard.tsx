@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import Link from "next/link";
 import ProgressBarChart from "../my-attendance/ProgressBarChart";
-import { useAttendanceData } from "../my-attendance/AttendanceData";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 
 const timeStringToHours = (timeStr: string | null): number => {
   if (!timeStr) return 0;
@@ -23,7 +23,10 @@ const timeStringToHours = (timeStr: string | null): number => {
 function ScheduleCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { workSchedule, loading, error } = useAttendanceData();
+  
+  const workSchedule = useDashboardStore((state) => state.workSchedule);
+  const loadingDashboard = useDashboardStore((state) => state.loadingDashboard);
+  const errorDashboard = useDashboardStore((state) => state.errorDashboard);
 
   const { totalHours, workedHours, overtimeHours, pendingHours } = useMemo(() => {
     if (!workSchedule) {
@@ -46,7 +49,7 @@ function ScheduleCard() {
     };
   }, [workSchedule]);
 
-  if (error) {
+  if (errorDashboard) {
     return (
       <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
         <p className='text-text-secondary'>No schedule data available</p>

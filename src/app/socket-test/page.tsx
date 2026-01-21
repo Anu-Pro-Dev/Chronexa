@@ -11,11 +11,9 @@ export default function SocketTestPage() {
   const [events, setEvents] = useState<string[]>([]);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Load REAL auth data on mount
   useEffect(() => {
     const loadAuthData = () => {
       try {
-        // Get real token from your auth system
         const token = getAuthToken();
         
         if (!token) {
@@ -24,7 +22,6 @@ export default function SocketTestPage() {
           return;
         }
 
-        // Get user data from localStorage or sessionStorage
         const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
         
         if (userDataStr) {
@@ -33,10 +30,10 @@ export default function SocketTestPage() {
           setUserId(user.userId?.toString());
           setUserData(user);
           setAuthError(null);
-          console.log('✅ Loaded real auth data:', { userId: user.userId, hasToken: !!token });
+          console.log('Loaded real auth data:', { userId: user.userId, hasToken: !!token });
         } else {
           setAuthError('User data not found. Please login again.');
-          console.warn('⚠️ No user data found');
+          console.warn('No user data found');
         }
       } catch (error) {
         console.error('Failed to load auth data:', error);
@@ -47,18 +44,15 @@ export default function SocketTestPage() {
     loadAuthData();
   }, []);
 
-  // Memoize auth object to prevent re-renders
   const authConfig = useMemo(() => ({
     token: authToken,
     userId: userId,
   }), [authToken, userId]);
 
-  // Pass authentication to socket
   const { isConnected, socket, emit, on } = useSocketIO({
     auth: authConfig,
   });
 
-  // Listen for any incoming messages
   useEffect(() => {
     if (!isConnected) return;
 
@@ -91,7 +85,7 @@ export default function SocketTestPage() {
   };
 
   const handleGoToLogin = () => {
-    window.location.href = '/'; // Adjust this to your login page route
+    window.location.href = '/';
   };
 
   return (
@@ -102,7 +96,6 @@ export default function SocketTestPage() {
           <p className="text-gray-600">Check your browser console (F12) for detailed logs</p>
         </div>
 
-        {/* Auth Error */}
         {authError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-start gap-3">

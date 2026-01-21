@@ -603,7 +603,7 @@ export default function AddPermissionApplication({
           </h1>
           <div>
             {selectedPermission === "Personal" && (
-              <p className="text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 ">
+              <p className="text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop">
                 {t.personal_permission_note || "Note: Personal permission is allowed for a maximum of 6 hours per month."}
               </p>
             )}

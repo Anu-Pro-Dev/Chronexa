@@ -621,7 +621,7 @@ export default function AddPermissionTypes({
             </div>
             <div className="mb-3 relative">
               <p className={cn(
-                "text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[75px]",
+                "text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop absolute -top-[75px]",
                 language === "ar" ? "left-0" : "right-0"
               )}>
                 {t.status_flag_note || "Note: Status flag should be enabled."}
