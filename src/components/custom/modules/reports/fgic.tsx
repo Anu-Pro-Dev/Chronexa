@@ -551,7 +551,7 @@ export default function EmployeeReports() {
         formValues: getReportParams(),
         headerMap,
         calculateSummaryTotals,
-        logoUrl: '/FGIC_COLOR.png',
+        logoUrl: '/Logo.png',
         onProgress: handleProgressUpdate,
         showToast: pdfShowToast,
       });

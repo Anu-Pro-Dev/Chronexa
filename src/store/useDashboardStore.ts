@@ -15,30 +15,31 @@ interface DashboardStore {
   roleId: number | null;
   privileges: any[];
   loadedPrivileges: boolean;
+  loadingPrivileges: boolean;
   setRole: (roleId: number) => void;
   fetchPrivileges: () => Promise<void>;
   clearRoleAndPrivileges: () => void;
 
   attendanceDetails: any | null;
   workSchedule: any | null;
-  
+
   leaveAnalyticsCache: Record<number, any[]>;
   loadingLeaveAnalytics: boolean;
   fetchLeaveAnalyticsForYear: (year: number) => Promise<void>;
-  
+
   workHourTrendsCache: Record<number, any[]>;
   loadingWorkHourTrends: boolean;
   fetchWorkHourTrendsForMonth: (month: number) => Promise<void>;
-  
+
   loadingDashboard: boolean;
   errorDashboard: string | null;
   fetchDashboardData: () => Promise<void>;
 
-  teamAttendanceCache: Record<string, any[]>; 
+  teamAttendanceCache: Record<string, any[]>;
   loadingTeamAttendance: boolean;
   fetchTeamAttendance: (date?: string, month?: number, year?: number) => Promise<void>;
 
-  teamLeaveAnalyticsCache: Record<number, any[]>; 
+  teamLeaveAnalyticsCache: Record<number, any[]>;
   loadingTeamLeaveAnalytics: boolean;
   fetchTeamLeaveAnalyticsForYear: (year: number) => Promise<void>;
 
@@ -55,37 +56,53 @@ export const useDashboardStore = create<DashboardStore>()(
       roleId: null,
       privileges: [],
       loadedPrivileges: false,
+      loadingPrivileges: false,
 
-      setRole: (roleId: number) => set({ roleId }),
+
+      setRole: (roleId: number) =>
+        set((state) => {
+          if (state.roleId === roleId) return state;
+
+          return {
+            roleId,
+            privileges: [],
+            loadedPrivileges: false,
+            loadingPrivileges: false,
+          };
+        }),
+
 
       fetchPrivileges: async () => {
-        const { roleId, loadedPrivileges } = get();
+        const { roleId, loadedPrivileges, loadingPrivileges } = get();
 
-        if (!roleId) {
-          console.error("Cannot fetch privileges: roleId is not set");
-          return;
-        }
-        if (loadedPrivileges) {
-          const currentState = get();
-          if (currentState.roleId === roleId) {
-            return;
-          }
-        }
+        if (!roleId || loadedPrivileges || loadingPrivileges) return;
+
+        set({ loadingPrivileges: true });
 
         try {
           const res = await apiRequest(`/secRolePrivilege?roleId=${roleId}`, "GET");
-          set({ privileges: res?.data || [], loadedPrivileges: true });
+          set({
+            privileges: res?.data || [],
+            loadedPrivileges: true,
+            loadingPrivileges: false,
+          });
         } catch (err) {
           console.error(`Failed to fetch privileges for roleId=${roleId}`, err);
-          set({ privileges: [], loadedPrivileges: true });
+          set({
+            privileges: [],
+            loadedPrivileges: true,
+            loadingPrivileges: false,
+          });
         }
       },
 
+
       clearRoleAndPrivileges: () => {
-        set({ 
-          roleId: null, 
-          privileges: [], 
-          loadedPrivileges: false 
+        set({
+          roleId: null,
+          privileges: [],
+          loadedPrivileges: false,
+          loadingPrivileges: false,
         });
       },
 
@@ -100,7 +117,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
       fetchLeaveAnalyticsForYear: async (year: number) => {
         const { leaveAnalyticsCache } = get();
-        
+
         if (leaveAnalyticsCache[year]) {
           return;
         }
@@ -109,7 +126,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
         try {
           const response = await getLeaveAnalytics(year);
-          
+
           if (response?.success && response?.data) {
             set((state) => ({
               leaveAnalyticsCache: {
@@ -141,7 +158,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
       fetchWorkHourTrendsForMonth: async (month: number) => {
         const { workHourTrendsCache } = get();
-        
+
         if (workHourTrendsCache[month]) {
           return;
         }
@@ -150,7 +167,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
         try {
           const response = await getWorkHourTrends(month.toString());
-          
+
           if (response?.success && response?.data) {
             set((state) => ({
               workHourTrendsCache: {
@@ -186,7 +203,7 @@ export const useDashboardStore = create<DashboardStore>()(
         try {
           const currentMonth = new Date().getMonth() + 1;
           const currentYear = new Date().getFullYear();
-          
+
           const [attendance, schedule, leaveAnalytics, workHours] = await Promise.all([
             getAttendanceDetails(),
             getWorkSchedule(),
@@ -220,14 +237,14 @@ export const useDashboardStore = create<DashboardStore>()(
       errorTeamDashboard: null,
 
       fetchTeamAttendance: async (date?: string, month?: number, year?: number) => {
-        const cacheKey = date 
-          ? `date-${date}` 
-          : month && year 
-          ? `month-${month}-${year}` 
-          : `current`;
+        const cacheKey = date
+          ? `date-${date}`
+          : month && year
+            ? `month-${month}-${year}`
+            : `current`;
 
         const { teamAttendanceCache } = get();
-        
+
         if (teamAttendanceCache[cacheKey]) {
           return;
         }
@@ -236,7 +253,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
         try {
           const response = await getTeamAttendanceDetails(date, month, year);
-          
+
           if (response?.success && response?.data) {
             set((state) => ({
               teamAttendanceCache: {
@@ -269,7 +286,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
       fetchTeamLeaveAnalyticsForYear: async (year: number) => {
         const { teamLeaveAnalyticsCache } = get();
-        
+
         if (teamLeaveAnalyticsCache[year]) {
           return;
         }
@@ -278,7 +295,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
         try {
           const response = await getTeamLeaveAnalytics(year);
-          
+
           if (response?.success && response?.data) {
             set((state) => ({
               teamLeaveAnalyticsCache: {
@@ -310,7 +327,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
       fetchTeamViolationAnalyticsForYear: async (year: number) => {
         const { teamViolationAnalyticsCache } = get();
-        
+
         if (teamViolationAnalyticsCache[year]) {
           return;
         }
@@ -319,7 +336,7 @@ export const useDashboardStore = create<DashboardStore>()(
 
         try {
           const response = await getTeamViolationAnalytics(year);
-          
+
           if (response?.success && response?.data) {
             set((state) => ({
               teamViolationAnalyticsCache: {
@@ -353,8 +370,6 @@ export const useDashboardStore = create<DashboardStore>()(
       name: "dashboard-storage",
       partialize: (state) => ({
         roleId: state.roleId,
-        privileges: state.privileges,
-        loadedPrivileges: state.loadedPrivileges,
       }),
     }
   )

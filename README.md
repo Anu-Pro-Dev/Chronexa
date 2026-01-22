@@ -1,5 +1,5 @@
 
-# Chronexa_FGIC
+# Chronexa
 
 We are developing a comprehensive Time & attendance application from scratch. This software
 will enable organizations to efficiently monitor employee check-in and check-out times, track

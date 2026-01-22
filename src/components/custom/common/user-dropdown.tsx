@@ -89,7 +89,7 @@ export function UserDropdown() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-52"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-52 max-w-52 font-semibold"
             side="bottom"
             align="end"
             sideOffset={4}
@@ -103,7 +103,7 @@ export function UserDropdown() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer text-destructive"
               onClick={logout}
             >
               {LogoutIcon()}

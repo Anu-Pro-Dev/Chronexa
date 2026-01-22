@@ -4,7 +4,7 @@ import PublicProviders from '@/src/providers/PublicProviders'
 import { RoleInitializer } from '../providers/RoleInitializer';
 
 export const metadata = {
-  title: 'Federal Geographic Information Center',
+  title: 'Chronexa',
   description: 'Time & Attendance Management System',
   icons: { icon: '/favicon.ico' }
 };

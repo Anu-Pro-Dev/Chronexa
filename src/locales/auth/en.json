@@ -3,7 +3,7 @@
   "dir": "ltr",
   "language": "English",
   "translations": {
-    "product_name": "Federal Geographic Information Center",
+    "product_name": "Chronexa",
     "buttons": {
       "login": "Login",
       "logging_in": "Logging in",
@@ -44,7 +44,9 @@
         "error_login": "Invalid username or password",
         "error_password": "Password is required",
         "forgot_password_msg": "Please connect with IT Department",
-        "forgot_password_desc": "Enter your username to receive a password reset link"
+        "forgot_password_desc": "Enter your username to receive a password reset link",
+        "or": "OR",
+        "login_with_azure": "Sign in with Azure AD"
       }
     },
     "toastNotifications": {

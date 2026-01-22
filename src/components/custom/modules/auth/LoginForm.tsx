@@ -133,6 +133,15 @@ export default function LoginForm() {
     forgotPasswordForm.reset();
   };
 
+  const handleAdLogin = () => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+      window.location.href = `${baseUrl}/auth/azure`;
+    } catch (error) {
+      console.error("Azure AD redirect failed:", error);
+    }
+  };
+
   return (
     <>
       <Form {...loginForm}>
@@ -242,6 +251,32 @@ export default function LoginForm() {
               ) : (
                 t('buttons.login')
               )}
+            </Button>
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border-grey" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-fullpage px-2 text-muted-foreground">
+                  {t('modules.login.or') || "Or"}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full min-w-[300px] mx-auto"
+              onClick={handleAdLogin}
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0H10.9091V10.9091H0V0Z" fill="#F25022" />
+                <path d="M12.0909 0H23V10.9091H12.0909V0Z" fill="#7FBA00" />
+                <path d="M0 12.0909H10.9091V23H0V12.0909Z" fill="#00A4EF" />
+                <path d="M12.0909 12.0909H23V23H12.0909V12.0909Z" fill="#FFB900" />
+              </svg>
+              {t('modules.login.login_with_azure') || "Sign in with Azure AD"}
             </Button>
           </div>
         </form>

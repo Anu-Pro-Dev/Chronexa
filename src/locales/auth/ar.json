@@ -44,7 +44,9 @@
                 "error_login": "اسم المستخدم أو كلمة المرور غير صحيحة",
                 "error_password": "كلمة المرور مطلوبة",
                 "forgot_password_msg": "يرجى التواصل مع قسم تكنولوجيا المعلومات",
-                "forgot_password_desc": "أدخل اسم المستخدم لتلقي رابط إعادة تعيين كلمة المرور"
+                "forgot_password_desc": "أدخل اسم المستخدم لتلقي رابط إعادة تعيين كلمة المرور",
+                "or": "أو",
+                "login_with_azure": "تسجيل الدخول باستخدام Azure AD"
             }
         },
         "toastNotifications": {
