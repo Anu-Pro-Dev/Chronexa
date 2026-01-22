@@ -152,15 +152,17 @@ export default function Page() {
           ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
         },
       };
-    } else if (userRole === "manager") {
-      return {
-        apiEndpoint: "/missingMovement/team",
-        searchParams: {
-          ...commonParams,
-          ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-        },
-      };
-    } else {
+    } 
+    // else if (userRole === "manager") {
+    //   return {
+    //     apiEndpoint: "/missingMovement/team",
+    //     searchParams: {
+    //       ...commonParams,
+    //       ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+    //     },
+    //   };
+    // } 
+    else {
       return {
         apiEndpoint: "/missingMovement/all",
         searchParams: {
