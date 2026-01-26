@@ -175,13 +175,13 @@ export default function LeaveAnalyticsCard() {
           />
           <YAxis type="number" tickLine={false} axisLine={false} tickMargin={10} orientation={dir === "rtl" ? "right" : "left"} />
 
-          <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "rgba(0,0,0,0.01)" }} />
-          <Legend
+          {/* <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "rgba(0,0,0,0.01)" }} /> */}
+          {/* <Legend
             verticalAlign="bottom"
             height={36}
             iconType="circle"
             wrapperStyle={{ height: 'auto', width: '100%', justifyContent: 'center' }}
-          />
+          /> */}
 
           {employees.map(empId => (
             <Bar

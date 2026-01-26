@@ -9,6 +9,8 @@ import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
+import { ChevronsUpDown } from "lucide-react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -52,6 +54,7 @@ export default function Page() {
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
+    employeeFilter: false,
   });
   
   const debouncedSearchValue = useDebounce(searchValue, 300);
@@ -60,7 +63,7 @@ export default function Page() {
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
-  const closePopover = useCallback((key: string) => {
+  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   }, []);
 
@@ -133,6 +136,17 @@ export default function Page() {
     return `Emp ${txEmployeeId ?? "-"}`;
   }, [language, userInfo, employeeId]);
 
+  const { data: employeesData } = useFetchAllEntity("employee", {
+    searchParams: {
+      limit: "1000",
+    },
+  });
+
+  const getEmployeesData = useCallback(() => {
+    if (!employeesData?.data) return [];
+    return employeesData.data.filter((item: any) => item.employee_id);
+  }, [employeesData]);
+
   const { apiEndpoint, searchParams } = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
     
@@ -152,15 +166,8 @@ export default function Page() {
           ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
         },
       };
-    } else if (userRole === "manager") {
-      return {
-        apiEndpoint: "/missingMovement/team",
-        searchParams: {
-          ...commonParams,
-          ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-        },
-      };
-    } else {
+    } 
+    else {
       return {
         apiEndpoint: "/missingMovement/all",
         searchParams: {
@@ -358,10 +365,14 @@ export default function Page() {
     handleFilterChange();
   }, [handleFilterChange]);
 
-  const handleEmployeeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmployeeFilter(event.target.value);
+  const handleEmployeeFilterChange = useCallback((value: string) => {
+    setEmployeeFilter(value);
     setCurrentPage(1);
-  }, []);
+    closePopover('employeeFilter');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
 
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({
@@ -458,6 +469,8 @@ export default function Page() {
     );
   };
 
+  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -467,7 +480,7 @@ export default function Page() {
         entityName="employeeEventTransaction"
         customButtons={
           <>
-            {userInfo?.role?.toLowerCase() === "admin" && (
+            {isAdmin && (
               <Button
                 variant="success"
                 size="sm"
@@ -481,7 +494,7 @@ export default function Page() {
         }
       />
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+      <div className={`grid grid-cols-1 ${isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4 xl:max-w-[${isAdmin ? '1050px' : '700px'}]`}>
         <div>
           <Popover
             open={popoverStates.fromDate}
@@ -506,7 +519,7 @@ export default function Page() {
                 <CalendarIcon />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
               <Calendar
                 mode="single"
                 selected={fromDate}
@@ -543,7 +556,7 @@ export default function Page() {
                 <CalendarIcon />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
               <Calendar
                 mode="single"
                 selected={toDate}
@@ -555,6 +568,61 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
+
+        {/* {isAdmin && (
+          <div>
+            <Popover 
+              open={popoverStates.employeeFilter} 
+              onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
+            >
+              <PopoverTrigger asChild>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full bg-accent px-4 flex justify-between border-grey"
+                >
+                  <p>
+                    <Label className="font-normal text-secondary">
+                      {t.employee_no || "Employee No"} :
+                    </Label>
+                    <span className="px-1 text-sm text-text-primary">
+                      {employeeFilter
+                        ? getEmployeesData().find((item: any) => 
+                            String(item.employee_id) === employeeFilter
+                          )?.emp_no || (language === "ar" 
+                            ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
+                            : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
+                        : (t.placeholder_employee_filter || "Choose employee")}
+                    </span>
+                  </p>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder={t.search_employee || "Search employee..."} />
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getEmployeesData().map((item: any) => {
+                      const displayName = language === "ar" 
+                        ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
+                        : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
+                      
+                      return (
+                        <CommandItem
+                          key={item.employee_id}
+                          onSelect={() => handleEmployeeFilterChange(String(item.employee_id))}
+                        >
+                          {item.emp_no} - {displayName}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )} */}
       </div>
 
       <div className="bg-accent rounded-2xl">

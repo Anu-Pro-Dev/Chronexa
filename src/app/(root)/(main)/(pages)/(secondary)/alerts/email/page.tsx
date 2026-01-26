@@ -97,7 +97,7 @@ export default function Page() {
       { field: "email_status_display", headerName: t.status || "Status" },
       { field: "processed_date", headerName: t.sent_at || "Sent At" },
       { field: "cc_email", headerName: t.cc_email || "CC Email" },
-      { field: "bcc_email", headerName: t.bcc_email || "BCC Email" },
+      // { field: "bcc_email", headerName: t.bcc_email || "BCC Email" },
     ]);
   }, [language, t]);
 
@@ -238,6 +238,20 @@ export default function Page() {
     setToDate(undefined);
     setCurrentPage(1);
   }, []);
+
+  const customColDef = useMemo(() => ({
+    cellStyle: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "start",
+      whiteSpace: "normal",
+      wordBreak: "break-word",
+      lineHeight: "1.5",
+      fontSize: "13px", 
+      borderBottom: "1px solid #EEEEEE",
+      padding: "8px",
+    },
+  }), []);
 
   const props = {
     Data: data,
@@ -449,6 +463,7 @@ export default function Page() {
         onRowSelection={handleRowSelection}
         isLoading={isLoading || isChecking}
         overrideCheckbox={true}
+        customColDef={customColDef}
       />
     </div>
   );
