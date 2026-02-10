@@ -54,7 +54,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
 
   const [showOrganizationSearch, setShowOrganizationSearch] = useState(false);
   const [showLocationSearch, setShowLocationSearch] = useState(false);
-  
+
   const [popoverStates, setPopoverStates] = useState({
     inTime: false,
     outTime: false,
@@ -68,7 +68,8 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
   const { data: organizations, isLoading: orgsLoading } = useFetchAllEntity("organization", { removeAll: true });
   const { data: locations, isLoading: locsLoading } = useFetchAllEntity("location", { removeAll: true });
 
-  const { data: scheduleData, isLoading } = useFetchAllEntity("schedule", { removeAll: true
+  const { data: scheduleData, isLoading } = useFetchAllEntity("schedule", {
+    removeAll: true
   });
 
   const debouncedOrganizationSearch = useCallback(
@@ -87,11 +88,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
 
   const getFilteredOrganizations = () => {
     const baseData = organizations?.data || [];
-    
+
     if (organizationSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.organization_id && 
+
+    return baseData.filter((item: any) =>
+      item.organization_id &&
       item.organization_id.toString().trim() !== '' &&
       item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
     );
@@ -99,11 +100,11 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
 
   const getFilteredLocations = () => {
     const baseData = locations?.data || [];
-    
+
     if (locationSearchTerm.length === 0) return baseData;
-    
-    return baseData.filter((item: any) => 
-      item.location_id && 
+
+    return baseData.filter((item: any) =>
+      item.location_id &&
       item.location_id.toString().trim() !== '' &&
       item.location_eng?.toLowerCase().includes(locationSearchTerm.toLowerCase())
     );
@@ -121,7 +122,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
     setIsSubmitting(true);
     try {
       const isRamadanSchedule = values.ramadan_flag || form.getValues("ramadan_flag");
-      
+
       if (isRamadanSchedule) {
         SetPage("ramadan-schedule");
       } else {
@@ -135,7 +136,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
       setIsSubmitting(false);
     }
   }
-  
+
   useEffect(() => {
     const inTime = form.watch("in_time");
     const outTime = form.watch("out_time");
@@ -143,7 +144,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
     if (inTime && outTime) {
       const inDate = inTime instanceof Date ? inTime : parseTimeString(inTime);
       const outDate = outTime instanceof Date ? outTime : parseTimeString(outTime);
-      
+
       if (inDate && outDate) {
         let diff = differenceInMinutes(outDate, inDate);
         if (diff < 0) diff += 24 * 60;
@@ -169,7 +170,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="organization_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">{t.organization || "Organization"} <Required/></FormLabel>
+                <FormLabel className="flex gap-1">{t.organization || "Organization"} <Required /></FormLabel>
                 <Select
                   onValueChange={val => field.onChange(Number(val))}
                   value={field.value !== undefined ? String(field.value) : ""}
@@ -219,10 +220,10 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="schedule_location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">{t.schedule_location || "Schedule Location"} <Required/></FormLabel>
+                <FormLabel className="flex gap-1">{t.schedule_location || "Schedule Location"} </FormLabel>
                 <Select
-                  onValueChange={val => field.onChange(Number(val))}
-                  value={field.value !== undefined ? String(field.value) : ""}
+                  onValueChange={val => field.onChange(val ? Number(val) : null)}
+                  value={field.value !== undefined && field.value !== null ? String(field.value) : ""}
                   onOpenChange={(open) => setShowLocationSearch(open)}
                   disabled={locsLoading}
                 >
@@ -282,7 +283,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             name="sch_color"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">{t.color || "Color"} <Required/></FormLabel>
+                <FormLabel className="flex gap-1">{t.color || "Color"} <Required /></FormLabel>
                 <FormControl>
                   <ColorPicker value={field.value} onChange={field.onChange} />
                 </FormControl>
@@ -294,15 +295,15 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             control={form.control}
             name="in_time"
             render={({ field }) => {
-              const displayValue = field.value instanceof Date 
-                ? field.value 
-                : typeof field.value === 'string' 
+              const displayValue = field.value instanceof Date
+                ? field.value
+                : typeof field.value === 'string'
                   ? parseTimeString(field.value)
                   : undefined;
-              
+
               return (
                 <FormItem>
-                  <FormLabel className="text-left">{t.in_time || "In time"} <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.in_time || "In time"} <Required /></FormLabel>
                   <Popover open={popoverStates.inTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, inTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
@@ -339,15 +340,15 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
             control={form.control}
             name="out_time"
             render={({ field }) => {
-              const displayValue = field.value instanceof Date 
-                ? field.value 
-                : typeof field.value === 'string' 
+              const displayValue = field.value instanceof Date
+                ? field.value
+                : typeof field.value === 'string'
                   ? parseTimeString(field.value)
                   : undefined;
-              
+
               return (
                 <FormItem>
-                  <FormLabel className="text-left">{t.out_time || "Out time"} <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.out_time || "Out time"} <Required /></FormLabel>
                   <Popover open={popoverStates.outTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, outTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
@@ -405,7 +406,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               <FormItem>
                 <FormLabel className="flex gap-1">{t.flexible || "Flexible"}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.flexible_min} translations={errT} />
               </FormItem>
@@ -418,7 +419,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               <FormItem>
                 <FormLabel className="flex gap-1">{t.grace_in || "Grace In"}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.grace_in_min} translations={errT} />
               </FormItem>
@@ -431,7 +432,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
               <FormItem>
                 <FormLabel className="flex gap-1">{t.grace_out || "Grace Out"}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins} type="text" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.grace_out_min} translations={errT} />
               </FormItem>

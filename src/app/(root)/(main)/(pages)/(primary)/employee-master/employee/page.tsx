@@ -82,15 +82,7 @@ export default function Page() {
     }, {});
   }, [designationData, language]);
 
-  const employeeMap = useMemo(() => {
-    if (!employeeData?.data) return {};
-    return employeeData.data.reduce((acc: any, emp: any) => {
-      acc[emp.employee_id] = language === "ar" ? emp.firstname_arb : emp.firstname_eng;
-      return acc;
-    }, {});
-  }, [employeeData, language]);
-
-  const getVerticalData = () => {
+  const verticalData = useMemo(() => {
     if (!organizationData?.data) return [];
 
     const parentMap = new Map();
@@ -106,20 +98,20 @@ export default function Page() {
     });
 
     return Array.from(parentMap.values());
-  };
+  }, [organizationData]);
 
-  const getOrganizationsData = () => {
+  const organizationsData = useMemo(() => {
     if (!organizationData?.data) return [];
-
     return organizationData.data.filter(
       (item: any) => String(item.parent_id) === selectedVertical
     );
-  };
+  }, [organizationData, selectedVertical]);
 
-  const getEmployeeTypesData = () =>
-    (employeeTypeData?.data || []).filter(
+  const employeeTypesData = useMemo(() => {
+    return (employeeTypeData?.data || []).filter(
       (item: any) => item.employee_type_id
     );
+  }, [employeeTypeData]);
 
   useEffect(() => {
     setColumns([
@@ -146,7 +138,7 @@ export default function Page() {
       },
       { field: "manager_flag", headerName: t.manager },
     ]);
-  }, [language]);
+  }, [language, t]);
 
   const data = useMemo(() => {
     if (Array.isArray(employeeData?.data)) {
@@ -163,15 +155,14 @@ export default function Page() {
       }));
     }
     return [];
-  }, [employeeData, designationMap, organizationMap, employeeMap]);
+  }, [employeeData, designationMap, organizationMap]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
-
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -179,45 +170,56 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
     setCurrentPage(1);
   }, []);
 
-  const closePopover = (key: 'organization' | 'employeeType' | 'vertical') => {
+  const closePopover = useCallback((key: 'organization' | 'employeeType' | 'vertical') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
-  };
+  }, []);
 
-  const handleOrganizationChange = (value: string) => {
+  const handleOrganizationChange = useCallback((value: string) => {
     setSelectedOrganization(value);
     setCurrentPage(1);
     closePopover('organization');
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  };
+  }, [closePopover, refetch]);
 
-  const handleEmployeeTypeChange = (value: string) => {
+  const handleEmployeeTypeChange = useCallback((value: string) => {
     setSelectedEmployeeType(value);
     setCurrentPage(1);
     closePopover('employeeType');
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  };
+  }, [closePopover, refetch]);
 
-  const handleClearFilters = () => {
+  const handleVerticalChange = useCallback((value: string) => {
+    setSelectedVertical(value);
+    setSelectedOrganization("");
+    setCurrentPage(1);
+    closePopover("vertical");
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [closePopover, refetch]);
+
+  const handleClearFilters = useCallback(() => {
     setSelectedOrganization("");
     setSelectedEmployeeType("");
+    setSelectedVertical("");
     setCurrentPage(1);
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  };
+  }, [refetch]);
 
-  const props = {
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     selectedRows,
@@ -235,13 +237,14 @@ export default function Page() {
     hasNext: employeeData?.hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
-  };
+  }), [data, columns, selectedRows, isLoading, sortField, currentPage, sortDirection, searchValue, employeeData, rowsPerPage, handlePageChange, handleSearchChange, handleRowsPerPageChange]);
 
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["employee"] });
   }, [queryClient]);
 
   const setSelectedRowData = useEmployeeEditStore((state) => state.setSelectedRowData);
+  const clearSelectedRowData = useEmployeeEditStore((state) => state.clearSelectedRowData);
 
   const handleEditClick = useCallback(
     (row: any) => {
@@ -254,6 +257,11 @@ export default function Page() {
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
+
+  const handleAddNew = useCallback(() => {
+    clearSelectedRowData();
+    router.push("/employee-master/employee/add");
+  }, [router, clearSelectedRowData]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -286,7 +294,7 @@ export default function Page() {
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedVertical
-                      ? getVerticalData().find((item: any) =>
+                      ? verticalData.find((item: any) =>
                         String(item.organization_id) === selectedVertical
                       )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : t.placeholder_vertical}
@@ -300,14 +308,10 @@ export default function Page() {
               <Command>
                 <CommandInput placeholder={`${translations?.search || 'Search'} ${t.vertical}...`} />
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {getVerticalData().map((item: any) => (
+                  {verticalData.map((item: any) => (
                     <CommandItem
                       key={item.organization_id}
-                      onSelect={() => {
-                        setSelectedVertical(String(item.organization_id));
-                        setSelectedOrganization("");
-                        closePopover("vertical");
-                      }}
+                      onSelect={() => handleVerticalChange(String(item.organization_id))}
                     >
                       {language === "ar" ? item.organization_arb : item.organization_eng}
                     </CommandItem>
@@ -336,7 +340,7 @@ export default function Page() {
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedOrganization
-                      ? getOrganizationsData().find((item: any) =>
+                      ? organizationsData.find((item: any) =>
                         String(item.organization_id) === selectedOrganization
                       )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : t.placeholder_organization}
@@ -350,7 +354,7 @@ export default function Page() {
               <Command>
                 <CommandInput placeholder={`${translations?.search || 'Search'} ${t.organization}...`} />
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {getOrganizationsData().map((item: any) => (
+                  {organizationsData.map((item: any) => (
                     <CommandItem
                       key={item.organization_id}
                       onSelect={() => handleOrganizationChange(String(item.organization_id))}
@@ -380,7 +384,7 @@ export default function Page() {
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedEmployeeType
-                      ? getEmployeeTypesData().find((item: any) =>
+                      ? employeeTypesData.find((item: any) =>
                         String(item.employee_type_id) === selectedEmployeeType
                       )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
                       : t.placeholder_emp_type}
@@ -394,7 +398,7 @@ export default function Page() {
               <Command>
                 <CommandInput placeholder={`${translations?.search || 'Search'} ${t.employee_type}...`} />
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {getEmployeeTypesData().map((item: any) => (
+                  {employeeTypesData.map((item: any) => (
                     <CommandItem
                       key={item.employee_type_id}
                       onSelect={() => handleEmployeeTypeChange(String(item.employee_type_id))}

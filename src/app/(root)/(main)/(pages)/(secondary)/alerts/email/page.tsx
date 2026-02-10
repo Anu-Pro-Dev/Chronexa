@@ -97,7 +97,6 @@ export default function Page() {
       { field: "email_status_display", headerName: t.status || "Status" },
       { field: "processed_date", headerName: t.sent_at || "Sent At" },
       { field: "cc_email", headerName: t.cc_email || "CC Email" },
-      // { field: "bcc_email", headerName: t.bcc_email || "BCC Email" },
     ]);
   }, [language, t]);
 

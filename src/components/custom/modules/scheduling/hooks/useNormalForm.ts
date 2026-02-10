@@ -9,10 +9,7 @@ const timeString = z
 
 export const normalFormSchema = z.object({
   schedule_code: z.string().min(1, "schedule_code_required").max(100, "schedule_code_max"),
-  schedule_location: z.coerce.number({
-    required_error: "schedule_location_required",
-    invalid_type_error: "schedule_location_invalid"
-  }).positive("schedule_location_invalid"),
+  schedule_location: z.number().nullable().optional(),
   organization_id: z.coerce.number({
     required_error: "organization_id_required",
     invalid_type_error: "organization_id_invalid"

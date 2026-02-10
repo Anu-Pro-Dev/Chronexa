@@ -12,8 +12,7 @@ const timeString = z
 export const ramadanFormSchema = z.object({
   ramadan_in_time: z.string().min(1, "ramadan_in_time_required").regex(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, "time_invalid"),
   ramadan_out_time: z.string().min(1, "ramadan_out_time_required").regex(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, "time_invalid"),
-  ramadan_break_time: timeString,
-  ramadan_prayer_time: timeString,
+  ramadan_required_work_hours: timeString,
   ramadan_flexible_min: z.union([
     z.string().length(0),
     z.string().regex(/^\d+$/).transform(Number).pipe(z.number().nonnegative("flexible_min_invalid"))
@@ -34,8 +33,7 @@ export const useRamadanForm = () => {
     defaultValues: {
       ramadan_in_time: "",
       ramadan_out_time: "",
-      ramadan_break_time: "",
-      ramadan_prayer_time: "",
+      ramadan_required_work_hours: "",
       ramadan_flexible_min: undefined,
       ramadan_grace_in_min: undefined,
       ramadan_grace_out_min: undefined,

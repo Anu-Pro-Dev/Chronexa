@@ -11,38 +11,66 @@ import RamadanForm from "@/src/components/custom/modules/scheduling/RamadanForm"
 import PolicyForm from "@/src/components/custom/modules/scheduling/PolicyForm";
 import { useScheduleEditStore } from "@/src/store/useScheduleEditStore";
 import { getScheduleByID } from "@/src/lib/apiHandler";
+import { InlineLoading } from "@/src/app/loading";
 
 export default function ScheduleEditPage() {
   const { modules, translations } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { form, selectedRowData } = useScheduleForm();
-  const clearSelectedRowData = useScheduleEditStore((state) => state.clearSelectedRowData);
+  const { clearSelectedRowData, setSelectedRowData } = useScheduleEditStore();
   const [currentPage, setCurrentPage] = useState<string>("normal-schedule");
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
   const t = translations?.modules?.scheduling || {};
-  
+
   const mode = "edit";
   const id = searchParams.get("id");
-  
+
   const isRamadanEnabled = form.watch("ramadan_flag");
 
   useEffect(() => {
-    if (!selectedRowData?.schedule_id) {
-      clearSelectedRowData();
-    }
-  }, [selectedRowData, clearSelectedRowData]);
+    const fetchScheduleData = async () => {
+      if (mode === "edit" && id) {
+        setIsLoadingSchedule(true);
+        try {
+          const res = await getScheduleByID(Number(id));
+          const schedule = res?.data;
+
+          if (schedule) {
+            let scheduleData = { ...schedule };
+
+            if (schedule.ramadan_flag && schedule.ramadan_schedule) {
+
+              const ramadanSchedule = schedule.ramadan_schedule;
+
+              scheduleData = {
+                ...scheduleData,
+                ramadan_in_time: ramadanSchedule.in_time,
+                ramadan_out_time: ramadanSchedule.out_time,
+                ramadan_required_work_hours: ramadanSchedule.required_work_hours,
+                ramadan_flexible_min: ramadanSchedule.flexible_min,
+                ramadan_grace_in_min: ramadanSchedule.grace_in_min,
+                ramadan_grace_out_min: ramadanSchedule.grace_out_min,
+              };
+            }
+            setSelectedRowData(scheduleData);
+          }
+        } catch (error) {
+          console.error('Error fetching schedule:', error);
+        } finally {
+          setIsLoadingSchedule(false);
+        }
+      }
+    };
+
+    fetchScheduleData();
+  }, [mode, id, setSelectedRowData]);
 
   useEffect(() => {
-    if (mode === "edit" && id) {
-      getScheduleByID(Number(id)).then(res => {
-        const schedule = res?.data;
-        if (schedule) {
-          form.setValue("organization_id", schedule.organization_id);
-          form.setValue("schedule_location", schedule.schedule_location);
-        }
-      });
-    }
-  }, [mode, id, form]);
+    return () => {
+      clearSelectedRowData();
+    };
+  }, [clearSelectedRowData]);
 
   useEffect(() => {
     if (!isRamadanEnabled && currentPage === "ramadan-schedule") {
@@ -51,7 +79,7 @@ export default function ScheduleEditPage() {
   }, [isRamadanEnabled, currentPage]);
 
   const pages = [];
-  
+
   pages.push({
     title: t.normal || "Normal",
     state_route: "normal-schedule",
@@ -74,7 +102,18 @@ export default function ScheduleEditPage() {
     disable: false,
     component: <PolicyForm SetPage={setCurrentPage} />,
   });
-  
+
+  if (isLoadingSchedule) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PowerHeader items={modules?.scheduling.items} disableFeatures />
+        <div className="pt-4 flex justify-center items-center p-8">
+          <InlineLoading message="Loading Schedule data..." />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader

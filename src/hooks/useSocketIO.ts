@@ -13,7 +13,6 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Only connect if we have valid auth data
     if (!auth?.token || !auth?.userId) {
       console.log('⚠️ No auth data provided, socket will not connect');
       return;
@@ -21,7 +20,6 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
 
     console.log('🔌 Attempting to connect with userId:', auth.userId);
 
-    // Create socket with authentication
     const newSocket = io('http://localhost:8000', {
       auth: {
         token: auth.token,
@@ -34,7 +32,6 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
       timeout: 20000,
     });
 
-    // Connection event handlers
     newSocket.on('connect', () => {
       console.log('✅ Socket connected successfully:', newSocket.id);
       console.log('👤 Authenticated as userId:', auth.userId);
@@ -73,7 +70,6 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
 
     setSocket(newSocket);
 
-    // Cleanup on unmount
     return () => {
       console.log('🧹 Cleaning up socket connection');
       newSocket.close();
@@ -103,7 +99,6 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
     console.log('👂 Listening for event:', event);
     socket.on(event, callback);
     
-    // Return cleanup function
     return () => {
       console.log('🧹 Cleaning up listener for:', event);
       socket.off(event, callback);

@@ -3,25 +3,29 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 export const officialFormSchema = z.object({
+  vertical_id: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number().optional()
+  ),
   employee_type_id: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number({ required_error: "employee_type_required" })
+    z.number().optional()
   ),
   location_id: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number({ required_error: "location_required" })
+    z.number().optional()
   ),
   citizenship_id: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number({ required_error: "citizenship_required" })
+    z.number().optional()
   ),
   designation_id: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number({ required_error: "designation_required" })
+    z.number().optional()
   ),
   organization_id: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number({ required_error: "organization_required" })
+    z.number().optional()
   ),
   grade_id: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
@@ -38,6 +42,7 @@ export const useOfficialForm = () => {
   const form = useForm<z.infer<typeof officialFormSchema>>({
     resolver: zodResolver(officialFormSchema),
     defaultValues: {
+      vertical_id: undefined,
       employee_type_id: undefined,
       location_id: undefined,
       citizenship_id: undefined,

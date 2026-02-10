@@ -27,7 +27,7 @@ export default function Page() {
   const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
-  
+
   type Columns = {
     field: string;
     headerName?: string;
@@ -56,7 +56,7 @@ export default function Page() {
     toDate: false,
     employeeFilter: false,
   });
-  
+
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
   const t = translations?.modules?.selfServices || {};
@@ -149,7 +149,7 @@ export default function Page() {
 
   const { apiEndpoint, searchParams } = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
-    
+
     const commonParams = {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -163,10 +163,20 @@ export default function Page() {
         apiEndpoint: "/missingMovement/all",
         searchParams: {
           ...commonParams,
-          ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+          ...(employeeId && { employee_id: String(employeeId) }),
+          // ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
         },
       };
-    } 
+    }else if (userRole === "manager") {
+      return {
+        apiEndpoint: "/missingMovement/all",
+        searchParams: {
+          ...commonParams,
+          ...(employeeId && { employee_id: String(employeeId) }),
+          // ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+        },
+      };
+    }
     else {
       return {
         apiEndpoint: "/missingMovement/all",
@@ -420,18 +430,18 @@ export default function Page() {
     filter_open,
     filter_on_open_change,
   }), [
-    data, 
-    columns, 
-    open, 
-    selectedRows, 
-    isLoadingTransactions, 
-    isChecking, 
-    sortField, 
-    currentPage, 
-    sortDirection, 
-    searchValue, 
-    punchesData, 
-    rowsPerPage, 
+    data,
+    columns,
+    open,
+    selectedRows,
+    isLoadingTransactions,
+    isChecking,
+    sortField,
+    currentPage,
+    sortDirection,
+    searchValue,
+    punchesData,
+    rowsPerPage,
     filter_open,
     handlePageChange,
     handleSearchChange,
@@ -470,6 +480,7 @@ export default function Page() {
   };
 
   const isAdmin = userInfo?.role?.toLowerCase() === "admin";
+  // const isManager = userInfo?.role?.toLowerCase() === "manager";
 
   return (
     <div className="flex flex-col gap-4">
@@ -493,7 +504,7 @@ export default function Page() {
           </>
         }
       />
-      
+
       <div className={`grid grid-cols-1 ${isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4 xl:max-w-[${isAdmin ? '1050px' : '700px'}]`}>
         <div>
           <Popover
@@ -569,15 +580,15 @@ export default function Page() {
           </Popover>
         </div>
 
-        {/* {isAdmin && (
+        {/* {(isAdmin || isManager) && (
           <div>
-            <Popover 
-              open={popoverStates.employeeFilter} 
+            <Popover
+              open={popoverStates.employeeFilter}
               onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
             >
               <PopoverTrigger asChild>
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   variant="outline"
                   className="w-full bg-accent px-4 flex justify-between border-grey"
                 >
@@ -587,11 +598,11 @@ export default function Page() {
                     </Label>
                     <span className="px-1 text-sm text-text-primary">
                       {employeeFilter
-                        ? getEmployeesData().find((item: any) => 
-                            String(item.employee_id) === employeeFilter
-                          )?.emp_no || (language === "ar" 
-                            ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
-                            : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
+                        ? getEmployeesData().find((item: any) =>
+                          String(item.employee_id) === employeeFilter
+                        )?.emp_no || (language === "ar"
+                          ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
+                          : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
                         : (t.placeholder_employee_filter || "Choose employee")}
                     </span>
                   </p>
@@ -604,10 +615,10 @@ export default function Page() {
                   <CommandInput placeholder={t.search_employee || "Search employee..."} />
                   <CommandGroup className="max-h-64 overflow-auto">
                     {getEmployeesData().map((item: any) => {
-                      const displayName = language === "ar" 
+                      const displayName = language === "ar"
                         ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
                         : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
-                      
+
                       return (
                         <CommandItem
                           key={item.employee_id}

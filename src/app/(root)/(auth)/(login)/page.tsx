@@ -4,8 +4,7 @@ import Image from "next/image";
 import LoginForm from "@/src/components/custom/modules/auth/LoginForm";
 import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import PageTransitionProvider from "@/src/components/custom/common/page-transition";
-import LanguageSwitcher from "@/src/components/custom/common/language-switcher";
-import TextLanguageSwitcher from "@/src/components/custom/common/text-language-switcher";
+import IconLanguageSwitcher from "@/src/components/custom/common/icon-language-switcher";
 
 export default function Login() {
   const { language } = useLiteLanguage();
@@ -44,7 +43,7 @@ export default function Login() {
     <PageTransitionProvider>
       <main className="relative h-screen">
         <div className={`absolute top-2 ${language === "ar" ? "left-2" : "right-2"} z-[100]`}>
-          <LanguageSwitcher />
+          <IconLanguageSwitcher />
         </div>
         <div className="main-container h-full flex flex-col sm:flex-row">
           <div className="hidden sm:flex sm:flex-1 relative">

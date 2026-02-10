@@ -370,11 +370,6 @@ export default function AddEmployeeSchedule({
                           field.onChange(date)
                           closePopover('fromDate')
                         }}
-                        disabled={(date) => {
-                          const today = new Date();
-                          today.setHours(0, 0, 0, 0);
-                          return date < today;
-                        }}
                       />
                     </PopoverContent>
                   </Popover>
@@ -428,7 +423,7 @@ export default function AddEmployeeSchedule({
                           
                           const compareDate = new Date(date);
                           compareDate.setHours(0, 0, 0, 0);
-                          return compareDate <= startDate;
+                          return compareDate < startDate;
                         }}
                       />
                     </PopoverContent>

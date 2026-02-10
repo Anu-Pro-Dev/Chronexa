@@ -846,6 +846,11 @@ export const getLastTransaction = async () => {
   return apiRequest(`/employeeEventTransaction/mylastTransaction`, "POST");
 };
 
+// Function to fetch today's status of specfic employee
+export const getTodayStatus = async () => {
+  return apiRequest(`/employeeEventTransaction/todayStatus`, "GET");
+};
+
 // Function to fetch all roles
 export const getAllRoles = async () => {
   return apiRequest("/secRole/all", "GET");

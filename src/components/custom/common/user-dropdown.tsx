@@ -67,7 +67,7 @@ export function UserDropdown() {
 
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 px-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex gap-3 items-center outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">

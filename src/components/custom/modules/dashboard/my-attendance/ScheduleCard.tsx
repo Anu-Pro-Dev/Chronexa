@@ -28,9 +28,9 @@ function ScheduleCard() {
   const loadingDashboard = useDashboardStore((state) => state.loadingDashboard);
   const errorDashboard = useDashboardStore((state) => state.errorDashboard);
 
-  const { totalHours, workedHours, overtimeHours, pendingHours } = useMemo(() => {
+  const { totalHours, workedHours, overtimeHours, pendingHours, workCompletionPercent } = useMemo(() => {
     if (!workSchedule) {
-      return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0 };
+      return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0, workCompletionPercent: 0 };
     }
 
     const totalHours = timeStringToHours(workSchedule.TotalMonthlyExpectedWrkHrs as string);
@@ -39,13 +39,16 @@ function ScheduleCard() {
     
     const pendingHours = timeStringToHours(workSchedule.PendingWorkHrs as string);
     
-    const overtimeHours = timeStringToHours(workSchedule.OvertimeHrs as string);
+    const overtimeHours = timeStringToHours(workSchedule.TotalExtraHrs as string);
+
+    const workCompletionPercent = workSchedule.WorkCompletionPercent || 0;
 
     return { 
       totalHours, 
       workedHours,
       overtimeHours, 
-      pendingHours 
+      pendingHours,
+      workCompletionPercent 
     };
   }, [workSchedule]);
 
@@ -71,6 +74,7 @@ function ScheduleCard() {
         workedHours={workedHours}
         overtimeHours={overtimeHours}
         pendingHours={pendingHours}
+        workCompletionPercent={workCompletionPercent}
       />
     </div>
   );

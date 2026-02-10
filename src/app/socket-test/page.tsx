@@ -30,7 +30,6 @@ export default function SocketTestPage() {
           setUserId(user.userId?.toString());
           setUserData(user);
           setAuthError(null);
-          console.log('Loaded real auth data:', { userId: user.userId, hasToken: !!token });
         } else {
           setAuthError('User data not found. Please login again.');
           console.warn('No user data found');
@@ -55,15 +54,11 @@ export default function SocketTestPage() {
 
   useEffect(() => {
     if (!isConnected) return;
-
-    console.log('Setting up listeners...');
-
     const eventNames = ['message', 'update', 'notification', 'test', 'attendance', 'punch'];
     
     const cleanups = eventNames.map(eventName => {
       return on(eventName, (data: any) => {
         const msg = `[${eventName}] ${JSON.stringify(data)}`;
-        console.log('Event received:', msg);
         setMessages(prev => [...prev, msg]);
       });
     });
@@ -74,7 +69,6 @@ export default function SocketTestPage() {
   }, [isConnected, on]);
 
   const handleSendTest = () => {
-    console.log('Sending test message...');
     emit('test', { message: 'Hello from Next.js!', timestamp: Date.now() });
     setEvents(prev => [...prev, `Sent: test event at ${new Date().toLocaleTimeString()}`]);
   };

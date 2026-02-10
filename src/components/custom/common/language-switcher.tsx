@@ -21,13 +21,11 @@ export default function LanguageSwitcher() {
   try {
     fullContext = useLanguage();
   } catch (e) {
-    // Provider not available
   }
 
   try {
     liteContext = useLiteLanguage();
   } catch (e) {
-    // Provider not available
   }
 
   React.useEffect(() => {

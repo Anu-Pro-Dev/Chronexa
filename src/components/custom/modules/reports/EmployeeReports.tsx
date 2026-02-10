@@ -13,42 +13,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
 import { Checkbox } from "@/src/components/ui/checkbox";
-import { apiRequest } from "@/src/lib/apiHandler";
-import { PDFExporterFGIC } from './PDFExporterFGIC';
-import { ExcelExporter } from './ExcelExporter';
-import { CSVExporterFGIC } from './CSVExporterFGIC';
-import { CalendarIcon, LoginIcon } from "@/src/icons/icons";
-import { FileText, Trash2Icon, Eye, Download } from "lucide-react";
-import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useLanguage } from "@/src/providers/LanguageProvider";
+import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
-import { formatInTimeZone } from "date-fns-tz";
+import { useLanguage } from "@/src/providers/LanguageProvider";
+import { PDFExporter } from './PDFExporter';
+import { ExcelExporter } from './ExcelExporter';
+import { CSVExporter } from './CSVExporter';
+import { DeleteIcon, CalendarIcon, ExportExcelIcon, LoginIcon } from "@/src/icons/icons";
+import { FileText, Trash2Icon, TrashIcon, Eye, Download } from "lucide-react";
 
 const formSchema = z.object({
-  employees: z.array(z.string()).optional(),
+  vertical: z.string().optional(),
+  company: z.string().optional(),
+  department: z.string().optional(),
+  employee_type: z.array(z.string()).optional(),
+  manager_id: z.string().optional(),
+  employee: z.string().optional(),
   from_date: z.date().optional(),
   to_date: z.date().optional(),
 });
 
 export default function EmployeeReports() {
-  const { employeeId, userRole } = useAuthGuard();
   const { language, translations } = useLanguage();
-  const showToast = useShowToast();
   const t = translations?.modules?.reports || {};
-  const [showExportButtons, setShowExportButtons] = useState(false);
-  const [showViewButton, setShowViewButton] = useState(true);
-
-  const isManager = userRole?.toLowerCase() === 'manager';
-  const isAdmin = userRole?.toLowerCase() === 'admin';
-
-  const pdfShowToast = (type: "success" | "error", key: string, options?: { duration?: number }) => {
-    showToast(type, key, undefined, true);
-  };
+  const showToast = useShowToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      employees: [],
+      employee_type: [],
     },
   });
 
@@ -60,14 +53,22 @@ export default function EmployeeReports() {
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
+
+  const [verticalSearchTerm, setVerticalSearchTerm] = useState("");
+  const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
+  const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
+  const [managerSearchTerm, setManagerSearchTerm] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
-  const [currentReportEmployeeCount, setCurrentReportEmployeeCount] = useState<number>(0);
+  const [selectedEmployeeTypes, setSelectedEmployeeTypes] = useState<string[]>([]);
   const [showReportView, setShowReportView] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [loadingReportData, setLoadingReportData] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [showExportButtons, setShowExportButtons] = useState(false);
+  const [showViewButton, setShowViewButton] = useState(true);
   const rowsPerPage = 50;
 
   const [progressDetails, setProgressDetails] = useState({
@@ -80,11 +81,107 @@ export default function EmployeeReports() {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
 
+  const { data: organizations } = useFetchAllEntity("organization", {
+    searchParams: { limit: "1000" }
+  });
+
+  const selectedVertical = form.watch("vertical");
+  const selectedCompany = form.watch("company");
+  const selectedDepartment = form.watch("department");
+  const selectedEmployeeType = form.watch("employee_type");
+  const selectedManagerId = form.watch("manager_id");
+
+  const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
+    queryKey: ["departmentsByOrg", selectedCompany],
+    queryFn: async () => {
+      if (!selectedCompany) return null;
+      const response = await apiRequest(`/dept-org-mapping/by-organization/${selectedCompany}`, "GET");
+      return response;
+    },
+    enabled: !!selectedCompany,
+  });
+
+  const getManagerSearchParams = () => {
+    const params: any = {
+      manager_flag: "true",
+      limit: "1000",
+      offset: "1"
+    };
+    if (selectedCompany) {
+      params.organization_id = selectedCompany;
+    }
+    if (selectedDepartment) {
+      params.department_id = selectedDepartment;
+    }
+    return { searchParams: params };
+  };
+
+  const { data: managers } = useFetchAllEntity(
+    "employee",
+    (selectedCompany || selectedDepartment) ? getManagerSearchParams() : {
+      searchParams: {
+        manager_flag: "true",
+        limit: "1000",
+        offset: "1"
+      }
+    }
+  );
+
+  const getEmployeeSearchParams = () => {
+    const params: any = {
+      limit: "1000",
+      offset: "1"
+    };
+    if (selectedCompany) {
+      params.organization_id = selectedCompany;
+    }
+    if (selectedDepartment) {
+      params.department_id = selectedDepartment;
+    }
+    if (selectedManagerId) {
+      params.manager_id = selectedManagerId;
+    }
+    return { searchParams: params };
+  };
+
   const { data: employees } = useFetchAllEntity(
     "employee",
-    isManager && !isAdmin && employeeId
-      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
-      : { searchParams: { limit: "1000", offset: "1" } }
+    (selectedCompany || selectedDepartment || selectedManagerId) ? getEmployeeSearchParams() : {
+      searchParams: {
+        limit: "1000",
+        offset: "1"
+      }
+    }
+  );
+
+  const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
+
+  const debouncedVerticalSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setVerticalSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedCompanySearch = useCallback(
+    debounce((searchTerm: string) => {
+      setCompanySearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedDepartmentSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setDepartmentSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedEmployeeTypeSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setEmployeeTypeSearchTerm(searchTerm);
+    }, 300),
+    []
   );
 
   const debouncedEmployeeSearch = useCallback(
@@ -94,40 +191,161 @@ export default function EmployeeReports() {
     []
   );
 
+  const debouncedManagerSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setManagerSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
-    queryKey: ["employeeSearch", employeeSearchTerm, employeeId, isManager, isAdmin],
+    queryKey: ["employeeSearch", employeeSearchTerm, selectedCompany, selectedDepartment, selectedManagerId],
     queryFn: async () => {
-      if (isManager && !isAdmin && employeeId) {
-        const response = await apiRequest(`/employee/all?manager_id=${employeeId}`, "GET");
-        if (response?.data) {
-          const filtered = response.data.filter((emp: any) =>
-            emp?.firstname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
-            emp?.lastname_eng?.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
-            emp?.emp_no?.toLowerCase().includes(employeeSearchTerm.toLowerCase())
-          );
-          return { data: filtered };
-        }
-        return response;
-      } else {
-        const response = await apiRequest(
-          `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`,
-          "GET"
-        );
-        return response;
+      let url = `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`;
+      if (selectedCompany) {
+        url += `&organization_id=${selectedCompany}`;
       }
+      if (selectedDepartment) {
+        url += `&department_id=${selectedDepartment}`;
+      }
+      if (selectedManagerId) {
+        url += `&manager_id=${selectedManagerId}`;
+      }
+      const response = await apiRequest(url, "GET");
+      return response;
     },
     enabled: employeeSearchTerm.length > 0,
   });
 
-  const getFilteredEmployees = () => {
-    let baseData = [];
-    if (employeeSearchTerm.length > 0) {
-      baseData = searchedEmployees?.data || [];
-    } else {
-      baseData = employees?.data || [];
+  const { data: searchedManagers, isLoading: isSearchingManagers } = useQuery({
+    queryKey: ["managerSearch", managerSearchTerm, selectedCompany, selectedDepartment],
+    queryFn: async () => {
+      let url = `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`;
+      if (selectedCompany) {
+        url += `&organization_id=${selectedCompany}`;
+      }
+      if (selectedDepartment) {
+        url += `&department_id=${selectedDepartment}`;
+      }
+      const response = await apiRequest(url, "GET");
+      return response;
+    },
+    enabled: managerSearchTerm.length > 0,
+  });
+
+  const getVerticalData = () => {
+    if (!organizations?.data) return [];
+    const parentMap = new Map();
+    organizations.data.forEach((item: any) => {
+      if (item.organizations) {
+        parentMap.set(item.organizations.organization_id, {
+          organization_id: item.organizations.organization_id,
+          organization_eng: item.organizations.organization_eng,
+          organization_arb: item.organizations.organization_arb,
+        });
+      }
+    });
+
+    const verticals = Array.from(parentMap.values());
+
+    if (verticalSearchTerm) {
+      return verticals.filter((item: any) =>
+        item.organization_eng?.toLowerCase().includes(verticalSearchTerm.toLowerCase()) ||
+        item.organization_arb?.toLowerCase().includes(verticalSearchTerm.toLowerCase())
+      );
     }
+
+    return verticals;
+  };
+
+  const getCompanyData = () => {
+    if (!organizations?.data || !selectedVertical) return [];
+
+    const companies = organizations.data.filter(
+      (item: any) => String(item.parent_id) === selectedVertical
+    );
+
+    if (companySearchTerm) {
+      return companies.filter((item: any) =>
+        item.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
+        item.organization_arb?.toLowerCase().includes(companySearchTerm.toLowerCase())
+      );
+    }
+
+    return companies;
+  };
+
+  const getDepartmentData = () => {
+    if (!departmentsByOrg?.data || !selectedCompany) return [];
+
+    const departmentsMap = new Map();
+    const mappings = Array.isArray(departmentsByOrg.data)
+      ? departmentsByOrg.data
+      : [departmentsByOrg.data];
+
+    mappings.forEach((mapping: any) => {
+      if (mapping.departments && mapping.departments.department_id && mapping.is_active) {
+        departmentsMap.set(mapping.departments.department_id, {
+          department_id: mapping.departments.department_id,
+          department_code: mapping.departments.department_code,
+          department_name_eng: mapping.departments.department_name_eng,
+          department_name_arb: mapping.departments.department_name_arb,
+        });
+      }
+    });
+
+    const departments = Array.from(departmentsMap.values());
+
+    if (departmentSearchTerm) {
+      return departments.filter((item: any) =>
+        item.department_name_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
+        item.department_name_arb?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
+        item.department_code?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
+      );
+    }
+
+    return departments;
+  };
+
+  const getEmployeeTypesData = () => {
+    if (!employeeTypes?.data) return [];
+
+    const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
+
+    if (employeeTypeSearchTerm) {
+      return types.filter((item: any) =>
+        item.employee_type_eng?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase()) ||
+        item.employee_type_arb?.toLowerCase().includes(employeeTypeSearchTerm.toLowerCase())
+      );
+    }
+
+    return types;
+  };
+
+  const getManagerData = () => {
+    if (managerSearchTerm.length > 0) {
+      const searchData = searchedManagers?.data || [];
+      return searchData.filter((item: any) =>
+        item.employee_id &&
+        item.employee_id.toString().trim() !== ''
+      );
+    }
+
+    const baseData = managers?.data || [];
     return baseData.filter((item: any) =>
-      item?.employee_id && item.employee_id.toString().trim() !== ''
+      item.employee_id &&
+      item.employee_id.toString().trim() !== '' &&
+      item.manager_flag === true
+    );
+  };
+
+  const getFilteredEmployees = () => {
+    const baseData = employeeSearchTerm.length > 0
+      ? searchedEmployees?.data || []
+      : employees?.data || [];
+
+    return baseData.filter((item: any) =>
+      item.employee_id && item.employee_id.toString().trim() !== ''
     );
   };
 
@@ -139,38 +357,56 @@ export default function EmployeeReports() {
     });
   };
 
+  const handleEmployeeTypeToggle = (employeeType: string) => {
+    setSelectedEmployeeTypes(prev => {
+      const newTypes = prev.includes(employeeType)
+        ? prev.filter(type => type !== employeeType)
+        : [...prev, employeeType];
+      
+      if (showReportView) {
+        resetButtons();
+        setShowReportView(false);
+      }
+      
+      return newTypes;
+    });
+  };
+
   const headerMap: Record<string, string> = {
-    employee_number: t.emp_no || "Emp No",
-    firstname_eng: t.employee_name || "Employee Name",
-    parent_org_eng: t.company || "Company",
-    organization_eng: t.division || "Division",
-    employee_type: t.employee_type || "Employee Type",
-    schCode: t.schedule || "Schedule",
-    in_time: t.in_time || "In Time",
-    out_time: t.out_time || "Out Time",
-    transdate: t.date || "Date",
-    WorkDay: t.day || "Day",
-    punch_in: t.punch_in || "Punch In",
-    punch_out: t.punch_out || "Punch Out",
-    dailyworkhrs: t.worked_hours || "Worked Hours",
-    DailyMissedHrs: t.missed_hours || "Missed Hours",
-    dailyextrawork: t.overtime || "Overtime",
-    late: t.late || "Late",
-    early: t.early || "Early",
-    missed_punch: t.missed_punch || "Missed Punch",
-    comment: t.status || "Status",
+    employee_number: "EmpNo",
+    firstname_eng: "EmployeeName",
+    parent_org_eng: "ParentOrganization",
+    organization_eng: "Organization",
+    department_name_eng: "Department",
+    employee_type: "EmployeeType",
+    transdate: "transdate",
+    WorkDay: "WorkDay",
+    punch_in: "PunchIn",
+    GeoLocation_In: "GeoLocationIn",
+    punch_out: "PunchOut",
+    GeoLocation_Out: "GeoLocationOut",
+    dailyworkhrs: "DailyWorkedHours",
+    DailyMissedHrs: "DailyMissedHours",
+    dailyextrawork: "DailyExtraWork",
+    isabsent: "DayStatus",
+    MissedPunch: "Missed Punch",
+    EmployeeStatus: "EmployeeStatus"
+  };
+
+  const getDepartmentName = (row: any) => {
+    if (row?.departments?.department_name_eng) {
+      return language === 'ar' 
+        ? (row.departments.department_name_arb || row.departments.department_name_eng)
+        : row.departments.department_name_eng;
+    }
+    return row?.department_name_eng || '-';
   };
 
   const isSingleEmployee = selectedEmployees.length === 1;
 
   const getViewHeaders = () => {
-    const isSingleEmployee = selectedEmployees.length === 1;
-
     if (isSingleEmployee) {
       return [
-        'schCode',
-        'in_time',
-        'out_time',
         'transdate',
         'WorkDay',
         'punch_in',
@@ -178,20 +414,17 @@ export default function EmployeeReports() {
         'dailyworkhrs',
         'DailyMissedHrs',
         'dailyextrawork',
-        'late',
-        'early',
-        'missed_punch',
-        'comment'
+        'isabsent',
+        'MissedPunch'
       ];
     } else {
       return [
         'employee_number',
         'firstname_eng',
+        'parent_org_eng',
         'organization_eng',
+        'department_name_eng',
         'employee_type',
-        'schCode',
-        'in_time',
-        'out_time',
         'transdate',
         'WorkDay',
         'punch_in',
@@ -199,92 +432,36 @@ export default function EmployeeReports() {
         'dailyworkhrs',
         'DailyMissedHrs',
         'dailyextrawork',
-        'late',
-        'early',
-        'missed_punch',
-        'comment'
+        'isabsent',
+        'MissedPunch'
       ];
     }
   };
 
   const viewHeaders = getViewHeaders();
 
-  const getFilteredHeaders = () => {
-    return [
-      'employee_number',
-      'firstname_eng',
-      'parent_org_eng',
-      'organization_eng',
-      'employee_type',
-      'schCode',
-      'in_time',
-      'out_time',
-      'transdate',
-      'WorkDay',
-      'punch_in',
-      'punch_out',
-      'dailyworkhrs',
-      'DailyMissedHrs',
-      'dailyextrawork',
-      'late',
-      'early',
-      'missed_punch',
-      'comment'
-    ];
-  };
-
   const formatCellValue = (header: string, value: any): string => {
     if (!value && value !== 0) return '-';
 
     if (header === 'transdate' && value) {
       try {
-        return formatInTimeZone(value, 'UTC', 'dd-MM-yyyy');
+        return format(new Date(value), 'dd-MM-yyyy');
       } catch {
-        if (typeof value === 'string') {
-          const datePart = value.split(' ')[0].split('T')[0];
-          if (datePart.includes('-')) {
-            const [year, month, day] = datePart.split('-');
-            return `${day}-${month}-${year}`;
-          }
-        }
         return value;
       }
     }
 
-    if ((header === 'punch_in' || header === 'punch_out' || header === 'in_time' || header === 'out_time') && value) {
+    if ((header === 'punch_in' || header === 'punch_out') && value) {
       try {
-        return formatInTimeZone(value, 'UTC', 'HH:mm:ss');
+        return format(new Date(value), 'HH:mm:ss');
       } catch {
-        if (typeof value === 'string') {
-          if (value.includes('T')) {
-            const timePart = value.split('T')[1];
-            return timePart.split('.')[0];
-          }
-          if (value.includes(' ')) {
-            const timePart = value.split(' ')[1];
-            return timePart.split('.')[0];
-          }
-          if (value.includes(':')) {
-            return value.split('.')[0];
-          }
-        }
         return value;
       }
     }
 
-    if (['late', 'early', 'dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
+    if (['dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
       if (value === '0' || value === 0) return '00:00:00';
-
-      if (typeof value === 'string') {
-        let timeOnly = value;
-        if (value.includes('T')) {
-          timeOnly = value.split('T')[1];
-        } else if (value.includes(' ')) {
-          timeOnly = value.split(' ')[1];
-        }
-        return timeOnly.split('.')[0];
-      }
-
+      
       const numValue = parseFloat(value);
       if (isNaN(numValue)) return '00:00:00';
 
@@ -296,13 +473,23 @@ export default function EmployeeReports() {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
+    if (header === 'isabsent') {
+      return value ? 'Absent' : 'Present';
+    }
+
+    if (header === 'MissedPunch') {
+      return value ? 'Yes' : 'No';
+    }
+
     return String(value);
   };
 
   const calculateSummaryTotals = (dataArray: any[]) => {
     const parseTimeToMinutes = (value: any) => {
       if (!value) return 0;
+
       const strValue = String(value).trim();
+
       if (strValue.includes(':')) {
         const parts = strValue.split(':').map(Number);
         const hours = parts[0] || 0;
@@ -310,6 +497,7 @@ export default function EmployeeReports() {
         const seconds = parts[2] || 0;
         return hours * 60 + minutes + (seconds / 60);
       }
+
       const hours = parseFloat(strValue) || 0;
       return hours * 60;
     };
@@ -354,12 +542,20 @@ export default function EmployeeReports() {
     });
 
     let percentage = 0;
-    if (phase === 'initializing') percentage = 0;
-    else if (phase === 'fetching') {
-      if (total > 0) percentage = Math.min(Math.round((current / total) * 70), 70);
-    } else if (phase === 'processing') percentage = 85;
-    else if (phase === 'generating') percentage = 95;
-    else if (phase === 'complete') percentage = 100;
+
+    if (phase === 'initializing') {
+      percentage = 0;
+    } else if (phase === 'fetching') {
+      if (total > 0) {
+        percentage = Math.min(Math.round((current / total) * 70), 70);
+      }
+    } else if (phase === 'processing') {
+      percentage = 85;
+    } else if (phase === 'generating') {
+      percentage = 95;
+    } else if (phase === 'complete') {
+      percentage = 100;
+    }
 
     setExportProgress(percentage);
   };
@@ -368,19 +564,15 @@ export default function EmployeeReports() {
     const params: Record<string, string> = {};
     const values = form.getValues();
 
-    if (values.from_date) {
-      params.from_date = format(values.from_date, 'yyyy-MM-dd');
+    if (values.vertical) params.vertical = values.vertical;
+    if (values.company) params.company = values.company;
+    if (values.department) params.department = values.department;
+    if (selectedEmployeeTypes.length > 0) {
+      params.employee_type = selectedEmployeeTypes.join(',');
     }
-
-    if (values.to_date) {
-      params.to_date = format(values.to_date, 'yyyy-MM-dd');
-    }
-
-    const hasSpecificEmployees = selectedEmployees.length > 0;
-
-    if (!hasSpecificEmployees && isManager && !isAdmin && employeeId) {
-      params.manager_id = employeeId.toString();
-    }
+    if (values.manager_id) params.manager_id = values.manager_id;
+    if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
+    if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
 
     return params;
   };
@@ -390,7 +582,7 @@ export default function EmployeeReports() {
 
     if (selectedEmployees.length > 0) {
       const ids = selectedEmployees.join(',');
-      queryParts.push(`employee_id=[${ids}]`);
+      queryParts.push(`employee_ids=${ids}`);
     }
 
     if (page !== undefined) {
@@ -405,7 +597,7 @@ export default function EmployeeReports() {
       });
 
     const queryString = queryParts.join('&');
-    return `/report/new${queryString ? `?${queryString}` : ''}`;
+    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
   };
 
   const fetchReportData = async (page: number = 1) => {
@@ -438,17 +630,12 @@ export default function EmployeeReports() {
 
   const handleViewReport = async () => {
     try {
-      setCurrentReportEmployeeCount(selectedEmployees.length);
-
       setShowReportView(true);
-
       setShowExportButtons(true);
       setShowViewButton(false);
-
       await fetchReportData(1);
     } catch (error) {
       console.error("Error in handleViewReport:", error);
-
       setShowReportView(false);
       setShowExportButtons(false);
       setShowViewButton(true);
@@ -464,22 +651,6 @@ export default function EmployeeReports() {
     fetchReportData(newPage);
   };
 
-  const getReportParams = () => {
-    const values = form.getValues();
-    return {
-      employee_ids: selectedEmployees,
-      from_date: values.from_date,
-      to_date: values.to_date,
-      manager_id: (isManager && !isAdmin && employeeId && selectedEmployees.length === 0)
-        ? employeeId
-        : undefined,
-      employeeId,
-      userRole,
-      isManager: isManager && !isAdmin,
-      isAdmin,
-    };
-  };
-
   const handleExportCSV = async () => {
     setLoading(true);
     setExportProgress(0);
@@ -487,24 +658,24 @@ export default function EmployeeReports() {
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
 
     try {
-      const exporter = new CSVExporterFGIC({
-        formValues: getReportParams(),
+      const exporter = new CSVExporter({
+        formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
         showToast,
       });
+
       await exporter.exportStreaming();
+
     } catch (error) {
       console.error("CSV export error:", error);
-      showToast("error", "export_csv_error");
     } finally {
       setTimeout(() => {
         setLoading(false);
         setExportProgress(0);
         setExportType(null);
         resetButtons();
-        setLoading(false);
         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
       }, 500);
     }
@@ -518,23 +689,23 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new ExcelExporter({
-        formValues: getReportParams(),
+        formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
         showToast,
       });
+
       await exporter.export();
+
     } catch (error) {
       console.error("Excel export error:", error);
-      showToast("error", "export_excel_error");
     } finally {
       setTimeout(() => {
         setLoading(false);
         setExportProgress(0);
         setExportType(null);
         resetButtons();
-        setLoading(false);
         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
       }, 500);
     }
@@ -547,25 +718,25 @@ export default function EmployeeReports() {
     setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
 
     try {
-      const exporter = new PDFExporterFGIC({
-        formValues: getReportParams(),
+      const exporter = new PDFExporter({
+        formValues: form.getValues(),
         headerMap,
         calculateSummaryTotals,
         logoUrl: '/Logo.png',
         onProgress: handleProgressUpdate,
-        showToast: pdfShowToast,
+        showToast,
       });
+
       await exporter.export();
+
     } catch (error) {
       console.error("PDF export error:", error);
-      showToast("error", "export_pdf_error");
     } finally {
       setTimeout(() => {
         setLoading(false);
         setExportProgress(0);
         setExportType(null);
         resetButtons();
-        setLoading(false);
         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
       }, 500);
     }
@@ -573,9 +744,22 @@ export default function EmployeeReports() {
 
   useEffect(() => {
     return () => {
+      debouncedVerticalSearch.cancel();
+      debouncedCompanySearch.cancel();
+      debouncedDepartmentSearch.cancel();
+      debouncedEmployeeTypeSearch.cancel();
       debouncedEmployeeSearch.cancel();
+      debouncedManagerSearch.cancel();
     };
-  }, [debouncedEmployeeSearch]);
+  }, [debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch,
+    debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
+
+  useEffect(() => {
+    if (showReportView) {
+      resetButtons();
+      setShowReportView(false);
+    }
+  }, [selectedVertical, selectedCompany, selectedDepartment, selectedManagerId, selectedEmployees, selectedEmployeeTypes, form.watch('from_date'), form.watch('to_date')]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -583,6 +767,7 @@ export default function EmployeeReports() {
 
   const getProgressMessage = () => {
     const { current, total, phase } = progressDetails;
+
     switch (phase) {
       case 'initializing':
         return t.initializing_export || 'Initializing export...';
@@ -590,7 +775,7 @@ export default function EmployeeReports() {
         if (total > 0) {
           return `${t.fetching_data || 'Fetching data from server'}... (${current.toLocaleString()} ${t.of || 'of'} ${total.toLocaleString()} ${t.records || 'records'})`;
         }
-        return t.fetching_data || 'Fetching data from server...';
+        return `${t.fetching_data || 'Fetching data from server'}...`;
       case 'processing':
         return `${t.processing || 'Processing'} ${total.toLocaleString()} ${t.records || 'records'}...`;
       case 'generating':
@@ -607,6 +792,7 @@ export default function EmployeeReports() {
 
   const getProgressTip = () => {
     const { total } = progressDetails;
+
     if (exportType === 'csv') {
       return t.csv_fastest || 'CSV exports are fastest for large datasets';
     }
@@ -618,7 +804,7 @@ export default function EmployeeReports() {
     }
     if (exportType === 'pdf') {
       if (total > 1000) {
-        return t.large_dataset_pdf || `Large dataset detected. Showing last 1,000 records in PDF`;
+        return t.large_dataset_pdf || 'Large dataset detected. Showing last 1,000 records in PDF';
       }
       return t.pdf_includes_charts || 'PDF includes charts and summary statistics';
     }
@@ -627,11 +813,16 @@ export default function EmployeeReports() {
 
   const getPlaceholderText = () => {
     if (selectedEmployees.length === 0) {
-      if (isAdmin) return t.choose_employee_all || "Choose employee (all employees)";
-      if (isManager) return t.choose_employee_team || "Choose employee from your team";
       return t.choose_employee || "Choose employee";
     }
-    return `${selectedEmployees.length} ${t.employee || 'employee'}${selectedEmployees.length > 1 ? (language === 'ar' ? '' : 's') : ''} ${t.selected || 'selected'}`;
+    return `${selectedEmployees.length} ${t.employee || 'employee'}${selectedEmployees.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const getEmployeeTypePlaceholderText = () => {
+    if (selectedEmployeeTypes.length === 0) {
+      return t.placeholder_employee_type || "Choose type";
+    }
+    return `${selectedEmployeeTypes.length} ${t.type || 'type'}${selectedEmployeeTypes.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
@@ -643,6 +834,7 @@ export default function EmployeeReports() {
       empNo: reportData[0]?.employee_number,
       company: reportData[0]?.parent_org_eng,
       division: reportData[0]?.organization_eng,
+      department: getDepartmentName(reportData[0]),
       type: reportData[0]?.employee_type,
     }
     : null;
@@ -650,29 +842,272 @@ export default function EmployeeReports() {
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl relative">
-          <div className="col-span-2 p-6">
-            <h1 className="font-bold text-2xl text-primary">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="relative bg-accent p-6 rounded-2xl">
+          <div className="col-span-2 py-6">
+            <h1 className="font-bold text-xl text-primary">
               {t.employee_time_attendance_report || 'Employee Time Attendance Report'}
             </h1>
           </div>
-          <div className="">
+          <div>
             <p
-              className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop my-3 absolute -top-[80px] ${language === "ar" ? "left-0" : "right-0"
+              className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"
                 }`}
             >
-              <strong>💡 {t.tip || 'Tip'}:</strong> {t.view_before_export || 'View the report on-screen first, then export to PDF or CSV as needed.'}
+              <strong>{t.tip || 'Tip'}:</strong> {t.view_before_export || 'View the report on-screen first, then export to PDF, Excel, or CSV as needed.'}
             </p>
           </div>
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+                {/* VERTICAL */}
                 <FormField
                   control={form.control}
-                  name="employees"
+                  name="vertical"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex gap-1">{t.employee || "Employee"}</FormLabel>
+                      <FormLabel className="flex gap-1">{t.vertical || 'Vertical'}</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("company", undefined);
+                          form.setValue("department", undefined);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={t.placeholder_vertical || "Choose vertical"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_verticals || "Search verticals..."}
+                          onSearchChange={debouncedVerticalSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getVerticalData().length === 0 && verticalSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_verticals_found || "No verticals found"}
+                            </div>
+                          )}
+                          {getVerticalData().map((item: any) => (
+                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                              {language === 'ar' ? item.organization_arb : item.organization_eng}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* COMPANY */}
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.company || 'Company'}</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("department", undefined);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                        disabled={!selectedVertical}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={t.placeholder_company || "Choose company"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_companies || "Search companies..."}
+                          onSearchChange={debouncedCompanySearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getCompanyData().length === 0 && companySearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_companies_found || "No companies found"}
+                            </div>
+                          )}
+                          {getCompanyData().map((item: any) => (
+                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                              {language === 'ar' ? item.organization_arb : item.organization_eng}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* DEPARTMENT */}
+                <FormField
+                  control={form.control}
+                  name="department"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                        disabled={!selectedCompany || isDepartmentsLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={
+                              isDepartmentsLoading
+                                ? (t.loading_departments || "Loading departments...")
+                                : (t.placeholder_department || "Choose department")
+                            } />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_departments || "Search departments..."}
+                          onSearchChange={debouncedDepartmentSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getDepartmentData().length === 0 && departmentSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_departments_found || "No departments found"}
+                            </div>
+                          )}
+                          {getDepartmentData().map((item: any) => (
+                            <SelectItem key={item.department_id} value={item.department_id.toString()}>
+                              {language === 'ar'
+                                ? (item.department_name_arb || item.department_code)
+                                : (item.department_name_eng || item.department_code)
+                              }
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* EMPLOYEE TYPE */}
+                <FormField
+                  control={form.control}
+                  name="employee_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
+                      <Select>
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={getEmployeeTypePlaceholderText()} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_employee_types || "Search employee types..."}
+                          onSearchChange={debouncedEmployeeTypeSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getEmployeeTypesData().length === 0 && employeeTypeSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_employee_types_found || "No employee types found"}
+                            </div>
+                          )}
+                          {getEmployeeTypesData().map((item: any) => {
+                            const typeValue = item.employee_type_eng || item.employee_type_id.toString();
+                            const isChecked = selectedEmployeeTypes.includes(typeValue);
+                            return (
+                              <div
+                                key={item.employee_type_id}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleEmployeeTypeToggle(typeValue);
+                                }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>
+                                  {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* MANAGER */}
+                <FormField
+                  control={form.control}
+                  name="manager_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.manager || 'Manager'}</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={t.placeholder_manager || "Choose manager"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_managers || "Search managers..."}
+                          onSearchChange={debouncedManagerSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {isSearchingManagers && managerSearchTerm.length > 0 && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.searching || "Searching..."}
+                            </div>
+                          )}
+                          {getManagerData().length === 0 && managerSearchTerm.length > 0 && !isSearchingManagers && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_managers_found || "No managers found"}
+                            </div>
+                          )}
+                          {getManagerData().map((item: any) => (
+                            <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
+                              {language === 'ar'
+                                ? `${item.firstname_arb || item.firstname_eng} ${item.lastname_arb || item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                : `${item.firstname_eng} ${item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                              }
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* EMPLOYEE */}
+                <FormField
+                  control={form.control}
+                  name="employee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.employee || 'Employee'}</FormLabel>
                       <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
@@ -695,13 +1130,6 @@ export default function EmployeeReports() {
                               {t.no_employees_found || "No employees found"}
                             </div>
                           )}
-                          {getFilteredEmployees().length === 0 && employeeSearchTerm.length === 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {isAdmin ? (t.no_employees_available || "No employees available") :
-                                isManager ? (t.no_team_members || "No team members available") :
-                                  (t.no_employees_available || "No employees available")}
-                            </div>
-                          )}
                           {getFilteredEmployees().map((item: any) => {
                             const empId = item?.employee_id?.toString();
                             const isChecked = selectedEmployees.includes(empId);
@@ -716,7 +1144,12 @@ export default function EmployeeReports() {
                                 }}
                               >
                                 <Checkbox checked={isChecked} className="mr-2" />
-                                <span>{item?.firstname_eng} {item?.emp_no ? `(${item.emp_no})` : ''}</span>
+                                <span>
+                                  {language === 'ar'
+                                    ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                    : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                  }
+                                </span>
                               </div>
                             );
                           })}
@@ -726,14 +1159,14 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+
+                {/* FROM DATE */}
                 <FormField
                   control={form.control}
                   name="from_date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel>{t.from_date || "From Date"}</FormLabel>
+                      <FormLabel>{t.from_date || 'From Date'}</FormLabel>
                       <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -744,7 +1177,7 @@ export default function EmployeeReports() {
                                 format(field.value, "dd/MM/yy")
                               ) : (
                                 <span className="font-normal text-sm text-text-secondary">
-                                  {translations?.modules?.scheduling?.placeholder_date || "Choose date"}
+                                  {t.placeholder_date || 'Choose date'}
                                 </span>
                               )}
                               <CalendarIcon />
@@ -766,12 +1199,14 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
+
+                {/* TO DATE */}
                 <FormField
                   control={form.control}
                   name="to_date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel>{t.to_date || "To Date"}</FormLabel>
+                      <FormLabel>{t.to_date || 'To Date'}</FormLabel>
                       <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -782,7 +1217,7 @@ export default function EmployeeReports() {
                                 format(field.value, "dd/MM/yy")
                               ) : (
                                 <span className="font-normal text-sm text-text-secondary">
-                                  {translations?.modules?.scheduling?.placeholder_date || "Choose date"}
+                                  {t.placeholder_date || 'Choose date'}
                                 </span>
                               )}
                               <CalendarIcon />
@@ -808,6 +1243,7 @@ export default function EmployeeReports() {
               </div>
             </div>
 
+            {/* Progress Bar */}
             {loading && exportProgress >= 0 && (
               <div className="px-8 pb-2">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -837,11 +1273,12 @@ export default function EmployeeReports() {
                 <Button
                   type="button"
                   size={"sm"}
-                  variant="secondary"
+                  variant="outline"
                   className="flex items-center gap-2"
                   onClick={() => {
                     form.reset();
                     setSelectedEmployees([]);
+                    setSelectedEmployeeTypes([]);
                     setShowReportView(false);
                     setReportData([]);
                     resetButtons();
@@ -849,8 +1286,9 @@ export default function EmployeeReports() {
                   disabled={loading}
                 >
                   <Trash2Icon />
-                  {translations.buttons.clear_filters || "Clear Filters"}
+                  {translations?.buttons?.clear || 'Clear Filters'}
                 </Button>
+
                 {showViewButton && (
                   <Button
                     type="button"
@@ -860,9 +1298,10 @@ export default function EmployeeReports() {
                     disabled={loading || loadingReportData}
                   >
                     <Eye className="w-4 h-4" />
-                    {translations.buttons.view_report || "View Report"}
+                    {translations?.buttons?.view_report || 'View Report'}
                   </Button>
                 )}
+
                 {showExportButtons && reportData.length > 0 && (
                   <>
                     <Button
@@ -876,8 +1315,9 @@ export default function EmployeeReports() {
                       disabled={loading}
                     >
                       <Download className="w-4 h-4" />
-                      {translations.buttons.export_csv || "Export CSV"}
+                      {translations?.buttons?.export_csv || 'Export CSV'}
                     </Button>
+
                     <Button
                       type="button"
                       size={"sm"}
@@ -889,8 +1329,9 @@ export default function EmployeeReports() {
                       disabled={loading}
                     >
                       <Download className="w-4 h-4" />
-                      {translations.buttons.export_excel || "Export Excel"}
+                      {translations?.buttons?.export_excel || 'Export Excel'}
                     </Button>
+
                     <Button
                       type="button"
                       size={"sm"}
@@ -902,7 +1343,7 @@ export default function EmployeeReports() {
                       disabled={loading}
                     >
                       <Download className="w-4 h-4" />
-                      {translations.buttons.export_pdf || "Export PDF"}
+                      {translations?.buttons?.export_pdf || 'Export PDF'}
                     </Button>
                   </>
                 )}
@@ -926,7 +1367,7 @@ export default function EmployeeReports() {
                 resetButtons();
               }}
             >
-              {translations.buttons.close || "Close"}
+              {translations?.buttons?.close || "Close"}
             </Button>
           </div>
 
@@ -948,7 +1389,6 @@ export default function EmployeeReports() {
                         <p className="text-xs text-text-secondary">{t.employee_name || "Employee Name"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.name}</p>
                       </div>
-
                       <div>
                         <p className="text-xs text-text-secondary">{t.emp_no || "Emp No"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.empNo}</p>
@@ -961,10 +1401,13 @@ export default function EmployeeReports() {
                         <p className="text-xs text-text-secondary">{t.company || "Company"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.company}</p>
                       </div>
-
                       <div>
                         <p className="text-xs text-text-secondary">{t.division || "Division"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.division}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.department || "Department"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.department}</p>
                       </div>
                     </div>
                   </div>
@@ -987,27 +1430,22 @@ export default function EmployeeReports() {
                       {reportData.map((row, idx) => (
                         <tr key={idx} className="hover:bg-backdrop">
                           {viewHeaders.map((header) => {
-                            const cellValue = formatCellValue(header, row[header]);
-
-                            const isAbsent =
-                              header === "comment" && cellValue.toLowerCase() === "absent";
-                            const isWeekOff =
-                              header === "comment" && cellValue.toLowerCase() === "week off";
-                            const isLateOrMissed =
-                              (header === "late" || header === "DailyMissedHrs") &&
-                              parseFloat(cellValue) > 0;
+                            let cellValue;
+                            if (header === 'department_name_eng') {
+                              cellValue = getDepartmentName(row);
+                            } else {
+                              cellValue = formatCellValue(header, row[header]);
+                            }
+                            
+                            const isAbsent = header === "isabsent" && cellValue === "Absent";
+                            const isMissed = header === "MissedPunch" && cellValue === "Yes";
 
                             return (
                               <td
                                 key={header}
-                                className={`border border-grey px-3 py-2 text-xs ${isAbsent
-                                  ? "text-red-600 font-semibold"
-                                  : isWeekOff
-                                    ? "text-green-600"
-                                    : isLateOrMissed
-                                      ? "text-red-600"
-                                      : ""
-                                  }`}
+                                className={`border border-grey px-3 py-2 text-xs ${
+                                  isAbsent || isMissed ? "text-red-600 font-semibold" : ""
+                                }`}
                               >
                                 {cellValue}
                               </td>
@@ -1057,7 +1495,7 @@ export default function EmployeeReports() {
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1 || loadingReportData}
                   >
-                    {translations.buttons.previous || "Previous"}
+                    {translations?.buttons?.previous || "Previous"}
                   </Button>
                   <span className="text-sm text-text-secondary">
                     {t.page || "Page"} {currentPage} {t.of || "of"} {totalPages}
@@ -1068,15 +1506,12 @@ export default function EmployeeReports() {
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages || loadingReportData}
                   >
-                    {translations.buttons.next || "Next"}
+                    {translations?.buttons?.next || "Next"}
                   </Button>
                 </div>
               )}
-
-
             </>
           )}
-
         </div>
       )}
     </div>
