@@ -161,9 +161,18 @@ export default function AddEmployeeSchedule({
     );
   };
 
+  // Fixed function to get employee name from both sources
   const getEmployeeName = (empId: number) => {
-    const emp = employees?.data?.find((o: any) => o.employee_id === empId);
+    // First try to find in the main employees list
+    let emp = employees?.data?.find((o: any) => o.employee_id === empId);
+    
+    // If not found and we have searched employees, check there
+    if (!emp && searchedEmployees?.data) {
+      emp = searchedEmployees.data.find((o: any) => o.employee_id === empId);
+    }
+    
     if (!emp) return "";
+    
     return language === "ar"
       ? emp.firstname_arb || emp.employee_arb || emp.employee_name
       : emp.firstname_eng || emp.employee_eng || emp.employee_name;
