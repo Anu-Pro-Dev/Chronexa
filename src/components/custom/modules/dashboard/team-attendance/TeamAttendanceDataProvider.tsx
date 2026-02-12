@@ -5,7 +5,16 @@ import { useSelectedDate } from "@/src/store/useSelectedDate";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 
 interface TeamAttendanceDetails {
-  [key: string]: any;
+  Workforce: number;
+  ProjectManagers: number;
+  CheckInCount: number;
+  CheckOutCount: number;
+  MissedCheckIn: number;
+  MissedCheckOut: number;
+  MissingHours: string;
+  Overtime: string;
+  ApprovedLeaves: number;
+  AbsentCount: number;
 }
 
 interface TeamDashboardData {
@@ -33,7 +42,7 @@ interface ProviderProps {
 export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
   const { userInfo } = useAuthGuard();
   const selectedDate = useSelectedDate((s) => s.date);
-  
+
   const setRole = useDashboardStore((s) => s.setRole);
   const fetchTeamAttendance = useDashboardStore((s) => s.fetchTeamAttendance);
   const teamAttendanceCache = useDashboardStore((s) => s.teamAttendanceCache);
@@ -41,67 +50,22 @@ export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
   const errorTeamDashboard = useDashboardStore((s) => s.errorTeamDashboard);
 
   const [teamAttendanceDetails, setTeamAttendanceDetails] = useState<TeamAttendanceDetails | null>(null);
-  const mountedRef = useRef(false);
-  const didInit = useRef(false);
+
   const prevDateRef = useRef<string>("");
 
   useEffect(() => {
-    if (!userInfo?.roleId) return;
-    if (didInit.current) return;
-
-    didInit.current = true;
-    mountedRef.current = true;
-
-    setRole(userInfo.roleId);
-
-    return () => {
-      mountedRef.current = false;
-    };
+    if (userInfo?.roleId) {
+      setRole(userInfo.roleId);
+    }
   }, [userInfo?.roleId, setRole]);
 
-  const getCacheKey = () => {
-    const formattedDate = formatLocalDate(selectedDate);
-    const month = selectedDate.getMonth() + 1;
-    const year = selectedDate.getFullYear();
-    return `date-${formattedDate}`;
-  };
-
   useEffect(() => {
-    if (!mountedRef.current) return;
-
-    const cacheKey = getCacheKey();
-    const cachedData = teamAttendanceCache[cacheKey];
-
-    if (cachedData && cachedData.length > 0) {
-      const apiData = cachedData[0];
-      setTeamAttendanceDetails({
-        CheckInCount: apiData.CheckedIn || 0,
-        CheckOutCount: apiData.CheckedOut || 0,
-        MissedCheckIn: apiData.MissedCheckIn || 0,
-        MissedCheckOut: apiData.MissedCheckOut || 0,
-        MissingHours: apiData.MissedHrs || "0:00",
-        Overtime: apiData.OvertimeHrs || "0:00",
-        Workforce: apiData.WorkForce || 0,
-        ProjectManagers: apiData.ProjectManagers || 0,
-        ApprovedLeaves: apiData.ApprovedLeaves ?? 0,
-        AbsentCount: apiData.AbsentCount || 0,
-        TotalMissedIn: apiData.MissedCheckIn || 0,
-        TotalMissedOut: apiData.MissedCheckOut || 0,
-        MonthlyLate: apiData.MonthlyLate || 0,
-        MonthlyEarly: apiData.MonthlyEarly || 0,
-      });
-    } else {
-      setTeamAttendanceDetails(null);
+    const formattedDate = formatLocalDate(selectedDate);
+    
+    if (prevDateRef.current === formattedDate) {
+      return;
     }
-  }, [teamAttendanceCache, selectedDate]);
 
-  useEffect(() => {
-    if (!didInit.current || !mountedRef.current) return;
-
-    const formattedDate = formatLocalDate(selectedDate);
-    
-    if (prevDateRef.current === formattedDate) return;
-    
     prevDateRef.current = formattedDate;
 
     const month = selectedDate.getMonth() + 1;
@@ -110,9 +74,34 @@ export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
     fetchTeamAttendance(formattedDate, month, year);
   }, [selectedDate, fetchTeamAttendance]);
 
-  const refetch = useCallback(async () => {
-    if (!mountedRef.current) return;
+  useEffect(() => {
+    const cacheKey = `date-${formatLocalDate(selectedDate)}`;
+    const cachedData = teamAttendanceCache[cacheKey];
 
+    if (cachedData && cachedData.length > 0) {
+      const apiData = cachedData[0];
+
+      const mapped = {
+        Workforce: Number(apiData.WorkForce) || 0,
+        ProjectManagers: Number(apiData.ProjectManagers) || 0,
+        CheckInCount: Number(apiData.CheckedIn) || 0,
+        CheckOutCount: Number(apiData.CheckedOut) || 0,
+        MissedCheckIn: Number(apiData.MissedCheckIn) || 0,
+        MissedCheckOut: Number(apiData.MissedCheckOut) || 0,
+        MissingHours: apiData.MissedHrs || "00:00",
+        Overtime: apiData.OvertimeHrs || "00:00",
+        ApprovedLeaves: Number(apiData.ApprovedLeaves) || 0,
+        AbsentCount: Number(apiData.AbsentCount) || 0,
+      };
+
+
+      setTeamAttendanceDetails(mapped);
+    } else {
+      setTeamAttendanceDetails(null);
+    }
+  }, [teamAttendanceCache, selectedDate]);
+
+  const refetch = useCallback(async () => {
     const formattedDate = formatLocalDate(selectedDate);
     const month = selectedDate.getMonth() + 1;
     const year = selectedDate.getFullYear();

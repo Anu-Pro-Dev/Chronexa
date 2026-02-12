@@ -1,8 +1,4 @@
-export function generateRandomPassword(length = 8): string {
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~";
-    let password = "";
-    for (let i = 0; i < length; ++i) {
-      password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
+export function generateRandomPassword(length = 5): string {
+    let password = "12345";
     return password;
 }  

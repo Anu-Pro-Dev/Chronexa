@@ -1,24 +1,48 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { EmployeesIcon, OrgIcon, ManagerIcon, EmployeeCountIcon, VoilationIcon, LeaveTakenIcon, AbsentIcon } from "@/src/icons/icons";
+import {
+  EmployeesIcon,
+  ManagerIcon,
+  VoilationIcon,
+  LeaveTakenIcon,
+  AbsentIcon,
+} from "@/src/icons/icons";
 import { useTeamAttendanceData } from "./TeamAttendanceDataProvider";
-import { CheckCircleIcon, XCircleIcon, UserMinusIcon, UserPlusIcon, ClockIcon } from '@heroicons/react/24/solid'
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  UserMinusIcon,
+  UserPlusIcon,
+  ClockIcon,
+} from "@heroicons/react/24/solid";
 
 export default function EmployeeCardData() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
   const { teamAttendanceDetails, loading } = useTeamAttendanceData();
-  
+
   const [animatedValues, setAnimatedValues] = useState<any>(null);
 
   useEffect(() => {
-    if (teamAttendanceDetails && !loading) {
-      animateValues(teamAttendanceDetails);
-    }
+    if (!teamAttendanceDetails || loading) return;
+    setAnimatedValues({
+      Workforce: teamAttendanceDetails.Workforce ?? 0,
+      ProjectManagers: teamAttendanceDetails.ProjectManagers ?? 0,
+      CheckInCount: teamAttendanceDetails.CheckInCount ?? 0,
+      CheckOutCount: teamAttendanceDetails.CheckOutCount ?? 0,
+      ApprovedLeaves: teamAttendanceDetails.ApprovedLeaves ?? 0,
+      AbsentCount: teamAttendanceDetails.AbsentCount ?? 0,
+      MissedCheckIn: teamAttendanceDetails.MissedCheckIn ?? 0,
+      MissedCheckOut: teamAttendanceDetails.MissedCheckOut ?? 0,
+      MissingHours: parseHours(teamAttendanceDetails.MissingHours),
+      Overtime: parseHours(teamAttendanceDetails.Overtime),
+    });
+
+    animateValues(teamAttendanceDetails);
   }, [teamAttendanceDetails, loading]);
 
-  const animateValues = (data: any) => {
+  const animateValues = (statsData: any) => {
     const startTime = Date.now();
     const duration = 800;
 
@@ -27,34 +51,30 @@ export default function EmployeeCardData() {
       const progress = Math.min(elapsed / duration, 1);
 
       const newValues = {
-        Workforce: Math.floor(formatValue(data?.Workforce) * progress),
-        ProjectManagers: Math.floor(formatValue(data?.ProjectManagers) * progress),
-        CheckInCount: Math.floor(formatValue(data?.CheckInCount) * progress),
-        CheckOutCount: Math.floor(formatValue(data?.CheckOutCount) * progress),
-        ApprovedLeaves: Math.floor(formatValue(data?.ApprovedLeaves) * progress),
-        AbsentCount: Math.floor(formatValue(data?.AbsentCount) * progress),
-        MissedCheckIn: Math.floor(formatValue(data?.MissedCheckIn) * progress),
-        MissedCheckOut: Math.floor(formatValue(data?.MissedCheckOut) * progress),
-        MissingHours: parseHours(data?.MissedHrs || "00:00") * progress,
-        Overtime: parseHours(data?.OvertimeHrs || "00:00") * progress,
+        Workforce: Math.floor((statsData?.Workforce ?? 0) * progress),
+        ProjectManagers: Math.floor((statsData?.ProjectManagers ?? 0) * progress),
+        CheckInCount: Math.floor((statsData?.CheckInCount ?? 0) * progress),
+        CheckOutCount: Math.floor((statsData?.CheckOutCount ?? 0) * progress),
+        ApprovedLeaves: Math.floor((statsData?.ApprovedLeaves ?? 0) * progress),
+        AbsentCount: Math.floor((statsData?.AbsentCount ?? 0) * progress),
+        MissedCheckIn: Math.floor((statsData?.MissedCheckIn ?? 0) * progress),
+        MissedCheckOut: Math.floor((statsData?.MissedCheckOut ?? 0) * progress),
+        MissingHours: (parseHours(statsData?.MissingHours) ?? 0) * progress,
+        Overtime: (parseHours(statsData?.Overtime) ?? 0) * progress,
       };
 
       setAnimatedValues(newValues);
 
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+      if (progress < 1) requestAnimationFrame(animate);
     };
 
     animate();
   };
 
-  const formatValue = (v: any) => (v === null || v === undefined ? 0 : v);
-
   const parseHours = (timeString: string): number => {
     if (!timeString || timeString === "00:00") return 0;
-    const [hours, minutes] = timeString.split(':').map(Number);
-    return hours + (minutes / 60);
+    const [hours, minutes] = timeString.split(":").map(Number);
+    return hours + minutes / 60;
   };
 
   const displayValues = animatedValues || {
@@ -83,12 +103,8 @@ export default function EmployeeCardData() {
     { label: t?.overtime, value: displayValues.Overtime, color: "text-[#158993]", icon: <ClockIcon className="size-5 text-[#158993]" />, shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]", isHours: true },
   ];
 
-  const formatDisplayValue = (value: number, isHours: boolean) => {
-    if (isHours) {
-      return `${value.toFixed(0)} hrs`;
-    }
-    return Math.floor(value);
-  };
+  const formatDisplayValue = (value: number, isHours: boolean) =>
+    isHours ? `${value.toFixed(0)} hrs` : Math.floor(value);
 
   return (
     <>
@@ -97,24 +113,26 @@ export default function EmployeeCardData() {
           <React.Fragment key={`${item.label}-${index}`}>
             <div>
               <div className="flex gap-10">
-                <p className="text-text-secondary font-semibold text-sm w-[5rem]">{item.label}</p>
+                <p className="text-text-secondary font-semibold text-sm w-[5rem]">
+                  {item.label}
+                </p>
                 <div className={`icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] ${item.shadow} ${item.color}`}>
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-bold pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
+              <p className={`text-2xl ${item.color} font-bold pt-2`}>
+                {formatDisplayValue(item.value, item.isHours)}
+              </p>
             </div>
-            {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
+            {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15" />}
           </React.Fragment>
         ))}
       </div>
 
       <div className="flex justify-around py-2">
-        {Array(5)
-          .fill(null)
-          .map((_, index) => (
-            <div key={`line-${index}`} className="h-[1px] w-[60px] bg-text-secondary flex self-center opacity-10"></div>
-          ))}
+        {Array(5).fill(null).map((_, index) => (
+          <div key={`line-${index}`} className="h-[1px] w-[60px] bg-text-secondary flex self-center opacity-10" />
+        ))}
       </div>
 
       <div className="flex justify-between p-3">
@@ -122,14 +140,18 @@ export default function EmployeeCardData() {
           <React.Fragment key={`${item.label}-${index + 5}`}>
             <div>
               <div className="flex gap-10">
-                <p className="text-text-secondary font-semibold text-sm w-[60px]">{item.label}</p>
+                <p className="text-text-secondary font-semibold text-sm w-[60px]">
+                  {item.label}
+                </p>
                 <div className={`icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] ${item.shadow} ${item.color}`}>
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-bold pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
+              <p className={`text-2xl ${item.color} font-bold pt-2`}>
+                {formatDisplayValue(item.value, item.isHours)}
+              </p>
             </div>
-            {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
+            {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15" />}
           </React.Fragment>
         ))}
       </div>

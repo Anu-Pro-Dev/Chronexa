@@ -136,11 +136,18 @@ export default function Page() {
     return `Emp ${txEmployeeId ?? "-"}`;
   }, [language, userInfo, employeeId]);
 
-  const { data: employeesData } = useFetchAllEntity("employee", {
-    searchParams: {
-      limit: "1000",
-    },
-  });
+  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
+  const isManager = userInfo?.role?.toLowerCase() === "manager";
+
+  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
+    "employee",
+    isManager && !isAdmin && employeeId
+      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
+      : { 
+          searchParams: { limit: "1000" },
+          enabled: !!userInfo && isAdmin,
+        }
+  );
 
   const getEmployeesData = useCallback(() => {
     if (!employeesData?.data) return [];
@@ -166,13 +173,21 @@ export default function Page() {
           ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
         },
       };
+    } else if (userRole === "manager") {
+      return {
+        apiEndpoint: "/missingMovement/team/all",
+        searchParams: {
+          ...commonParams,
+          ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+        },
+      };
     } 
     else {
       return {
         apiEndpoint: "/missingMovement/all",
         searchParams: {
           ...commonParams,
-          ...(employeeId && { employee_id: String(employeeId) }),
+          ...(employeeId && { employeeId: String(employeeId) }),
         },
       };
     }
@@ -469,8 +484,6 @@ export default function Page() {
     );
   };
 
-  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
-
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -494,7 +507,7 @@ export default function Page() {
         }
       />
       
-      <div className={`grid grid-cols-1 ${isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4 xl:max-w-[${isAdmin ? '1050px' : '700px'}]`}>
+      <div className={`grid grid-cols-1 ${isAdmin || isManager ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4 xl:max-w-[${isAdmin || isManager ? '1050px' : '700px'}]`}>
         <div>
           <Popover
             open={popoverStates.fromDate}
@@ -569,7 +582,7 @@ export default function Page() {
           </Popover>
         </div>
 
-        {isAdmin && (
+        {(isAdmin || isManager) && (
           <div>
             <Popover 
               open={popoverStates.employeeFilter} 
@@ -602,6 +615,9 @@ export default function Page() {
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
                 <Command>
                   <CommandInput placeholder={t.search_employee || "Search employee..."} />
+                  <CommandEmpty>
+                    {t.no_employee_found || "No employee found"}
+                  </CommandEmpty>
                   <CommandGroup className="max-h-64 overflow-auto">
                     {getEmployeesData().map((item: any) => {
                       const displayName = language === "ar" 

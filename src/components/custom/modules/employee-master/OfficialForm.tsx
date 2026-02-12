@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import * as z from "zod";
 import { debounce } from "lodash";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -11,7 +11,7 @@ import { Checkbox } from "@/src/components/ui/checkbox";
 import Required from "@/src/components/ui/required";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getManagerEmployees } from "@/src/lib/apiHandler";
+import { getManagerEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
@@ -36,7 +36,10 @@ export default function OfficialForm({
   const errT = translations?.formErrors || {};
 
   const managerFlagChecked = officialForm.watch("manager_flag");
+  const selectedVertical = officialForm.watch("vertical_id");
+  const selectedOrganization = officialForm.watch("organization_id");
 
+  const [openVertical, setOpenVertical] = useState(false);
   const [openEmployeeType, setOpenEmployeeType] = useState(false);
   const [openLocation, setOpenLocation] = useState(false);
   const [openCitizenship, setOpenCitizenship] = useState(false);
@@ -45,17 +48,97 @@ export default function OfficialForm({
   const [openGrade, setOpenGrade] = useState(false);
   const [openManager, setOpenManager] = useState(false);
 
+  const [verticalSearchTerm, setVerticalSearchTerm] = useState("");
+  const [organizationSearchTerm, setOrganizationSearchTerm] = useState("");
+
   const { data: employeeTypes, isLoading: loadingEmployeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
   const { data: locations, isLoading: loadingLocations } = useFetchAllEntity("location", { removeAll: true });
   const { data: citizenships, isLoading: loadingCitizenships } = useFetchAllEntity("citizenship", { removeAll: true });
   const { data: designations, isLoading: loadingDesignations } = useFetchAllEntity("designation", { removeAll: true });
-  const { data: organizations, isLoading: loadingOrganizations } = useFetchAllEntity("organization", { removeAll: true });
+  const { data: organizations, isLoading: loadingOrganizations } = useFetchAllEntity("organization", {
+    searchParams: { limit: "1000" }
+  });
   const { data: grades, isLoading: loadingGrades } = useFetchAllEntity("grade", { removeAll: true });
 
-  const { data: managerEmployees, isLoading: loadingManagers } = useQuery({
-    queryKey: ["managerEmployees"],
-    queryFn: getManagerEmployees,
-  });
+  const getManagerSearchParams = () => {
+    const params: any = {
+      manager_flag: "true",
+      limit: "1000",
+      offset: "1"
+    };
+    if (selectedOrganization) {
+      params.organization_id = selectedOrganization;
+    }
+    return { searchParams: params };
+  };
+
+  const { data: managerEmployees, isLoading: loadingManagers } = useFetchAllEntity(
+    "employee",
+    (selectedOrganization) ? getManagerSearchParams() : {
+      searchParams: {
+        manager_flag: "true",
+        limit: "1000",
+        offset: "1"
+      }
+    }
+  );
+
+  const debouncedVerticalSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setVerticalSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const debouncedOrganizationSearch = useCallback(
+    debounce((searchTerm: string) => {
+      setOrganizationSearchTerm(searchTerm);
+    }, 300),
+    []
+  );
+
+  const getVerticalData = useMemo(() => {
+    if (!organizations?.data) return [];
+    
+    const parentMap = new Map();
+    organizations.data.forEach((item: any) => {
+      if (item.organizations) {
+        parentMap.set(item.organizations.organization_id, {
+          organization_id: item.organizations.organization_id,
+          organization_eng: item.organizations.organization_eng,
+          organization_arb: item.organizations.organization_arb,
+        });
+      }
+    });
+
+    const verticals = Array.from(parentMap.values());
+
+    if (verticalSearchTerm) {
+      return verticals.filter((item: any) =>
+        item.organization_eng?.toLowerCase().includes(verticalSearchTerm.toLowerCase()) ||
+        item.organization_arb?.toLowerCase().includes(verticalSearchTerm.toLowerCase())
+      );
+    }
+
+    return verticals;
+  }, [organizations, verticalSearchTerm]);
+
+  const getOrganizationsData = useMemo(() => {
+    if (!organizations?.data || !selectedVertical) return [];
+
+    const orgs = organizations.data.filter(
+      (item: any) => String(item.parent_id) === String(selectedVertical)
+    );
+
+    if (organizationSearchTerm) {
+      return orgs.filter((item: any) =>
+        item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase()) ||
+        item.organization_arb?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
+      );
+    }
+
+    return orgs;
+  }, [organizations, selectedVertical, organizationSearchTerm]);
 
   const getEmployeeTypesData = () => (employeeTypes?.data || []).filter((item: any) =>
     item.employee_type_id && item.employee_type_id.toString().trim() !== ''
@@ -73,10 +156,6 @@ export default function OfficialForm({
     item.designation_id && item.designation_id.toString().trim() !== ''
   );
 
-  const getOrganizationsData = () => (organizations?.data || []).filter((item: any) =>
-    item.organization_id && item.organization_id.toString().trim() !== ''
-  );
-
   const getGradesData = () => (grades?.data || []).filter((item: any) =>
     item.grade_id && item.grade_id.toString().trim() !== ''
   );
@@ -84,6 +163,13 @@ export default function OfficialForm({
   const getManagersData = () => (managerEmployees?.data || []).filter((emp: any) =>
     emp.employee_id != null
   );
+
+  useEffect(() => {
+    return () => {
+      debouncedVerticalSearch.cancel();
+      debouncedOrganizationSearch.cancel();
+    };
+  }, [debouncedVerticalSearch, debouncedOrganizationSearch]);
 
   function onSubmit(values: z.infer<typeof officialFormSchema>) {
     try {
@@ -122,14 +208,146 @@ export default function OfficialForm({
         </div>
 
         <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+          {/* VERTICAL */}
+          <FormField
+            control={officialForm.control}
+            name="vertical_id"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel className="flex gap-1">{t.vertical || "Vertical"}</FormLabel>
+                <Popover open={openVertical} onOpenChange={setOpenVertical}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openVertical}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px] justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingOrganizations}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getVerticalData.find(
+                              (item: any) => Number(item.organization_id) === Number(field.value)
+                            )?.[language === 'ar' ? 'organization_arb' : 'organization_eng']
+                            : t.placeholder_vertical || "Choose vertical"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
+                    <Command>
+                      <CommandInput 
+                        placeholder={t.search || "Search vertical..."} 
+                        className="border-none"
+                        onValueChange={debouncedVerticalSearch}
+                      />
+                      <CommandEmpty>{t.no_results || "No vertical found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getVerticalData.map((item: any) => (
+                          <CommandItem
+                            key={item.organization_id}
+                            value={language === 'ar' ? item.organization_arb : item.organization_eng}
+                            onSelect={() => {
+                              field.onChange(Number(item.organization_id));
+                              officialForm.setValue("organization_id", undefined);
+                              setOpenVertical(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === Number(item.organization_id) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {language === 'ar' ? item.organization_arb : item.organization_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <TranslatedError fieldError={officialForm.formState.errors.vertical_id} translations={errT} />
+              </FormItem>
+            )}
+          />
+
+          {/* ORGANIZATION */}
+          <FormField
+            control={officialForm.control}
+            name="organization_id"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel className="flex gap-1">{t.organization || "Organization"}</FormLabel>
+                <Popover open={openOrganization} onOpenChange={setOpenOrganization}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openOrganization}
+                        className={cn(
+                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
+                          !field.value && "text-text-secondary"
+                        )}
+                        disabled={loadingOrganizations || !selectedVertical}
+                      >
+                        <span className="truncate">
+                          {field.value
+                            ? getOrganizationsData.find(
+                              (item: any) => Number(item.organization_id) === Number(field.value)
+                            )?.[language === 'ar' ? 'organization_arb' : 'organization_eng']
+                            : t.placeholder_organization || "Choose organization"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px]  p-0">
+                    <Command>
+                      <CommandInput 
+                        placeholder={t.search || "Search organization..."}
+                        onValueChange={debouncedOrganizationSearch}
+                      />
+                      <CommandEmpty>{t.no_results || "No organization found"}</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {getOrganizationsData.map((item: any) => (
+                          <CommandItem
+                            key={item.organization_id}
+                            value={language === 'ar' ? item.organization_arb : item.organization_eng}
+                            onSelect={() => {
+                              field.onChange(Number(item.organization_id));
+                              setOpenOrganization(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === Number(item.organization_id) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {language === 'ar' ? item.organization_arb : item.organization_eng}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <TranslatedError fieldError={officialForm.formState.errors.organization_id} translations={errT} />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={officialForm.control}
             name="employee_type_id"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel className="flex gap-1">
-                  {t.employee_type || "Employee Type"} <Required />
-                </FormLabel>
+                <FormLabel className="flex gap-1">{t.employee_type || "Employee Type"}</FormLabel>
                 <Popover open={openEmployeeType} onOpenChange={setOpenEmployeeType}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -191,9 +409,7 @@ export default function OfficialForm({
             name="location_id"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel className="flex gap-1">
-                  {t.locations || "Location"} <Required />
-                </FormLabel>
+                <FormLabel className="flex gap-1">{t.locations || "Location"}</FormLabel>
                 <Popover open={openLocation} onOpenChange={setOpenLocation}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -255,9 +471,7 @@ export default function OfficialForm({
             name="citizenship_id"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel className="flex gap-1">
-                  {t.citizenship || "Citizenship"} <Required />
-                </FormLabel>
+                <FormLabel className="flex gap-1">{t.citizenship || "Citizenship"}</FormLabel>
                 <Popover open={openCitizenship} onOpenChange={setOpenCitizenship}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -319,9 +533,7 @@ export default function OfficialForm({
             name="designation_id"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel className="flex gap-1">
-                  {t.designation || "Designation"} <Required />
-                </FormLabel>
+                <FormLabel className="flex gap-1">{t.designation || "Designation"}</FormLabel>
                 <Popover open={openDesignation} onOpenChange={setOpenDesignation}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -374,70 +586,6 @@ export default function OfficialForm({
                   </PopoverContent>
                 </Popover>
                 <TranslatedError fieldError={officialForm.formState.errors.designation_id} translations={errT} />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={officialForm.control}
-            name="organization_id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="flex gap-1">
-                  {t.organization || "Organization"} <Required />
-                </FormLabel>
-                <Popover open={openOrganization} onOpenChange={setOpenOrganization}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={openOrganization}
-                        className={cn(
-                          "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm max-w-[350px] 3xl:max-w-[450px]  justify-between",
-                          !field.value && "text-text-secondary"
-                        )}
-                        disabled={loadingOrganizations}
-                      >
-                        <span className="truncate">
-                          {field.value
-                            ? getOrganizationsData().find(
-                              (item: any) => item.organization_id === field.value
-                            )?.organization_eng
-                            : t.placeholder_organization || "Choose organization"}
-                        </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px]  p-0">
-                    <Command>
-                      <CommandInput placeholder={t.search || "Search organization..."} />
-                      <CommandEmpty>{t.no_results || "No organization found"}</CommandEmpty>
-                      <CommandGroup className="max-h-64 overflow-auto">
-                        {getOrganizationsData().map((item: any) => (
-                          <CommandItem
-                            key={item.organization_id}
-                            value={item.organization_eng}
-                            onSelect={() => {
-                              field.onChange(item.organization_id);
-                              setOpenOrganization(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                field.value === item.organization_id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {item.organization_eng}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <TranslatedError fieldError={officialForm.formState.errors.organization_id} translations={errT} />
               </FormItem>
             )}
           />

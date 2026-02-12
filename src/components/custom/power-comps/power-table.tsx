@@ -238,8 +238,10 @@ export default function PowerTable({
     ? overrideCheckbox 
     : effectivePrivileges.delete;
 
+  const displayData = api ? tableData : (props?.Data || []);
+
   const columnDefs = [
-    ...(showCheckbox
+    ...(showCheckbox && displayData.length > 0 
       ? [
           {
             field: "checkbox",
@@ -306,8 +308,6 @@ export default function PowerTable({
         ]
       : []),
   ];
-
-  const displayData = api ? tableData : (props?.Data || []);
 
   return (
     <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6 overflow-auto scrollbar-hide mb-4">

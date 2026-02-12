@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
@@ -38,15 +40,21 @@ export default function Page() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [selectedOption, setSelectedOption] = useState<string>("all");
+  const [employeeFilter, setEmployeeFilter] = useState<string>("");
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
+    employeeFilter: false,
   });
 
   const debouncedSearchValue = useDebounce(searchValue, 300);
+  const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
   const t = translations?.modules?.selfServices || {};
 
   const offset = useMemo(() => currentPage, [currentPage]);
+
+  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
+  const isManager = userInfo?.role?.toLowerCase() === "manager";
 
   const options = useMemo(() => [
     { value: "all", label: "All" },
@@ -55,7 +63,7 @@ export default function Page() {
     { value: "2", label: t.rejected || "Rejected" },
   ], [t]);
 
-  const closePopover = useCallback((key: string) => {
+  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   }, []);
 
@@ -65,6 +73,21 @@ export default function Page() {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }, []);
+
+  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
+    "employee",
+    isManager && !isAdmin && employeeId
+      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
+      : {
+        searchParams: { limit: "1000" },
+        enabled: !!userInfo && isAdmin,
+      }
+  );
+
+  const getEmployeesData = useCallback(() => {
+    if (!employeesData?.data) return [];
+    return employeesData.data.filter((item: any) => item.employee_id);
+  }, [employeesData]);
 
   const getEmployeeDisplayInfo = useCallback((permission: any, lang: string = 'en') => {
     const employeeMaster = permission.employee_master;
@@ -122,6 +145,7 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+      { field: "emp_no", headerName: t.employee_no || "Employee No" },
       { field: "permission_type_name", headerName: t.perm_type || "Permission Type" },
       { field: "firstName", headerName: t.employee_name || "Employee Name" },
       { field: "permission_date", headerName: t.date || "Date" },
@@ -131,20 +155,58 @@ export default function Page() {
       { field: "status", headerName: t.status || "Status" },
     ]);
   }, [language, t]);
-  
+
+  const apiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+
+    const commonParams = {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(selectedOption && selectedOption !== "all" && { status: selectedOption }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+    };
+
+    if (userRole === "admin") {
+      return {
+        endpoint: "/employeeShortPermission/all",
+        searchParams: commonParams,
+      };
+    } else if (userRole === "manager") {
+      return {
+        endpoint: "/employeeShortPermission/team/all",
+        searchParams: commonParams,
+      };
+    } else {
+      return {
+        endpoint: "/employeeShortPermission/all",
+        searchParams: {
+          ...commonParams,
+          ...(employeeId && { employeeId: String(employeeId) }),
+        },
+      };
+    }
+  }, [
+    userInfo?.role,
+    rowsPerPage,
+    offset,
+    selectedOption,
+    fromDate,
+    toDate,
+    debouncedSearchValue,
+    debouncedEmployeeFilter,
+    employeeId,
+    formatDateForAPI,
+  ]);
+
   const { data: permissionsData, isLoading: isLoadingPermissions, error, refetch } = useFetchAllEntity(
     "employeeShortPermission",
     {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(selectedOption && selectedOption !== "all" && { status: selectedOption }),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeShortPermission/team/all`,
+      searchParams: apiConfig.searchParams,
+      enabled: !!employeeId && isAuthenticated && !isChecking && !!userInfo?.role,
+      endpoint: apiConfig.endpoint,
     }
   );
 
@@ -153,9 +215,9 @@ export default function Page() {
       return [];
     }
 
-    const filteredData = permissionsData.data.filter((permission: any) =>
-      permission.employee_id !== employeeId
-    );
+    const filteredData = isAdmin
+      ? permissionsData.data
+      : permissionsData.data.filter((permission: any) => permission.employee_id !== employeeId);
 
     return filteredData.map((permission: any) => {
       const employeeInfo = getEmployeeDisplayInfo(permission, language);
@@ -180,7 +242,7 @@ export default function Page() {
         employee_master: permission.employee_master,
       };
     });
-  }, [permissionsData, language, employeeId, getEmployeeDisplayInfo, getPermissionTypeName, getStatusLabel]);
+  }, [permissionsData, language, employeeId, isAdmin, getEmployeeDisplayInfo, getPermissionTypeName, getStatusLabel]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -223,6 +285,15 @@ export default function Page() {
     setToDate(date);
     handleFilterChange();
   }, [handleFilterChange]);
+
+  const handleEmployeeFilterChange = useCallback((value: string) => {
+    setEmployeeFilter(value);
+    setCurrentPage(1);
+    closePopover('employeeFilter');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
 
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
@@ -310,15 +381,22 @@ export default function Page() {
         disableDelete
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-3 sm:gap-4 xl:max-w-[1400px]">
         <div>
           <Select onValueChange={handleStatusChange} value={selectedOption}>
-            <SelectTrigger className="bg-accent border-grey">
-              <Label className="font-normal text-secondary">
-                {t.status || "Status"} :
-              </Label>
-              <SelectValue placeholder={t.placeholder_status || "Choose status"} />
+            <SelectTrigger className="bg-accent border-grey flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <Label className="font-normal text-secondary shrink-0">
+                  {t.status || "Status"} :
+                </Label>
+
+                <SelectValue
+                  className="truncate text-left"
+                  placeholder={t.placeholder_status || "Choose status"}
+                />
+              </div>
             </SelectTrigger>
+
             <SelectContent>
               {options.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
@@ -340,7 +418,7 @@ export default function Page() {
                 variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
-                <p>
+                <p className="truncate">
                   <Label className="font-normal text-secondary">
                     {t.from_date || "From Date"} :
                   </Label>
@@ -375,11 +453,11 @@ export default function Page() {
                 variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
-                <p>
+                <p className="truncate">
                   <Label className="font-normal text-secondary">
                     {t.to_date || "To Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="truncate px-1 text-sm text-text-primary">
                     {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
@@ -398,6 +476,69 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
+
+        {(isAdmin || isManager) && (
+          <div>
+            <Popover
+              open={popoverStates.employeeFilter}
+              onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full bg-accent px-4 flex justify-between border-grey"
+                  disabled={isLoadingEmployees}
+                >
+                  <p className="truncate">
+                    <Label className="font-normal text-secondary">
+                      {t.employee_no || "Employee No"} :
+                    </Label>
+                    <span className="truncate px-1 text-sm text-text-primary">
+                      {isLoadingEmployees
+                        ? (t.loading || "Loading...")
+                        : employeeFilter
+                          ? getEmployeesData().find((item: any) =>
+                            String(item.employee_id) === employeeFilter
+                          )?.emp_no || (language === "ar"
+                            ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
+                            : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
+                          : (t.placeholder_employee_filter || "Choose employee")}
+                    </span>
+                  </p>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder={t.search_employee || "Search employee..."} />
+                  <CommandEmpty>
+                    {isLoadingEmployees
+                      ? (t.loading || "Loading...")
+                      : (t.no_employee_found || "No employee found")}
+                  </CommandEmpty>
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getEmployeesData().map((item: any) => {
+                      const displayName = language === "ar"
+                        ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
+                        : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
+
+                      return (
+                        <CommandItem
+                          key={item.employee_id}
+                          onSelect={() => handleEmployeeFilterChange(String(item.employee_id))}
+                        >
+                          {item.emp_no} - {displayName}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
       <div className="bg-accent rounded-2xl">

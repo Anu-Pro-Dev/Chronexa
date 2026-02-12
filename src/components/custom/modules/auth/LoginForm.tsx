@@ -138,7 +138,6 @@ export default function LoginForm() {
       <Form {...loginForm}>
         <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="">
           <div className="flex flex-col gap-4">
-            {/* Username Field */}
             <FormField
               control={loginForm.control}
               name="username"
@@ -160,7 +159,6 @@ export default function LoginForm() {
               )}
             />
 
-            {/* Password Field */}
             <FormField
               control={loginForm.control}
               name="password"
@@ -193,7 +191,6 @@ export default function LoginForm() {
               )}
             />
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <FormField
                 control={loginForm.control}
@@ -226,7 +223,6 @@ export default function LoginForm() {
               </button>
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               size={"lg"}
@@ -247,7 +243,6 @@ export default function LoginForm() {
         </form>
       </Form>
 
-      {/* Forgot Password Modal */}
       <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={handleCloseForgotPasswordModal}>
         <ResponsiveModalContent size="medium">
           <ResponsiveModalHeader className="gap-1">

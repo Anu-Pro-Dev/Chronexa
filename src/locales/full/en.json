@@ -488,6 +488,7 @@
         "public_holiday": "Public Holiday",
         "holiday_name": "Holiday Name",
         "ramadan_name": "Ramadan Name",
+        "ramadan": "Ramadan",
         "schedules_code": "Schedules Code",
         "placeholder_organization": "Choose Organization",
         "placeholder_employee": "Choose Employee",

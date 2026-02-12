@@ -84,6 +84,24 @@ export default function Page() {
     return fullName || `Emp ${transaction.employee_id}`;
   }, [language, userInfo, employeeId]);
 
+  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
+  const isManager = userInfo?.role?.toLowerCase() === "manager";
+
+  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
+    "employee",
+    isManager && !isAdmin && employeeId
+      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
+      : { 
+          searchParams: { limit: "1000" },
+          enabled: !!userInfo && isAdmin,
+        }
+  );
+
+  const getEmployeesData = useCallback(() => {
+    if (!employeesData?.data) return [];
+    return employeesData.data.filter((item: any) => item.employee_id);
+  }, [employeesData]);
+
   useEffect(() => {
     setColumns([
       { 
@@ -113,33 +131,99 @@ export default function Page() {
     ]);
   }, [language, t]);
 
+  const apiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    
+    const commonParams = {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+    };
+
+    if (userRole === "admin") {
+      return {
+        endpoint: "/employeeEventTransaction/all",
+        searchParams: commonParams,
+      };
+    } else if (userRole === "manager") {
+      return {
+        endpoint: "/employeeEventTransaction/team/all",
+        searchParams: commonParams,
+      };
+    } else {
+      return {
+        endpoint: "/employeeEventTransaction/all",
+        searchParams: {
+          ...commonParams,
+          ...(employeeId && { employeeId: String(employeeId) }),
+        },
+      };
+    }
+  }, [
+    userInfo?.role,
+    rowsPerPage,
+    offset,
+    debouncedSearchValue,
+    fromDate,
+    toDate,
+    debouncedEmployeeFilter,
+    employeeId,
+    formatDateForAPI,
+  ]);
+
+  const exportApiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    
+    const commonParams = {
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+    };
+
+    if (userRole === "admin") {
+      return {
+        endpoint: "/employeeEventTransaction",
+        searchParams: commonParams,
+      };
+    } else if (userRole === "manager") {
+      return {
+        endpoint: "/employeeEventTransaction/team",
+        searchParams: commonParams,
+      };
+    } else {
+      return {
+        endpoint: "/employeeEventTransaction/team",
+        searchParams: commonParams,
+      };
+    }
+  }, [
+    userInfo?.role,
+    debouncedSearchValue,
+    fromDate,
+    toDate,
+    debouncedEmployeeFilter,
+    formatDateForAPI,
+  ]);
+
   const { data: punchesData, isLoading: isLoadingTransactions, error, refetch } = useFetchAllEntity(
     "employeeEventTransaction", 
     {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeEventTransaction/team/all`,
+      searchParams: apiConfig.searchParams,
+      enabled: !!employeeId && isAuthenticated && !isChecking && !!userInfo?.role,
+      endpoint: apiConfig.endpoint,
     }
   );
 
   const { data: allPunchesData } = useFetchAllEntity(
     "employeeEventTransactionExport", 
     {
-      searchParams: {
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeEventTransaction/team`,
+      searchParams: exportApiConfig.searchParams,
+      enabled: false,
+      endpoint: exportApiConfig.endpoint,
     }
   );
 
@@ -226,17 +310,6 @@ export default function Page() {
       setTimeout(() => refetch(), 100);
     }
   }, [refetch, closePopover]);
-
-  const { data: employeesData } = useFetchAllEntity("employee", {
-    searchParams: {
-      limit: "1000",
-    },
-  });
-
-  const getEmployeesData = useCallback(() => {
-    if (!employeesData?.data) return [];
-    return employeesData.data.filter((item: any) => item.employee_id);
-  }, [employeesData]);
 
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction", employeeId] });
@@ -491,19 +564,22 @@ export default function Page() {
                 size="lg" 
                 variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey"
+                disabled={isLoadingEmployees}
               >
                 <p>
                   <Label className="font-normal text-secondary">
                     {t.employee_no || "Employee No"} :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {employeeFilter
-                      ? getEmployeesData().find((item: any) => 
-                          String(item.employee_id) === employeeFilter
-                        )?.emp_no || (language === "ar" 
-                          ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
-                          : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
-                      : (t.placeholder_employee_filter || "Choose employee")}
+                    {isLoadingEmployees
+                      ? (t.loading || "Loading...")
+                      : employeeFilter
+                        ? getEmployeesData().find((item: any) => 
+                            String(item.employee_id) === employeeFilter
+                          )?.emp_no || (language === "ar" 
+                            ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
+                            : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
+                        : (t.placeholder_employee_filter || "Choose employee")}
                   </span>
                 </p>
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
@@ -513,6 +589,11 @@ export default function Page() {
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
               <Command>
                 <CommandInput placeholder={t.search_employee || "Search employee..."} />
+                <CommandEmpty>
+                  {isLoadingEmployees
+                    ? (t.loading || "Loading...")
+                    : (t.no_employee_found || "No employee found")}
+                </CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
                   {getEmployeesData().map((item: any) => {
                     const displayName = language === "ar" 

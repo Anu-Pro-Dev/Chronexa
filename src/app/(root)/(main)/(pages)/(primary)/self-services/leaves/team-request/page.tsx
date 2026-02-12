@@ -42,15 +42,10 @@ export default function Page() {
   const [selectedOption, setSelectedOption] = useState<string>("all");
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
   const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("");
-  const [selectedOrganization, setSelectedOrganization] = useState<string>("");
-  const [selectedEmployeeType, setSelectedEmployeeType] = useState<string>("");
-  const [selectedVertical, setSelectedVertical] = useState<string>("");
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
-    vertical: false,
-    organization: false,
-    employeeType: false,
+    employeeFilter: false,
   });
 
   const debouncedSearchValue = useDebounce(searchValue, 300);
@@ -60,6 +55,9 @@ export default function Page() {
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
+  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
+  const isManager = userInfo?.role?.toLowerCase() === "manager";
+
   const options = useMemo(() => [
     { value: "all", label: "All" },
     { value: "0", label: t.pending || "Pending" },
@@ -67,7 +65,7 @@ export default function Page() {
     { value: "2", label: t.rejected || "Rejected" },
   ], [t]);
 
-  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'organization' | 'employeeType' | 'vertical') => {
+  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   }, []);
 
@@ -83,8 +81,26 @@ export default function Page() {
     return new Date(dateString).toISOString().split('T')[0];
   }, []);
 
+  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
+    "employee",
+    isManager && !isAdmin && employeeId
+      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
+      : {
+        searchParams: { limit: "1000" },
+        enabled: !!userInfo && isAdmin,
+      }
+  );
+
+  const getEmployeesData = useCallback(() => {
+    if (!employeesData?.data) return [];
+    return employeesData.data.filter((item: any) => item.employee_id);
+  }, [employeesData]);
+
   const getEmployeeDisplayInfo = useCallback((leave: any, lang: string = 'en') => {
-    const employeeMaster = leave.employee_master_employee_leaves_employee_idToemployee_master;
+    const employeeMaster = 
+      leave.employee_master_employee_leaves_employee_idToemployee_master ||
+      leave.employee_master ||
+      leave.employeeMaster;
 
     if (!employeeMaster) {
       return {
@@ -166,52 +182,9 @@ export default function Page() {
     );
   }, []);
 
-
-  const { data: organizationData } = useFetchAllEntity("organization", {
-    searchParams: {
-      limit: "1000",
-    },
-  });
-
-
-  const { data: employeeTypeData } = useFetchAllEntity("employeeType", {
-    removeAll: true,
-  });
-
-  const getVerticalData = useCallback(() => {
-    if (!organizationData?.data) return [];
-
-    const parentMap = new Map();
-
-    organizationData.data.forEach((item: any) => {
-      if (item.organizations) {
-        parentMap.set(item.organizations.organization_id, {
-          organization_id: item.organizations.organization_id,
-          organization_eng: item.organizations.organization_eng,
-          organization_arb: item.organizations.organization_arb,
-        });
-      }
-    });
-
-    return Array.from(parentMap.values());
-  }, [organizationData]);
-
-  const getOrganizationsData = useCallback(() => {
-    if (!organizationData?.data) return [];
-
-    return organizationData.data.filter(
-      (item: any) => String(item.parent_id) === selectedVertical
-    );
-  }, [organizationData, selectedVertical]);
-
-  const getEmployeeTypesData = useCallback(() =>
-    (employeeTypeData?.data || []).filter(
-      (item: any) => item.employee_type_id
-    ), [employeeTypeData]);
-
-
-    useEffect(() => {
+  useEffect(() => {
     setColumns([
+      { field: "emp_no", headerName: t.employee_no || "Employee No" },
       { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
       { field: "firstName", headerName: t.employee_name || "Employee Name" },
       { field: "from_date", headerName: t.from_date || "From Date" },
@@ -226,22 +199,60 @@ export default function Page() {
     ]);
   }, [language, t, AttachmentCellRenderer]);
 
+  const apiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+
+    const commonParams = {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      include: 'employee_master,leave_types',
+      ...(selectedOption && selectedOption !== "all" && { leave_status: selectedOption }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
+      ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
+    };
+
+    if (userRole === "admin") {
+      return {
+        endpoint: "/employeeLeave/all",
+        searchParams: commonParams,
+      };
+    } else if (userRole === "manager") {
+      return {
+        endpoint: "/employeeLeave/team/all",
+        searchParams: commonParams,
+      };
+    } else {
+      return {
+        endpoint: "/employeeLeave/all",
+        searchParams: {
+          ...commonParams,
+          ...(employeeId && { employee_id: String(employeeId) }),
+        },
+      };
+    }
+  }, [
+    userInfo?.role,
+    rowsPerPage,
+    offset,
+    selectedOption,
+    fromDate,
+    toDate,
+    debouncedSearchValue,
+    debouncedEmployeeFilter,
+    debouncedLeaveTypeFilter,
+    employeeId,
+    formatDateForAPI,
+  ]);
 
   const { data: leavesData, isLoading: isLoadingLeaves, error, refetch } = useFetchAllEntity(
     "employeeLeave",
     {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(selectedOption && selectedOption !== "all" && { leave_status: selectedOption }),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
-        ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/team/all`,
+      searchParams: apiConfig.searchParams,
+      enabled: !!employeeId && isAuthenticated && !isChecking && !!userInfo?.role,
+      endpoint: apiConfig.endpoint,
     }
   );
 
@@ -250,7 +261,11 @@ export default function Page() {
       return [];
     }
 
-    return leavesData.data.map((leave: any) => {
+    const filteredData = isAdmin
+      ? leavesData.data
+      : leavesData.data.filter((leave: any) => leave.employee_id !== employeeId);
+
+    return filteredData.map((leave: any) => {
       const employeeInfo = getEmployeeDisplayInfo(leave, language);
       const formattedFromDate = formatDateForDisplay(leave.from_date);
       const formattedToDate = formatDateForDisplay(leave.to_date);
@@ -270,11 +285,10 @@ export default function Page() {
         to_time: leave.to_time ? leave.to_time.substring(11, 19) : leave.to_time,
         leave_status: getStatusLabel(leave.approve_reject_flag),
         raw_employee_id: leave.employee_id,
-        employee_master: leave.employee_master_employee_leaves_employee_idToemployee_master,
+        employee_master: leave.employee_master || leave.employee_master_employee_leaves_employee_idToemployee_master,
       };
     });
-  }, [leavesData, language, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel, formatDateForDisplay]);
-
+  }, [leavesData, language, employeeId, isAdmin, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel, formatDateForDisplay]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -318,34 +332,14 @@ export default function Page() {
     handleFilterChange();
   }, [handleFilterChange]);
 
-  const handleOrganizationChange = useCallback((value: string) => {
-    setSelectedOrganization(value);
+  const handleEmployeeFilterChange = useCallback((value: string) => {
+    setEmployeeFilter(value);
     setCurrentPage(1);
-    closePopover('organization');
+    closePopover('employeeFilter');
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
   }, [refetch, closePopover]);
-
-  const handleEmployeeTypeChange = useCallback((value: string) => {
-    setSelectedEmployeeType(value);
-    setCurrentPage(1);
-    closePopover('employeeType');
-    if (refetch) {
-      setTimeout(() => refetch(), 100);
-    }
-  }, [refetch, closePopover]);
-
-  const handleVerticalChange = useCallback((value: string) => {
-    setSelectedVertical(value);
-    setSelectedOrganization("");
-    closePopover('vertical');
-  }, [closePopover]);
-
-  const handleEmployeeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmployeeFilter(event.target.value);
-    setCurrentPage(1);
-  }, []);
 
   const handleLeaveTypeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setLeaveTypeFilter(event.target.value);
@@ -435,8 +429,169 @@ export default function Page() {
         items={modules?.selfServices?.items}
         entityName="employeeLeave"
         disableAdd
+        disableDelete
       />
-      
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-3 sm:gap-4 xl:max-w-[1400px]">
+        <div>
+          <Select onValueChange={handleStatusChange} value={selectedOption}>
+            <SelectTrigger className="bg-accent border-grey flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <Label className="font-normal text-secondary shrink-0">
+                  {t.status || "Status"} :
+                </Label>
+
+                <SelectValue
+                  className="truncate text-left"
+                  placeholder={t.placeholder_status || "Choose status"}
+                />
+              </div>
+            </SelectTrigger>
+
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p className="truncate">
+                  <Label className="font-normal text-secondary">
+                    {t.from_date || "From Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={fromDate}
+                onSelect={(date) => {
+                  handleFromDateChange(date);
+                  closePopover('fromDate');
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p className="truncate">
+                  <Label className="font-normal text-secondary">
+                    {t.to_date || "To Date"} :
+                  </Label>
+                  <span className="truncate px-1 text-sm text-text-primary">
+                    {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={toDate}
+                onSelect={(date) => {
+                  handleToDateChange(date);
+                  closePopover('toDate');
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {(isAdmin || isManager) && (
+          <div>
+            <Popover
+              open={popoverStates.employeeFilter}
+              onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full bg-accent px-4 flex justify-between border-grey"
+                  disabled={isLoadingEmployees}
+                >
+                  <p className="truncate">
+                    <Label className="font-normal text-secondary">
+                      {t.employee_no || "Employee No"} :
+                    </Label>
+                    <span className="truncate px-1 text-sm text-text-primary">
+                      {isLoadingEmployees
+                        ? (t.loading || "Loading...")
+                        : employeeFilter
+                          ? getEmployeesData().find((item: any) =>
+                            String(item.employee_id) === employeeFilter
+                          )?.emp_no || (language === "ar"
+                            ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
+                            : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
+                          : (t.placeholder_employee_filter || "Choose employee")}
+                    </span>
+                  </p>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder={t.search_employee || "Search employee..."} />
+                  <CommandEmpty>
+                    {isLoadingEmployees
+                      ? (t.loading || "Loading...")
+                      : (t.no_employee_found || "No employee found")}
+                  </CommandEmpty>
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getEmployeesData().map((item: any) => {
+                      const displayName = language === "ar"
+                        ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
+                        : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
+
+                      return (
+                        <CommandItem
+                          key={item.employee_id}
+                          onSelect={() => handleEmployeeFilterChange(String(item.employee_id))}
+                        >
+                          {item.emp_no} - {displayName}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+      </div>
+
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">

@@ -38,7 +38,6 @@ function RootContent({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {/* Add Toaster here - uses Full LanguageProvider */}
       <Toaster
         position={toasterPosition}
         toastOptions={{

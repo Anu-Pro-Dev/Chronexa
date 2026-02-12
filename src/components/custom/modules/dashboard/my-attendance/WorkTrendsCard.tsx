@@ -19,6 +19,12 @@ const colorMapping = {
   dayoff: "#EBEBEB",
 };
 
+const formatHoursToHM = (decimalHours: number) => {
+  const hours = Math.floor(decimalHours);
+  const minutes = Math.round((decimalHours - hours) * 60);
+  return `${hours}h ${minutes}m`;
+};
+
 const CustomTooltip = ({ active, payload }: any) => {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
@@ -26,7 +32,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0].payload;
-  
+
   if (data.dayoff > 0) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
@@ -63,13 +69,17 @@ const CustomTooltip = ({ active, payload }: any) => {
       {data.worked > 0 && (
         <div className="flex items-center gap-2 mb-1">
           <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.worked }}></div>
-          <span className="text-sm text-gray-600">{t?.worked_hrs || "Worked"}: {data.worked}hrs</span>
+          <span className="text-sm text-gray-600">
+            {t?.worked_hrs || "Worked"}: {formatHoursToHM(data.worked)}
+          </span>
         </div>
       )}
       {data.missed > 0 && (
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.missed }}></div>
-          <span className="text-sm text-gray-600">{t?.missed_hrs || "Missed"}: {data.missed}hrs</span>
+          <span className="text-sm text-gray-600">
+            {t?.missed_hrs || "Missed"}: {formatHoursToHM(data.missed)}
+          </span>
         </div>
       )}
     </div>
@@ -108,8 +118,8 @@ const CustomLegend = ({ payload }: any) => {
 function WorkTrendsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  
-  const currentMonth = new Date().getMonth() + 1; 
+
+  const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
 
@@ -149,9 +159,9 @@ function WorkTrendsCard() {
 
     const data = Array.from({ length: daysInMonth }, (_, i) => {
       const dayNumber = i + 1;
-      
+
       const dayData = workHourTrends.find(item => item.DayofDate === dayNumber);
-      
+
       if (!dayData) {
         return {
           date: dayNumber.toString(),
@@ -182,21 +192,21 @@ function WorkTrendsCard() {
           worked: 0,
           missed: 0,
           expected: 0,
-          holiday: 8, 
+          holiday: 8,
           dayoff: 0,
           isRestDay: false,
         };
       }
 
-      const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0) 
-        ? 480 
+      const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0)
+        ? 480
         : dayData.ExpectedWork;
-      
+
       const expectedHours = expectedMinutes / 60;
       const workedHours = (dayData.WorkMinutes || 0) / 60;
-      
+
       let worked, missed, expected;
-      
+
       if (workedHours > expectedHours) {
         worked = Number(workedHours.toFixed(2));
         missed = 0;
@@ -206,7 +216,7 @@ function WorkTrendsCard() {
         missed = Number((expectedHours - workedHours).toFixed(2));
         expected = Number(expectedHours.toFixed(2));
       }
-      
+
       return {
         date: dayNumber.toString(),
         worked,
@@ -228,8 +238,19 @@ function WorkTrendsCard() {
     0
   );
 
-  const yAxisMax = Math.max(Math.ceil(maxExpectedHours / 2) * 2, 10);
-  const ticks = Array.from({ length: Math.floor(yAxisMax / 2) + 1 }, (_, i) => i * 2);
+  const maxValue = Math.max(
+    ...chartDataToRender.map(d => d.worked + d.missed),
+    ...chartDataToRender.map(d => d.holiday),
+    ...chartDataToRender.map(d => d.dayoff),
+    8
+  );
+
+  const yAxisMax = Math.max(Math.ceil(maxValue / 2) * 2, 10);
+
+  const ticks = [];
+  for (let i = 0; i <= yAxisMax; i += 2) {
+    ticks.push(i);
+  }
 
   const hasAnyData = chartDataToRender.some(d => d.worked > 0 || d.missed > 0 || d.expected > 0 || d.holiday > 0 || d.dayoff > 0);
 
@@ -240,8 +261,8 @@ function WorkTrendsCard() {
           {t?.work_hrs_trends}
         </h5>
 
-        <Select 
-          value={selectedMonth.toString()} 
+        <Select
+          value={selectedMonth.toString()}
           onValueChange={(value) => setSelectedMonth(Number(value))}
         >
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
@@ -261,7 +282,7 @@ function WorkTrendsCard() {
                   value={monthValue.toString()}
                   className="text-text-primary bg-accent"
                 >
-                  {monthValue === currentMonth 
+                  {monthValue === currentMonth
                     ? translations?.this_month || "هذا الشهر"
                     : month}
                 </SelectItem>
@@ -287,17 +308,17 @@ function WorkTrendsCard() {
           >
             <BarChart accessibilityLayer data={chartDataFinal}>
               <CartesianGrid vertical={false} />
-              <XAxis 
-                dataKey="date" 
-                tickLine={false} 
-                tickMargin={2} 
-                axisLine={false} 
-                interval={0} 
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                tickMargin={2}
+                axisLine={false}
+                interval={0}
               />
               <YAxis
                 type="number"
                 tickLine={false}
-                tickMargin={2}
+                tickMargin={3}
                 axisLine={false}
                 domain={[0, yAxisMax]}
                 ticks={ticks}
@@ -306,42 +327,42 @@ function WorkTrendsCard() {
               {hasAnyData && <ChartTooltip cursor={false} content={<CustomTooltip />} />}
               <ChartLegend content={<CustomLegend />} />
 
-              <Bar 
-                dataKey="worked" 
-                stackId="b" 
-                fill={colorMapping.worked} 
-                radius={0} 
-                barSize={5} 
+              <Bar
+                dataKey="worked"
+                stackId="b"
+                fill={colorMapping.worked}
+                radius={0}
+                barSize={5}
               />
-              <Bar 
-                dataKey="missed" 
-                stackId="b" 
-                fill={colorMapping.missed} 
-                radius={0} 
-                barSize={5} 
+              <Bar
+                dataKey="missed"
+                stackId="b"
+                fill={colorMapping.missed}
+                radius={0}
+                barSize={5}
               />
-              <Bar 
-                dataKey="holiday" 
-                stackId="b" 
-                fill={colorMapping.holiday} 
-                radius={0} 
-                barSize={5} 
+              <Bar
+                dataKey="holiday"
+                stackId="b"
+                fill={colorMapping.holiday}
+                radius={0}
+                barSize={5}
               />
-              <Bar 
-                dataKey="dayoff" 
-                stackId="b" 
-                fill={colorMapping.dayoff} 
-                radius={0} 
-                barSize={5} 
+              <Bar
+                dataKey="dayoff"
+                stackId="b"
+                fill={colorMapping.dayoff}
+                radius={0}
+                barSize={5}
               />
             </BarChart>
           </ChartContainer>
-          
+
           {!hasAnyData && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <p className="text-text-secondary font-medium text-center">
-                  {translations?.no_data || "لا توجد بيانات متاحة"}
-                </p>
+              <p className="text-text-secondary font-medium text-center">
+                {translations?.no_data || "لا توجد بيانات متاحة"}
+              </p>
             </div>
           )}
         </div>

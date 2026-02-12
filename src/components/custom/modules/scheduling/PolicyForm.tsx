@@ -19,7 +19,7 @@ interface PolicyFormProps {
 
 const formatTimeToISO = (value: any): string | null => {
   if (!value) return null;
-  
+
   if (value instanceof Date) {
     const year = value.getFullYear();
     const month = String(value.getMonth() + 1).padStart(2, '0');
@@ -29,7 +29,7 @@ const formatTimeToISO = (value: any): string | null => {
     const seconds = String(value.getSeconds()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
   }
-  
+
   if (typeof value === "string") {
     const [hours, minutes, seconds = "00"] = value.split(":");
     const date = new Date();
@@ -38,7 +38,7 @@ const formatTimeToISO = (value: any): string | null => {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
   }
-  
+
   return null;
 };
 
@@ -94,25 +94,26 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
         required_work_hours: values.required_work_hours || "",
       };
 
-      if (values.ramadan_in_time) {
+      if (values.ramadan_flag && values.ramadan_in_time && values.ramadan_out_time) {
         formattedValues.ramadan_in_time = formatTimeToISO(values.ramadan_in_time);
-      }
-      
-      if (values.ramadan_out_time) {
         formattedValues.ramadan_out_time = formatTimeToISO(values.ramadan_out_time);
-      }
-      
-      if (values.ramadan_break_time) {
-        formattedValues.ramadan_break_time = formatTimeToISO(values.ramadan_break_time);
-      }
-      
-      if (values.ramadan_prayer_time) {
-        formattedValues.ramadan_prayer_time = formatTimeToISO(values.ramadan_prayer_time);
+        
+        formattedValues.ramadan_required_work_hours = values.ramadan_required_work_hours || "";
+        
+        if (values.ramadan_flexible_min !== undefined && values.ramadan_flexible_min !== "") {
+          formattedValues.ramadan_flexible_min = values.ramadan_flexible_min;
+        }
+        if (values.ramadan_grace_in_min !== undefined && values.ramadan_grace_in_min !== "") {
+          formattedValues.ramadan_grace_in_min = values.ramadan_grace_in_min;
+        }
+        if (values.ramadan_grace_out_min !== undefined && values.ramadan_grace_out_min !== "") {
+          formattedValues.ramadan_grace_out_min = values.ramadan_grace_out_min;
+        }
       }
 
       if (values.inactive_date) {
-        const date = values.inactive_date instanceof Date 
-          ? values.inactive_date 
+        const date = values.inactive_date instanceof Date
+          ? values.inactive_date
           : new Date(values.inactive_date);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -124,7 +125,6 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
       } else {
         formattedValues.inactive_date = null;
       }
-
       if (selectedRowData?.schedule_id) {
         editMutation.mutate({
           schedule_id: selectedRowData.schedule_id,
@@ -144,174 +144,174 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
     <Form {...form}>
       <form>
         <div className="flex p-5">
-            <div className="flex flex-col gap-6 items-start">
-                <FormField
-                    control={form.control}
-                    name="show_on_report"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormControl>
-                            <div className="flex items-center gap-2">
-                                <FormLabel htmlFor="show_on_report" className="text-sm font-semibold mr-4 w-32">
-                                  {t.show_report || "Show on report"} :
-                                </FormLabel>
-                                <RadioGroup
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                    className="flex justify-center items-center gap-6"
-                                    >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="first-in-last-out" id="show-first" />
-                                        <Label htmlFor="show-first" className="text-sm">
-                                          {t.first_in_last_out || "First IN/Last Out"}
-                                        </Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="all-transactions" id="show-all" />
-                                        <Label htmlFor="show-all" className="text-sm">
-                                          {t.all_trans || "All Transactions"}
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                        </FormControl>
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="email_notification"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormControl>
-                            <div className="flex items-center gap-2">
-                                <FormLabel htmlFor="email_notification" className="text-sm font-semibold mr-4 w-32">
-                                  {t.email_notification || "Email notification"} :
-                                </FormLabel>
-                                <RadioGroup
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                    className="flex justify-center items-center gap-6"
-                                    >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="first-in-last-out" id="email-first" />
-                                        <Label htmlFor="email-first" className="text-sm">
-                                          {t.first_in_last_out || "First IN/Last Out"}
-                                        </Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="all-transactions" id="email-all" />
-                                        <Label htmlFor="email-all" className="text-sm">
-                                          {t.all_trans || "All Transactions"}
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                        </FormControl>
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="calculate_worked_hrs_flag"
-                    render={({ field }) => (
-                    <FormItem className=" ">
-                    <FormControl>
-                        <div className="flex items-center gap-2">
-                            <Checkbox
-                            id="calculate_worked_hrs_flag"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                            <FormLabel htmlFor="calculate_worked_hrs_flag" className="text-sm font-semibold">
-                              {t.cal_worked_hrs || "Calculate Worked Hours From Schedule Start Time"}
-                            </FormLabel>
-                        </div>
-                    </FormControl>
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="default_overtime_flag"
-                    render={({ field }) => (
-                    <FormItem className=" ">
-                    <FormControl>
+          <div className="flex flex-col gap-6 items-start">
+            <FormField
+              control={form.control}
+              name="show_on_report"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
                     <div className="flex items-center gap-2">
-                        <Checkbox
+                      <FormLabel htmlFor="show_on_report" className="text-sm font-semibold mr-4 w-32">
+                        {t.show_report || "Show on report"} :
+                      </FormLabel>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="flex justify-center items-center gap-6"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="first-in-last-out" id="show-first" />
+                          <Label htmlFor="show-first" className="text-sm">
+                            {t.first_in_last_out || "First IN/Last Out"}
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="all-transactions" id="show-all" />
+                          <Label htmlFor="show-all" className="text-sm">
+                            {t.all_trans || "All Transactions"}
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email_notification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <FormLabel htmlFor="email_notification" className="text-sm font-semibold mr-4 w-32">
+                        {t.email_notification || "Email notification"} :
+                      </FormLabel>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="flex justify-center items-center gap-6"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="first-in-last-out" id="email-first" />
+                          <Label htmlFor="email-first" className="text-sm">
+                            {t.first_in_last_out || "First IN/Last Out"}
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="all-transactions" id="email-all" />
+                          <Label htmlFor="email-all" className="text-sm">
+                            {t.all_trans || "All Transactions"}
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="calculate_worked_hrs_flag"
+              render={({ field }) => (
+                <FormItem className=" ">
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="calculate_worked_hrs_flag"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <FormLabel htmlFor="calculate_worked_hrs_flag" className="text-sm font-semibold">
+                        {t.cal_worked_hrs || "Calculate Worked Hours From Schedule Start Time"}
+                      </FormLabel>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="default_overtime_flag"
+              render={({ field }) => (
+                <FormItem className=" ">
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
                         id="default_overtime_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        />
-                        <FormLabel htmlFor="default_overtime_flag" className="text-sm font-semibold">
-                          {t.enable_overtime || "Enable Default Overtime"}
-                        </FormLabel>
+                      />
+                      <FormLabel htmlFor="default_overtime_flag" className="text-sm font-semibold">
+                        {t.enable_overtime || "Enable Default Overtime"}
+                      </FormLabel>
                     </div>
-                    </FormControl>
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="default_break_hrs_flag"
-                    render={({ field }) => (
-                    <FormItem className=" ">
-                    <FormControl>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="default_break_hrs_flag"
+              render={({ field }) => (
+                <FormItem className=" ">
+                  <FormControl>
                     <div className="flex items-center gap-2">
-                        <Checkbox
+                      <Checkbox
                         id="default_break_hrs_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        />
-                        <FormLabel htmlFor="default_break_hrs_flag" className="text-sm font-semibold">
-                          {t.enable_break_hrs || "Enable Default Break Hours"}
-                        </FormLabel>
+                      />
+                      <FormLabel htmlFor="default_break_hrs_flag" className="text-sm font-semibold">
+                        {t.enable_break_hrs || "Enable Default Break Hours"}
+                      </FormLabel>
                     </div>
-                    </FormControl>
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="override_schedule_on_holiday_flag"
-                    render={({ field }) => (
-                    <FormItem className=" ">
-                    <FormControl>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="override_schedule_on_holiday_flag"
+              render={({ field }) => (
+                <FormItem className=" ">
+                  <FormControl>
                     <div className="flex items-center gap-2">
-                        <Checkbox
+                      <Checkbox
                         id="override_schedule_on_holiday_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        />
-                        <FormLabel htmlFor="override_schedule_on_holiday_flag" className="text-sm font-semibold">
-                          {t.overide_schedule || "Override Schedule On Holiday"}
-                        </FormLabel>
+                      />
+                      <FormLabel htmlFor="override_schedule_on_holiday_flag" className="text-sm font-semibold">
+                        {t.overide_schedule || "Override Schedule On Holiday"}
+                      </FormLabel>
                     </div>
-                    </FormControl>
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="reduce_required_hrs_flag"
-                    render={({ field }) => (
-                    <FormItem className=" ">
-                    <FormControl>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="reduce_required_hrs_flag"
+              render={({ field }) => (
+                <FormItem className=" ">
+                  <FormControl>
                     <div className="flex items-center gap-2">
-                        <Checkbox
+                      <Checkbox
                         id="reduce_required_hrs_flag"
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        />
-                        <FormLabel htmlFor="reduce_required_hrs_flag" className="text-sm font-semibold">
-                          {t.reduce_required_hrs || "Reduce Required Hours if Personal Permission is approved"}
-                        </FormLabel>
+                      />
+                      <FormLabel htmlFor="reduce_required_hrs_flag" className="text-sm font-semibold">
+                        {t.reduce_required_hrs || "Reduce Required Hours if Personal Permission is approved"}
+                      </FormLabel>
                     </div>
-                    </FormControl>
-                    </FormItem>
-                    )}
-                />
-            </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         <div className="flex justify-end gap-2 items-center py-5">
           <div className="flex gap-4 px-5">
@@ -327,14 +327,14 @@ export default function PolicyForm({ SetPage }: PolicyFormProps) {
             >
               {translations?.buttons?.cancel || "Cancel"}
             </Button>
-            <Button 
-              type="button" 
-              size={"lg"} 
+            <Button
+              type="button"
+              size={"lg"}
               className="w-full"
               onClick={form.handleSubmit(handleSave)}
               disabled={loading}
             >
-              {loading 
+              {loading
                 ? (isEditMode ? (translations?.buttons?.updating || "Updating...") : (translations?.buttons?.saving || "Saving..."))
                 : (isEditMode ? (translations?.buttons?.update || "Update") : (translations?.buttons?.save || "Save"))
               }

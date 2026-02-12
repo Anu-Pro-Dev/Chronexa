@@ -425,6 +425,17 @@ export const addSecUserRequest = async (data: {
   return apiRequest("/secuser/add", "POST", data);
 };
 
+export const updateSecUserRequest = async (data: {
+  user_id: number;
+  login: string;
+  password: string;
+  employee_id: number;
+}) => {
+  const { user_id, ...payload } = data;
+
+  return apiRequest(`/secuser/edit/${user_id}`, "PUT", payload);
+};
+
 // Function to fetch secuser by Id
 export const getSecUserByUserId = async (user_id: number) => {
   return apiRequest(`/secuser/get/${user_id}`, "GET");
@@ -517,6 +528,11 @@ export const editScheduleRequest = async (data: {
 export async function getScheduleByID(schedule_id: number) {
   return apiRequest(`/schedule/get/${schedule_id}`, "GET");
 }
+
+// Function to fetch today's status of specfic employee
+export const getTodayStatus = async () => {
+  return apiRequest(`/employeeEventTransaction/todayStatus`, "GET");
+};
 
 // Function to get a schedules by organization ID
 export async function getScheduleByOrganization(organization_id: number) {

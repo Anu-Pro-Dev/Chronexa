@@ -488,6 +488,7 @@
         "public_holiday": "عطلة رسمية",
         "holiday_name": "اسم العطلة",
         "ramadan_name": "اسم رمضان",
+        "ramadan": "رمضان",
         "schedules_code": "كود الجداول",
         "placeholder_organization": "اختر المنظمة",
         "placeholder_employee": "اختر الموظف",

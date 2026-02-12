@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState, useCallback } from "react"
 import { useForm } from "react-hook-form";
@@ -177,8 +176,12 @@ export default function AddPermissionApplication({
       if (onSave) {
         onSave(null, data.data);
       }
-      queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      
       router.push("/self-services/permissions/my-request");
+      
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      }, 0);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -197,8 +200,12 @@ export default function AddPermissionApplication({
       if (onSave) {
         onSave(variables.short_permission_id?.toString() ?? null, variables);
       }
-      queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      
       router.push("/self-services/permissions/my-request");
+      
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      }, 0);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
