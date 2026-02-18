@@ -154,7 +154,6 @@ export class CSVExporter {
 
           const batch = Array.isArray(response) ? response : (response.data || []);
           const total = response?.total || 0;
-          const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
           if (offset === 0 && total > 0) {
             apiTotal = total;
@@ -176,8 +175,9 @@ export class CSVExporter {
           totalRecords += batch.length;
           fetchedRecords += batch.length;
           offset += BATCH_SIZE;
-          
-          hasMore = hasNext && batch.length === BATCH_SIZE;
+
+          // fixed: was `hasNext && batch.length === BATCH_SIZE` which stopped early
+          hasMore = batch.length === BATCH_SIZE;
 
           this.onProgress?.(fetchedRecords, apiTotal || totalRecords, 'fetching');
 
@@ -357,7 +357,6 @@ export class CSVExporter {
 
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
-        const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
         if (offset === 0 && total > 0) {
           apiTotal = total;
@@ -371,8 +370,9 @@ export class CSVExporter {
         allData.push(...batch);
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
-        
-        hasMore = hasNext && batch.length === BATCH_SIZE;
+
+        // fixed: was `hasNext && batch.length === BATCH_SIZE` which stopped early
+        hasMore = batch.length === BATCH_SIZE;
 
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 

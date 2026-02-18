@@ -26,7 +26,7 @@ const formSchema = z.object({
   vertical: z.string().optional(),
   company: z.string().optional(),
   department: z.string().optional(),
-  employee_type: z.string().optional(),
+  employee_type: z.array(z.string()).optional(),
   manager_id: z.string().optional(),
   employee: z.string().optional(),
   from_date: z.date().optional(),
@@ -40,7 +40,9 @@ export default function EmployeeReports() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      employee_type: [],
+    },
   });
 
   const [popoverStates, setPopoverStates] = useState({
@@ -59,6 +61,7 @@ export default function EmployeeReports() {
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [selectedEmployeeTypes, setSelectedEmployeeTypes] = useState<string[]>([]);
   const [showReportView, setShowReportView] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [loadingReportData, setLoadingReportData] = useState(false);
@@ -354,6 +357,21 @@ export default function EmployeeReports() {
     });
   };
 
+  const handleEmployeeTypeToggle = (employeeType: string) => {
+    setSelectedEmployeeTypes(prev => {
+      const newTypes = prev.includes(employeeType)
+        ? prev.filter(type => type !== employeeType)
+        : [...prev, employeeType];
+      
+      if (showReportView) {
+        resetButtons();
+        setShowReportView(false);
+      }
+      
+      return newTypes;
+    });
+  };
+
   const headerMap: Record<string, string> = {
     employee_number: "EmpNo",
     firstname_eng: "EmployeeName",
@@ -373,6 +391,15 @@ export default function EmployeeReports() {
     isabsent: "DayStatus",
     MissedPunch: "Missed Punch",
     EmployeeStatus: "EmployeeStatus"
+  };
+
+  const getDepartmentName = (row: any) => {
+    if (row?.departments?.department_name_eng) {
+      return language === 'ar' 
+        ? (row.departments.department_name_arb || row.departments.department_name_eng)
+        : row.departments.department_name_eng;
+    }
+    return row?.department_name_eng || '-';
   };
 
   const isSingleEmployee = selectedEmployees.length === 1;
@@ -540,7 +567,9 @@ export default function EmployeeReports() {
     if (values.vertical) params.vertical = values.vertical;
     if (values.company) params.company = values.company;
     if (values.department) params.department = values.department;
-    if (values.employee_type) params.employee_type = values.employee_type;
+    if (selectedEmployeeTypes.length > 0) {
+      params.employee_type = selectedEmployeeTypes.join(',');
+    }
     if (values.manager_id) params.manager_id = values.manager_id;
     if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
     if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
@@ -553,7 +582,7 @@ export default function EmployeeReports() {
 
     if (selectedEmployees.length > 0) {
       const ids = selectedEmployees.join(',');
-      queryParts.push(`employee_id=[${ids}]`);
+      queryParts.push(`employee_ids=${ids}`);
     }
 
     if (page !== undefined) {
@@ -568,7 +597,7 @@ export default function EmployeeReports() {
       });
 
     const queryString = queryParts.join('&');
-    return `/report/new${queryString ? `?${queryString}` : ''}`;
+    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
   };
 
   const fetchReportData = async (page: number = 1) => {
@@ -725,6 +754,13 @@ export default function EmployeeReports() {
   }, [debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch,
     debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
 
+  useEffect(() => {
+    if (showReportView) {
+      resetButtons();
+      setShowReportView(false);
+    }
+  }, [selectedVertical, selectedCompany, selectedDepartment, selectedManagerId, selectedEmployees, selectedEmployeeTypes, form.watch('from_date'), form.watch('to_date')]);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
   }
@@ -782,6 +818,13 @@ export default function EmployeeReports() {
     return `${selectedEmployees.length} ${t.employee || 'employee'}${selectedEmployees.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
+  const getEmployeeTypePlaceholderText = () => {
+    if (selectedEmployeeTypes.length === 0) {
+      return t.placeholder_employee_type || "Choose type";
+    }
+    return `${selectedEmployeeTypes.length} ${t.type || 'type'}${selectedEmployeeTypes.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
   const summaryTotals = reportData.length > 0 ? calculateSummaryTotals(reportData) : null;
 
@@ -791,7 +834,7 @@ export default function EmployeeReports() {
       empNo: reportData[0]?.employee_number,
       company: reportData[0]?.parent_org_eng,
       division: reportData[0]?.organization_eng,
-      department: reportData[0]?.department_name_eng,
+      department: getDepartmentName(reportData[0]),
       type: reportData[0]?.employee_type,
     }
     : null;
@@ -799,18 +842,18 @@ export default function EmployeeReports() {
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="relative bg-accent p-6 rounded-2xl">
           <div className="col-span-2 py-6">
             <h1 className="font-bold text-xl text-primary">
               {t.employee_time_attendance_report || 'Employee Time Attendance Report'}
             </h1>
           </div>
-          <div className="relative">
+          <div>
             <p
               className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"
                 }`}
             >
-              <strong>💡 {t.tip || 'Tip'}:</strong> {t.view_before_export || 'View the report on-screen first, then export to PDF, Excel, or CSV as needed.'}
+              <strong>{t.tip || 'Tip'}:</strong> {t.view_before_export || 'View the report on-screen first, then export to PDF, Excel, or CSV as needed.'}
             </p>
           </div>
           <div className="flex flex-col gap-6">
@@ -964,13 +1007,10 @@ export default function EmployeeReports() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value || ""}
-                      >
+                      <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={t.placeholder_employee_type || "Choose type"} />
+                            <SelectValue placeholder={getEmployeeTypePlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -984,11 +1024,26 @@ export default function EmployeeReports() {
                               {t.no_employee_types_found || "No employee types found"}
                             </div>
                           )}
-                          {getEmployeeTypesData().map((item: any) => (
-                            <SelectItem key={item.employee_type_id} value={item.employee_type_eng || item.employee_type_id.toString()}>
-                              {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
-                            </SelectItem>
-                          ))}
+                          {getEmployeeTypesData().map((item: any) => {
+                            const typeValue = item.employee_type_eng || item.employee_type_id.toString();
+                            const isChecked = selectedEmployeeTypes.includes(typeValue);
+                            return (
+                              <div
+                                key={item.employee_type_id}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleEmployeeTypeToggle(typeValue);
+                                }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>
+                                  {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -1223,6 +1278,7 @@ export default function EmployeeReports() {
                   onClick={() => {
                     form.reset();
                     setSelectedEmployees([]);
+                    setSelectedEmployeeTypes([]);
                     setShowReportView(false);
                     setReportData([]);
                     resetButtons();
@@ -1251,20 +1307,6 @@ export default function EmployeeReports() {
                     <Button
                       type="button"
                       size={"sm"}
-                      className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
-                      onClick={() => {
-                        handleShowReport();
-                        setShowReportView(false);
-                      }}
-                      disabled={loading}
-                    >
-                      <Download className="w-4 h-4" />
-                      {translations?.buttons?.show_pdf || 'Export PDF'}
-                    </Button>
-
-                    <Button
-                      type="button"
-                      size={"sm"}
                       className="flex items-center gap-2 bg-[#0073C6]"
                       onClick={() => {
                         handleExportCSV();
@@ -1278,9 +1320,8 @@ export default function EmployeeReports() {
 
                     <Button
                       type="button"
-                      variant={"success"}
                       size={"sm"}
-                      className="flex items-center gap-2 bg-[#21A366]"
+                      className="flex items-center gap-2 bg-[#217346] hover:bg-[#1a5c37]"
                       onClick={() => {
                         handleExportExcel();
                         setShowReportView(false);
@@ -1289,6 +1330,20 @@ export default function EmployeeReports() {
                     >
                       <Download className="w-4 h-4" />
                       {translations?.buttons?.export_excel || 'Export Excel'}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size={"sm"}
+                      className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
+                      onClick={() => {
+                        handleShowReport();
+                        setShowReportView(false);
+                      }}
+                      disabled={loading}
+                    >
+                      <Download className="w-4 h-4" />
+                      {translations?.buttons?.export_pdf || 'Export PDF'}
                     </Button>
                   </>
                 )}
@@ -1375,7 +1430,13 @@ export default function EmployeeReports() {
                       {reportData.map((row, idx) => (
                         <tr key={idx} className="hover:bg-backdrop">
                           {viewHeaders.map((header) => {
-                            const cellValue = formatCellValue(header, row[header]);
+                            let cellValue;
+                            if (header === 'department_name_eng') {
+                              cellValue = getDepartmentName(row);
+                            } else {
+                              cellValue = formatCellValue(header, row[header]);
+                            }
+                            
                             const isAbsent = header === "isabsent" && cellValue === "Absent";
                             const isMissed = header === "MissedPunch" && cellValue === "Yes";
 
