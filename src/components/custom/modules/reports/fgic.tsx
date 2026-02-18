@@ -390,7 +390,7 @@ export default function EmployeeReports() {
 
     if (selectedEmployees.length > 0) {
       const ids = selectedEmployees.join(',');
-      queryParts.push(`employee_id=[${ids}]`);
+      queryParts.push(`employee_ids=${ids}`);  // was: employee_id=[${ids}]
     }
 
     if (page !== undefined) {
@@ -658,7 +658,7 @@ export default function EmployeeReports() {
           </div>
           <div className="">
             <p
-              className={`text-xs text-primary rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 my-3 absolute -top-[80px] ${language === "ar" ? "left-0" : "right-0"
+              className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop my-3 absolute -top-[80px] ${language === "ar" ? "left-0" : "right-0"
                 }`}
             >
               <strong>💡 {t.tip || 'Tip'}:</strong> {t.view_before_export || 'View the report on-screen first, then export to PDF or CSV as needed.'}

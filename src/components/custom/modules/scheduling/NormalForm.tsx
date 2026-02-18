@@ -228,7 +228,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                   disabled={locsLoading}
                 >
                   <FormControl>
-                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px]">
+                    <SelectTrigger className="max-w-[350px] 3xl:max-w-[450px] overflow-hidden">
                       <SelectValue placeholder={t.placeholder_schedule_location || "Choose schedule location"} />
                     </SelectTrigger>
                   </FormControl>
@@ -236,7 +236,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                     showSearch={true}
                     searchPlaceholder={t.search || "Search locations..."}
                     onSearchChange={debouncedLocationSearch}
-                    className="mt-1"
+                    className="mt-1 max-w-[350px] 3xl:max-w-[450px] overflow-hidden"
                   >
                     {locsLoading ? (
                       <div className="p-3 text-sm text-text-secondary">
@@ -255,7 +255,9 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
                       if (!item.location_id || item.location_id.toString().trim() === '') return null;
                       return (
                         <SelectItem key={item.location_id} value={item.location_id.toString()}>
-                          {item.location_eng}
+                          <span className="block truncate max-w-[300px] 3xl:max-w-[400px]">
+                            {item.location_eng}
+                          </span>
                         </SelectItem>
                       );
                     })}

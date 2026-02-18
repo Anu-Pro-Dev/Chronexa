@@ -159,9 +159,10 @@ export class CSVExporterFGIC {
   private buildUrl(params: Record<string, string>): string {
     const queryParts: string[] = [];
 
+    // fixed: was employee_id=[${ids}], now matches employee_ids=1,2,3
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
       const ids = this.formValues.employee_ids.join(',');
-      queryParts.push(`employee_id=[${ids}]`);
+      queryParts.push(`employee_ids=${ids}`);
     }
 
     Object.entries(params)
@@ -205,7 +206,6 @@ export class CSVExporterFGIC {
 
           const batch = Array.isArray(response) ? response : (response.data || []);
           const total = response?.total || 0;
-          const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
           if (offset === 0 && total > 0) {
             apiTotal = total;
@@ -228,7 +228,8 @@ export class CSVExporterFGIC {
           fetchedRecords += batch.length;
           offset += BATCH_SIZE;
 
-          hasMore = hasNext && batch.length === BATCH_SIZE;
+          // fixed: was `hasNext && batch.length === BATCH_SIZE` which stopped early
+          hasMore = batch.length === BATCH_SIZE;
 
           this.onProgress?.(fetchedRecords, apiTotal || totalRecords, 'fetching');
 

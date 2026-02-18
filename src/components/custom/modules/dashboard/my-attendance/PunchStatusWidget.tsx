@@ -19,7 +19,7 @@ interface ScheduleInfo {
   schedule_color: string;
   calculate_worked_hours: boolean;
   default_overtime: boolean;
-  actual_in_time?: string; 
+  actual_in_time?: string;
   actual_out_time?: string;
   location?: {
     location_id: number;
@@ -96,7 +96,7 @@ function PunchStatusWidget({
       minutesBefore: notificationMinutes,
       enableBrowserNotifications: enableNotifications && enableBrowserNotifications,
       enableSound: enableNotifications && enableSound,
-      hasPunchedOut: !!todayStatus.schedule_info?.actual_out_time, 
+      hasPunchedOut: !!todayStatus.schedule_info?.actual_out_time,
     }
   );
 
@@ -390,7 +390,13 @@ function PunchStatusWidget({
                     const workedMinutes = Math.round((workedHours - workedHoursInt) * 60);
                     return `${workedHoursInt}h ${workedMinutes}m ${t?.worked || "worked"}`;
                   })()
-                  : `${scheduleHours.toFixed(1)} ${t?.hours || "hours"}`
+                  : (() => {
+                    const schedHoursInt = Math.floor(scheduleHours);
+                    const schedMinutes = Math.round((scheduleHours - schedHoursInt) * 60);
+                    return schedMinutes > 0
+                      ? `${schedHoursInt}h ${schedMinutes}m`
+                      : `${schedHoursInt}h`;
+                  })()
                 }
               </span>
             </div>

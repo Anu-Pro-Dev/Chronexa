@@ -390,7 +390,7 @@ export default function EmployeeReports() {
 
     if (selectedEmployees.length > 0) {
       const ids = selectedEmployees.join(',');
-      queryParts.push(`employee_id=[${ids}]`);
+      queryParts.push(`employee_ids=${ids}`);  // was: employee_id=[${ids}]
     }
 
     if (page !== undefined) {
