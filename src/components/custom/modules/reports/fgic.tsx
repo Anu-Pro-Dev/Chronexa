@@ -155,8 +155,8 @@ export default function EmployeeReports() {
     dailyworkhrs: t.worked_hours || "Worked Hours",
     DailyMissedHrs: t.missed_hours || "Missed Hours",
     dailyextrawork: t.overtime || "Overtime",
-    late: t.late || "Late",
-    early: t.early || "Early",
+    late: t.late_in || "Late In",
+    early: t.early_out || "Early Out",
     missed_punch: t.missed_punch || "Missed Punch",
     comment: t.status || "Status",
   };
@@ -878,7 +878,7 @@ export default function EmployeeReports() {
                       <Download className="w-4 h-4" />
                       {translations.buttons.export_csv || "Export CSV"}
                     </Button>
-                    <Button
+                    {/* <Button
                       type="button"
                       size={"sm"}
                       className="flex items-center gap-2 bg-[#217346] hover:bg-[#1a5c37]"
@@ -890,7 +890,7 @@ export default function EmployeeReports() {
                     >
                       <Download className="w-4 h-4" />
                       {translations.buttons.export_excel || "Export Excel"}
-                    </Button>
+                    </Button> */}
                     <Button
                       type="button"
                       size={"sm"}
@@ -994,8 +994,11 @@ export default function EmployeeReports() {
                             const isWeekOff =
                               header === "comment" && cellValue.toLowerCase() === "week off";
                             const isLateOrMissed =
-                              (header === "late" || header === "DailyMissedHrs") &&
-                              parseFloat(cellValue) > 0;
+                              (header === "late" || header === "early" || header === "DailyMissedHrs") &&
+                              cellValue !== "-" && cellValue !== "00:00" && cellValue !== null;
+                            const isOvertime =
+                              header === "dailyextrawork" &&
+                              cellValue !== "-" && cellValue !== "00:00" && cellValue !== null;
 
                             return (
                               <td
@@ -1006,7 +1009,9 @@ export default function EmployeeReports() {
                                     ? "text-green-600"
                                     : isLateOrMissed
                                       ? "text-red-600"
-                                      : ""
+                                      : isOvertime
+                                        ? "text-green-600"
+                                        : ""
                                   }`}
                               >
                                 {cellValue}

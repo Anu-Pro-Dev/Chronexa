@@ -112,7 +112,7 @@ export class PDFExporterFGIC {
 
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
       const ids = this.formValues.employee_ids.join(',');
-      queryParts.push(`employee_id=[${ids}]`);
+      queryParts.push(`employee_ids=${ids}`);
     }
 
     Object.entries(params)
@@ -220,11 +220,11 @@ export class PDFExporterFGIC {
   private getFilteredHeaders(isSingleEmployee: boolean) {
     if (isSingleEmployee) {
       return [
+        'transdate',
+        'WorkDay',
         'schCode',
         'in_time',
         'out_time',
-        'transdate',
-        'WorkDay',
         'punch_in',
         'punch_out',
         'dailyworkhrs',
@@ -489,8 +489,16 @@ export class PDFExporterFGIC {
         } else if (statusLower === 'week off') {
           textColor = 'color: green;';
         }
-      } else if (isLateOrMissed && parseFloat(cellValue) > 0) {
+      } else if (
+        (header === 'late' || header === 'early' || header === 'DailyMissedHrs') &&
+        cellValue !== '' && cellValue !== '00:00' && cellValue !== '00:00:00'
+      ) {
         textColor = 'color: red;';
+      } else if (
+        header === 'dailyextrawork' &&
+        cellValue !== '' && cellValue !== '00:00' && cellValue !== '00:00:00'
+      ) {
+        textColor = 'color: green;';
       }
 
       return `
