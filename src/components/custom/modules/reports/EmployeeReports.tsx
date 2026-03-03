@@ -560,7 +560,6 @@ export default function EmployeeReports() {
     setExportProgress(percentage);
   };
 
-  // ─── UPDATED: correct query param names ───────────────────────────────────
   const buildQueryParams = (): Record<string, string> => {
     const params: Record<string, string> = {};
     const values = form.getValues();
@@ -568,23 +567,22 @@ export default function EmployeeReports() {
     if (values.vertical) params.parent_orgid = values.vertical;
     if (values.company) params.organization_id = values.company;
     if (values.department) params.department_id = values.department;
-    if (selectedEmployeeTypes.length > 0) {
-      params.employee_type_id = selectedEmployeeTypes.join(',');
-    }
     if (values.manager_id) params.manager_id = values.manager_id;
     if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
     if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
 
     return params;
   };
-  // ──────────────────────────────────────────────────────────────────────────
 
   const buildUrl = (params: Record<string, string>, page?: number): string => {
     const queryParts: string[] = [];
 
     if (selectedEmployees.length > 0) {
-      const ids = selectedEmployees.join(',');
-      queryParts.push(`employee_ids=${ids}`);
+      queryParts.push(`employee_ids=${selectedEmployees.join(',')}`);
+    }
+
+    if (selectedEmployeeTypes.length > 0) {
+      queryParts.push(`employee_type_ids=${selectedEmployeeTypes.join(',')}`);
     }
 
     if (page !== undefined) {
@@ -653,6 +651,13 @@ export default function EmployeeReports() {
     fetchReportData(newPage);
   };
 
+  // ─── passes employee_ids & employee_type_ids to all exporters ───
+  const getExportFormValues = () => ({
+    ...form.getValues(),
+    employee_ids: selectedEmployees,
+    employee_type_ids: selectedEmployeeTypes,
+  });
+
   const handleExportCSV = async () => {
     setLoading(true);
     setExportProgress(0);
@@ -661,7 +666,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new CSVExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -691,7 +696,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new ExcelExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -721,7 +726,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new PDFExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         logoUrl: '/Logo.png',
@@ -1027,7 +1032,6 @@ export default function EmployeeReports() {
                             </div>
                           )}
                           {getEmployeeTypesData().map((item: any) => {
-                            // ─── UPDATED: store employee_type_id (numeric ID) ───
                             const typeValue = item.employee_type_id.toString();
                             const isChecked = selectedEmployeeTypes.includes(typeValue);
                             return (

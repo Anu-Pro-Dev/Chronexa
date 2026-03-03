@@ -80,16 +80,8 @@ export class PDFExporter {
       params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
     }
 
-    if (this.formValues.employee) {
-      params.employee_id = this.formValues.employee.toString();
-    }
-
     if (this.formValues.manager_id) {
       params.manager_id = this.formValues.manager_id.toString();
-    }
-
-    if (this.formValues.employee_type) {
-      params.employee_type = this.formValues.employee_type.toString();
     }
 
     if (this.formValues.organization) {
@@ -112,11 +104,25 @@ export class PDFExporter {
   }
 
   private buildUrl(params: Record<string, string>): string {
-    const queryString = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-      .join('&');
+    const queryParts: string[] = [];
 
+    // employee_ids — comma-separated, same as main component
+    if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
+      queryParts.push(`employee_ids=${this.formValues.employee_ids.join(',')}`);
+    }
+
+    // employee_type_ids — comma-separated, same as main component
+    if (this.formValues.employee_type_ids && this.formValues.employee_type_ids.length > 0) {
+      queryParts.push(`employee_type_ids=${this.formValues.employee_type_ids.join(',')}`);
+    }
+
+    Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .forEach(([key, value]) => {
+        queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      });
+
+    const queryString = queryParts.join('&');
     return `/report/attendance${queryString ? `?${queryString}` : ''}`;
   }
 
@@ -144,7 +150,6 @@ export class PDFExporter {
 
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
-        const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
         if (offset === 0 && total > 0) {
           apiTotal = total;
@@ -158,8 +163,9 @@ export class PDFExporter {
         allData.push(...batch);
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
-        
-        hasMore = hasNext && batch.length === BATCH_SIZE;
+
+        // fixed: was `hasNext && batch.length === BATCH_SIZE` which stopped early
+        hasMore = batch.length === BATCH_SIZE;
 
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
@@ -182,12 +188,12 @@ export class PDFExporter {
   }
 
   private getEmployeeDetails(data: any[]) {
-    const isSpecificEmployee = this.formValues.employee;
+    const isSpecificEmployee = this.formValues.employee_ids?.length > 0;
     
     if (isSpecificEmployee && data.length > 0) {
       const firstRow = data[0];
       return {
-        employeeId: firstRow?.employee_id || this.formValues.employee || '',
+        employeeId: firstRow?.employee_id || this.formValues.employee_ids[0] || '',
         employeeName: firstRow?.firstname_eng || '',
         employeeNo: firstRow?.employee_number || '',
       };
@@ -462,7 +468,13 @@ export class PDFExporter {
 
       const opt = {
         margin: [0.2, 0.2, 0.2, 0.2],
-        filename: `report_${this.formValues.employee ? 'employee_' + this.formValues.employee : 'all'}_${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+        filename: `report_${
+          this.formValues.employee_ids?.length > 0
+            ? this.formValues.employee_ids.length === 1
+              ? 'employee_' + this.formValues.employee_ids[0]
+              : this.formValues.employee_ids.length + '_employees'
+            : 'all'
+        }_${format(new Date(), 'yyyy-MM-dd')}.pdf`,
         image: { type: 'jpeg', quality: 0.95 },
         html2canvas: { 
           scale: 2,

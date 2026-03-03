@@ -48,12 +48,13 @@ export class ExcelExporter {
   }
 
   private getEmployeeDetails(data: any[]) {
-    const firstRow = data[0];
-    const isSpecificEmployee = this.formValues.employee && this.formValues.employee !== '';
+    // fixed: use employee_ids array instead of old single formValues.employee
+    const hasSpecificEmployees = this.formValues.employee_ids && this.formValues.employee_ids.length > 0;
     
-    if (isSpecificEmployee) {
+    if (hasSpecificEmployees && data.length > 0) {
+      const firstRow = data[0];
       return {
-        employeeId: firstRow?.employee_id || this.formValues.employee || '',
+        employeeId: firstRow?.employee_id || this.formValues.employee_ids[0] || '',
         employeeName: firstRow?.firstname_eng || '',
         employeeNo: firstRow?.employee_number || '',
       };
@@ -187,16 +188,11 @@ export class ExcelExporter {
       params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
     }
 
-    if (this.formValues.employee) {
-      params.employee_id = this.formValues.employee.toString();
-    }
+    // fixed: removed stale employee_id and employee_type single-value params
+    // employee_ids and employee_type_ids are handled in buildUrl() as comma-separated
 
     if (this.formValues.manager_id) {
       params.manager_id = this.formValues.manager_id.toString();
-    }
-
-    if (this.formValues.employee_type) {
-      params.employee_type = this.formValues.employee_type.toString();
     }
 
     if (this.formValues.organization) {
@@ -219,11 +215,25 @@ export class ExcelExporter {
   }
 
   private buildUrl(params: Record<string, string>): string {
-    const queryString = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-      .join('&');
+    const queryParts: string[] = [];
 
+    // fixed: employee_ids — comma-separated, same as main component
+    if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
+      queryParts.push(`employee_ids=${this.formValues.employee_ids.join(',')}`);
+    }
+
+    // fixed: employee_type_ids — comma-separated, same as main component
+    if (this.formValues.employee_type_ids && this.formValues.employee_type_ids.length > 0) {
+      queryParts.push(`employee_type_ids=${this.formValues.employee_type_ids.join(',')}`);
+    }
+
+    Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .forEach(([key, value]) => {
+        queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      });
+
+    const queryString = queryParts.join('&');
     return `/report/attendance${queryString ? `?${queryString}` : ''}`;
   }
 
@@ -251,7 +261,6 @@ export class ExcelExporter {
 
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
-        const hasNext = response?.hasNext ?? (batch.length === BATCH_SIZE);
 
         if (offset === 0 && total > 0) {
           apiTotal = total;
@@ -266,7 +275,8 @@ export class ExcelExporter {
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
         
-        hasMore = hasNext && batch.length === BATCH_SIZE;
+        // fixed: was `hasNext && batch.length === BATCH_SIZE` which stopped early
+        hasMore = batch.length === BATCH_SIZE;
 
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
 
@@ -499,10 +509,13 @@ export class ExcelExporter {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
+      // fixed: filename uses employee_ids array instead of old formValues.employee
       const filename = `report_${
-        this.formValues.employee
-          ? "employee_" + this.formValues.employee
-          : "all"
+        this.formValues.employee_ids?.length > 0
+          ? this.formValues.employee_ids.length === 1
+            ? 'employee_' + this.formValues.employee_ids[0]
+            : this.formValues.employee_ids.length + '_employees'
+          : 'all'
       }_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
 
       this.onProgress?.(allData.length, allData.length, 'complete');

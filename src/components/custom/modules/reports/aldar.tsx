@@ -357,17 +357,17 @@ export default function EmployeeReports() {
     });
   };
 
-  const handleEmployeeTypeToggle = (employeeType: string) => {
+  const handleEmployeeTypeToggle = (employeeTypeId: string) => {
     setSelectedEmployeeTypes(prev => {
-      const newTypes = prev.includes(employeeType)
-        ? prev.filter(type => type !== employeeType)
-        : [...prev, employeeType];
-      
+      const newTypes = prev.includes(employeeTypeId)
+        ? prev.filter(type => type !== employeeTypeId)
+        : [...prev, employeeTypeId];
+
       if (showReportView) {
         resetButtons();
         setShowReportView(false);
       }
-      
+
       return newTypes;
     });
   };
@@ -395,7 +395,7 @@ export default function EmployeeReports() {
 
   const getDepartmentName = (row: any) => {
     if (row?.departments?.department_name_eng) {
-      return language === 'ar' 
+      return language === 'ar'
         ? (row.departments.department_name_arb || row.departments.department_name_eng)
         : row.departments.department_name_eng;
     }
@@ -461,7 +461,7 @@ export default function EmployeeReports() {
 
     if (['dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
       if (value === '0' || value === 0) return '00:00:00';
-      
+
       const numValue = parseFloat(value);
       if (isNaN(numValue)) return '00:00:00';
 
@@ -564,12 +564,9 @@ export default function EmployeeReports() {
     const params: Record<string, string> = {};
     const values = form.getValues();
 
-    if (values.vertical) params.vertical = values.vertical;
-    if (values.company) params.company = values.company;
-    if (values.department) params.department = values.department;
-    if (selectedEmployeeTypes.length > 0) {
-      params.employee_type = selectedEmployeeTypes.join(',');
-    }
+    if (values.vertical) params.parent_orgid = values.vertical;
+    if (values.company) params.organization_id = values.company;
+    if (values.department) params.department_id = values.department;
     if (values.manager_id) params.manager_id = values.manager_id;
     if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
     if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
@@ -581,8 +578,11 @@ export default function EmployeeReports() {
     const queryParts: string[] = [];
 
     if (selectedEmployees.length > 0) {
-      const ids = selectedEmployees.join(',');
-      queryParts.push(`employee_ids=${ids}`);
+      queryParts.push(`employee_ids=${selectedEmployees.join(',')}`);
+    }
+
+    if (selectedEmployeeTypes.length > 0) {
+      queryParts.push(`employee_type_ids=${selectedEmployeeTypes.join(',')}`);
     }
 
     if (page !== undefined) {
@@ -651,6 +651,13 @@ export default function EmployeeReports() {
     fetchReportData(newPage);
   };
 
+  // ─── passes employee_ids & employee_type_ids to all exporters ───
+  const getExportFormValues = () => ({
+    ...form.getValues(),
+    employee_ids: selectedEmployees,
+    employee_type_ids: selectedEmployeeTypes,
+  });
+
   const handleExportCSV = async () => {
     setLoading(true);
     setExportProgress(0);
@@ -659,7 +666,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new CSVExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -689,7 +696,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new ExcelExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -719,7 +726,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new PDFExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         logoUrl: '/Logo.png',
@@ -1025,7 +1032,7 @@ export default function EmployeeReports() {
                             </div>
                           )}
                           {getEmployeeTypesData().map((item: any) => {
-                            const typeValue = item.employee_type_eng || item.employee_type_id.toString();
+                            const typeValue = item.employee_type_id.toString();
                             const isChecked = selectedEmployeeTypes.includes(typeValue);
                             return (
                               <div
@@ -1436,16 +1443,15 @@ export default function EmployeeReports() {
                             } else {
                               cellValue = formatCellValue(header, row[header]);
                             }
-                            
+
                             const isAbsent = header === "isabsent" && cellValue === "Absent";
                             const isMissed = header === "MissedPunch" && cellValue === "Yes";
 
                             return (
                               <td
                                 key={header}
-                                className={`border border-grey px-3 py-2 text-xs ${
-                                  isAbsent || isMissed ? "text-red-600 font-semibold" : ""
-                                }`}
+                                className={`border border-grey px-3 py-2 text-xs ${isAbsent || isMissed ? "text-red-600 font-semibold" : ""
+                                  }`}
                               >
                                 {cellValue}
                               </td>

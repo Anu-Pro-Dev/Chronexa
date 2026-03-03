@@ -84,16 +84,8 @@ export class CSVExporter {
       params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
     }
 
-    if (this.formValues.employee) {
-      params.employee_id = this.formValues.employee.toString();
-    }
-
     if (this.formValues.manager_id) {
       params.manager_id = this.formValues.manager_id.toString();
-    }
-
-    if (this.formValues.employee_type) {
-      params.employee_type = this.formValues.employee_type.toString();
     }
 
     if (this.formValues.organization) {
@@ -116,11 +108,25 @@ export class CSVExporter {
   }
 
   private buildUrl(params: Record<string, string>): string {
-    const queryString = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-      .join('&');
+    const queryParts: string[] = [];
 
+    // employee_ids — comma-separated, same as main component
+    if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
+      queryParts.push(`employee_ids=${this.formValues.employee_ids.join(',')}`);
+    }
+
+    // employee_type_ids — comma-separated, same as main component
+    if (this.formValues.employee_type_ids && this.formValues.employee_type_ids.length > 0) {
+      queryParts.push(`employee_type_ids=${this.formValues.employee_type_ids.join(',')}`);
+    }
+
+    Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .forEach(([key, value]) => {
+        queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      });
+
+    const queryString = queryParts.join('&');
     return `/report/attendance${queryString ? `?${queryString}` : ''}`;
   }
 
@@ -176,7 +182,6 @@ export class CSVExporter {
           fetchedRecords += batch.length;
           offset += BATCH_SIZE;
 
-          // fixed: was `hasNext && batch.length === BATCH_SIZE` which stopped early
           hasMore = batch.length === BATCH_SIZE;
 
           this.onProgress?.(fetchedRecords, apiTotal || totalRecords, 'fetching');
@@ -214,7 +219,11 @@ export class CSVExporter {
       
       link.setAttribute('href', url);
       link.setAttribute('download', `report_${
-        this.formValues.employee ? "employee_" + this.formValues.employee : "all"
+        this.formValues.employee_ids?.length > 0
+          ? this.formValues.employee_ids.length === 1
+            ? 'employee_' + this.formValues.employee_ids[0]
+            : this.formValues.employee_ids.length + '_employees'
+          : 'all'
       }_${format(new Date(), "yyyy-MM-dd")}.csv`);
       
       link.style.visibility = 'hidden';
@@ -308,9 +317,11 @@ export class CSVExporter {
       
       link.setAttribute('href', url);
       link.setAttribute('download', `report_${
-        this.formValues.employee
-          ? "employee_" + this.formValues.employee
-          : "all"
+        this.formValues.employee_ids?.length > 0
+          ? this.formValues.employee_ids.length === 1
+            ? 'employee_' + this.formValues.employee_ids[0]
+            : this.formValues.employee_ids.length + '_employees'
+          : 'all'
       }_${format(new Date(), "yyyy-MM-dd")}.csv`);
       
       link.style.visibility = 'hidden';
@@ -321,7 +332,6 @@ export class CSVExporter {
       URL.revokeObjectURL(url);
 
       this.onProgress?.(allData.length, allData.length, 'complete');
-      
       this.showToast('success', 'csv_export_success', { count: allData.length.toLocaleString() });
       
     } catch (error) {
@@ -371,7 +381,6 @@ export class CSVExporter {
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
 
-        // fixed: was `hasNext && batch.length === BATCH_SIZE` which stopped early
         hasMore = batch.length === BATCH_SIZE;
 
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
