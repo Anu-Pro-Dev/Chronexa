@@ -49,7 +49,7 @@ export function useFetchAllEntity(entity: string, options?: Options) {
     if (endpoint) {
       baseUrl = endpoint;
     } else if (removeAll) {
-      baseUrl = `/${entity}/`;
+      baseUrl = `/${entity}`;
     } else {
       baseUrl = `/${entity}/all`;
     }

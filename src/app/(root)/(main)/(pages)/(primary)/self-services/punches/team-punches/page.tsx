@@ -90,7 +90,9 @@ export default function Page() {
     return fullName || `Emp ${transaction.employee_id}`;
   }, [language, userInfo, employeeId]);
 
-  
+  const isAdmin   = userInfo?.role?.toLowerCase() === "admin";
+  const isManager = userInfo?.role?.toLowerCase() === "manager";
+
   const { data: organizationData } = useFetchAllEntity("organization", {
     searchParams: {
       limit: "1000",
@@ -161,33 +163,74 @@ export default function Page() {
     ]);
   }, [language, t]);
 
+  const apiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    const commonParams = {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue      && { search:           debouncedSearchValue }),
+      ...(fromDate                  && { from_date:         formatDateForAPI(fromDate) }),
+      ...(toDate                    && { to_date:           formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter   && { employeeId:        debouncedEmployeeFilter }),
+      ...(selectedOrganization      && { organization_id:   selectedOrganization }),
+      ...(selectedVertical          && { vertical_id:       selectedVertical }),
+      ...(selectedEmployeeType      && { employee_type_id:  selectedEmployeeType }),
+    };
+    if (userRole === "admin") {
+      return { endpoint: "/employeeEventTransaction/all",      searchParams: commonParams };
+    } else if (userRole === "manager") {
+      return { endpoint: "/employeeEventTransaction/team/all", searchParams: commonParams };
+    } else {
+      return {
+        endpoint: "/employeeEventTransaction/all",
+        searchParams: { ...commonParams, ...(employeeId && { employeeId: String(employeeId) }) },
+      };
+    }
+  }, [
+    userInfo?.role, rowsPerPage, offset,
+    debouncedSearchValue, fromDate, toDate, debouncedEmployeeFilter,
+    selectedOrganization, selectedVertical, selectedEmployeeType,
+    employeeId, formatDateForAPI,
+  ]);
+
+  const exportApiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    const commonParams = {
+      ...(debouncedSearchValue      && { search:           debouncedSearchValue }),
+      ...(fromDate                  && { from_date:         formatDateForAPI(fromDate) }),
+      ...(toDate                    && { to_date:           formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter   && { employeeId:        debouncedEmployeeFilter }),
+      ...(selectedOrganization      && { organization_id:   selectedOrganization }),
+      ...(selectedVertical          && { vertical_id:       selectedVertical }),
+      ...(selectedEmployeeType      && { employee_type_id:  selectedEmployeeType }),
+    };
+    if (userRole === "admin") {
+      return { endpoint: "/employeeEventTransaction",      searchParams: commonParams };
+    } else {
+      return { endpoint: "/employeeEventTransaction/team", searchParams: commonParams };
+    }
+  }, [
+    userInfo?.role,
+    debouncedSearchValue, fromDate, toDate, debouncedEmployeeFilter,
+    selectedOrganization, selectedVertical, selectedEmployeeType,
+    formatDateForAPI,
+  ]);
+
   const { data: punchesData, isLoading: isLoadingTransactions, error, refetch } = useFetchAllEntity(
-    "employeeEventTransaction", 
+    "employeeEventTransaction",
     {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeEventTransaction/team/all`,
+      searchParams: apiConfig.searchParams,
+      enabled: !!employeeId && isAuthenticated && !isChecking && !!userInfo?.role,
+      endpoint: apiConfig.endpoint,
     }
   );
 
   const { data: allPunchesData } = useFetchAllEntity(
-    "employeeEventTransactionExport", 
+    "employeeEventTransactionExport",
     {
-      searchParams: {
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeEventTransaction/team`,
+      searchParams: exportApiConfig.searchParams,
+      enabled: false,
+      endpoint: exportApiConfig.endpoint,
     }
   );
 
@@ -296,14 +339,22 @@ export default function Page() {
   const handleVerticalChange = useCallback((value: string) => {
     setSelectedVertical(value);
     setSelectedOrganization("");
+    setCurrentPage(1);
     closePopover('vertical');
-  }, [closePopover]);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
 
-  const { data: employeesData } = useFetchAllEntity("employee", {
-    searchParams: {
-      limit: "1000",
-    },
-  });
+  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
+    "employee",
+    isManager && !isAdmin && employeeId
+      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
+      : {
+          searchParams: { limit: "1000" },
+          enabled: !!userInfo && isAdmin,
+        }
+  );
 
   const getEmployeesData = useCallback(() => {
     if (!employeesData?.data) return [];
@@ -491,21 +542,21 @@ export default function Page() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.vertical || "Vertical"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {selectedVertical
                       ? getVerticalData().find((item: any) =>
                           String(item.organization_id) === selectedVertical
                         )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : (t.placeholder_vertical || "Choose Vertical")}
                   </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
               </Button>
             </PopoverTrigger>
 
@@ -536,21 +587,21 @@ export default function Page() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.organization || "Organization"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {selectedOrganization
                       ? getOrganizationsData().find((item: any) =>
                           String(item.organization_id) === selectedOrganization
                         )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : (t.placeholder_org || "Choose Organization")}
                   </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
               </Button>
             </PopoverTrigger>
 
@@ -581,21 +632,21 @@ export default function Page() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.employee_type || "Employee Type"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {selectedEmployeeType
                       ? getEmployeeTypesData().find((item: any) => 
                           String(item.employee_type_id) === selectedEmployeeType
                         )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
                       : (t.placeholder_employee_type || "Choose type")}
                   </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
               </Button>
             </PopoverTrigger>
 

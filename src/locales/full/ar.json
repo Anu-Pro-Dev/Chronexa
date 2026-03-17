@@ -284,7 +284,8 @@
         "check_out": "تسجيل الخروج",
         "missed_check_in": "تسجيل دخول فائت",
         "missed_check_out": "تسجيل خروج فائت",
-        "missing_hours": "الساعات المفقودة"
+        "missing_hours": "الساعات المفقودة",
+        "user_insights": "رؤى المستخدم"
       },
       "companyMaster": {
         "locations": "المواقع",

@@ -284,7 +284,8 @@
         "check_out": "Check Out",
         "missed_check_in": "Missed CheckIn",
         "missed_check_out": "Missed CheckOut",
-        "missing_hours": "Missing Hours"
+        "missing_hours": "Missing Hours",
+        "user_insights": "User Insights"
       },
       "companyMaster": {
         "locations": "Locations",
@@ -898,7 +899,7 @@
         "total_missed_hours": "Total Missed Hours",
         "total_worked_hours": "Total Worked Hours",
         "total_extra_hours": "Total Extra Hours",
-        "view_before_export":"View the report on-screen first, then export to PDF or CSV as needed."
+        "view_before_export": "View the report on-screen first, then export to PDF or CSV as needed."
       },
       "configurations": {
         "roles": "Roles",

@@ -77,6 +77,11 @@ export default function LanguageProvider({
           path: "/dashboard/team-attendance/",
           value: "team_attendance",
         },
+        {
+          label: currentLanguageData.translations?.modules?.dashboard?.user_insights || "User Insights",
+          path: "/dashboard/user-insights/",
+          value: "user_insights",
+        },
       ];
 
       if (authData.isAuthenticated && authData.isGeofenceEnabled === true) {
@@ -479,6 +484,18 @@ export default function LanguageProvider({
       ],
     };
 
+    const userManagement = {
+      route_name: "User Management",
+      path: "/user-management/",
+      items: [
+        {
+          label: currentLanguageData.translations?.modules?.userManagement?.users || "Users",
+          path: "/user-management/users/",
+          value: "users",
+        },
+      ],
+    };
+
     return {
       dashboard,
       companyMaster,
@@ -492,6 +509,7 @@ export default function LanguageProvider({
       configuration,
       settings,
       alerts,
+      userManagement
     };
   }, [authData.isAuthenticated, authData.isGeofenceEnabled, authData.isChecking, currentLanguageData]);
 

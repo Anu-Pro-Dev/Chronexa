@@ -425,6 +425,21 @@ export const addSecUserRequest = async (data: {
   return apiRequest("/secuser/add", "POST", data);
 };
 
+// Function to edit a sec user (used for license toggle, password update, etc.)
+export const editSecUserRequest = async (data: {
+  user_id: number;
+  [key: string]: any;
+}) => {
+  const { user_id, ...payload } = data;
+  return apiRequest(`/secuser/edit/${user_id}`, "PUT", payload);
+};
+
+// Function to reset a Spark user's password via forgot-password flow
+// Sends a new generated password to the user's email and returns it
+export const sparkForgotPasswordRequest = async (login: string) => {
+  return apiRequest("/auth/spark/forgot-password", "POST", { login });
+};
+
 // Function to fetch secuser by Id
 export const getSecUserByUserId = async (user_id: number) => {
   return apiRequest(`/secuser/get/${user_id}`, "GET");
