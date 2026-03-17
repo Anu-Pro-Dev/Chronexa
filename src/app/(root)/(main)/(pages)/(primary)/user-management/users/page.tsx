@@ -500,7 +500,7 @@ export default function Page() {
         isOpen={successModalOpen}
         onClose={() => setSuccessModalOpen(false)}
         email={successModalEmail}
-        autoCloseDelay={5000}
+        autoCloseDelay={3000}
       />
     </div>
   );
