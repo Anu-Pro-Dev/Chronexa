@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
-import AddOrganization from "@/src/components/custom/modules/organization/AddOrganization";
+import AddUser from "@/src/components/custom/modules/user-management/AddUser";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -105,7 +105,7 @@ function PasswordCell({
   return (
     <div className="flex items-center gap-2">
       <span className="font-mono text-xs tracking-widest text-text-secondary">
-        ••••••••
+        ****
       </span>
       <CustomButton
         variant="primaryoutline"
@@ -114,20 +114,7 @@ function PasswordCell({
         className="px-2 text-[11px] min-w-0"
         onClick={handleUpdate}
         disabled={loading}
-        btnText="Update"
-        // btnText={
-        //   loading ? (
-        //     <span className="flex items-center gap-1">
-        //       <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
-        //         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-        //         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-        //       </svg>
-        //       Sending...
-        //     </span>
-        //   ) : (
-        //     "Update"
-        //   )
-        // }
+        btnText={loading ? "Sending..." : "Update"}
       />
     </div>
   );
@@ -146,7 +133,6 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [licenseOverrides, setLicenseOverrides] = useState<Record<number, boolean>>({});
 
-  // ✅ Correct state for PasswordResetSuccessModal
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successModalEmail, setSuccessModalEmail] = useState("");
 
@@ -155,25 +141,20 @@ export default function Page() {
   }, []);
 
   const [selectedLicense, setSelectedLicense] = useState<string>("all");
-  const [selectedEmployeeType, setSelectedEmployeeType] = useState<string>("");
   const [empNoFilter, setEmpNoFilter] = useState<string>("");
-  const [popoverStates, setPopoverStates] = useState({ employeeType: false, empNo: false });
+  const [popoverStates, setPopoverStates] = useState({ empNo: false });
 
-  const closePopover = useCallback((key: "employeeType" | "empNo") => {
+  const closePopover = useCallback((key: "empNo") => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   }, []);
 
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.organization || {};
+
+  // ✅ All labels from userManagement translations
+  const t = translations?.modules?.userManagement || {};
 
   const offset = useMemo(() => currentPage, [currentPage]);
-
-  const { data: employeeTypeData } = useFetchAllEntity("employeeType", { removeAll: true });
-
-  const employeeTypes = useMemo(() =>
-    (employeeTypeData?.data || []).filter((item: any) => item.employee_type_id),
-    [employeeTypeData]);
 
   const { data: sparkData, isLoading, refetch } = useFetchAllEntity("secuser/spark", {
     searchParams: {
@@ -181,7 +162,6 @@ export default function Page() {
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
       ...(selectedLicense && selectedLicense !== "all" && { user_license: selectedLicense }),
-      ...(selectedEmployeeType && { employee_type_id: selectedEmployeeType }),
       ...(empNoFilter && { emp_no: empNoFilter }),
     },
     removeAll: true,
@@ -197,12 +177,6 @@ export default function Page() {
     handleFilterChange();
   }, [handleFilterChange]);
 
-  const handleEmployeeTypeChange = useCallback((value: string) => {
-    setSelectedEmployeeType(value);
-    closePopover("employeeType");
-    handleFilterChange();
-  }, [handleFilterChange, closePopover]);
-
   const handleEmpNoChange = useCallback((value: string) => {
     setEmpNoFilter(value);
     closePopover("empNo");
@@ -213,7 +187,6 @@ export default function Page() {
     queryClient.invalidateQueries({ queryKey: ["secuser/spark"] });
   }, [queryClient]);
 
-  // ✅ Sets both email and opens the modal
   const handleResetSuccess = useCallback((email: string) => {
     setSuccessModalEmail(email);
     setSuccessModalOpen(true);
@@ -221,20 +194,17 @@ export default function Page() {
 
   const columns: Column[] = useMemo(
     () => [
-      {
-        field: "emp_no",
-        headerName: "Number",
-      },
+      { field: "emp_no", headerName: t.col_number || "Number" },
       {
         field: language === "ar" ? "firstname_arb" : "name",
-        headerName: "Name",
+        headerName: t.col_name || "Name",
         cellRenderer: (row: any) => (
           <span>{(language === "ar" ? row.firstname_arb : row.name) || "—"}</span>
         ),
       },
       {
         field: "email",
-        headerName: "Email",
+        headerName: t.col_email || "Email",
         cellRenderer: (row: any) => (
           <span className="lowercase">
             {row.email || <span className="text-text-secondary">—</span>}
@@ -243,17 +213,17 @@ export default function Page() {
       },
       {
         field: "login",
-        headerName: "Username",
+        headerName: t.col_username || "Username",
         cellRenderer: (row: any) =>
           row.login ? (
-            <span className="">{row.login}</span>
+            <span>{row.login}</span>
           ) : (
             <span className="italic text-text-secondary text-xs">No username</span>
           ),
       },
       {
         field: "password",
-        headerName: "Password",
+        headerName: t.col_password || "Password",
         cellRenderer: (row: any) => (
           <PasswordCell
             login={row.login}
@@ -265,7 +235,7 @@ export default function Page() {
       },
       {
         field: "user_license",
-        headerName: "License",
+        headerName: t.col_license || "License",
         cellRenderer: (row: any) => (
           <LicenseToggle
             value={row.user_license}
@@ -275,7 +245,7 @@ export default function Page() {
         ),
       },
     ],
-    [language, handleResetSuccess, handleLicenseToggle]
+    [language, t, handleResetSuccess, handleLicenseToggle]
   );
 
   const data = useMemo(() => {
@@ -327,7 +297,7 @@ export default function Page() {
 
   const modalComponent = useMemo(
     () => (
-      <AddOrganization
+      <AddUser
         on_open_change={setOpen}
         selectedRowData={selectedRowData}
         onSave={handleSave}
@@ -374,27 +344,29 @@ export default function Page() {
       <PowerHeader
         props={props}
         selectedRows={selectedRows}
-        items={modules?.organization.items}
+        items={modules?.userManagement?.items}
         entityName="secuser/spark"
-        modal_title={t.organization}
+        modal_title={t.create_user || "Create User"}
         modal_component={modalComponent}
-        size="large"
+        size="medium"
       />
 
       {/* ─── Filters ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
 
         {/* License filter */}
         <div>
           <Select onValueChange={handleLicenseFilterChange} value={selectedLicense}>
             <SelectTrigger className="bg-accent border-grey">
-              <Label className="font-normal text-secondary">License :</Label>
-              <SelectValue placeholder="Choose license" />
+              <Label className="font-normal text-secondary">
+                {t.filter_license || "License"} :
+              </Label>
+              <SelectValue placeholder={t.choose_license || "Choose license"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="Enabled">Enabled</SelectItem>
-              <SelectItem value="Disabled">Disabled</SelectItem>
+              <SelectItem value="all">{t.all || "All"}</SelectItem>
+              <SelectItem value="Enabled">{t.enabled || "Enabled"}</SelectItem>
+              <SelectItem value="Disabled">{t.disabled || "Disabled"}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -412,9 +384,11 @@ export default function Page() {
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
-                  <Label className="font-normal text-secondary">Emp No :</Label>
+                  <Label className="font-normal text-secondary">
+                    {t.filter_emp_no || "Emp No"} :
+                  </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {empNoFilter || "Choose emp no"}
+                    {empNoFilter || t.choose_emp_no || "Choose emp no"}
                   </span>
                 </p>
                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
@@ -422,7 +396,7 @@ export default function Page() {
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
               <Command>
-                <CommandInput placeholder="Search emp no..." />
+                <CommandInput placeholder={t.choose_emp_no || "Search emp no..."} />
                 <CommandEmpty>No employee found.</CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
                   {Array.isArray(sparkData?.data) &&
@@ -443,49 +417,6 @@ export default function Page() {
           </Popover>
         </div>
 
-        {/* Employee type filter */}
-        <div>
-          <Popover
-            open={popoverStates.employeeType}
-            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
-          >
-            <PopoverTrigger asChild>
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">Employee Type :</Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {selectedEmployeeType
-                      ? employeeTypes.find((item: any) =>
-                          String(item.employee_type_id) === selectedEmployeeType
-                        )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
-                      : "Choose type"}
-                  </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-              <Command>
-                <CommandInput placeholder="Search employee type..." />
-                <CommandEmpty>No type found.</CommandEmpty>
-                <CommandGroup className="max-h-64 overflow-auto">
-                  {employeeTypes.map((item: any) => (
-                    <CommandItem
-                      key={item.employee_type_id}
-                      onSelect={() => handleEmployeeTypeChange(String(item.employee_type_id))}
-                    >
-                      {language === "ar" ? item.employee_type_arb : item.employee_type_eng}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
       </div>
 
       <PowerTable
@@ -495,12 +426,11 @@ export default function Page() {
         isLoading={isLoading}
       />
 
-      {/* ✅ Password Reset Success Modal — wired correctly */}
       <PasswordResetSuccessModal
-        isOpen={successModalOpen}
-        onClose={() => setSuccessModalOpen(false)}
+        open={successModalOpen}
+        onOpenChange={setSuccessModalOpen}
         email={successModalEmail}
-        autoCloseDelay={3000}
+        size="medium"
       />
     </div>
   );

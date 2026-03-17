@@ -103,7 +103,8 @@
         "employee_master": "سجل الموظف الرئيسي",
         "scheduling": "الجدولة",
         "self_services": "الخدمات الذاتية",
-        "manage_approvals": "إدارة الموافقات"
+        "manage_approvals": "إدارة الموافقات",
+        "user_management": "إدارة المستخدم"
       },
       "secondary": {
         "devices": "الأجهزة",
@@ -126,7 +127,8 @@
         "reports": "التقارير",
         "configuration": "التكوين",
         "settings": "الإعدادات",
-        "alerts": "التنبيهات"
+        "alerts": "التنبيهات",
+        "user_management": "إدارة المستخدم"
       },
       "auth": {
         "reset_password": "إعادة تعيين كلمة المرور",
@@ -970,6 +972,37 @@
         "placeholder_date": "اختر التاريخ",
         "bcc_email": "نسخة كربونية مخفية (BCC)",
         "sent_at": "أرسلت في"
+      },
+      "userManagement": {
+        "users": "المستخدمون",
+        "user": "مستخدم",
+        "username": "اسم المستخدم",
+        "password": "كلمة المرور",
+        "employee": "الموظف",
+        "mobile_app_license": "ترخيص تطبيق الجوال",
+        "create_user": "إنشاء مستخدم",
+        "placeholder_username": "أدخل اسم المستخدم",
+        "placeholder_password": "أدخل كلمة المرور",
+        "placeholder_employee": "اختر الموظف",
+        "filter_license": "الترخيص",
+        "filter_emp_no": "رقم الموظف",
+        "filter_employee_type": "نوع الموظف",
+        "choose_license": "اختر الترخيص",
+        "choose_emp_no": "اختر رقم الموظف",
+        "choose_type": "اختر النوع",
+        "all": "الكل",
+        "enabled": "مفعّل",
+        "disabled": "معطّل",
+        "col_number": "الرقم",
+        "col_name": "الاسم",
+        "col_email": "البريد الإلكتروني",
+        "col_username": "اسم المستخدم",
+        "col_password": "كلمة المرور",
+        "col_license": "الترخيص",
+        "password_reset_success_title": "تمت إعادة تعيين كلمة المرور بنجاح",
+        "password_reset_success_desc": "تم إنشاء كلمة مرور جديدة وإرسالها إلى بريد المستخدم الإلكتروني.",
+        "password_reset_sent_to": "أُرسل إلى",
+        "password_reset_footer": "تم إرسال كلمة المرور الجديدة إلى عنوان البريد الإلكتروني المسجل."
       }
     },
     "sub_modules": {
@@ -1006,7 +1039,8 @@
       "email_settings": "إعدادات البريد الإلكتروني",
       "app_settings": "إعدادات التطبيق",
       "email": "البريد الإلكتروني",
-      "assign_roles": "تعيين الأدوار"
+      "assign_roles": "تعيين الأدوار",
+      "users": "المستخدمون"
     },
     "toastNotifications": {
       "formsubmission_error": "خطأ في إرسال النموذج",

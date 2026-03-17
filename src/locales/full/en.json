@@ -103,7 +103,8 @@
         "employee_master": "Employee Master",
         "scheduling": "Scheduling",
         "self_services": "Self Services",
-        "manage_approvals": "Manage Approvals"
+        "manage_approvals": "Manage Approvals",
+        "user_management": "User Management"
       },
       "secondary": {
         "devices": "Devices",
@@ -126,7 +127,8 @@
         "reports": "Reports",
         "configuration": "Configuration",
         "settings": "Settings",
-        "alerts": "Alerts"
+        "alerts": "Alerts",
+        "user_management": "User Management"
       },
       "auth": {
         "reset_password": "Reset Password",
@@ -971,6 +973,37 @@
         "placeholder_date": "Choose date",
         "bcc_email": "BCC Email",
         "sent_at": "Sent At"
+      },
+      "userManagement": {
+        "users": "Users",
+        "user": "User",
+        "username": "Username",
+        "password": "Password",
+        "employee": "Employee",
+        "mobile_app_license": "Mobile App License",
+        "create_user": "Create User",
+        "placeholder_username": "Enter username",
+        "placeholder_password": "Enter password",
+        "placeholder_employee": "Choose employee",
+        "filter_license": "License",
+        "filter_emp_no": "Emp No",
+        "filter_employee_type": "Employee Type",
+        "choose_license": "Choose license",
+        "choose_emp_no": "Choose emp no",
+        "choose_type": "Choose type",
+        "all": "All",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "col_number": "Number",
+        "col_name": "Name",
+        "col_email": "Email",
+        "col_username": "Username",
+        "col_password": "Password",
+        "col_license": "License",
+        "password_reset_success_title": "Password Reset Successful",
+        "password_reset_success_desc": "A new password has been generated and sent to the user's email.",
+        "password_reset_sent_to": "Sent To",
+        "password_reset_footer": "The new password has been sent to the registered email address."
       }
     },
     "sub_modules": {
@@ -1003,7 +1036,8 @@
       "email_settings": "Email Settings",
       "app_settings": "App Settings",
       "email": "Email",
-      "assign_roles": "Assign Roles"
+      "assign_roles": "Assign Roles",
+      "users": "Users"
     },
     "toastNotifications": {
       "formsubmission_error": "Form submission error.",
