@@ -15,80 +15,13 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
-import PasswordResetSuccessModal from "@/src/components/custom/modules/user-management/Passwordresetsuccessmodal"
+import PasswordResetSuccessModal from "@/src/components/custom/modules/user-management/Passwordresetsuccessmodal";
 
 type Column = {
   field: string;
   headerName: string;
   cellRenderer?: (row: any) => React.ReactNode;
 };
-
-// ─── Password Reset Success Modal ─────────────────────────────────────────────
-function PasswordResetModal({
-  newPassword,
-  onClose,
-}: {
-  newPassword: string;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      {/* Modal card */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-card shadow-2xl overflow-hidden">
-        {/* Top accent bar */}
-        <div className="h-1 w-full bg-primary" />
-
-        <div className="p-6">
-          {/* Success icon */}
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
-            <svg
-              className="h-6 w-6 text-success"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-
-          <h3 className="mb-1 text-base font-semibold text-text-primary">
-            Password Reset Successful
-          </h3>
-          <p className="mb-4 text-sm text-text-secondary">
-            A new password has been generated and sent to the user&apos;s email.
-          </p>
-
-          {/* Confirmation display */}
-          <div className="mb-5 rounded-lg border border-border bg-accent px-4 py-3">
-            <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-secondary">
-              Sent To
-            </p>
-            <p className="text-sm font-semibold text-text-primary select-all">
-              {newPassword}
-            </p>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="w-full rounded-lg bg-primary py-2 text-sm font-medium text-white transition hover:bg-primary-100 active:scale-[0.98]"
-          >
-            Done
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── License Badge Toggle ──────────────────────────────────────────────────────
 function LicenseToggle({
@@ -147,7 +80,7 @@ function PasswordCell({
   login: string | null;
   userId: number | null;
   password: string | null;
-  onResetSuccess: (newPassword: string) => void;
+  onResetSuccess: (email: string) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -156,10 +89,8 @@ function PasswordCell({
     setLoading(true);
     try {
       const res = await sparkForgotPasswordRequest(login);
-      // API sends the new password to email — show success modal
-      // using newPassword if returned, otherwise a generic success message
-      const displayPassword = res?.newPassword ?? res?.email ?? res?.message ?? "Sent to email";
-      onResetSuccess(displayPassword);
+      const displayEmail = res?.email ?? res?.newPassword ?? res?.message ?? login;
+      onResetSuccess(displayEmail);
     } catch {
       // handle silently
     } finally {
@@ -183,19 +114,20 @@ function PasswordCell({
         className="px-2 text-[11px] min-w-0"
         onClick={handleUpdate}
         disabled={loading}
-        btnText={
-          loading ? (
-            <span className="flex items-center gap-1">
-              <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-              </svg>
-              Sending...
-            </span>
-          ) : (
-            "Update"
-          )
-        }
+        btnText="Update"
+        // btnText={
+        //   loading ? (
+        //     <span className="flex items-center gap-1">
+        //       <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+        //         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        //         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        //       </svg>
+        //       Sending...
+        //     </span>
+        //   ) : (
+        //     "Update"
+        //   )
+        // }
       />
     </div>
   );
@@ -212,8 +144,11 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [resetModalPassword, setResetModalPassword] = useState<string | null>(null);
   const [licenseOverrides, setLicenseOverrides] = useState<Record<number, boolean>>({});
+
+  // ✅ Correct state for PasswordResetSuccessModal
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [successModalEmail, setSuccessModalEmail] = useState("");
 
   const handleLicenseToggle = useCallback((rowId: number, newVal: boolean) => {
     setLicenseOverrides(prev => ({ ...prev, [rowId]: newVal }));
@@ -278,8 +213,10 @@ export default function Page() {
     queryClient.invalidateQueries({ queryKey: ["secuser/spark"] });
   }, [queryClient]);
 
-  const handleResetSuccess = useCallback((newPassword: string) => {
-    setResetModalPassword(newPassword);
+  // ✅ Sets both email and opens the modal
+  const handleResetSuccess = useCallback((email: string) => {
+    setSuccessModalEmail(email);
+    setSuccessModalOpen(true);
   }, []);
 
   const columns: Column[] = useMemo(
@@ -309,7 +246,7 @@ export default function Page() {
         headerName: "Username",
         cellRenderer: (row: any) =>
           row.login ? (
-            <span className="text-xs">{row.login}</span>
+            <span className="">{row.login}</span>
           ) : (
             <span className="italic text-text-secondary text-xs">No username</span>
           ),
@@ -388,8 +325,6 @@ export default function Page() {
     setCurrentPage(1);
   }, []);
 
-  // Memoize modal component keyed on selectedRowData so it re-mounts with fresh data
-  // when a different row is selected for editing
   const modalComponent = useMemo(
     () => (
       <AddOrganization
@@ -398,7 +333,6 @@ export default function Page() {
         onSave={handleSave}
       />
     ),
-    // Re-create when selectedRowData changes or modal opens
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedRowData, handleSave, open]
   );
@@ -410,7 +344,7 @@ export default function Page() {
       open,
       on_open_change: setOpen,
       filter_open: false,
-      filter_on_open_change: () => { },
+      filter_on_open_change: () => {},
       selectedRows,
       setSelectedRows,
       isLoading,
@@ -428,20 +362,9 @@ export default function Page() {
       setRowsPerPage: handleRowsPerPageChange,
     }),
     [
-      data,
-      columns,
-      open,
-      selectedRows,
-      isLoading,
-      sortField,
-      currentPage,
-      sortDirection,
-      searchValue,
-      sparkData,
-      rowsPerPage,
-      handlePageChange,
-      handleRowsPerPageChange,
-      handleSearchChange,
+      data, columns, open, selectedRows, isLoading, sortField, currentPage,
+      sortDirection, searchValue, sparkData, rowsPerPage,
+      handlePageChange, handleRowsPerPageChange, handleSearchChange,
       licenseOverrides,
     ]
   );
@@ -458,7 +381,7 @@ export default function Page() {
         size="large"
       />
 
-      {/* ─── Filters ─────────────────────────────────────────────────────── */}
+      {/* ─── Filters ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
 
         {/* License filter */}
@@ -537,8 +460,8 @@ export default function Page() {
                   <span className="px-1 text-sm text-text-primary">
                     {selectedEmployeeType
                       ? employeeTypes.find((item: any) =>
-                        String(item.employee_type_id) === selectedEmployeeType
-                      )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
+                          String(item.employee_type_id) === selectedEmployeeType
+                        )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
                       : "Choose type"}
                   </span>
                 </p>
@@ -572,19 +495,13 @@ export default function Page() {
         isLoading={isLoading}
       />
 
-      {/* Password Reset Success Modal */}
-      {/* {resetModalPassword && (
-        // <PasswordResetModal
-        //   newPassword={resetModalPassword}
-        //   onClose={() => setResetModalPassword(null)}
-        // />
-        <PasswordResetSuccessModal
-          isOpen={successModalOpen}
-          onClose={() => setSuccessModalOpen(false)}
-          email={successModalEmail}
-          autoCloseDelay={3000} // Auto-close after 3 seconds, set to 0 to disable
-        />
-      )} */}
+      {/* ✅ Password Reset Success Modal — wired correctly */}
+      <PasswordResetSuccessModal
+        isOpen={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+        email={successModalEmail}
+        autoCloseDelay={5000}
+      />
     </div>
   );
 }
