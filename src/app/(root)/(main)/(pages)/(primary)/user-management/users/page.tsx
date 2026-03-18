@@ -23,7 +23,6 @@ type Column = {
   cellRenderer?: (row: any) => React.ReactNode;
 };
 
-// ─── License Badge Toggle ──────────────────────────────────────────────────────
 function LicenseToggle({
   value,
   rowId,
@@ -70,7 +69,6 @@ function LicenseToggle({
   );
 }
 
-// ─── Password Cell ─────────────────────────────────────────────────────────────
 function PasswordCell({
   login,
   userId,
@@ -120,7 +118,6 @@ function PasswordCell({
   );
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────────
 export default function Page() {
   const { modules, language, translations } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
@@ -151,7 +148,6 @@ export default function Page() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  // ✅ All labels from userManagement translations
   const t = translations?.modules?.userManagement || {};
 
   const offset = useMemo(() => currentPage, [currentPage]);

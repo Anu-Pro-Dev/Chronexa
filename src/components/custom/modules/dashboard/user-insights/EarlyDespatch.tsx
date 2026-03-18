@@ -1,0 +1,109 @@
+"use client";
+
+import * as React from "react";
+import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+
+interface EarlyDespatchProps {
+  date: string;
+}
+
+function severityStyle(severity: "HIGH" | "MEDIUM" | "LOW") {
+  if (severity === "HIGH") return { bg: "bg-[#FDECEA]", text: "text-[#D85A30]" };
+  if (severity === "MEDIUM") return { bg: "bg-[#FEF3E2]", text: "text-[#E6A817]" };
+  return { bg: "bg-[#F3F3F3]", text: "text-text-secondary" };
+}
+
+export default function EarlyDespatch({ date }: EarlyDespatchProps) {
+  const loadingEarlyDespatch = useUserInsightsStore((s) => s.loadingEarlyDespatch);
+  const earlyDespatchError = useUserInsightsStore((s) => s.earlyDespatchError);
+  const insightsEarlyDespatchCache = useUserInsightsStore((s) => s.insightsEarlyDespatchCache);
+
+  const despatchData = insightsEarlyDespatchCache[date];
+  const summary = despatchData?.summary;
+  const employees = despatchData?.topEarlyDepartures ?? [];
+
+  return (
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-base font-medium text-text-primary">Early Departures</p>
+        {despatchData && (
+          <span className="text-[11px] text-text-secondary bg-background border border-border rounded-full px-2 py-0.5">
+            ≥{despatchData.thresholdMinutes}min threshold
+          </span>
+        )}
+      </div>
+
+      {earlyDespatchError && (
+        <div className="rounded-lg p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 text-xs text-red-700">
+          Failed to load early despatch data
+        </div>
+      )}
+
+      {loadingEarlyDespatch && !despatchData ? (
+        <div className="flex flex-col gap-3 animate-pulse">
+          <div className="grid grid-cols-3 gap-2 pb-3 border-b border-border">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-10 bg-border rounded" />
+            ))}
+          </div>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-6 bg-border rounded" />
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* Summary stats */}
+          <div className="grid grid-cols-3 gap-2 pb-3 border-b border-border">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-[#D85A30]">
+                {summary?.earlyDepartureCount ?? 0}
+              </span>
+              <span className="text-xs text-text-secondary text-center">Early today</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-text-primary">
+                {summary?.avgEarlyMinutes ?? 0}m
+              </span>
+              <span className="text-xs text-text-secondary text-center">Avg early</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-[#1D9E75]">
+                {summary?.onTimePct ?? 0}%
+              </span>
+              <span className="text-xs text-text-secondary text-center">On time</span>
+            </div>
+          </div>
+
+          {/* Top early departures list */}
+          <div className="flex flex-col gap-2.5 overflow-y-auto max-h-[260px]">
+            {employees.length === 0 ? (
+              <p className="text-sm text-text-secondary text-center py-4">No early departures recorded</p>
+            ) : (
+              employees.map((emp, idx) => {
+                const style = severityStyle(emp.severity);
+                return (
+                  <div key={`${emp.name}-${idx}`} className="flex items-start gap-2.5">
+                    <span className="h-2 w-2 rounded-full shrink-0 mt-1.5 bg-[#D85A30]" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-sm font-medium text-text-primary truncate">{emp.name}</span>
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${style.bg} ${style.text}`}>
+                          {emp.earlyLabel}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] text-text-secondary mt-0.5">
+                        <span>Left {emp.departureTime}</span>
+                        <span>·</span>
+                        <span className="truncate">{emp.department}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

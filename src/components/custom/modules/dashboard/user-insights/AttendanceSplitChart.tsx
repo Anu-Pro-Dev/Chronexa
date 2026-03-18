@@ -9,20 +9,25 @@ const chartConfig = {
   present: { label: "Present", color: "#378ADD" },
   onLeave: { label: "On Leave", color: "#7F77DD" },
   absent: { label: "Absent", color: "#D85A30" },
+  missedIn: { label: "Missed In", color: "#E6A817" },
   noLogin: { label: "No Login", color: "#9B9B9B" },
 } satisfies ChartConfig;
 
-export default function AttendanceSplitChart() {
-  const loadingUserInsights = useUserInsightsStore((s) => s.loadingUserInsights);
+interface AttendanceSplitChartProps {
+  date: string;
+}
+
+export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps) {
+  const loading = useUserInsightsStore((s) => s.loading);
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
 
-  const today = new Date().toISOString().split('T')[0];
-  const summary = insightsDailySummaryCache[today];
+  const summary = insightsDailySummaryCache[date];
 
   const splitData = [
     { name: "Present", value: summary?.present ?? 0, color: "#378ADD" },
     { name: "On Leave", value: summary?.onLeave ?? 0, color: "#7F77DD" },
     { name: "Absent", value: summary?.absent ?? 0, color: "#D85A30" },
+    { name: "Missed In", value: summary?.missedIn ?? 0, color: "#E6A817" },
     { name: "No Login", value: summary?.noAppLogin ?? 0, color: "#9B9B9B" },
   ];
 
@@ -31,7 +36,7 @@ export default function AttendanceSplitChart() {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <p className="text-sm font-medium text-text-primary">Attendance Split</p>
-      {loadingUserInsights && !summary ? (
+      {loading && !summary ? (
         <div className="flex items-center justify-center h-[140px] animate-pulse">
           <div className="h-[120px] w-[120px] rounded-full bg-border" />
         </div>

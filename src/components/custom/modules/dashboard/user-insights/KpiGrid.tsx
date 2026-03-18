@@ -57,14 +57,17 @@ function KpiSkeleton() {
   );
 }
 
-export default function KpiGrid() {
-  const loadingUserInsights = useUserInsightsStore((s) => s.loadingUserInsights);
+interface KpiGridProps {
+  date: string;
+}
+
+export default function KpiGrid({ date }: KpiGridProps) {
+  const loading = useUserInsightsStore((s) => s.loading);
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
 
-  const today = new Date().toISOString().split('T')[0];
-  const summary = insightsDailySummaryCache[today];
+  const summary = insightsDailySummaryCache[date];
 
-  if (loadingUserInsights && !summary) {
+  if (loading && !summary) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
         {Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)}
@@ -92,28 +95,28 @@ export default function KpiGrid() {
       icon: <PunchOutIcon color="#1D9E75" className="w-6 h-6" />,
     },
     {
-      label: "MISSED IN",
-      value: summary?.missedIn ?? 0,
-      subLabel: "no check-in recorded",
-      progress: totalStaff > 0 ? Math.round(((summary?.missedIn ?? 0) / totalStaff) * 100) : 0,
-      color: "#D85A30",
-      icon: <UserPlusIcon color="#D85A30" className="w-6 h-6" />,
+      label: "PRESENT",
+      value: summary?.presentCount ?? 0,
+      subLabel: "currently at work",
+      progress: totalStaff > 0 ? Math.round(((summary?.presentCount ?? 0) / totalStaff) * 100) : 0,
+      color: "#1D9E75",
+      icon: <UserPlusIcon color="#1D9E75" className="w-6 h-6" />,
     },
     {
-      label: "MISSED OUT",
-      value: summary?.missedOut ?? 0,
-      subLabel: "no check-out recorded",
-      progress: totalStaff > 0 ? Math.round(((summary?.missedOut ?? 0) / totalStaff) * 100) : 0,
-      color: "#E6A817",
-      icon: <UserMinusIcon color="#E6A817" className="w-6 h-6" />,
+      label: "ABSENT",
+      value: summary?.absentCount ?? 0,
+      subLabel: "not at work today",
+      progress: totalStaff > 0 ? Math.round(((summary?.absentCount ?? 0) / totalStaff) * 100) : 0,
+      color: "#D85A30",
+      icon: <UserMinusIcon color="#D85A30" className="w-6 h-6" />,
     },
     {
       label: "ON LEAVE",
       value: summary?.onLeave ?? 0,
       subLabel: "approved absences",
       progress: totalStaff > 0 ? Math.round(((summary?.onLeave ?? 0) / totalStaff) * 100) : 0,
-      color: "#D85A30",
-      icon: <AbsentIcon color="#D85A30" className="w-6 h-6" />,
+      color: "#7F77DD",
+      icon: <AbsentIcon color="#7F77DD" className="w-6 h-6" />,
     },
     {
       label: "NO APP LOGIN",

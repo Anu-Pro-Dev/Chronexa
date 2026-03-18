@@ -34,7 +34,6 @@ import TranslatedError from "@/src/utils/translatedError";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { ChevronsUpDown } from "lucide-react";
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
 const formSchema = z.object({
     login: z.string().min(1, { message: "username_required" }),
     password: z.string().min(1, { message: "password_required" }),
@@ -44,7 +43,6 @@ const formSchema = z.object({
     access_mobile_app: z.boolean(),
 });
 
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function AddUser({
     on_open_change,
     selectedRowData,
@@ -63,18 +61,15 @@ export default function AddUser({
     const btnT = translations?.buttons || {};
     const errT = translations?.formErrors || {};
 
-    // ─── All employees ───────────────────────────────────────────────────────
     const { data: employeeData, isLoading: empLoading } = useFetchAllEntity(
         "employee",
         { removeAll: true }
     );
 
-    // ─── Existing sec users — to filter out already-assigned employees ───────
     const { data: secUserData } = useFetchAllEntity("secuser/spark", {
         removeAll: true,
     });
 
-    // ─── Set of employee_ids already linked to a sec user ───────────────────
     const assignedEmployeeIds = useMemo<Set<number>>(() => {
         const list = secUserData?.data ?? [];
         return new Set(
@@ -84,7 +79,6 @@ export default function AddUser({
         );
     }, [secUserData]);
 
-    // ─── Only unassigned employees ───────────────────────────────────────────
     const employees = useMemo(
         () =>
             (employeeData?.data || []).filter(
@@ -93,7 +87,6 @@ export default function AddUser({
         [employeeData, assignedEmployeeIds]
     );
 
-    // ─── Form ────────────────────────────────────────────────────────────────
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -110,7 +103,6 @@ export default function AddUser({
         [employees, selectedEmpId]
     );
 
-    // ─── Mutation ────────────────────────────────────────────────────────────
     const addMutation = useMutation({
         mutationFn: addSecUserRequest,
         onSuccess: () => {
@@ -128,7 +120,6 @@ export default function AddUser({
         },
     });
 
-    // ─── Submit ──────────────────────────────────────────────────────────────
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (isSubmitting) return;
         setIsSubmitting(true);
@@ -146,7 +137,6 @@ export default function AddUser({
         }
     }
 
-    // ─── Render ──────────────────────────────────────────────────────────────
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate>

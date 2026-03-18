@@ -10,12 +10,15 @@ interface OvertimeRow {
   color: string;
 }
 
-export default function OvertimeCard() {
-  const loadingUserInsights = useUserInsightsStore((s) => s.loadingUserInsights);
+interface OvertimeCardProps {
+  date: string;
+}
+
+export default function OvertimeCard({ date }: OvertimeCardProps) {
+  const loading = useUserInsightsStore((s) => s.loading);
   const insightsOvertimeCache = useUserInsightsStore((s) => s.insightsOvertimeCache);
 
-  const today = new Date().toISOString().split('T')[0];
-  const overtime = insightsOvertimeCache[today];
+  const overtime = insightsOvertimeCache[date];
 
   const overtimeData: OvertimeRow[] = overtime
     ? [
@@ -57,7 +60,7 @@ export default function OvertimeCard() {
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-text-primary">Overtime & Hours Worked</p>
       </div>
-      {loadingUserInsights && !overtime ? (
+      {loading && !overtime ? (
         <div className="flex flex-col gap-3 animate-pulse">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-1">

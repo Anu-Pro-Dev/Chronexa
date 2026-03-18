@@ -15,22 +15,27 @@ function barColor(pct: number) {
   return "#D85A30";
 }
 
-export default function DeptTable() {
-  const loadingUserInsights = useUserInsightsStore((s) => s.loadingUserInsights);
+interface DeptTableProps {
+  date: string;
+}
+
+export default function DeptTable({ date }: DeptTableProps) {
+  const loading = useUserInsightsStore((s) => s.loading);
   const insightsDeptAttendanceCache = useUserInsightsStore((s) => s.insightsDeptAttendanceCache);
 
-  const today = new Date().toISOString().split('T')[0];
-  const deptData: DeptRow[] = insightsDeptAttendanceCache[today] ?? [];
+  const deptData: DeptRow[] = insightsDeptAttendanceCache[date] ?? [];
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <p className="text-base font-medium text-text-primary">Department Attendance</p>
-      {loadingUserInsights && deptData.length === 0 ? (
+      {loading && deptData.length === 0 ? (
         <div className="flex flex-col gap-3 animate-pulse">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-8 bg-border rounded" />
           ))}
         </div>
+      ) : deptData.length === 0 ? (
+        <p className="text-sm text-text-secondary text-center py-6">No department data for this date</p>
       ) : (
         <table className="w-full text-sm">
           <thead>

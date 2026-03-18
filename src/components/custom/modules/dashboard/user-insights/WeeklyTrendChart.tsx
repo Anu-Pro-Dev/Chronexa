@@ -1,120 +1,152 @@
 "use client";
 
-import * as React from "react";
 import { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
-import { ChartConfig, ChartContainer } from "@/src/components/ui/chart";
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/src/components/ui/chart";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
-const chartConfig = {
-  present: { label: "Present", color: "#378ADD" },
-  onLeave: { label: "On Leave", color: "#7F77DD" },
-  absent: { label: "Absent", color: "#F09595" },
-} satisfies ChartConfig;
+const ALL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-const CustomTooltip = ({ active, payload }: any) => {
-  if (!active || !payload?.length) return null;
-  const data = payload[0].payload;
-  const total = data.present + data.onLeave + data.absent;
-  return (
-    <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-      <p className="font-semibold mb-2">{data.day}</p>
-      <div className="space-y-1 text-sm">
-        <p style={{ color: "#378ADD" }}>Present: <span className="font-bold">{data.present}</span></p>
-        <p style={{ color: "#7F77DD" }}>On Leave: <span className="font-bold">{data.onLeave}</span></p>
-        <p style={{ color: "#F09595" }}>Absent: <span className="font-bold">{data.absent}</span></p>
-        <p className="text-muted-foreground">Total: <span className="font-bold">{total}</span></p>
-      </div>
-    </div>
-  );
+const COLORS = {
+  present:  { bar: "#0078D4", hover: "#005fa3", stat: "#0078D4" },
+  absent:   { bar: "#FF6347", hover: "#e0492e", stat: "#FF6347" },
+  onLeave:  { bar: "#FFBF00", hover: "#e0a800", stat: "#FFBF00" },
 };
 
-function getMondayStr(): string {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  return d.toISOString().split('T')[0];
+const chartConfig = {
+  present: { label: "Present",  color: COLORS.present.bar },
+  absent:  { label: "Absent",   color: COLORS.absent.bar  },
+  onLeave: { label: "On Leave", color: COLORS.onLeave.bar },
+} satisfies ChartConfig;
+
+const LEGEND = [
+  { label: "Present",  ...COLORS.present  },
+  { label: "Absent",   ...COLORS.absent   },
+  { label: "On Leave", ...COLORS.onLeave  },
+];
+
+function getWeekStartStr(fromDate: string): string {
+  const d = new Date(fromDate);
+  const day = d.getDay(); // 0 = Sunday
+  d.setDate(d.getDate() - day);
+  return d.toISOString().split("T")[0];
 }
 
-export default function WeeklyTrendChart() {
-  const loadingUserInsights = useUserInsightsStore((s) => s.loadingUserInsights);
+interface WeeklyTrendChartProps {
+  date: string;
+}
+
+export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
+  const loading = useUserInsightsStore((s) => s.loading);
   const insightsWeeklyTrendCache = useUserInsightsStore((s) => s.insightsWeeklyTrendCache);
 
-  const weekStart = getMondayStr();
-  const weeklyData = insightsWeeklyTrendCache[weekStart] ?? [];
+  const weekStart = getWeekStartStr(date);
+  const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
+
+  const chartData = useMemo(() => {
+    const byDay = new Map(rawData.map((d: any) => [d.day, d]));
+    return ALL_DAYS.map((day) => {
+      const entry = byDay.get(day) as any;
+      return {
+        day:      day.slice(0, 3),
+        present:  entry?.present  ?? 0,
+        onLeave:  entry?.onLeave  ?? 0,
+        absent:   entry?.absent   ?? 0,
+        missedIn:  entry?.missedIn  ?? 0,
+        missedOut: entry?.missedOut ?? 0,
+        total:     entry?.total    ?? 0,
+      };
+    });
+  }, [rawData]);
 
   const summaryStats = useMemo(() => {
-    if (weeklyData.length === 0) return { avgPresent: 0, absenceRate: 0, bestDay: { day: "—", present: 0 } };
-    const totalPresent = weeklyData.reduce((s: number, d: any) => s + d.present, 0);
-    const totalHeadcount = weeklyData.reduce((s: number, d: any) => s + d.present + d.onLeave + d.absent, 0);
-    const avgPresent = Math.round(totalPresent / weeklyData.length);
-    const absenceRate = totalHeadcount > 0
-      ? Math.round((weeklyData.reduce((s: number, d: any) => s + d.absent, 0) / totalHeadcount) * 100)
+    const daysWithData = chartData.filter((d) => d.total > 0);
+    if (daysWithData.length === 0) return { avgPresent: 0, absenceRate: 0, bestDay: { day: "—", present: 0 } };
+    const totalPresent   = daysWithData.reduce((s, d) => s + d.present, 0);
+    const totalHeadcount = daysWithData.reduce((s, d) => s + d.total,   0);
+    const avgPresent     = Math.round(totalPresent / daysWithData.length);
+    const absenceRate    = totalHeadcount > 0
+      ? Math.round((daysWithData.reduce((s, d) => s + d.absent, 0) / totalHeadcount) * 100)
       : 0;
-    const bestDay = weeklyData.reduce((max: any, d: any) => d.present > max.present ? d : max, weeklyData[0]);
+    const bestDay = daysWithData.reduce((max, d) => d.present > max.present ? d : max, daysWithData[0]);
     return { avgPresent, absenceRate, bestDay };
-  }, [weeklyData]);
+  }, [chartData]);
 
   return (
-    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-text-primary">Weekly Attendance Trend</p>
+    <div className="shadow-card rounded-[10px] bg-accent p-2">
+      {/* Header */}
+      <div className="flex flex-row justify-between items-center px-4 py-4">
+        <h5 className="text-lg text-text-primary font-bold">Weekly Attendance Trend</h5>
         <div className="flex items-center gap-3 text-xs text-text-secondary">
-          {Object.entries(chartConfig).map(([key, cfg]) => (
-            <span key={key} className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: cfg.color }} />
-              {cfg.label}
+          {LEGEND.map((item) => (
+            <span key={item.label} className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.bar }} />
+              {item.label}
             </span>
           ))}
         </div>
       </div>
 
-      {loadingUserInsights && weeklyData.length === 0 ? (
-        <div className="h-[150px] w-full bg-border rounded animate-pulse" />
+      {/* Chart */}
+      {loading && rawData.length === 0 ? (
+        <div className="h-[240px] mx-4 bg-border rounded animate-pulse" />
       ) : (
-        <ChartContainer config={chartConfig} className="h-[150px] w-full">
-          <BarChart data={weeklyData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }} barSize={18}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} vertical={false} />
-            <XAxis dataKey="day" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(55, 138, 221, 0.08)" }} />
-            <Bar dataKey="present" stackId="a" fill="#378ADD" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="onLeave" stackId="a" fill="#7F77DD" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="absent" stackId="a" fill="#F09595" radius={[3, 3, 0, 0]} />
+        <ChartContainer config={chartConfig} className="relative w-full h-[240px] -left-[10px]">
+          <BarChart data={chartData} barSize={28} barCategoryGap="35%">
+            <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
+            <XAxis
+              dataKey="day"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tick={{ fontSize: 12, fill: "var(--text-secondary)" }}
+              interval={0}
+            />
+            <YAxis
+              type="number"
+              tickLine={false}
+              tickMargin={4}
+              axisLine={false}
+              tick={{ fontSize: 11, fill: "var(--text-secondary)" }}
+            />
+            <ChartTooltip
+              cursor={{ fill: "rgba(55, 138, 221, 0.06)", radius: 6 }}
+              content={<ChartTooltipContent />}
+            />
+            <Bar dataKey="present" stackId="a" fill="var(--color-present)" radius={[0, 0, 4, 4]} name="Present"  activeBar={{ fill: COLORS.present.hover }} />
+            <Bar dataKey="absent"  stackId="a" fill="var(--color-absent)"  radius={[0, 0, 0, 0]} name="Absent"   activeBar={{ fill: COLORS.absent.hover  }} />
+            <Bar dataKey="onLeave" stackId="a" fill="var(--color-onLeave)" radius={[4, 4, 0, 0]} name="On Leave" activeBar={{ fill: COLORS.onLeave.hover }} />
           </BarChart>
         </ChartContainer>
       )}
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-3 pt-1 border-t border-border">
-        <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-2xl font-bold" style={{ color: "#378ADD" }}>
+      {/* Summary stats */}
+      <div className="grid grid-cols-3 gap-3 px-4 pb-4 pt-3">
+        <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
+          <p className="text-2xl font-bold" style={{ color: COLORS.present.stat }}>
             {summaryStats.avgPresent}
           </p>
-          <p className="text-xs text-muted-foreground">Avg Present / Day</p>
+          <p className="text-xs text-text-secondary mt-0.5">Avg Present / Day</p>
         </div>
-        <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-lg font-bold" style={{ color: "#7F77DD" }}>
+        <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
+          <p className="text-lg font-bold" style={{ color: COLORS.onLeave.stat }}>
             {summaryStats.bestDay.day}
           </p>
-          <p className="text-xs text-muted-foreground">Best Day</p>
-          <p className="text-xs font-semibold" style={{ color: "#7F77DD" }}>
+          <p className="text-xs text-text-secondary mt-0.5">Best Day</p>
+          <p className="text-xs font-semibold mt-0.5" style={{ color: COLORS.onLeave.stat }}>
             {summaryStats.bestDay.present} present
           </p>
         </div>
-        <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-2xl font-bold" style={{ color: "#F09595" }}>
+        <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
+          <p className="text-2xl font-bold" style={{ color: COLORS.absent.stat }}>
             {summaryStats.absenceRate}%
           </p>
-          <p className="text-xs text-muted-foreground">Absence Rate</p>
+          <p className="text-xs text-text-secondary mt-0.5">Absence Rate</p>
         </div>
       </div>
     </div>
