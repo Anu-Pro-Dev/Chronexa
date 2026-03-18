@@ -20,7 +20,7 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
 
     console.log('🔌 Attempting to connect with userId:', auth.userId);
 
-    const newSocket = io('http://localhost:8000', {
+    const newSocket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000", {
       auth: {
         token: auth.token,
         userId: auth.userId,

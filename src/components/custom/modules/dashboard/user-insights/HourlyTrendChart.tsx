@@ -1,0 +1,71 @@
+"use client";
+
+import * as React from "react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/src/components/ui/chart";
+import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+
+const chartConfig = {
+  checkins: { label: "Check-ins", color: "#378ADD" },
+  checkouts: { label: "Check-outs", color: "#1D9E75" },
+  missedIn: { label: "Missed in", color: "#D85A30" },
+} satisfies ChartConfig;
+
+export default function HourlyTrendChart() {
+  const loadingUserInsights = useUserInsightsStore((s) => s.loadingUserInsights);
+  const insightsHourlyTrendCache = useUserInsightsStore((s) => s.insightsHourlyTrendCache);
+
+  const today = new Date().toISOString().split('T')[0];
+  const hourlyData = insightsHourlyTrendCache[today] ?? [];
+
+  return (
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-text-primary">Hourly Attendance Trend</p>
+        <div className="flex items-center gap-3 text-xs text-text-secondary">
+          {Object.entries(chartConfig).map(([key, cfg]) => (
+            <span key={key} className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: cfg.color }} />
+              {cfg.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      {loadingUserInsights && hourlyData.length === 0 ? (
+        <div className="h-[180px] w-full bg-border rounded animate-pulse" />
+      ) : (
+        <ChartContainer config={chartConfig} className="h-[180px] w-full">
+          <AreaChart data={hourlyData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+            <defs>
+              <linearGradient id="fillCheckins" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#378ADD" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#378ADD" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="fillCheckouts" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#1D9E75" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#1D9E75" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="fillMissedIn" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#D85A30" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#D85A30" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+            <XAxis dataKey="hour" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Area dataKey="checkins" type="monotone" stroke="#378ADD" strokeWidth={2} fill="url(#fillCheckins)" dot={false} />
+            <Area dataKey="checkouts" type="monotone" stroke="#1D9E75" strokeWidth={2} fill="url(#fillCheckouts)" dot={false} />
+            <Area dataKey="missedIn" type="monotone" stroke="#D85A30" strokeWidth={2} fill="url(#fillMissedIn)" dot={false} />
+          </AreaChart>
+        </ChartContainer>
+      )}
+    </div>
+  );
+}

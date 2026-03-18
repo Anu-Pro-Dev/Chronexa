@@ -1,117 +1,135 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
-import { useLanguage } from "@/src/providers/LanguageProvider";
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationCircleIcon,
-  CalendarDaysIcon,
-  DevicePhoneMobileIcon,
-} from "@heroicons/react/24/solid";
 
-interface KpiCardProps {
+import * as React from "react";
+import { PunchInIcon, PunchOutIcon, LeaveTakenIcon, AbsentIcon } from "@/src/icons/icons";
+import { DevicePhoneMobileIcon, UserPlusIcon, UserMinusIcon } from "@heroicons/react/24/solid";
+import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+
+export interface KpiData {
   label: string;
-  value: number;
-  sub: string;
+  value: number | string;
+  subLabel: string;
+  progress: number;
   color: string;
-  barColor: string;
-  barWidth: number;
-  Icon: React.ComponentType<{ className?: string }>;
+  icon?: React.ReactNode;
 }
 
-function KpiCard({ label, value, sub, color, barColor, barWidth, Icon }: KpiCardProps) {
-  const [animated, setAnimated] = useState(0);
+interface KpiCardProps {
+  data: KpiData;
+}
 
-  useEffect(() => {
-    if (value === 0) { setAnimated(0); return; }
-    let start = 0;
-    const step = value / 40;
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= value) { start = value; clearInterval(timer); }
-      setAnimated(Math.floor(start));
-    }, 18);
-    return () => clearInterval(timer);
-  }, [value]);
-
+function KpiCard({ data }: KpiCardProps) {
   return (
-    <div className="shadow-card rounded-[10px] bg-accent p-4 flex flex-col gap-2 relative overflow-hidden">
-      <div className="absolute right-3 top-3 opacity-10">
-        <Icon className={`w-8 h-8 ${color}`} />
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">
+          {data.label}
+        </p>
+        {data.icon && (
+          <div
+            className="bg-background w-[32px] h-[32px] shrink-0 flex items-center justify-center rounded-[8px]"
+            style={{ color: data.color, boxShadow: `0 0 16px 6px ${data.color}22` }}
+          >
+            {data.icon}
+          </div>
+        )}
       </div>
-      <p className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">{label}</p>
-      <p className={`text-3xl font-bold leading-none ${color}`}>{animated}</p>
-      <p className={`text-[11px] font-medium opacity-80 ${color}`}>{sub}</p>
-      <div className="h-[3px] rounded-full bg-border-accent mt-1">
+      <p className="text-3xl font-bold text-text-primary leading-none">{data.value}</p>
+      <p className="text-xs text-text-secondary">{data.subLabel}</p>
+      <div className="h-1 w-full bg-border rounded-full overflow-hidden mt-1">
         <div
-          className="h-[3px] rounded-full transition-all duration-700"
-          style={{ width: `${Math.min(barWidth, 100)}%`, background: barColor }}
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${data.progress}%`, backgroundColor: data.color }}
         />
       </div>
     </div>
   );
 }
 
+function KpiSkeleton() {
+  return (
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 animate-pulse">
+      <div className="h-3 w-20 bg-border rounded" />
+      <div className="h-8 w-12 bg-border rounded" />
+      <div className="h-3 w-24 bg-border rounded" />
+      <div className="h-1 w-full bg-border rounded-full mt-1" />
+    </div>
+  );
+}
+
 export default function KpiGrid() {
-  const data = useUserInsightsStore((s) => s.data);
-  const { translations } = useLanguage();
-  const t = translations?.modules?.dashboard || {};
+  const loadingUserInsights = useUserInsightsStore((s) => s.loadingUserInsights);
+  const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
 
-  const sparkToday  = data?.today  ?? { checkIns: 0, checkOuts: 0, missedIn: 0, missedOut: 0, onLeave: 0 };
-  const sparkTotals = data?.totals ?? { totalEmployees: 1, noAppLogin: 0, employeesInUse: 0 };
-  const wf = sparkTotals.totalEmployees || 1;
+  const today = new Date().toISOString().split('T')[0];
+  const summary = insightsDailySummaryCache[today];
 
-  const pct = (n: number) => Math.round((n / wf) * 100);
+  if (loadingUserInsights && !summary) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+        {Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)}
+      </div>
+    );
+  }
 
-  const cards: KpiCardProps[] = [
+  const totalStaff = summary?.totalStaff ?? 0;
+
+  const kpiData: KpiData[] = [
     {
-      label: t?.check_in || "Check-ins",
-      value: sparkToday.checkIns,
-      sub: `${sparkToday.checkIns} of ${wf} workforce`,
-      color: "text-[#0078D4]", barColor: "#0078D4", barWidth: pct(sparkToday.checkIns),
-      Icon: CheckCircleIcon,
+      label: "CHECK-INS",
+      value: summary?.checkIns ?? 0,
+      subLabel: `of ${totalStaff} employees`,
+      progress: totalStaff > 0 ? Math.round(((summary?.checkIns ?? 0) / totalStaff) * 100) : 0,
+      color: "#378ADD",
+      icon: <PunchInIcon color="#378ADD" className="w-6 h-6" />,
     },
     {
-      label: t?.check_out || "Check-outs",
-      value: sparkToday.checkOuts,
-      sub: "Shift ends at 17:00",
-      color: "text-[#0F6E56]", barColor: "#1D9E75", barWidth: pct(sparkToday.checkOuts),
-      Icon: XCircleIcon,
+      label: "CHECK-OUTS",
+      value: summary?.checkOuts ?? 0,
+      subLabel: "completed today",
+      progress: totalStaff > 0 ? Math.round(((summary?.checkOuts ?? 0) / totalStaff) * 100) : 0,
+      color: "#1D9E75",
+      icon: <PunchOutIcon color="#1D9E75" className="w-6 h-6" />,
     },
     {
-      label: t?.missed_check_in || "Missed in",
-      value: sparkToday.missedIn,
-      sub: "No check-in recorded",
-      color: "text-[#C0392B]", barColor: "#D85A30", barWidth: pct(sparkToday.missedIn),
-      Icon: ExclamationCircleIcon,
+      label: "MISSED IN",
+      value: summary?.missedIn ?? 0,
+      subLabel: "no check-in recorded",
+      progress: totalStaff > 0 ? Math.round(((summary?.missedIn ?? 0) / totalStaff) * 100) : 0,
+      color: "#D85A30",
+      icon: <UserPlusIcon color="#D85A30" className="w-6 h-6" />,
     },
     {
-      label: t?.missed_check_out || "Missed out",
-      value: sparkToday.missedOut,
-      sub: "No checkout recorded",
-      color: "text-[#854F0B]", barColor: "#EF9F27", barWidth: pct(sparkToday.missedOut),
-      Icon: ExclamationCircleIcon,
+      label: "MISSED OUT",
+      value: summary?.missedOut ?? 0,
+      subLabel: "no check-out recorded",
+      progress: totalStaff > 0 ? Math.round(((summary?.missedOut ?? 0) / totalStaff) * 100) : 0,
+      color: "#E6A817",
+      icon: <UserMinusIcon color="#E6A817" className="w-6 h-6" />,
     },
     {
-      label: t?.approved_leaves || "On leave",
-      value: sparkToday.onLeave,
-      sub: "Approved",
-      color: "text-[#534AB7]", barColor: "#7F77DD", barWidth: pct(sparkToday.onLeave),
-      Icon: CalendarDaysIcon,
+      label: "ON LEAVE",
+      value: summary?.onLeave ?? 0,
+      subLabel: "approved absences",
+      progress: totalStaff > 0 ? Math.round(((summary?.onLeave ?? 0) / totalStaff) * 100) : 0,
+      color: "#D85A30",
+      icon: <AbsentIcon color="#D85A30" className="w-6 h-6" />,
     },
     {
-      label: "No app login",
-      value: sparkTotals.noAppLogin,
-      sub: "Not opened today",
-      color: "text-[#5F5E5A]", barColor: "#888780", barWidth: pct(sparkTotals.noAppLogin),
-      Icon: DevicePhoneMobileIcon,
+      label: "NO APP LOGIN",
+      value: summary?.noAppLogin ?? 0,
+      subLabel: "inactive today",
+      progress: totalStaff > 0 ? Math.round(((summary?.noAppLogin ?? 0) / totalStaff) * 100) : 0,
+      color: "#9B9B9B",
+      icon: <DevicePhoneMobileIcon className="w-6 h-6" />,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-      {cards.map((c) => <KpiCard key={c.label} {...c} />)}
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+      {kpiData.map((kpi) => (
+        <KpiCard key={kpi.label} data={kpi} />
+      ))}
     </div>
   );
 }
