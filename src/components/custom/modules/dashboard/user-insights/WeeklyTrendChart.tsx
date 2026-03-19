@@ -13,21 +13,21 @@ import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 const ALL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const COLORS = {
-  present:  { bar: "#0078D4", hover: "#005fa3", stat: "#0078D4" },
-  absent:   { bar: "#FF6347", hover: "#e0492e", stat: "#FF6347" },
-  onLeave:  { bar: "#FFBF00", hover: "#e0a800", stat: "#FFBF00" },
+  present:  { bar: "#2DD4BF", hover: "#14B8A6", stat: "#2DD4BF" }, 
+  absent:   { bar: "#C084FC", hover: "#A855F7", stat: "#C084FC" },
+  onLeave:  { bar: "#F59E0B", hover: "#D97706", stat: "#F59E0B" },
 };
 
 const chartConfig = {
-  present: { label: "Present",  color: COLORS.present.bar },
-  absent:  { label: "Absent",   color: COLORS.absent.bar  },
+  present: { label: "Present", color: COLORS.present.bar },
+  absent: { label: "Absent", color: COLORS.absent.bar },
   onLeave: { label: "On Leave", color: COLORS.onLeave.bar },
 } satisfies ChartConfig;
 
 const LEGEND = [
-  { label: "Present",  ...COLORS.present  },
-  { label: "Absent",   ...COLORS.absent   },
-  { label: "On Leave", ...COLORS.onLeave  },
+  { label: "Present", ...COLORS.present },
+  { label: "Absent", ...COLORS.absent },
+  { label: "On Leave", ...COLORS.onLeave },
 ];
 
 function getWeekStartStr(fromDate: string): string {
@@ -53,13 +53,13 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
     return ALL_DAYS.map((day) => {
       const entry = byDay.get(day) as any;
       return {
-        day:      day.slice(0, 3),
-        present:  entry?.present  ?? 0,
-        onLeave:  entry?.onLeave  ?? 0,
-        absent:   entry?.absent   ?? 0,
-        missedIn:  entry?.missedIn  ?? 0,
+        day: day.slice(0, 3),
+        present: entry?.present ?? 0,
+        onLeave: entry?.onLeave ?? 0,
+        absent: entry?.absent ?? 0,
+        missedIn: entry?.missedIn ?? 0,
         missedOut: entry?.missedOut ?? 0,
-        total:     entry?.total    ?? 0,
+        total: entry?.total ?? 0,
       };
     });
   }, [rawData]);
@@ -67,10 +67,10 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
   const summaryStats = useMemo(() => {
     const daysWithData = chartData.filter((d) => d.total > 0);
     if (daysWithData.length === 0) return { avgPresent: 0, absenceRate: 0, bestDay: { day: "—", present: 0 } };
-    const totalPresent   = daysWithData.reduce((s, d) => s + d.present, 0);
-    const totalHeadcount = daysWithData.reduce((s, d) => s + d.total,   0);
-    const avgPresent     = Math.round(totalPresent / daysWithData.length);
-    const absenceRate    = totalHeadcount > 0
+    const totalPresent = daysWithData.reduce((s, d) => s + d.present, 0);
+    const totalHeadcount = daysWithData.reduce((s, d) => s + d.total, 0);
+    const avgPresent = Math.round(totalPresent / daysWithData.length);
+    const absenceRate = totalHeadcount > 0
       ? Math.round((daysWithData.reduce((s, d) => s + d.absent, 0) / totalHeadcount) * 100)
       : 0;
     const bestDay = daysWithData.reduce((max, d) => d.present > max.present ? d : max, daysWithData[0]);
@@ -81,7 +81,7 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       {/* Header */}
       <div className="flex flex-row justify-between items-center px-4 py-4">
-        <h5 className="text-lg text-text-primary font-bold">Weekly Attendance Trend</h5>
+        <h5 className="text-lg text-text-primary font-bold pb-2">Weekly Attendance Trend</h5>
         <div className="flex items-center gap-3 text-xs text-text-secondary">
           {LEGEND.map((item) => (
             <span key={item.label} className="flex items-center gap-1.5">
@@ -118,15 +118,15 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
               cursor={{ fill: "rgba(55, 138, 221, 0.06)", radius: 6 }}
               content={<ChartTooltipContent />}
             />
-            <Bar dataKey="present" stackId="a" fill="var(--color-present)" radius={[0, 0, 4, 4]} name="Present"  activeBar={{ fill: COLORS.present.hover }} />
-            <Bar dataKey="absent"  stackId="a" fill="var(--color-absent)"  radius={[0, 0, 0, 0]} name="Absent"   activeBar={{ fill: COLORS.absent.hover  }} />
+            <Bar dataKey="present" stackId="a" fill="var(--color-present)" radius={[0, 0, 4, 4]} name="Present" activeBar={{ fill: COLORS.present.hover }} />
+            <Bar dataKey="absent" stackId="a" fill="var(--color-absent)" radius={[0, 0, 0, 0]} name="Absent" activeBar={{ fill: COLORS.absent.hover }} />
             <Bar dataKey="onLeave" stackId="a" fill="var(--color-onLeave)" radius={[4, 4, 0, 0]} name="On Leave" activeBar={{ fill: COLORS.onLeave.hover }} />
           </BarChart>
         </ChartContainer>
       )}
 
       {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-3 px-4 pb-4 pt-3">
+      <div className="grid grid-cols-3 gap-3 px-4 pb-3 pt-3">
         <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
           <p className="text-2xl font-bold" style={{ color: COLORS.present.stat }}>
             {summaryStats.avgPresent}

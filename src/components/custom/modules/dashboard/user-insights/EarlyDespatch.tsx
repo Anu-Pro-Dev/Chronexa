@@ -8,7 +8,7 @@ interface EarlyDespatchProps {
 }
 
 function severityStyle(severity: "HIGH" | "MEDIUM" | "LOW") {
-  if (severity === "HIGH") return { bg: "bg-[#FDECEA]", text: "text-[#D85A30]" };
+  if (severity === "HIGH") return { bg: "bg-[#FDECEA]", text: "text-[#E63946]" };
   if (severity === "MEDIUM") return { bg: "bg-[#FEF3E2]", text: "text-[#E6A817]" };
   return { bg: "bg-[#F3F3F3]", text: "text-text-secondary" };
 }
@@ -25,12 +25,12 @@ export default function EarlyDespatch({ date }: EarlyDespatchProps) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-base font-medium text-text-primary">Early Departures</p>
-        {despatchData && (
+        <h5 className="text-lg text-text-primary font-bold pb-2">Early Departures</h5>
+        {/* {despatchData && (
           <span className="text-[11px] text-text-secondary bg-background border border-border rounded-full px-2 py-0.5">
             ≥{despatchData.thresholdMinutes}min threshold
           </span>
-        )}
+        )} */}
       </div>
 
       {earlyDespatchError && (
@@ -55,7 +55,7 @@ export default function EarlyDespatch({ date }: EarlyDespatchProps) {
           {/* Summary stats */}
           <div className="grid grid-cols-3 gap-2 pb-3 border-b border-border">
             <div className="flex flex-col items-center">
-              <span className="text-2xl font-bold text-[#D85A30]">
+              <span className="text-2xl font-bold text-[#E63946]">
                 {summary?.earlyDepartureCount ?? 0}
               </span>
               <span className="text-xs text-text-secondary text-center">Early today</span>
@@ -75,15 +75,15 @@ export default function EarlyDespatch({ date }: EarlyDespatchProps) {
           </div>
 
           {/* Top early departures list */}
-          <div className="flex flex-col gap-2.5 overflow-y-auto max-h-[260px]">
+          <div className="flex flex-col gap-2.5">
             {employees.length === 0 ? (
               <p className="text-sm text-text-secondary text-center py-4">No early departures recorded</p>
             ) : (
-              employees.map((emp, idx) => {
+              employees.slice(0, 3).map((emp, idx) => {
                 const style = severityStyle(emp.severity);
                 return (
                   <div key={`${emp.name}-${idx}`} className="flex items-start gap-2.5">
-                    <span className="h-2 w-2 rounded-full shrink-0 mt-1.5 bg-[#D85A30]" />
+                    <span className="h-2 w-2 rounded-full shrink-0 mt-1.5 bg-[#E63946]" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
                         <span className="text-sm font-medium text-text-primary truncate">{emp.name}</span>

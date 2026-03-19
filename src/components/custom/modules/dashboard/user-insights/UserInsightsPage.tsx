@@ -25,35 +25,30 @@ export default function UserInsightsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Row 1: KPI grid */}
       <KpiGrid date={selectedDate} />
 
-      {/* Row 2: Hourly trend (2fr) + Attendance split (1fr) */}
+      <HourlyTrendChart date={selectedDate} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <HourlyTrendChart date={selectedDate} />
+          <DeptTable date={selectedDate} />
         </div>
         <div>
           <AttendanceSplitChart date={selectedDate} />
         </div>
       </div>
 
-      {/* Row 3: Dept table + Early Despatch (left 2/3), Alerts (right 1/3) */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <DeptTable date={selectedDate} />
-          <EarlyDespatch date={selectedDate} />
-        </div>
-        <AlertsCard date={selectedDate} />
+      <div className="grid grid-cols-1 xl:grid-cols-[55%_45%] gap-4">
+        <EarlyDespatch date={selectedDate} />
+        <OvertimeCard date={selectedDate} />
       </div>
 
-      {/* Row 4: Weekly trend (2fr) + Overtime (1fr) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <WeeklyTrendChart date={selectedDate} />
         </div>
         <div>
-          <OvertimeCard date={selectedDate} />
+          <AlertsCard date={selectedDate} />
         </div>
       </div>
     </div>

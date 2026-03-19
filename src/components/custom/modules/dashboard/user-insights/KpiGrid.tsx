@@ -14,11 +14,7 @@ export interface KpiData {
   icon?: React.ReactNode;
 }
 
-interface KpiCardProps {
-  data: KpiData;
-}
-
-function KpiCard({ data }: KpiCardProps) {
+function KpiCard({ data }: { data: KpiData }) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2">
       <div className="flex items-start justify-between gap-2">
@@ -34,9 +30,11 @@ function KpiCard({ data }: KpiCardProps) {
           </div>
         )}
       </div>
-      <p className="text-3xl font-bold text-text-primary leading-none">{data.value}</p>
+      {/* Reduced from text-3xl → text-2xl */}
+      <p className="text-2xl font-bold text-text-primary leading-none">{data.value}</p>
       <p className="text-xs text-text-secondary">{data.subLabel}</p>
-      <div className="h-1 w-full bg-border rounded-full overflow-hidden mt-1">
+      {/* Increased from h-1 → h-1.5 */}
+      <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden mt-1">
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${data.progress}%`, backgroundColor: data.color }}
@@ -49,10 +47,10 @@ function KpiCard({ data }: KpiCardProps) {
 function KpiSkeleton() {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 animate-pulse">
-      <div className="h-3 w-20 bg-border rounded" />
-      <div className="h-8 w-12 bg-border rounded" />
-      <div className="h-3 w-24 bg-border rounded" />
-      <div className="h-1 w-full bg-border rounded-full mt-1" />
+      <div className="h-3 w-20 bg-gray-200 rounded" />
+      <div className="h-7 w-12 bg-gray-200 rounded" />
+      <div className="h-3 w-24 bg-gray-200 rounded" />
+      <div className="h-1.5 w-full bg-gray-200 rounded-full mt-1" />
     </div>
   );
 }
@@ -83,47 +81,47 @@ export default function KpiGrid({ date }: KpiGridProps) {
       value: summary?.checkIns ?? 0,
       subLabel: `of ${totalStaff} employees`,
       progress: totalStaff > 0 ? Math.round(((summary?.checkIns ?? 0) / totalStaff) * 100) : 0,
-      color: "#378ADD",
-      icon: <PunchInIcon color="#378ADD" className="w-6 h-6" />,
+      color: "#0078D4",
+      icon: <PunchInIcon color="#0078D4" className="w-6 h-6" />,
     },
     {
       label: "CHECK-OUTS",
       value: summary?.checkOuts ?? 0,
       subLabel: "completed today",
       progress: totalStaff > 0 ? Math.round(((summary?.checkOuts ?? 0) / totalStaff) * 100) : 0,
-      color: "#1D9E75",
-      icon: <PunchOutIcon color="#1D9E75" className="w-6 h-6" />,
+      color: "#FF6B2D",
+      icon: <PunchOutIcon color="#FF6B2D" className="w-6 h-6" />,
     },
     {
       label: "PRESENT",
       value: summary?.presentCount ?? 0,
       subLabel: "currently at work",
       progress: totalStaff > 0 ? Math.round(((summary?.presentCount ?? 0) / totalStaff) * 100) : 0,
-      color: "#1D9E75",
-      icon: <UserPlusIcon color="#1D9E75" className="w-6 h-6" />,
+      color: "#1DAA61",
+      icon: <UserPlusIcon color="#1DAA61" className="w-6 h-6" />,
     },
     {
       label: "ABSENT",
       value: summary?.absentCount ?? 0,
       subLabel: "not at work today",
       progress: totalStaff > 0 ? Math.round(((summary?.absentCount ?? 0) / totalStaff) * 100) : 0,
-      color: "#D85A30",
-      icon: <UserMinusIcon color="#D85A30" className="w-6 h-6" />,
+      color: "#DA153E",
+      icon: <UserMinusIcon color="#DA153E" className="w-6 h-6" />,
     },
     {
       label: "ON LEAVE",
       value: summary?.onLeave ?? 0,
       subLabel: "approved absences",
       progress: totalStaff > 0 ? Math.round(((summary?.onLeave ?? 0) / totalStaff) * 100) : 0,
-      color: "#7F77DD",
-      icon: <AbsentIcon color="#7F77DD" className="w-6 h-6" />,
+      color: "#FFBF00",
+      icon: <AbsentIcon color="#FFBF00" className="w-6 h-6" />,
     },
     {
       label: "NO APP LOGIN",
       value: summary?.noAppLogin ?? 0,
       subLabel: "inactive today",
       progress: totalStaff > 0 ? Math.round(((summary?.noAppLogin ?? 0) / totalStaff) * 100) : 0,
-      color: "#9B9B9B",
+      color: "#7D3FFF",
       icon: <DevicePhoneMobileIcon className="w-6 h-6" />,
     },
   ];

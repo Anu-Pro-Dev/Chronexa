@@ -109,10 +109,10 @@ export default function AlertsCard({ date }: AlertsCardProps) {
     : [];
 
   return (
-    <div className="bg-accent rounded-[10px] shadow-card p-2 flex flex-col">
-      <div className="p-4 flex flex-col gap-3">
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <p className="text-lg font-bold text-text-primary">Active Alerts</p>
+          <h5 className="text-lg text-text-primary font-bold">Active Alerts</h5>
           {/* {alertsData && (
             <span className="text-xs text-text-secondary bg-background border border-border rounded-full px-2 py-0.5">
               {alertsData.targetDate}
@@ -133,7 +133,7 @@ export default function AlertsCard({ date }: AlertsCardProps) {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {alerts.map((alert) => {
               const style = typeStyles[alert.type];
               return (
