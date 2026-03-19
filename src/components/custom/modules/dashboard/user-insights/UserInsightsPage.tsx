@@ -12,16 +12,25 @@ import WeeklyTrendChart from "./WeeklyTrendChart";
 import OvertimeCard from "./OvertimeCard";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 import { useSelectedDate } from "@/src/store/useSelectedDate";
+import { InlineLoading } from "@/src/app/loading";
 
 export default function UserInsightsPage() {
   const fetchAllData = useUserInsightsStore((s) => s.fetchAllData);
+  const loading      = useUserInsightsStore((s) => s.loading);
+  
+  const summaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const { date } = useSelectedDate();
-
   const selectedDate = date.toISOString().split("T")[0];
+  const hasCache = !!summaryCache[selectedDate];
 
   useEffect(() => {
     fetchAllData(selectedDate);
   }, [fetchAllData, selectedDate]);
+
+  if (loading && !hasCache) {
+    return <InlineLoading message="Loading insights..." />;
+  }
+
 
   return (
     <div className="flex flex-col gap-4">

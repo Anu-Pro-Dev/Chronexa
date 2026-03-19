@@ -14,7 +14,6 @@ function severityStyle(severity: "HIGH" | "MEDIUM" | "LOW") {
 }
 
 export default function EarlyDespatch({ date }: EarlyDespatchProps) {
-  const loadingEarlyDespatch = useUserInsightsStore((s) => s.loadingEarlyDespatch);
   const earlyDespatchError = useUserInsightsStore((s) => s.earlyDespatchError);
   const insightsEarlyDespatchCache = useUserInsightsStore((s) => s.insightsEarlyDespatchCache);
 
@@ -39,71 +38,56 @@ export default function EarlyDespatch({ date }: EarlyDespatchProps) {
         </div>
       )}
 
-      {loadingEarlyDespatch && !despatchData ? (
-        <div className="flex flex-col gap-3 animate-pulse">
-          <div className="grid grid-cols-3 gap-2 pb-3 border-b border-border">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-10 bg-border rounded" />
-            ))}
-          </div>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-6 bg-border rounded" />
-          ))}
+      {/* Summary stats */}
+      <div className="grid grid-cols-3 gap-2 pb-3 border-b border-border">
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-[#E63946]">
+            {summary?.earlyDepartureCount ?? 0}
+          </span>
+          <span className="text-xs text-text-secondary text-center">Early today</span>
         </div>
-      ) : (
-        <>
-          {/* Summary stats */}
-          <div className="grid grid-cols-3 gap-2 pb-3 border-b border-border">
-            <div className="flex flex-col items-center">
-              <span className="text-2xl font-bold text-[#E63946]">
-                {summary?.earlyDepartureCount ?? 0}
-              </span>
-              <span className="text-xs text-text-secondary text-center">Early today</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-2xl font-bold text-text-primary">
-                {summary?.avgEarlyMinutes ?? 0}m
-              </span>
-              <span className="text-xs text-text-secondary text-center">Avg early</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-2xl font-bold text-[#1D9E75]">
-                {summary?.onTimePct ?? 0}%
-              </span>
-              <span className="text-xs text-text-secondary text-center">On time</span>
-            </div>
-          </div>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-text-primary">
+            {summary?.avgEarlyMinutes ?? 0}m
+          </span>
+          <span className="text-xs text-text-secondary text-center">Avg early</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-[#1D9E75]">
+            {summary?.onTimePct ?? 0}%
+          </span>
+          <span className="text-xs text-text-secondary text-center">On time</span>
+        </div>
+      </div>
 
-          {/* Top early departures list */}
-          <div className="flex flex-col gap-2.5">
-            {employees.length === 0 ? (
-              <p className="text-sm text-text-secondary text-center py-4">No early departures recorded</p>
-            ) : (
-              employees.slice(0, 3).map((emp, idx) => {
-                const style = severityStyle(emp.severity);
-                return (
-                  <div key={`${emp.name}-${idx}`} className="flex items-start gap-2.5">
-                    <span className="h-2 w-2 rounded-full shrink-0 mt-1.5 bg-[#E63946]" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-sm font-medium text-text-primary truncate">{emp.name}</span>
-                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${style.bg} ${style.text}`}>
-                          {emp.earlyLabel}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-text-secondary mt-0.5">
-                        <span>Left {emp.departureTime}</span>
-                        <span>·</span>
-                        <span className="truncate">{emp.department}</span>
-                      </div>
-                    </div>
+      {/* Top early departures list */}
+      <div className="flex flex-col gap-2.5">
+        {employees.length === 0 ? (
+          <p className="text-sm text-text-secondary text-center py-4">No early departures recorded</p>
+        ) : (
+          employees.slice(0, 3).map((emp, idx) => {
+            const style = severityStyle(emp.severity);
+            return (
+              <div key={`${emp.name}-${idx}`} className="flex items-start gap-2.5">
+                <span className="h-2 w-2 rounded-full shrink-0 mt-1.5 bg-[#E63946]" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-sm font-medium text-text-primary truncate">{emp.name}</span>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${style.bg} ${style.text}`}>
+                      {emp.earlyLabel}
+                    </span>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </>
-      )}
+                  <div className="flex items-center gap-1.5 text-[11px] text-text-secondary mt-0.5">
+                    <span>Left {emp.departureTime}</span>
+                    <span>·</span>
+                    <span className="truncate">{emp.department}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

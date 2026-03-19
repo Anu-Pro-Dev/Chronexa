@@ -59,7 +59,6 @@ interface AlertsCardProps {
 }
 
 export default function AlertsCard({ date }: AlertsCardProps) {
-  const loadingAlerts = useUserInsightsStore((s) => s.loadingAlerts);
   const alertsError = useUserInsightsStore((s) => s.alertsError);
   const insightsAlertsCache = useUserInsightsStore((s) => s.insightsAlertsCache);
 
@@ -126,38 +125,30 @@ export default function AlertsCard({ date }: AlertsCardProps) {
           </div>
         )}
 
-        {loadingAlerts && !alertsData ? (
-          <div className="flex flex-col gap-2 animate-pulse">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-14 bg-border rounded-[10px]" />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {alerts.map((alert) => {
-              const style = typeStyles[alert.type];
-              return (
-                <div
-                  key={alert.id}
-                  className={`rounded-[10px] p-3 shadow-card border flex gap-3 items-start ${style.card}`}
-                >
-                  <div className={`${style.icon} p-2 rounded-lg shrink-0 mt-0.5`}>
-                    <span className={`block h-2.5 w-2.5 rounded-full ${style.dot}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={`text-xs font-semibold leading-tight ${style.title}`}>{alert.label}</p>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${style.badge}`}>
-                        {alert.value}
-                      </span>
-                    </div>
-                    <p className={`text-[11px] leading-tight mt-0.5 ${style.sub}`}>{alert.subtext}</p>
-                  </div>
+        <div className="flex flex-col gap-3">
+          {alerts.map((alert) => {
+            const style = typeStyles[alert.type];
+            return (
+              <div
+                key={alert.id}
+                className={`rounded-[10px] p-3 shadow-card border flex gap-3 items-start ${style.card}`}
+              >
+                <div className={`${style.icon} p-2 rounded-lg shrink-0 mt-0.5`}>
+                  <span className={`block h-2.5 w-2.5 rounded-full ${style.dot}`} />
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-xs font-semibold leading-tight ${style.title}`}>{alert.label}</p>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${style.badge}`}>
+                      {alert.value}
+                    </span>
+                  </div>
+                  <p className={`text-[11px] leading-tight mt-0.5 ${style.sub}`}>{alert.subtext}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

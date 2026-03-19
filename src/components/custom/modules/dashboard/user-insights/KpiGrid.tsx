@@ -44,35 +44,15 @@ function KpiCard({ data }: { data: KpiData }) {
   );
 }
 
-function KpiSkeleton() {
-  return (
-    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 animate-pulse">
-      <div className="h-3 w-20 bg-gray-200 rounded" />
-      <div className="h-7 w-12 bg-gray-200 rounded" />
-      <div className="h-3 w-24 bg-gray-200 rounded" />
-      <div className="h-1.5 w-full bg-gray-200 rounded-full mt-1" />
-    </div>
-  );
-}
 
 interface KpiGridProps {
   date: string;
 }
 
 export default function KpiGrid({ date }: KpiGridProps) {
-  const loading = useUserInsightsStore((s) => s.loading);
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
 
   const summary = insightsDailySummaryCache[date];
-
-  if (loading && !summary) {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)}
-      </div>
-    );
-  }
-
   const totalStaff = summary?.totalStaff ?? 0;
 
   const kpiData: KpiData[] = [
