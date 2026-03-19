@@ -1,10 +1,7 @@
 import { apiRequest } from "@/src/lib/apiHandler";
 
-// Analytics API
-
-export interface SparkAnalyticsResponse {
-  message: string;
-  data: SparkAnalyticsData;
+function buildDateParam(date?: string): string {
+  return date ? `date=${date}` : "";
 }
 
 export interface SparkAnalyticsData {
@@ -61,13 +58,6 @@ export interface SparkAnalyticsData {
   };
 }
 
-// Alerts API 
-
-export interface SparkAlertsResponse {
-  message: string;
-  data: SparkAlertsData;
-}
-
 export interface SparkAlertsData {
   targetDate: string;
   no_checkin_today: number;
@@ -80,13 +70,6 @@ export interface SparkAlertsData {
   geofence_violations: number;
   unapproved_wfh: number;
   consecutive_absent_3plus: number;
-}
-
-// Early Departure API
-
-export interface SparkEarlyDespatchResponse {
-  message: string;
-  data: SparkEarlyDespatchData;
 }
 
 export interface SparkEarlyDespatchData {
@@ -108,21 +91,95 @@ export interface SparkEarlyDespatchData {
   }>;
 }
 
-function buildDateParam(date?: string): string {
-  return date ? `date=${date}` : "";
+/** GET /dashboard/sparkTodayandTotal → totals + today */
+async function fetchTodayAndTotal(date?: string): Promise<Pick<SparkAnalyticsData, "totals" | "today">> {
+  const response = await apiRequest(
+    `/dashboard/sparkTodayandTotal?${buildDateParam(date)}`,
+    "GET"
+  );
+  if (!response?.data) throw new Error("No sparkTodayandTotal data returned");
+  return {
+    totals: response.data.totals,
+    today: response.data.today,
+  };
+}
+
+/** GET /dashboard/sparkHourlyTrend → hourlyTrend */
+async function fetchHourlyTrend(date?: string): Promise<Pick<SparkAnalyticsData, "hourlyTrend">> {
+  const response = await apiRequest(
+    `/dashboard/sparkHourlyTrend?${buildDateParam(date)}`,
+    "GET"
+  );
+  if (!response?.data) throw new Error("No sparkHourlyTrend data returned");
+  return { hourlyTrend: response.data.hourlyTrend };
+}
+
+/** GET /dashboard/sparkAttendanceSplit → attendanceSplit */
+async function fetchAttendanceSplit(date?: string): Promise<Pick<SparkAnalyticsData, "attendanceSplit">> {
+  const response = await apiRequest(
+    `/dashboard/sparkAttendanceSplit?${buildDateParam(date)}`,
+    "GET"
+  );
+  if (!response?.data) throw new Error("No sparkAttendanceSplit data returned");
+  return { attendanceSplit: response.data.attendanceSplit };
+}
+
+/** GET /dashboard/sparkDepartmentAttendance → departmentAttendance */
+async function fetchDepartmentAttendance(date?: string): Promise<Pick<SparkAnalyticsData, "departmentAttendance">> {
+  const response = await apiRequest(
+    `/dashboard/sparkDepartmentAttendance?${buildDateParam(date)}`,
+    "GET"
+  );
+  if (!response?.data) throw new Error("No sparkDepartmentAttendance data returned");
+  return { departmentAttendance: response.data.departmentAttendance };
+}
+
+/** GET /dashboard/sparkWeeklyTrend → weeklyTrend */
+async function fetchWeeklyTrend(date?: string): Promise<Pick<SparkAnalyticsData, "weeklyTrend">> {
+  const response = await apiRequest(
+    `/dashboard/sparkWeeklyTrend?${buildDateParam(date)}`,
+    "GET"
+  );
+  if (!response?.data) throw new Error("No sparkWeeklyTrend data returned");
+  return { weeklyTrend: response.data.weeklyTrend };
+}
+
+/** GET /dashboard/sparkOvertime → overtime */
+async function fetchOvertime(date?: string): Promise<Pick<SparkAnalyticsData, "overtime">> {
+  const response = await apiRequest(
+    `/dashboard/sparkOvertime?${buildDateParam(date)}`,
+    "GET"
+  );
+  if (!response?.data) throw new Error("No sparkOvertime data returned");
+  return { overtime: response.data.overtime };
 }
 
 export const getUserInsightsData = async (date?: string): Promise<SparkAnalyticsData> => {
-  const response = await apiRequest(
-    `/dashboard/analytics?${buildDateParam(date)}`,
-    "GET"
-  );
+  const [
+    todayAndTotal,
+    hourlyTrend,
+    attendanceSplit,
+    departmentAttendance,
+    weeklyTrend,
+    overtime,
+  ] = await Promise.all([
+    fetchTodayAndTotal(date),
+    fetchHourlyTrend(date),
+    fetchAttendanceSplit(date),
+    fetchDepartmentAttendance(date),
+    fetchWeeklyTrend(date),
+    fetchOvertime(date),
+  ]);
 
-  if (!response?.data) {
-    throw new Error("No analytics data returned");
-  }
-
-  return response.data;
+  return {
+    totals: todayAndTotal.totals,
+    today: todayAndTotal.today,
+    hourlyTrend: hourlyTrend.hourlyTrend,
+    attendanceSplit: attendanceSplit.attendanceSplit,
+    departmentAttendance: departmentAttendance.departmentAttendance,
+    weeklyTrend: weeklyTrend.weeklyTrend,
+    overtime: overtime.overtime,
+  };
 };
 
 export const getUserAlertsData = async (date?: string): Promise<SparkAlertsData> => {
@@ -130,11 +187,7 @@ export const getUserAlertsData = async (date?: string): Promise<SparkAlertsData>
     `/dashboard/alerts?${buildDateParam(date)}`,
     "GET"
   );
-
-  if (!response?.data) {
-    throw new Error("No alerts data returned");
-  }
-
+  if (!response?.data) throw new Error("No alerts data returned");
   return response.data;
 };
 
@@ -143,10 +196,6 @@ export const getEarlyDespatchData = async (date?: string): Promise<SparkEarlyDes
     `/dashboard/early-despatch?${buildDateParam(date)}`,
     "GET"
   );
-
-  if (!response?.data) {
-    throw new Error("No early despatch data returned");
-  }
-
+  if (!response?.data) throw new Error("No early despatch data returned");
   return response.data;
 };
