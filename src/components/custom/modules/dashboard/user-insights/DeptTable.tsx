@@ -44,7 +44,6 @@ interface DeptTableProps {
 }
 
 export default function DeptTable({ date }: DeptTableProps) {
-  const loading = useUserInsightsStore((s) => s.loading);
   const insightsDeptAttendanceCache = useUserInsightsStore((s) => s.insightsDeptAttendanceCache);
 
   const deptData: DeptRow[] = insightsDeptAttendanceCache[date] ?? [];
@@ -52,13 +51,7 @@ export default function DeptTable({ date }: DeptTableProps) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6">
       <h5 className="text-lg text-text-primary font-bold pb-2">Attendance by Department</h5>
-      {loading && deptData.length === 0 ? (
-        <div className="flex flex-col gap-3 animate-pulse">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-8 bg-gray-200 rounded" />
-          ))}
-        </div>
-      ) : deptData.length === 0 ? (
+      {deptData.length === 0 ? (
         <p className="text-sm text-text-secondary text-center py-6">No department data for this date</p>
       ) : (
         <table className="w-full text-sm table-fixed">

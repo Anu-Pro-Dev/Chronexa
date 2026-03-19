@@ -35,7 +35,6 @@ function donutArcPath(cx: number, cy: number, r: number, innerR: number, startDe
 }
 
 export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps) {
-  const loading    = useUserInsightsStore((s) => s.loading);
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const summary    = insightsDailySummaryCache[date];
 
@@ -59,64 +58,58 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <h5 className="text-lg text-text-primary font-bold pb-4">Today's Attendance Split</h5>
 
-      {loading && !summary ? (
-        <div className="flex items-center justify-center h-[140px] animate-pulse">
-          <div className="h-[120px] w-[120px] rounded-full bg-border" />
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-4">
-          {/* Donut */}
-          <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
-            <defs>
-              {arcs.map((arc) => {
-                const p1 = polarToCartesian(CX, CY, R, arc.start);
-                const p2 = polarToCartesian(CX, CY, R, arc.end);
-                return (
-                  <linearGradient
-                    key={arc.key}
-                    id={`grad-${arc.key}`}
-                    x1={p1.x / SIZE} y1={p1.y / SIZE}
-                    x2={p2.x / SIZE} y2={p2.y / SIZE}
-                    gradientUnits="objectBoundingBox"
-                  >
-                    <stop offset="0%"   stopColor={arc.from} />
-                    <stop offset="100%" stopColor={arc.to}   />
-                  </linearGradient>
-                );
-              })}
-              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#00000022" />
-              </filter>
-            </defs>
+      <div className="flex flex-col items-center gap-4">
+        {/* Donut */}
+        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
+          <defs>
+            {arcs.map((arc) => {
+              const p1 = polarToCartesian(CX, CY, R, arc.start);
+              const p2 = polarToCartesian(CX, CY, R, arc.end);
+              return (
+                <linearGradient
+                  key={arc.key}
+                  id={`grad-${arc.key}`}
+                  x1={p1.x / SIZE} y1={p1.y / SIZE}
+                  x2={p2.x / SIZE} y2={p2.y / SIZE}
+                  gradientUnits="objectBoundingBox"
+                >
+                  <stop offset="0%"   stopColor={arc.from} />
+                  <stop offset="100%" stopColor={arc.to}   />
+                </linearGradient>
+              );
+            })}
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#00000022" />
+            </filter>
+          </defs>
 
-            {arcs.map((arc) => (
-              <path
-                key={arc.key}
-                d={donutArcPath(CX, CY, R, INNER_R, arc.start, arc.end)}
-                fill={`url(#grad-${arc.key})`}
-                filter="url(#shadow)"
-              />
-            ))}
-            <circle cx={CX} cy={CY} r={INNER_R - 2} fill="var(--accent)" />
-          </svg>
+          {arcs.map((arc) => (
+            <path
+              key={arc.key}
+              d={donutArcPath(CX, CY, R, INNER_R, arc.start, arc.end)}
+              fill={`url(#grad-${arc.key})`}
+              filter="url(#shadow)"
+            />
+          ))}
+          <circle cx={CX} cy={CY} r={INNER_R - 2} fill="var(--accent)" />
+        </svg>
 
-          {/* Legend — 2-column grid below donut */}
-          <div className="w-full grid gap-x-4 gap-y-2">
-            {arcs.map((arc) => (
-              <div key={arc.key} className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 text-text-secondary">
-                  <span
-                    className="inline-block h-2 w-2 rounded-full shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${arc.from}, ${arc.to})` }}
-                  />
-                  {arc.label}
-                </span>
-                <span className="font-semibold text-text-primary">{arc.value}</span>
-              </div>
-            ))}
-          </div>
+        {/* Legend — 2-column grid below donut */}
+        <div className="w-full grid gap-x-4 gap-y-2">
+          {arcs.map((arc) => (
+            <div key={arc.key} className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-1.5 text-text-secondary">
+                <span
+                  className="inline-block h-2 w-2 rounded-full shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${arc.from}, ${arc.to})` }}
+                />
+                {arc.label}
+              </span>
+              <span className="font-semibold text-text-primary">{arc.value}</span>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
       <div className="border-t border-border py-2 flex justify-between text-xs">
         <span className="text-text-secondary">Total Users</span>

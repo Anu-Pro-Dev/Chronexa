@@ -42,7 +42,6 @@ interface WeeklyTrendChartProps {
 }
 
 export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
-  const loading = useUserInsightsStore((s) => s.loading);
   const insightsWeeklyTrendCache = useUserInsightsStore((s) => s.insightsWeeklyTrendCache);
 
   const weekStart = getWeekStartStr(date);
@@ -93,37 +92,33 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
       </div>
 
       {/* Chart */}
-      {loading && rawData.length === 0 ? (
-        <div className="h-[240px] mx-4 bg-border rounded animate-pulse" />
-      ) : (
-        <ChartContainer config={chartConfig} className="relative w-full h-[240px] -left-[10px]">
-          <BarChart data={chartData} barSize={28} barCategoryGap="35%">
-            <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
-            <XAxis
-              dataKey="day"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tick={{ fontSize: 12, fill: "var(--text-secondary)" }}
-              interval={0}
-            />
-            <YAxis
-              type="number"
-              tickLine={false}
-              tickMargin={4}
-              axisLine={false}
-              tick={{ fontSize: 11, fill: "var(--text-secondary)" }}
-            />
-            <ChartTooltip
-              cursor={{ fill: "rgba(55, 138, 221, 0.06)", radius: 6 }}
-              content={<ChartTooltipContent />}
-            />
-            <Bar dataKey="present" stackId="a" fill="var(--color-present)" radius={[0, 0, 4, 4]} name="Present" activeBar={{ fill: COLORS.present.hover }} />
-            <Bar dataKey="absent" stackId="a" fill="var(--color-absent)" radius={[0, 0, 0, 0]} name="Absent" activeBar={{ fill: COLORS.absent.hover }} />
-            <Bar dataKey="onLeave" stackId="a" fill="var(--color-onLeave)" radius={[4, 4, 0, 0]} name="On Leave" activeBar={{ fill: COLORS.onLeave.hover }} />
-          </BarChart>
-        </ChartContainer>
-      )}
+      <ChartContainer config={chartConfig} className="relative w-full h-[240px] -left-[10px]">
+        <BarChart data={chartData} barSize={28} barCategoryGap="35%">
+          <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
+          <XAxis
+            dataKey="day"
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+            tick={{ fontSize: 12, fill: "var(--text-secondary)" }}
+            interval={0}
+          />
+          <YAxis
+            type="number"
+            tickLine={false}
+            tickMargin={4}
+            axisLine={false}
+            tick={{ fontSize: 11, fill: "var(--text-secondary)" }}
+          />
+          <ChartTooltip
+            cursor={{ fill: "rgba(55, 138, 221, 0.06)", radius: 6 }}
+            content={<ChartTooltipContent />}
+          />
+          <Bar dataKey="present" stackId="a" fill="var(--color-present)" radius={[0, 0, 4, 4]} name="Present" activeBar={{ fill: COLORS.present.hover }} />
+          <Bar dataKey="absent" stackId="a" fill="var(--color-absent)" radius={[0, 0, 0, 0]} name="Absent" activeBar={{ fill: COLORS.absent.hover }} />
+          <Bar dataKey="onLeave" stackId="a" fill="var(--color-onLeave)" radius={[4, 4, 0, 0]} name="On Leave" activeBar={{ fill: COLORS.onLeave.hover }} />
+        </BarChart>
+      </ChartContainer>
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3 px-4 pb-3 pt-3">

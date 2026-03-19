@@ -15,7 +15,6 @@ interface OvertimeCardProps {
 }
 
 export default function OvertimeCard({ date }: OvertimeCardProps) {
-  const loading = useUserInsightsStore((s) => s.loading);
   const insightsOvertimeCache = useUserInsightsStore((s) => s.insightsOvertimeCache);
 
   const overtime = insightsOvertimeCache[date];
@@ -58,33 +57,22 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <h5 className="text-lg text-text-primary font-bold">Overtime & Hours Worked</h5>
-      {loading && !overtime ? (
-        <div className="flex flex-col gap-4 animate-pulse">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-1.5">
-              <div className="h-3.5 bg-gray-200 rounded w-3/4" />
-              <div className="h-2.5 bg-gray-200 rounded-full w-full" />
+      <div className="flex flex-col gap-4">
+        {overtimeData.map((row) => (
+          <div key={row.label} className="flex flex-col gap-1.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-text-secondary font-medium">{row.label}</span>
+              <span className="font-semibold text-text-primary">{row.value}</span>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {overtimeData.map((row) => (
-            <div key={row.label} className="flex flex-col gap-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="text-text-secondary font-medium">{row.label}</span>
-                <span className="font-semibold text-text-primary">{row.value}</span>
-              </div>
-              <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${row.percentage}%`, backgroundColor: row.color }}
-                />
-              </div>
+            <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${row.percentage}%`, backgroundColor: row.color }}
+              />
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
