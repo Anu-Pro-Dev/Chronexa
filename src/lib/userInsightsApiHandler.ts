@@ -9,6 +9,10 @@ export interface SparkAnalyticsData {
     totalEmployees: number;
     employeesInUse: number;
     noAppLogin: number;
+    licenseCounts:{
+      withLicense: number;
+      withoutLicense: number;
+    };
   };
   today: {
     checkIns: number;
