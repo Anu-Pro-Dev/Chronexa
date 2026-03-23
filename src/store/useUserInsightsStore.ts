@@ -157,6 +157,7 @@ export interface UserInsightsState {
   loading: boolean;
   loadingAlerts: boolean;
   loadingEarlyDespatch: boolean;
+  loadingDate: string | null;
   error: string | null;
   alertsError: string | null;
   earlyDespatchError: string | null;
@@ -189,6 +190,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   loading: false,
   loadingAlerts: false,
   loadingEarlyDespatch: false,
+  loadingDate: null,
   loadingUserInsights: false,
   error: null,
   alertsError: null,
@@ -267,12 +269,18 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   },
 
   fetchAllData: async (date?: string) => {
+    const resolvedDate = date ?? new Date().toISOString().split("T")[0];
+    const { loading, loadingDate } = get();
+    if (loading && loadingDate === resolvedDate) return;
+
+    set({ loadingDate: resolvedDate });
     const { fetchData, fetchAlertsData, fetchEarlyDespatchData } = get();
     await Promise.all([
       fetchData(date),
       fetchAlertsData(date),
       fetchEarlyDespatchData(date),
     ]);
+    set({ loadingDate: null });
   },
 
   clearData: () => {
@@ -283,6 +291,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
       loading: false,
       loadingAlerts: false,
       loadingEarlyDespatch: false,
+      loadingDate: null,
       loadingUserInsights: false,
       error: null,
       alertsError: null,
