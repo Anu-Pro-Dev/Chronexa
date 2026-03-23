@@ -16,8 +16,10 @@ type DailySummary = {
   checkOuts: number;
   presentCount: number;
   missedIn: number;
+  withLicense: number;
   missedOut: number;
   onLeave: number;
+  
   absentCount: number;
   noAppLogin: number;
   present: number;
@@ -96,6 +98,7 @@ function _mapAnalyticsToCache(data: SparkAnalyticsData, today: string, weekStart
     checkIns: data.today.checkIns,
     checkOuts: data.today.checkOuts,
     presentCount: data.today.presentCount,
+    withLicense: data.totals.licenseCounts.withLicense,
     missedIn: data.today.missedIn,
     missedOut: data.today.missedOut,
     onLeave: data.today.onLeave,
@@ -133,7 +136,7 @@ function _mapAnalyticsToCache(data: SparkAnalyticsData, today: string, weekStart
     earlyDepartures: data.overtime.earlyDepartures,
     shiftCoverage: data.overtime.shiftCoverage,
     weekAttendanceRate: data.overtime.weekAttendanceRate,
-    expectedHours: 8,
+    expectedHours: 12,
     totalStaff: totalEmployees,
   };
 
