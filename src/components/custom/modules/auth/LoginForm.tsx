@@ -22,6 +22,7 @@ import { loginRequest, forgotPasswordRequest } from "@/src/lib/apiHandler";
 import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import { useShowToast } from "@/src/utils/toastHelper";
 import ThreeDotsLoader from "@/src/animations/ThreeDotsLoader";
+import { usePostLoginRedirect } from "@/src/hooks/usePostLoginRedirect";
 
 export const useLoginFormSchema = () => {
   const { t } = useLiteLanguage();
@@ -74,14 +75,19 @@ export default function LoginForm() {
   });
 
   const router = useRouter();
+  const { redirectAfterLogin } = usePostLoginRedirect();
 
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
       loginRequest(values.username, values.password, values.remember_me),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       if (response?.token) {
         showToast("success", "login_success");
-        router.push("/dashboard");
+        const roleId =
+          response?.user?.roleId ??
+          response?.user?.role_id ??
+          null;
+        await redirectAfterLogin(roleId);
       } else {
         loginForm.setError("username", {
           type: "manual",
