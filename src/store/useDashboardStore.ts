@@ -198,6 +198,12 @@ export const useDashboardStore = create<DashboardStore>()(
       },
 
       fetchDashboardData: async () => {
+        const { attendanceDetails, workSchedule } = get();
+        if (attendanceDetails && workSchedule) {
+          set({ loadingDashboard: false });
+          return;
+        }
+
         set({ loadingDashboard: true, errorDashboard: null });
 
         try {
