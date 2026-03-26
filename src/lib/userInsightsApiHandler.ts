@@ -4,12 +4,18 @@ function buildDateParam(date?: string): string {
   return date ? `date=${date}` : "";
 }
 
-export interface SparkAnalyticsData {
+export interface OrganizationInfo {
+  id: number;
+  name: string;
+}
+
+export interface OrganizationAnalyticsData {
+  organization: OrganizationInfo;
   totals: {
     totalEmployees: number;
     employeesInUse: number;
     noAppLogin: number;
-    licenseCounts:{
+    licenseCounts: {
       withLicense: number;
       withoutLicense: number;
     };
@@ -41,6 +47,12 @@ export interface SparkAnalyticsData {
   departmentAttendance: Array<{
     department: string;
     present: number;
+    absent: number;
+    onLeave: number;
+    missedIn: number;
+    missedOut: number;
+    checkin: number;
+    checkout: number;
     total: number;
     rate: number;
   }>;
@@ -59,10 +71,11 @@ export interface SparkAnalyticsData {
     earlyDepartures: number;
     shiftCoverage: number;
     weekAttendanceRate: number;
+    requiredHours: number;
   };
 }
 
-export interface SparkAlertsData {
+export interface OrganizationAlertsData {
   targetDate: string;
   no_checkin_today: number;
   missing_checkout_yesterday: number;
@@ -76,7 +89,7 @@ export interface SparkAlertsData {
   consecutive_absent_3plus: number;
 }
 
-export interface SparkEarlyDespatchData {
+export interface OrganizationEarlyDespatchData {
   targetDate: string;
   thresholdMinutes: number;
   summary: {
@@ -91,93 +104,144 @@ export interface SparkEarlyDespatchData {
     dailyMissedHrs: string;
     earlyMinutes: number;
     earlyLabel: string;
-    severity: "HIGH" | "MEDIUM" | "LOW";
+    severity: "HIGH" | "MEDIUM" | "LOW" | "MINIMAL";
   }>;
 }
 
-/** GET /dashboard/sparkTodayandTotal → totals + today */
-async function fetchTodayAndTotal(date?: string): Promise<Pick<SparkAnalyticsData, "totals" | "today">> {
+export interface OrganizationListItem {
+  id: number;
+  name: string;
+  employeeCount: number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Organization List
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** GET /dashboard/userinsights/org/list → list of all organizations */
+export async function fetchOrganizationList(): Promise<OrganizationListItem[]> {
   const response = await apiRequest(
-    `/dashboard/sparkTodayandTotal?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/list`,
     "GET"
   );
-  if (!response?.data) throw new Error("No sparkTodayandTotal data returned");
+  if (!response?.data?.organizations) throw new Error("No organization list data returned");
+  return response.data.organizations;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Individual Endpoint Fetchers (with organization_id)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** GET /dashboard/userinsights/org/:orgId/totals-today → organization + totals + today */
+async function fetchTotalsAndToday(
+  orgId: number,
+  date?: string
+): Promise<Pick<OrganizationAnalyticsData, "organization" | "totals" | "today">> {
+  const response = await apiRequest(
+    `/dashboard/userinsights/org/${orgId}/totals-today?${buildDateParam(date)}`,
+    "GET"
+  );
+  if (!response?.data) throw new Error("No totals-today data returned");
   return {
+    organization: response.data.organization,
     totals: response.data.totals,
     today: response.data.today,
   };
 }
 
-/** GET /dashboard/sparkHourlyTrend → hourlyTrend */
-async function fetchHourlyTrend(date?: string): Promise<Pick<SparkAnalyticsData, "hourlyTrend">> {
+/** GET /dashboard/userinsights/org/:orgId/hourly-trend → hourlyTrend */
+async function fetchHourlyTrend(
+  orgId: number,
+  date?: string
+): Promise<Pick<OrganizationAnalyticsData, "hourlyTrend">> {
   const response = await apiRequest(
-    `/dashboard/sparkHourlyTrend?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/${orgId}/hourly-trend?${buildDateParam(date)}`,
     "GET"
   );
-  if (!response?.data) throw new Error("No sparkHourlyTrend data returned");
+  if (!response?.data) throw new Error("No hourly-trend data returned");
   return { hourlyTrend: response.data.hourlyTrend };
 }
 
-/** GET /dashboard/sparkAttendanceSplit → attendanceSplit */
-async function fetchAttendanceSplit(date?: string): Promise<Pick<SparkAnalyticsData, "attendanceSplit">> {
+/** GET /dashboard/userinsights/org/:orgId/attendance-split → attendanceSplit */
+async function fetchAttendanceSplit(
+  orgId: number,
+  date?: string
+): Promise<Pick<OrganizationAnalyticsData, "attendanceSplit">> {
   const response = await apiRequest(
-    `/dashboard/sparkAttendanceSplit?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/${orgId}/attendance-split?${buildDateParam(date)}`,
     "GET"
   );
-  if (!response?.data) throw new Error("No sparkAttendanceSplit data returned");
+  if (!response?.data) throw new Error("No attendance-split data returned");
   return { attendanceSplit: response.data.attendanceSplit };
 }
 
-/** GET /dashboard/sparkDepartmentAttendance → departmentAttendance */
-async function fetchDepartmentAttendance(date?: string): Promise<Pick<SparkAnalyticsData, "departmentAttendance">> {
+/** GET /dashboard/userinsights/org/:orgId/department-attendance → departmentAttendance */
+async function fetchDepartmentAttendance(
+  orgId: number,
+  date?: string
+): Promise<Pick<OrganizationAnalyticsData, "departmentAttendance">> {
   const response = await apiRequest(
-    `/dashboard/sparkDepartmentAttendance?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/${orgId}/department-attendance?${buildDateParam(date)}`,
     "GET"
   );
-  if (!response?.data) throw new Error("No sparkDepartmentAttendance data returned");
+  if (!response?.data) throw new Error("No department-attendance data returned");
   return { departmentAttendance: response.data.departmentAttendance };
 }
 
-/** GET /dashboard/sparkWeeklyTrend → weeklyTrend */
-async function fetchWeeklyTrend(date?: string): Promise<Pick<SparkAnalyticsData, "weeklyTrend">> {
+/** GET /dashboard/userinsights/org/:orgId/weekly-trend → weeklyTrend */
+async function fetchWeeklyTrend(
+  orgId: number,
+  date?: string
+): Promise<Pick<OrganizationAnalyticsData, "weeklyTrend">> {
   const response = await apiRequest(
-    `/dashboard/sparkWeeklyTrend?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/${orgId}/weekly-trend?${buildDateParam(date)}`,
     "GET"
   );
-  if (!response?.data) throw new Error("No sparkWeeklyTrend data returned");
+  if (!response?.data) throw new Error("No weekly-trend data returned");
   return { weeklyTrend: response.data.weeklyTrend };
 }
 
-/** GET /dashboard/sparkOvertime → overtime */
-async function fetchOvertime(date?: string): Promise<Pick<SparkAnalyticsData, "overtime">> {
+/** GET /dashboard/userinsights/org/:orgId/overtime → overtime */
+async function fetchOvertime(
+  orgId: number,
+  date?: string
+): Promise<Pick<OrganizationAnalyticsData, "overtime">> {
   const response = await apiRequest(
-    `/dashboard/sparkOvertime?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/${orgId}/overtime?${buildDateParam(date)}`,
     "GET"
   );
-  if (!response?.data) throw new Error("No sparkOvertime data returned");
+  if (!response?.data) throw new Error("No overtime data returned");
   return { overtime: response.data.overtime };
 }
 
-export const getUserInsightsData = async (date?: string): Promise<SparkAnalyticsData> => {
+// ─────────────────────────────────────────────────────────────────────────────
+// Combined Data Fetcher
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const getUserInsightsData = async (
+  orgId: number,
+  date?: string
+): Promise<OrganizationAnalyticsData> => {
   const [
-    todayAndTotal,
+    totalsAndToday,
     hourlyTrend,
     attendanceSplit,
     departmentAttendance,
     weeklyTrend,
     overtime,
   ] = await Promise.all([
-    fetchTodayAndTotal(date),
-    fetchHourlyTrend(date),
-    fetchAttendanceSplit(date),
-    fetchDepartmentAttendance(date),
-    fetchWeeklyTrend(date),
-    fetchOvertime(date),
+    fetchTotalsAndToday(orgId, date),
+    fetchHourlyTrend(orgId, date),
+    fetchAttendanceSplit(orgId, date),
+    fetchDepartmentAttendance(orgId, date),
+    fetchWeeklyTrend(orgId, date),
+    fetchOvertime(orgId, date),
   ]);
 
   return {
-    totals: todayAndTotal.totals,
-    today: todayAndTotal.today,
+    organization: totalsAndToday.organization,
+    totals: totalsAndToday.totals,
+    today: totalsAndToday.today,
     hourlyTrend: hourlyTrend.hourlyTrend,
     attendanceSplit: attendanceSplit.attendanceSplit,
     departmentAttendance: departmentAttendance.departmentAttendance,
@@ -186,20 +250,39 @@ export const getUserInsightsData = async (date?: string): Promise<SparkAnalytics
   };
 };
 
-export const getUserAlertsData = async (date?: string): Promise<SparkAlertsData> => {
+// ─────────────────────────────────────────────────────────────────────────────
+// Alerts & Early Despatch
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const getUserAlertsData = async (
+  orgId: number,
+  date?: string
+): Promise<OrganizationAlertsData> => {
   const response = await apiRequest(
-    `/dashboard/alerts?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/${orgId}/alerts?${buildDateParam(date)}`,
     "GET"
   );
   if (!response?.data) throw new Error("No alerts data returned");
   return response.data;
 };
 
-export const getEarlyDespatchData = async (date?: string): Promise<SparkEarlyDespatchData> => {
+export const getEarlyDespatchData = async (
+  orgId: number,
+  date?: string
+): Promise<OrganizationEarlyDespatchData> => {
   const response = await apiRequest(
-    `/dashboard/early-despatch?${buildDateParam(date)}`,
+    `/dashboard/userinsights/org/${orgId}/early-despatch?${buildDateParam(date)}`,
     "GET"
   );
   if (!response?.data) throw new Error("No early despatch data returned");
   return response.data;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Legacy Exports (for backward compatibility)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Type aliases for backward compatibility
+export type SparkAnalyticsData = OrganizationAnalyticsData;
+export type SparkAlertsData = OrganizationAlertsData;
+export type SparkEarlyDespatchData = OrganizationEarlyDespatchData;

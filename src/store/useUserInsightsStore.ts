@@ -3,9 +3,10 @@ import {
   getUserInsightsData,
   getUserAlertsData,
   getEarlyDespatchData,
-  SparkAnalyticsData,
-  SparkAlertsData,
-  SparkEarlyDespatchData,
+  OrganizationAnalyticsData,
+  OrganizationAlertsData,
+  OrganizationEarlyDespatchData,
+  OrganizationInfo,
 } from "@/src/lib/userInsightsApiHandler";
 
 // ─── Cache type definitions ───────────────────────────────────────────────────
@@ -19,7 +20,6 @@ type DailySummary = {
   withLicense: number;
   missedOut: number;
   onLeave: number;
-  
   absentCount: number;
   noAppLogin: number;
   present: number;
@@ -81,7 +81,7 @@ type EarlyDespatchEntry = {
     avgEarlyMinutes: number;
     onTimePct: number;
   };
-  topEarlyDepartures: SparkEarlyDespatchData["topEarlyDepartures"];
+  topEarlyDepartures: OrganizationEarlyDespatchData["topEarlyDepartures"];
 };
 
 function toLocalDateStr(d: Date): string {
@@ -99,8 +99,9 @@ function getWeekStartStr(fromDate?: string): string {
   return toLocalDateStr(d);
 }
 
-function _mapAnalyticsToCache(data: SparkAnalyticsData, today: string, weekStart: string) {
+function _mapAnalyticsToCache(data: OrganizationAnalyticsData, today: string, weekStart: string) {
   const totalEmployees = data.totals.totalEmployees;
+  const requiredHours = data.overtime.requiredHours ?? 9;
 
   const dailySummary: DailySummary = {
     totalStaff: totalEmployees,
@@ -158,7 +159,7 @@ function _mapAnalyticsToCache(data: SparkAnalyticsData, today: string, weekStart
     earlyDepartures: data.overtime.earlyDepartures,
     shiftCoverage: data.overtime.shiftCoverage,
     weekAttendanceRate: data.overtime.weekAttendanceRate,
-    expectedHours: 12,
+    expectedHours: requiredHours,
     totalStaff: totalEmployees,
   };
 
@@ -172,9 +173,12 @@ function _mapAnalyticsToCache(data: SparkAnalyticsData, today: string, weekStart
 }
 
 export interface UserInsightsState {
-  data: SparkAnalyticsData | null;
-  alertsData: SparkAlertsData | null;
-  earlyDespatchData: SparkEarlyDespatchData | null;
+  // Organization info
+  currentOrganization: OrganizationInfo | null;
+  
+  data: OrganizationAnalyticsData | null;
+  alertsData: OrganizationAlertsData | null;
+  earlyDespatchData: OrganizationEarlyDespatchData | null;
 
   loading: boolean;
   loadingAlerts: boolean;
@@ -184,14 +188,15 @@ export interface UserInsightsState {
   alertsError: string | null;
   earlyDespatchError: string | null;
 
-  fetchData: (date?: string) => Promise<void>;
-  fetchAlertsData: (date?: string) => Promise<void>;
-  fetchEarlyDespatchData: (date?: string) => Promise<void>;
-  fetchAllData: (date?: string) => Promise<void>;
+  // Fetch functions now require orgId
+  fetchData: (orgId: number, date?: string) => Promise<void>;
+  fetchAlertsData: (orgId: number, date?: string) => Promise<void>;
+  fetchEarlyDespatchData: (orgId: number, date?: string) => Promise<void>;
+  fetchAllData: (orgId: number, date?: string) => Promise<void>;
   clearData: () => void;
 
   loadingUserInsights: boolean;
-  fetchUserInsightsData: (date?: string) => Promise<void>;
+  fetchUserInsightsData: (orgId: number, date?: string) => Promise<void>;
 
   insightsDailySummaryCache: Record<string, DailySummary>;
   insightsHourlyTrendCache: Record<string, HourlyEntry[]>;
@@ -205,6 +210,7 @@ export interface UserInsightsState {
 }
 
 export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
+  currentOrganization: null,
   data: null,
   alertsData: null,
   earlyDespatchData: null,
@@ -226,14 +232,21 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   insightsAlertsCache: {},
   insightsEarlyDespatchCache: {},
 
-  fetchData: async (date?: string) => {
+  fetchData: async (orgId: number, date?: string) => {
     set({ loading: true, loadingUserInsights: true, error: null });
     try {
-      const data = await getUserInsightsData(date);
+      const data = await getUserInsightsData(orgId, date);
       const today = date ?? toLocalDateStr(new Date());
       const weekStart = getWeekStartStr(date);
       const caches = _mapAnalyticsToCache(data, today, weekStart);
-      set({ data, loading: false, loadingUserInsights: false, error: null, ...caches });
+      set({ 
+        data, 
+        currentOrganization: data.organization,
+        loading: false, 
+        loadingUserInsights: false, 
+        error: null, 
+        ...caches 
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to fetch analytics data";
@@ -242,10 +255,10 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     }
   },
 
-  fetchAlertsData: async (date?: string) => {
+  fetchAlertsData: async (orgId: number, date?: string) => {
     set({ loadingAlerts: true, alertsError: null });
     try {
-      const alertsData = await getUserAlertsData(date);
+      const alertsData = await getUserAlertsData(orgId, date);
       const cacheKey = alertsData.targetDate;
       const alertItem: AlertItem = { ...alertsData };
       set((state) => ({
@@ -262,10 +275,10 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     }
   },
 
-  fetchEarlyDespatchData: async (date?: string) => {
+  fetchEarlyDespatchData: async (orgId: number, date?: string) => {
     set({ loadingEarlyDespatch: true, earlyDespatchError: null });
     try {
-      const earlyDespatchData = await getEarlyDespatchData(date);
+      const earlyDespatchData = await getEarlyDespatchData(orgId, date);
       const cacheKey = earlyDespatchData.targetDate;
       const entry: EarlyDespatchEntry = {
         targetDate: earlyDespatchData.targetDate,
@@ -290,7 +303,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     }
   },
 
-  fetchAllData: async (date?: string) => {
+  fetchAllData: async (orgId: number, date?: string) => {
     const resolvedDate = date ?? toLocalDateStr(new Date());
     const { loading, loadingDate } = get();
     if (loading && loadingDate === resolvedDate) return;
@@ -298,15 +311,16 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     set({ loadingDate: resolvedDate });
     const { fetchData, fetchAlertsData, fetchEarlyDespatchData } = get();
     await Promise.all([
-      fetchData(date),
-      fetchAlertsData(date),
-      fetchEarlyDespatchData(date),
+      fetchData(orgId, date),
+      fetchAlertsData(orgId, date),
+      fetchEarlyDespatchData(orgId, date),
     ]);
     set({ loadingDate: null });
   },
 
   clearData: () => {
     set({
+      currentOrganization: null,
       data: null,
       alertsData: null,
       earlyDespatchData: null,
@@ -328,5 +342,5 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     });
   },
 
-  fetchUserInsightsData: (date?: string) => get().fetchData(date),
+  fetchUserInsightsData: (orgId: number, date?: string) => get().fetchData(orgId, date),
 }));
