@@ -34,6 +34,7 @@ type HourlyEntry = {
 
 type WeeklyEntry = {
   day: string;
+  date: string;
   present: number;
   onLeave: number;
   absent: number;
@@ -83,11 +84,19 @@ type EarlyDespatchEntry = {
   topEarlyDepartures: SparkEarlyDespatchData["topEarlyDepartures"];
 };
 
+function toLocalDateStr(d: Date): string {
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 function getWeekStartStr(fromDate?: string): string {
   const d = fromDate ? new Date(fromDate) : new Date();
   const day = d.getDay(); // 0 = Sunday
   d.setDate(d.getDate() - day);
-  return d.toISOString().split("T")[0];
+  return toLocalDateStr(d);
 }
 
 function _mapAnalyticsToCache(data: SparkAnalyticsData, today: string, weekStart: string) {
@@ -114,15 +123,28 @@ function _mapAnalyticsToCache(data: SparkAnalyticsData, today: string, weekStart
     checkouts: h.checkOuts,
   }));
 
-  const weeklyTrend: WeeklyEntry[] = data.weeklyTrend.map((w) => ({
-    day: w.label,
-    present: w.present,
-    onLeave: w.onLeave,
-    absent: w.absent,
-    missedIn: w.missedIn,
-    missedOut: w.missedOut,
-    total: w.total,
-  }));
+  const ALL_DAYS_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const weeklyTrend: WeeklyEntry[] = data.weeklyTrend.map((w) => {
+    // API sends "Today" instead of the actual day name — resolve it from the weekStart date
+    let dayName = w.label;
+    if (dayName === "Today") {
+      const todayDate = new Date(today);
+      dayName = ALL_DAYS_FULL[todayDate.getDay()];
+    }
+    const dayIndex = ALL_DAYS_FULL.indexOf(dayName);
+    const dayDate = new Date(weekStart);
+    if (dayIndex >= 0) dayDate.setDate(dayDate.getDate() + dayIndex);
+    return {
+      day: dayName,
+      date: toLocalDateStr(dayDate),
+      present: w.present,
+      onLeave: w.onLeave,
+      absent: w.absent,
+      missedIn: w.missedIn,
+      missedOut: w.missedOut,
+      total: w.total,
+    };
+  });
 
   const deptAttendance: DeptEntry[] = data.departmentAttendance.map((d) => ({
     name: d.department,
@@ -208,7 +230,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     set({ loading: true, loadingUserInsights: true, error: null });
     try {
       const data = await getUserInsightsData(date);
-      const today = date ?? new Date().toISOString().split("T")[0];
+      const today = date ?? toLocalDateStr(new Date());
       const weekStart = getWeekStartStr(date);
       const caches = _mapAnalyticsToCache(data, today, weekStart);
       set({ data, loading: false, loadingUserInsights: false, error: null, ...caches });
@@ -269,7 +291,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   },
 
   fetchAllData: async (date?: string) => {
-    const resolvedDate = date ?? new Date().toISOString().split("T")[0];
+    const resolvedDate = date ?? toLocalDateStr(new Date());
     const { loading, loadingDate } = get();
     if (loading && loadingDate === resolvedDate) return;
 

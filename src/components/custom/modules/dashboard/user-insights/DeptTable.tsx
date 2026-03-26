@@ -49,7 +49,7 @@ export default function DeptTable({ date }: DeptTableProps) {
   const deptData: DeptRow[] = insightsDeptAttendanceCache[date] ?? [];
 
   return (
-    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6">
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6 h-full">
       <h5 className="text-lg text-text-primary font-bold pb-2">Attendance by Department</h5>
       {deptData.length === 0 ? (
         <p className="text-sm text-text-secondary text-center py-6">No department data for this date</p>

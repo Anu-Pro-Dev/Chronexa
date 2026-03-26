@@ -32,9 +32,27 @@ const LEGEND = [
 
 function getWeekStartStr(fromDate: string): string {
   const d = new Date(fromDate);
-  const day = d.getDay(); // 0 = Sunday
-  d.setDate(d.getDate() - day);
-  return d.toISOString().split("T")[0];
+  const dow = d.getDay(); // 0 = Sunday
+  d.setDate(d.getDate() - dow);
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+
+function CustomXTick({ x, y, payload, index, chartData }: any) {
+  const item = chartData?.[index];
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={12} textAnchor="middle" fontSize={12} fill="var(--text-secondary)" fontWeight={500}>
+        {payload?.value}
+      </text>
+      {item?.dateLabel && (
+        <text x={0} y={0} dy={26} textAnchor="middle" fontSize={10} fill="var(--text-secondary)" opacity={0.65}>
+          {item.dateLabel}
+        </text>
+      )}
+    </g>
+  );
 }
 
 interface WeeklyTrendChartProps {
@@ -51,8 +69,13 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
     const byDay = new Map(rawData.map((d: any) => [d.day, d]));
     return ALL_DAYS.map((day) => {
       const entry = byDay.get(day) as any;
+      // Format date as "Mar 23" for display
+      const dateLabel = entry?.date
+        ? new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        : "";
       return {
         day: day.slice(0, 3),
+        dateLabel,
         present: entry?.present ?? 0,
         onLeave: entry?.onLeave ?? 0,
         absent: entry?.absent ?? 0,
@@ -92,16 +115,17 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
       </div>
 
       {/* Chart */}
-      <ChartContainer config={chartConfig} className="relative w-full h-[240px] -left-[10px]">
+      <ChartContainer config={chartConfig} className="relative w-full h-[260px] -left-[10px]">
         <BarChart data={chartData} barSize={28} barCategoryGap="35%">
           <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
           <XAxis
             dataKey="day"
             tickLine={false}
-            tickMargin={10}
+            tickMargin={6}
             axisLine={false}
-            tick={{ fontSize: 12, fill: "var(--text-secondary)" }}
             interval={0}
+            height={44}
+            tick={<CustomXTick chartData={chartData} />}
           />
           <YAxis
             type="number"

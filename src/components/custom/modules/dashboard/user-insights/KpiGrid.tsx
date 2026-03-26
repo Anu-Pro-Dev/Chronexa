@@ -75,7 +75,7 @@ export default function KpiGrid({ date }: KpiGridProps) {
     {
       label: "License Enabled",
       value: summary?.withLicense ?? 0,
-      subLabel: "license enabled users",
+      subLabel: "licensed users",
       progress: totalStaff > 0 ? Math.round(((summary?.withLicense ?? 0) / totalStaff) * 100) : 0,
       color: "#1DAA61",
       icon: <UserPlusIcon color="#1DAA61" className="w-6 h-6" />,

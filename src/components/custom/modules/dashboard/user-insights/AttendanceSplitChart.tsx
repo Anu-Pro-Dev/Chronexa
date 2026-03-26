@@ -55,7 +55,7 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
   });
 
   return (
-    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 h-full">
       <h5 className="text-lg text-text-primary font-bold pb-4">Today's Attendance Split</h5>
 
       <div className="flex flex-col items-center gap-4">

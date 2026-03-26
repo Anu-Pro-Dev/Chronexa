@@ -20,7 +20,11 @@ export default function UserInsightsPage() {
   
   const summaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const { date } = useSelectedDate();
-  const selectedDate = date.toISOString().split("T")[0];
+  const selectedDate = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
   const hasCache = !!summaryCache[selectedDate];
 
   useEffect(() => {
@@ -38,11 +42,11 @@ export default function UserInsightsPage() {
 
       <HourlyTrendChart date={selectedDate} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        <div className="lg:col-span-2 flex flex-col">
           <DeptTable date={selectedDate} />
         </div>
-        <div>
+        <div className="flex flex-col">
           <AttendanceSplitChart date={selectedDate} />
         </div>
       </div>
