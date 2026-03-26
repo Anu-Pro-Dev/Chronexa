@@ -322,38 +322,38 @@ export default function EmployeeReports() {
   // UPDATED: formatCellValue to handle new column names
   const formatCellValue = (header: string, value: any): string => {
     if (value === null || value === undefined || value === '') return '-';
-    
+
     if (header === 'WorkDate') {
-      try { 
+      try {
         const date = new Date(value);
-        return format(date, 'dd-MM-yyyy'); 
-      } catch { 
-        return value; 
+        return format(date, 'dd-MM-yyyy');
+      } catch {
+        return value;
       }
     }
-    
+
     // PunchIn and PunchOut are already formatted as HH:mm:ss strings from SP
     if (header === 'PunchIn' || header === 'PunchOut') {
       return value || '-';
     }
-    
+
     // Time columns are already formatted as HH:mm:ss strings from SP
     if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) {
       return value || '-';
     }
-    
+
     // IsAbsent contains the status string directly (Absent, WeekOff, WFH, leave remarks, or empty)
     if (header === 'IsAbsent') {
       if (!value || value === '') return 'Present';
       return value;
     }
-    
+
     // MissedPunch contains the status string directly (Missed IN, Missed OUT, or empty)
     if (header === 'MissedPunch') {
       if (!value || value === '') return '-';
       return value;
     }
-    
+
     return String(value);
   };
 
@@ -368,25 +368,25 @@ export default function EmployeeReports() {
       }
       return (parseFloat(strValue) || 0) * 60;
     };
-    
+
     const totals = {
       totalWorkedMinutes: 0,
       totalMissedMinutes: 0,
       totalExtraMinutes: 0,
     };
-    
+
     dataArray.forEach((row: any) => {
       totals.totalWorkedMinutes += parseTimeToMinutes(row.DailyWorkedHrs);
       totals.totalMissedMinutes += parseTimeToMinutes(row.DailyMissedHrs);
       totals.totalExtraMinutes += parseTimeToMinutes(row.DailyExtraWork);
     });
-    
+
     const fmt = (mins: number) => {
       const h = Math.floor(Math.abs(mins) / 60);
       const m = Math.round(Math.abs(mins) % 60);
       return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     };
-    
+
     return {
       totalWorkedHours: fmt(totals.totalWorkedMinutes),
       totalMissedHours: fmt(totals.totalMissedMinutes),
@@ -462,8 +462,11 @@ export default function EmployeeReports() {
       const params = buildQueryParams();
       const url = buildUrl(params, page);
       const response = await apiRequest(url, "GET");
-      const data = Array.isArray(response) ? response : (response?.data || []);
+
+      // Handle the actual API response structure
+      const data = response?.data || [];
       const total = response?.total || data.length;
+
       setReportData(data);
       setTotalRecords(total);
       setCurrentPage(page);
@@ -477,7 +480,7 @@ export default function EmployeeReports() {
       setLoadingReportData(false);
     }
   };
-
+  
   const handleViewReport = async () => {
     try {
       setShowReportView(true);
