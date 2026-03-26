@@ -10,29 +10,29 @@ interface DeptRow {
 }
 
 const DEPT_COLORS = [
-  "#E05C97", 
-  "#FFC107", 
-  "#2A9D8F", 
-  "#E76F51",  
-  "#457B9D", 
-  "#0DCAF0", 
-  "#6A4C93", 
+  "#E05C97",
+  "#FFC107",
+  "#2A9D8F",
+  "#E76F51",
+  "#457B9D",
+  "#0DCAF0",
+  "#6A4C93",
   "#F4D35E",
-  "#0078D4", 
-  "#FF6B2D", 
-  "#1DAA61", 
-  "#7D3FFF", 
-  "#FFBF00", 
-  "#FF3B3B", 
-  "#2AD90F", 
-  "#E6107C", 
-  "#DA153E", 
-  "#158993", 
-  "#1D7A8A", 
-  "#E63946", 
-  "#52B788", 
+  "#0078D4",
+  "#FF6B2D",
+  "#1DAA61",
+  "#7D3FFF",
+  "#FFBF00",
+  "#FF3B3B",
+  "#2AD90F",
+  "#E6107C",
+  "#DA153E",
+  "#158993",
+  "#1D7A8A",
+  "#E63946",
+  "#52B788",
   "#FF9F1C",
-  
+
 ];
 
 function getDeptColor(index: number) {
@@ -46,7 +46,8 @@ interface DeptTableProps {
 export default function DeptTable({ date }: DeptTableProps) {
   const insightsDeptAttendanceCache = useUserInsightsStore((s) => s.insightsDeptAttendanceCache);
 
-  const deptData: DeptRow[] = insightsDeptAttendanceCache[date] ?? [];
+  // const deptData: DeptRow[] = insightsDeptAttendanceCache[date] ?? [];
+  const deptData: DeptRow[] = (insightsDeptAttendanceCache[date] ?? []).slice(0, 6);
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6 h-full">
@@ -69,7 +70,7 @@ export default function DeptTable({ date }: DeptTableProps) {
           </thead>
           <tbody>
             {deptData.map((row, idx) => {
-              const pct   = row.total > 0 ? Math.round((row.present / row.total) * 100) : 0;
+              const pct = row.total > 0 ? Math.round((row.present / row.total) * 100) : 0;
               const color = getDeptColor(idx);
               return (
                 <tr key={row.name} className="border-b border-border/50 last:border-0">
