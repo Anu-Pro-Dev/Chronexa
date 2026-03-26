@@ -273,81 +273,94 @@ export default function EmployeeReports() {
     });
   };
 
+  // UPDATED: headerMap to match sp_employee_daily_report column names
   const headerMap: Record<string, string> = {
-    employee_number: "EmpNo",
-    firstname_eng: "EmployeeName",
-    parent_org_eng: "ParentOrganization",
-    organization_eng: "Organization",
-    department_name_eng: "Department",
-    employee_type: "EmployeeType",
-    transdate: "transdate",
-    WorkDay: "WorkDay",
-    punch_in: "PunchIn",
-    GeoLocation_In: "GeoLocationIn",
-    punch_out: "PunchOut",
-    GeoLocation_Out: "GeoLocationOut",
-    dailyworkhrs: "DailyWorkedHours",
-    DailyMissedHrs: "DailyMissedHours",
-    dailyextrawork: "DailyExtraWork",
-    isabsent: "DayStatus",
+    EmployeeNo: "Emp No",
+    Name: "Employee Name",
+    ParentOrganization: "Parent Organization",
+    Organization: "Organization",
+    Department: "Department",
+    EmployeeType: "Employee Type",
+    WorkDate: "Work Date",
+    WorkDay: "Work Day",
+    Shift: "Shift",
+    PunchIn: "Punch In",
+    GeoLocationIn: "GeoLocation In",
+    PunchOut: "Punch Out",
+    GeoLocationOut: "GeoLocation Out",
+    DailyWorkedHrs: "Daily Worked Hrs",
+    DailyMissedHrs: "Daily Missed Hrs",
+    DailyExtraWork: "Daily Extra Work",
+    IsAbsent: "Day Status",
     MissedPunch: "Missed Punch",
-    EmployeeStatus: "EmployeeStatus",
-  };
-
-  const getDepartmentName = (row: any) => {
-    if (row?.departments?.department_name_eng) {
-      return language === 'ar'
-        ? (row.departments.department_name_arb || row.departments.department_name_eng)
-        : row.departments.department_name_eng;
-    }
-    return row?.department_name_eng || '-';
+    EmployeeStatus: "Employee Status",
+    ManagerName: "Manager Name",
+    CostCode: "Cost Code",
+    CostCenter: "Cost Center",
   };
 
   const isSingleEmployee = selectedEmployees.length === 1;
 
+  // UPDATED: getViewHeaders to use correct column names
   const getViewHeaders = () => {
     if (isSingleEmployee) {
       return [
-        'transdate', 'WorkDay', 'punch_in', 'punch_out',
-        'dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork', 'isabsent', 'MissedPunch',
+        'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'PunchOut',
+        'DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork', 'IsAbsent', 'MissedPunch',
       ];
     }
     return [
-      'employee_number', 'firstname_eng', 'parent_org_eng', 'organization_eng',
-      'department_name_eng', 'employee_type', 'transdate', 'WorkDay',
-      'punch_in', 'punch_out', 'dailyworkhrs', 'DailyMissedHrs',
-      'dailyextrawork', 'isabsent', 'MissedPunch',
+      'EmployeeNo', 'Name', 'ParentOrganization', 'Organization',
+      'Department', 'EmployeeType', 'WorkDate', 'WorkDay', 'Shift',
+      'PunchIn', 'PunchOut', 'DailyWorkedHrs', 'DailyMissedHrs',
+      'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
     ];
   };
 
   const viewHeaders = getViewHeaders();
 
+  // UPDATED: formatCellValue to handle new column names
   const formatCellValue = (header: string, value: any): string => {
-    if (!value && value !== 0) return '-';
-    if (header === 'transdate') {
-      try { return format(new Date(value), 'dd-MM-yyyy'); } catch { return value; }
+    if (value === null || value === undefined || value === '') return '-';
+    
+    if (header === 'WorkDate') {
+      try { 
+        const date = new Date(value);
+        return format(date, 'dd-MM-yyyy'); 
+      } catch { 
+        return value; 
+      }
     }
-    if (header === 'punch_in' || header === 'punch_out') {
-      try { return format(new Date(value), 'HH:mm:ss'); } catch { return value; }
+    
+    // PunchIn and PunchOut are already formatted as HH:mm:ss strings from SP
+    if (header === 'PunchIn' || header === 'PunchOut') {
+      return value || '-';
     }
-    if (['dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
-      if (value === '0' || value === 0) return '00:00:00';
-      const numValue = parseFloat(value);
-      if (isNaN(numValue)) return '00:00:00';
-      const totalSeconds = Math.round(Math.abs(numValue) * 3600);
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Time columns are already formatted as HH:mm:ss strings from SP
+    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) {
+      return value || '-';
     }
-    if (header === 'isabsent') return value ? 'Absent' : 'Present';
-    if (header === 'MissedPunch') return value ? 'Yes' : 'No';
+    
+    // IsAbsent contains the status string directly (Absent, WeekOff, WFH, leave remarks, or empty)
+    if (header === 'IsAbsent') {
+      if (!value || value === '') return 'Present';
+      return value;
+    }
+    
+    // MissedPunch contains the status string directly (Missed IN, Missed OUT, or empty)
+    if (header === 'MissedPunch') {
+      if (!value || value === '') return '-';
+      return value;
+    }
+    
     return String(value);
   };
 
+  // UPDATED: calculateSummaryTotals to use correct column names
   const calculateSummaryTotals = (dataArray: any[]) => {
     const parseTimeToMinutes = (value: any) => {
-      if (!value) return 0;
+      if (!value || value === '-') return 0;
       const strValue = String(value).trim();
       if (strValue.includes(':')) {
         const parts = strValue.split(':').map(Number);
@@ -355,29 +368,32 @@ export default function EmployeeReports() {
       }
       return (parseFloat(strValue) || 0) * 60;
     };
+    
     const totals = {
-      totalLateInMinutes: 0, totalWorkedMinutes: 0, totalEarlyOutMinutes: 0,
-      totalMissedMinutes: 0, totalExtraMinutes: 0,
+      totalWorkedMinutes: 0,
+      totalMissedMinutes: 0,
+      totalExtraMinutes: 0,
     };
+    
     dataArray.forEach((row: any) => {
-      totals.totalLateInMinutes += parseTimeToMinutes(row.late);
-      totals.totalWorkedMinutes += parseTimeToMinutes(row.dailyworkhrs);
-      totals.totalEarlyOutMinutes += parseTimeToMinutes(row.early);
+      totals.totalWorkedMinutes += parseTimeToMinutes(row.DailyWorkedHrs);
       totals.totalMissedMinutes += parseTimeToMinutes(row.DailyMissedHrs);
-      totals.totalExtraMinutes += parseTimeToMinutes(row.dailyextrawork);
+      totals.totalExtraMinutes += parseTimeToMinutes(row.DailyExtraWork);
     });
+    
     const fmt = (mins: number) => {
       const h = Math.floor(Math.abs(mins) / 60);
       const m = Math.round(Math.abs(mins) % 60);
       return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     };
+    
     return {
-      totalLateInHours: fmt(totals.totalLateInMinutes),
       totalWorkedHours: fmt(totals.totalWorkedMinutes),
-      totalEarlyOutHours: fmt(totals.totalEarlyOutMinutes),
       totalMissedHours: fmt(totals.totalMissedMinutes),
       totalExtraHours: fmt(totals.totalExtraMinutes),
-      totalAbsents: "00:00",
+      totalLateInHours: "00:00",      // Not tracked in current SP
+      totalEarlyOutHours: "00:00",    // Not tracked in current SP
+      totalAbsents: dataArray.filter(row => row.IsAbsent === 'Absent').length.toString(),
     };
   };
 
@@ -624,14 +640,16 @@ export default function EmployeeReports() {
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
   const summaryTotals = reportData.length > 0 ? calculateSummaryTotals(reportData) : null;
 
+  // UPDATED: singleEmployeeInfo to use correct column names
   const singleEmployeeInfo = isSingleEmployee && reportData.length > 0
     ? {
-      name: reportData[0]?.firstname_eng,
-      empNo: reportData[0]?.employee_number,
-      company: reportData[0]?.parent_org_eng,
-      division: reportData[0]?.organization_eng,
-      department: getDepartmentName(reportData[0]),
-      type: reportData[0]?.employee_type,
+      name: reportData[0]?.Name,
+      empNo: reportData[0]?.EmployeeNo,
+      company: reportData[0]?.ParentOrganization,
+      division: reportData[0]?.Organization,
+      department: reportData[0]?.Department,
+      type: reportData[0]?.EmployeeType,
+      status: reportData[0]?.EmployeeStatus,
     }
     : null;
 
@@ -1111,16 +1129,6 @@ export default function EmployeeReports() {
                       {translations?.buttons?.export_csv || 'Export CSV'}
                     </Button>
 
-                    {/* <Button
-                      type="button" size="sm"
-                      className="flex items-center gap-2 bg-[#217346] hover:bg-[#1a5c37]"
-                      onClick={() => { handleExportExcel(); setShowReportView(false); }}
-                      disabled={loading}
-                    >
-                      <Download className="w-4 h-4" />
-                      {translations?.buttons?.export_excel || 'Export Excel'}
-                    </Button> */}
-
                     <Button
                       type="button" size="sm"
                       className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
@@ -1167,7 +1175,7 @@ export default function EmployeeReports() {
                 {/* Single employee info card */}
                 {isSingleEmployee && singleEmployeeInfo && (
                   <div className="mb-6 p-4 bg-backdrop rounded-lg border border-grey">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <p className="text-xs text-text-secondary">{t.employee_name || "Employee Name"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.name}</p>
@@ -1181,11 +1189,15 @@ export default function EmployeeReports() {
                         <p className="font-semibold text-primary">{singleEmployeeInfo.type}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-text-secondary">{t.company || "Company"}</p>
+                        <p className="text-xs text-text-secondary">{t.status || "Status"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.status}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.parent_organization || "Parent Organization"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.company}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-text-secondary">{t.division || "Division"}</p>
+                        <p className="text-xs text-text-secondary">{t.organization || "Organization"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.division}</p>
                       </div>
                       <div>
@@ -1215,18 +1227,13 @@ export default function EmployeeReports() {
                       {reportData.map((row, idx) => (
                         <tr key={idx} className="hover:bg-backdrop">
                           {viewHeaders.map((header) => {
-                            let cellValue;
-                            if (header === 'department_name_eng') {
-                              cellValue = getDepartmentName(row);
-                            } else {
-                              cellValue = formatCellValue(header, row[header]);
-                            }
-                            const isAbsent = header === "isabsent" && cellValue === "Absent";
-                            const isMissed = header === "MissedPunch" && cellValue === "Yes";
+                            const cellValue = formatCellValue(header, row[header]);
+                            const isAbsent = header === "IsAbsent" && cellValue !== 'Present' && cellValue !== '-';
+                            const isMissedPunch = header === "MissedPunch" && cellValue !== '-';
                             return (
                               <td
                                 key={header}
-                                className={`border border-grey px-3 py-2 text-xs ${isAbsent || isMissed ? "text-red-600 font-semibold" : ""}`}
+                                className={`border border-grey px-3 py-2 text-xs ${isAbsent || isMissedPunch ? "text-red-600 font-semibold" : ""}`}
                               >
                                 {cellValue}
                               </td>
@@ -1243,13 +1250,12 @@ export default function EmployeeReports() {
                       <h3 className="font-bold text-md text-primary mb-4">
                         {t.summary_totals || "Summary Totals"} ({t.current_page || "Current Page"})
                       </h3>
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
-                          { label: t.total_late_hours || "Total Late Hours", value: summaryTotals.totalLateInHours },
-                          { label: t.total_early_hours || "Total Early Out Hours", value: summaryTotals.totalEarlyOutHours },
-                          { label: t.total_missed_hours || "Total Missed Hours", value: summaryTotals.totalMissedHours },
                           { label: t.total_worked_hours || "Total Worked Hours", value: summaryTotals.totalWorkedHours },
+                          { label: t.total_missed_hours || "Total Missed Hours", value: summaryTotals.totalMissedHours },
                           { label: t.total_extra_hours || "Total Extra Hours", value: summaryTotals.totalExtraHours },
+                          { label: t.total_absents || "Total Absents", value: summaryTotals.totalAbsents },
                         ].map(({ label, value }) => (
                           <div key={label} className="bg-backdrop p-4 rounded-lg">
                             <p className="text-xs text-text-secondary mb-1">{label}</p>

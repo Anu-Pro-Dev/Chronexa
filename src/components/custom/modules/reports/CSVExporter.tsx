@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import Papa from "papaparse";
 import { apiRequest } from "@/src/lib/apiHandler";
-import { formatInTimeZone } from "date-fns-tz";
 
 export interface CSVExporterProps {
   formValues: any;
@@ -26,44 +25,63 @@ export class CSVExporter {
     this.showToast = showToast;
   }
 
+  // UPDATED: Column names to match sp_employee_daily_report
   private getFilteredHeaders() {   
     return [
-      'employee_number',     
-      'firstname_eng',
-      'parent_org_eng',
-      'organization_eng',
-      'department_name_eng',
-      'employee_type',
-      'transdate',
+      'EmployeeNo',
+      'Name',
+      'ParentOrganization',
+      'Organization',
+      'Department',
+      'EmployeeType',
+      'WorkDate',
       'WorkDay',
-      'punch_in',
-      'GeoLocation_In',
-      'punch_out',
-      'GeoLocation_Out',
-      'dailyworkhrs',
+      'Shift',
+      'PunchIn',
+      'GeoLocationIn',
+      'PunchOut',
+      'GeoLocationOut',
+      'DailyWorkedHrs',
       'DailyMissedHrs',
-      'dailyextrawork',
-      'isabsent',
+      'DailyExtraWork',
+      'IsAbsent',
       'MissedPunch',
-      'EmployeeStatus'
+      'EmployeeStatus',
     ];
   }
   
+  // UPDATED: formatCellValue for new column names
   private formatCellValue(header: string, value: any): string {
-    if (header === 'transdate' && value) {
+    if (value === null || value === undefined || value === '') return '';
+    
+    // WorkDate - format as dd-MM-yyyy
+    if (header === 'WorkDate' && value) {
       try {
-        return formatInTimeZone(value, 'UTC', 'dd-MM-yyyy');
+        const date = new Date(value);
+        return format(date, 'dd-MM-yyyy');
       } catch {
         return value;
       }
     }
 
-    if ((header === 'punch_in' || header === 'punch_out') && value) {
-      try {
-        return formatInTimeZone(value, 'UTC', 'HH:mm:ss');
-      } catch {
-        return value;
-      }
+    // PunchIn/PunchOut are already formatted as HH:mm:ss from SP
+    if (header === 'PunchIn' || header === 'PunchOut') {
+      return value || '';
+    }
+
+    // Time columns are already formatted as HH:mm:ss from SP
+    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) {
+      return value || '';
+    }
+
+    // IsAbsent - return as-is (Absent, WeekOff, WFH, leave remarks, or empty)
+    if (header === 'IsAbsent') {
+      return value || '';
+    }
+
+    // MissedPunch - return as-is (Missed IN, Missed OUT, or empty)
+    if (header === 'MissedPunch') {
+      return value || '';
     }
 
     return value || '';
@@ -110,12 +128,10 @@ export class CSVExporter {
   private buildUrl(params: Record<string, string>): string {
     const queryParts: string[] = [];
 
-    // employee_ids — comma-separated, same as main component
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
       queryParts.push(`employee_ids=${this.formValues.employee_ids.join(',')}`);
     }
 
-    // employee_type_ids — comma-separated, same as main component
     if (this.formValues.employee_type_ids && this.formValues.employee_type_ids.length > 0) {
       queryParts.push(`employee_type_ids=${this.formValues.employee_type_ids.join(',')}`);
     }
@@ -279,23 +295,21 @@ export class CSVExporter {
       formattedData.push({});
       
       const summaryHeader: any = {};
-      summaryHeader[this.headerMap['employee_number']] = 'SUMMARY TOTALS';
+      summaryHeader[this.headerMap['EmployeeNo'] || 'Emp No'] = 'SUMMARY TOTALS';
       formattedData.push(summaryHeader);
       
       formattedData.push({
-        [this.headerMap['employee_number']]: 'Total Late In Hours',
-        [this.headerMap['firstname_eng']]: summaryTotals.totalLateInHours,
-        [this.headerMap['organization_eng']]: 'Total Early Out Hours',
-        [this.headerMap['transdate']]: summaryTotals.totalEarlyOutHours,
-        [this.headerMap['punch_in']]: 'Total Missed Hours',
-        [this.headerMap['punch_out']]: summaryTotals.totalMissedHours,
+        [this.headerMap['EmployeeNo'] || 'Emp No']: 'Total Worked Hours',
+        [this.headerMap['Name'] || 'Employee Name']: summaryTotals.totalWorkedHours,
+        [this.headerMap['Organization'] || 'Organization']: 'Total Missed Hours',
+        [this.headerMap['WorkDate'] || 'Work Date']: summaryTotals.totalMissedHours,
+        [this.headerMap['PunchIn'] || 'Punch In']: 'Total Extra Hours',
+        [this.headerMap['PunchOut'] || 'Punch Out']: summaryTotals.totalExtraHours,
       });
       
       formattedData.push({
-        [this.headerMap['employee_number']]: 'Total Worked Hours',
-        [this.headerMap['firstname_eng']]: summaryTotals.totalWorkedHours,
-        [this.headerMap['organization_eng']]: 'Total Extra Hours',
-        [this.headerMap['transdate']]: summaryTotals.totalExtraHours,
+        [this.headerMap['EmployeeNo'] || 'Emp No']: 'Total Absents',
+        [this.headerMap['Name'] || 'Employee Name']: summaryTotals.totalAbsents,
       });
 
       this.onProgress?.(allData.length, allData.length, 'generating');
