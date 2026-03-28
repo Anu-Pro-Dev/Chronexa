@@ -102,7 +102,7 @@ export default function AddLocations({
           language === "en"
             ? selectedRowData.location_eng ?? ""
             : selectedRowData.location_arb ?? "",
-        radius: selectedRowData.radius ?? "",
+        radius: selectedRowData.radius != null ? String(selectedRowData.radius) : "",
         country_code: selectedRowData.country_code ?? "",
         city: selectedRowData.city ?? "",
         geolocation: geolocationStr,
@@ -273,12 +273,16 @@ export default function AddLocations({
                   <FormLabel>{t.radius}</FormLabel>
                   <FormControl>
                     <Input
-                      type="string"
+                      type="text"
                       maxLength={5}
                       placeholder={t.placeholder_radius}
                       {...field}
                     />
                   </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.radius}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />

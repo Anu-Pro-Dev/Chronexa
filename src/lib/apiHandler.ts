@@ -162,7 +162,8 @@ export const addLocationRequest = async (data: {
 export const editLocationRequest = async (data: {
   location_id?: number;
   location_code: string;
-
+  location_eng?: string;
+  location_arb?: string;
   city?: string;
   region_name?: string;
   country_code?: string;

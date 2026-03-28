@@ -111,7 +111,12 @@ export default function Page() {
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["citizenship"] });
   };
-  
+
+  const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
+    setOpen(true);
+  }, []);
+
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -134,6 +139,7 @@ export default function Page() {
       />
       <PowerTable
         props={props}
+        onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
       />
