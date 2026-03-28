@@ -100,8 +100,12 @@ export default function EmployeeOnboardingPage({
   };
 
   useEffect(() => {
+    fetchRolesIfNeeded();
+  }, []);
+
+  useEffect(() => {
     if (initializedRef.current) return;
-    
+
     if (mode === "add") {
       clearSelectedRowData();
       initializedRef.current = true;

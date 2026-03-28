@@ -60,26 +60,16 @@ export default function OfficialForm({
   });
   const { data: grades, isLoading: loadingGrades } = useFetchAllEntity("grade", { removeAll: true });
 
-  const getManagerSearchParams = () => {
-    const params: any = {
-      manager_flag: "true",
-      limit: "1000",
-      offset: "1"
-    };
-    if (selectedOrganization) {
-      params.organization_id = selectedOrganization;
-    }
-    return { searchParams: params };
-  };
-
   const { data: managerEmployees, isLoading: loadingManagers } = useFetchAllEntity(
     "employee",
-    (selectedOrganization) ? getManagerSearchParams() : {
+    {
       searchParams: {
         manager_flag: "true",
         limit: "1000",
-        offset: "1"
-      }
+        offset: "1",
+        ...(selectedOrganization ? { organization_id: String(selectedOrganization) } : {}),
+      },
+      enabled: openManager,
     }
   );
 
