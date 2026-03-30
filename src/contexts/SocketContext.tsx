@@ -18,45 +18,36 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔍 SocketProvider mounted - checking auth...');
-    
     const token = getAuthToken();
-    console.log('Token from getAuthToken():', token ? 'Found' : 'Not found');
-    
     const userDataStr = localStorage.getItem('user') || sessionStorage.getItem('user');
-    console.log('user from storage:', userDataStr ? 'Found' : 'Not found');
-    
+
     if (token && userDataStr) {
       try {
         const userData = JSON.parse(userDataStr);
-        console.log('✅ Parsed user data:', userData);
         setAuthToken(token);
         setUserId(userData.userId?.toString());
-        console.log('✅ Socket auth loaded for userId:', userData.userId);
       } catch (error) {
-        console.error('❌ Failed to parse user data:', error);
+        // Failed to parse user data
       }
-    } else {
-      console.warn('⚠️ Missing auth data - Token:', !!token, 'UserData:', !!userDataStr);
     }
   }, []);
 
-  const authConfig = useMemo(() => {
-    console.log('📦 Auth config:', { hasToken: !!authToken, userId });
-    return {
-      token: authToken,
-      userId: userId,
-    };
-  }, [authToken, userId]);
+  const authConfig = useMemo(() => ({
+    token: authToken,
+    userId: userId,
+  }), [authToken, userId]);
 
   const socketData = useSocketIO({ auth: authConfig });
 
-  useEffect(() => {
-    console.log('🔌 Socket connection status:', socketData.isConnected);
-  }, [socketData.isConnected]);
+  const contextValue = useMemo(() => ({
+    socket: socketData.socket,
+    isConnected: socketData.isConnected,
+    emit: socketData.emit,
+    on: socketData.on,
+  }), [socketData.socket, socketData.isConnected, socketData.emit, socketData.on]);
 
   return (
-    <SocketContext.Provider value={socketData}>
+    <SocketContext.Provider value={contextValue}>
       {children}
     </SocketContext.Provider>
   );

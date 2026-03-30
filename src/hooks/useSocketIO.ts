@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 interface UseSocketIOProps {
   auth?: {
     token?: string | null;
@@ -14,11 +16,8 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
 
   useEffect(() => {
     if (!auth?.token || !auth?.userId) {
-      console.log('⚠️ No auth data provided, socket will not connect');
       return;
     }
-
-    console.log('🔌 Attempting to connect with userId:', auth.userId);
 
     const newSocket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000", {
       auth: {
@@ -33,45 +32,43 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ Socket connected successfully:', newSocket.id);
-      console.log('👤 Authenticated as userId:', auth.userId);
+      if (isDev) console.log('Socket connected:', newSocket.id);
       setIsConnected(true);
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('❌ Socket disconnected:', reason);
+      if (isDev) console.log('Socket disconnected:', reason);
       setIsConnected(false);
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('🔴 Connection error:', error.message);
+      if (isDev) console.error('Connection error:', error.message);
       setIsConnected(false);
     });
 
     newSocket.on('error', (error) => {
-      console.error('🔴 Socket error:', error);
+      if (isDev) console.error('Socket error:', error);
     });
 
     newSocket.on('reconnect', (attemptNumber) => {
-      console.log('🔄 Reconnected after', attemptNumber, 'attempts');
+      if (isDev) console.log('Reconnected after', attemptNumber, 'attempts');
     });
 
     newSocket.on('reconnect_attempt', (attemptNumber) => {
-      console.log('🔄 Reconnection attempt', attemptNumber);
+      if (isDev) console.log('Reconnection attempt', attemptNumber);
     });
 
     newSocket.on('reconnect_error', (error) => {
-      console.error('🔴 Reconnection error:', error.message);
+      if (isDev) console.error('Reconnection error:', error.message);
     });
 
     newSocket.on('reconnect_failed', () => {
-      console.error('🔴 Reconnection failed after all attempts');
+      if (isDev) console.error('Reconnection failed after all attempts');
     });
 
     setSocket(newSocket);
 
     return () => {
-      console.log('🧹 Cleaning up socket connection');
       newSocket.close();
       setSocket(null);
       setIsConnected(false);
@@ -79,39 +76,23 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
   }, [auth?.token, auth?.userId]);
 
   const emit = useCallback((event: string, data?: any) => {
-    if (!socket) {
-      console.warn('⚠️ Cannot emit, socket not connected');
-      return;
-    }
-    if (!isConnected) {
-      console.warn('⚠️ Socket is not connected, event may not be sent');
-    }
-    console.log('📤 Emitting event:', event, data);
+    if (!socket) return;
     socket.emit(event, data);
-  }, [socket, isConnected]);
+  }, [socket]);
 
   const on = useCallback((event: string, callback: (data: any) => void) => {
-    if (!socket) {
-      console.warn('⚠️ Cannot listen, socket not available');
-      return () => {};
-    }
-    
-    console.log('👂 Listening for event:', event);
+    if (!socket) return () => {};
+
     socket.on(event, callback);
-    
+
     return () => {
-      console.log('🧹 Cleaning up listener for:', event);
       socket.off(event, callback);
     };
   }, [socket]);
 
   const off = useCallback((event: string, callback?: (data: any) => void) => {
-    if (!socket) {
-      console.warn('⚠️ Cannot remove listener, socket not available');
-      return;
-    }
-    
-    console.log('🔇 Removing listener for:', event);
+    if (!socket) return;
+
     if (callback) {
       socket.off(event, callback);
     } else {
@@ -119,11 +100,11 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
     }
   }, [socket]);
 
-  return { 
-    socket, 
-    isConnected, 
-    emit, 
-    on, 
-    off 
+  return {
+    socket,
+    isConnected,
+    emit,
+    on,
+    off
   };
 }
