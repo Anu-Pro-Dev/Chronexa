@@ -133,7 +133,7 @@ export async function fetchOrganizationList(): Promise<OrganizationListItem[]> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** GET /dashboard/userinsights/org/:orgId/totals-today → organization + totals + today */
-async function fetchTotalsAndToday(
+export async function fetchTotalsAndToday(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "organization" | "totals" | "today">> {
@@ -150,7 +150,7 @@ async function fetchTotalsAndToday(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/hourly-trend → hourlyTrend */
-async function fetchHourlyTrend(
+export async function fetchHourlyTrend(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "hourlyTrend">> {
@@ -163,7 +163,7 @@ async function fetchHourlyTrend(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/attendance-split → attendanceSplit */
-async function fetchAttendanceSplit(
+export async function fetchAttendanceSplit(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "attendanceSplit">> {
@@ -176,7 +176,7 @@ async function fetchAttendanceSplit(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/department-attendance → departmentAttendance */
-async function fetchDepartmentAttendance(
+export async function fetchDepartmentAttendance(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "departmentAttendance">> {
@@ -189,7 +189,7 @@ async function fetchDepartmentAttendance(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/weekly-trend → weeklyTrend */
-async function fetchWeeklyTrend(
+export async function fetchWeeklyTrend(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "weeklyTrend">> {
@@ -202,7 +202,7 @@ async function fetchWeeklyTrend(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/overtime → overtime */
-async function fetchOvertime(
+export async function fetchOvertime(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "overtime">> {
@@ -277,6 +277,64 @@ export const getEarlyDespatchData = async (
   if (!response?.data) throw new Error("No early despatch data returned");
   return response.data;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Priority Group Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type GroupAResult = Pick<OrganizationAnalyticsData, "organization" | "totals" | "today" | "hourlyTrend">;
+export type GroupBResult = Pick<OrganizationAnalyticsData, "attendanceSplit" | "departmentAttendance" | "overtime">;
+export type GroupCResult = {
+  weeklyTrend: OrganizationAnalyticsData["weeklyTrend"];
+  alerts: OrganizationAlertsData;
+  earlyDespatch: OrganizationEarlyDespatchData;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Priority Group Fetchers (A → B → C, sequential in store)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Group A: lightest queries, above the fold — KpiGrid + HourlyTrendChart */
+export async function fetchGroupA(orgId: number, date?: string): Promise<GroupAResult> {
+  const [totalsAndToday, hourlyTrend] = await Promise.all([
+    fetchTotalsAndToday(orgId, date),
+    fetchHourlyTrend(orgId, date),
+  ]);
+  return {
+    organization: totalsAndToday.organization,
+    totals: totalsAndToday.totals,
+    today: totalsAndToday.today,
+    hourlyTrend: hourlyTrend.hourlyTrend,
+  };
+}
+
+/** Group B: medium weight — AttendanceSplitChart + DeptTable + OvertimeCard */
+export async function fetchGroupB(orgId: number, date?: string): Promise<GroupBResult> {
+  const [attendanceSplit, departmentAttendance, overtime] = await Promise.all([
+    fetchAttendanceSplit(orgId, date),
+    fetchDepartmentAttendance(orgId, date),
+    fetchOvertime(orgId, date),
+  ]);
+  return {
+    attendanceSplit: attendanceSplit.attendanceSplit,
+    departmentAttendance: departmentAttendance.departmentAttendance,
+    overtime: overtime.overtime,
+  };
+}
+
+/** Group C: below the fold — WeeklyTrendChart + AlertsCard + EarlyDespatch */
+export async function fetchGroupC(orgId: number, date?: string): Promise<GroupCResult> {
+  const [weeklyTrend, alerts, earlyDespatch] = await Promise.all([
+    fetchWeeklyTrend(orgId, date),
+    getUserAlertsData(orgId, date),
+    getEarlyDespatchData(orgId, date),
+  ]);
+  return {
+    weeklyTrend: weeklyTrend.weeklyTrend,
+    alerts,
+    earlyDespatch,
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Legacy Exports (for backward compatibility)
