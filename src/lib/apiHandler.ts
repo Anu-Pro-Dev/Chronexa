@@ -77,11 +77,13 @@ export const loginRequest = async (login: string, password: string, rememberMe: 
       sessionStorage.setItem("user", JSON.stringify(response.user));
     }
 
-    // ✅ FIX: Re-initialize the auth store immediately after the new user
-    // data is written to storage, so components that read from the auth
-    // store get fresh data without waiting for a page reload.
+    // ✅ FIX: Re-initialize the auth store SYNCHRONOUSLY right after writing
+    // the new user to storage. This must happen before the router navigates
+    // to /dashboard, otherwise ProtectedLayout reads userInfo = null from the
+    // store (because resetAllStores() cleared it above) and immediately
+    // redirects back to the login page.
     try {
-      const { useAuthStore } = await import("@/src/store/useAuthStore");
+      const { useAuthStore } = require("@/src/store/useAuthStore");
       useAuthStore.getState().initialize();
     } catch {
       // Non-fatal — page-level components will initialize the store themselves

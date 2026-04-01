@@ -30,7 +30,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
-  isChecking: true,
+  isChecking: false,
   employeeId: null,
   userInfo: null,
   userRole: '',
@@ -38,13 +38,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   _initialized: false,
 
   initialize: () => {
-    // ✅ FIX: Removed the early-return guard (_initialized check) that was
-    // here before. That guard prevented re-initialization after login/logout
-    // within the same browser session (no page reload). Now we always run
-    // a full initialization when this is called, which is safe because
-    // apiHandler.loginRequest calls resetAllStores() first (which sets
-    // _initialized: false) and then calls initialize() after writing the
-    // new user to storage — so a second login always picks up fresh data.
+    // ✅ Guard: skip if already initialized. This prevents useAuthGuard
+    // (called on every protected page mount) from wiping a freshly-populated
+    // store that loginRequest already initialized with the new user's data.
+    //
+    // The guard is reset to false by resetAllStores() in apiHandler on both
+    // login and logout, so a new login always triggers a fresh run here.
+    if (get()._initialized) return;
+
     set({ _initialized: true, isChecking: true });
 
     if (typeof window === 'undefined') {

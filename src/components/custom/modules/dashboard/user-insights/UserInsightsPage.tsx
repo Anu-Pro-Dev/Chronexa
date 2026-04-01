@@ -10,21 +10,37 @@ import EarlyDespatch from "./EarlyDespatch";
 import AlertsCard from "./AlertsCard";
 import WeeklyTrendChart from "./WeeklyTrendChart";
 import OvertimeCard from "./OvertimeCard";
+import UserInsightsSkeleton from "./UserInsightsSkeleton";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 import { useSelectedDate } from "@/src/store/useSelectedDate";
 import { useAuthStore } from "@/src/store/useAuthStore";
-import { InlineLoading } from "@/src/app/loading";
 
 export default function UserInsightsPage() {
   const fetchAllData = useUserInsightsStore((s) => s.fetchAllData);
-  const loading = useUserInsightsStore((s) => s.loading);
   const summaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const { date } = useSelectedDate();
 
-  const isChecking = useAuthStore((s) => s.isChecking);
+  // Read org ID directly from auth store — reactive to user changes
   const userInfo = useAuthStore((s) => s.userInfo);
-  const organizationId: number | null = userInfo?.organization?.id ?? null;
-  const organizationName: string | null = userInfo?.organization?.name ?? null;
+
+  // Also read from localStorage as a fallback for the case where the store
+  // hasn't hydrated yet on first render (isChecking still true)
+  const organizationId: number | null = React.useMemo(() => {
+    if (userInfo?.organization?.id) return userInfo.organization.id;
+    // Fallback: read directly from storage so we never stall on isChecking
+    if (typeof window !== "undefined") {
+      try {
+        const raw =
+          localStorage.getItem("user") || sessionStorage.getItem("user");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const id = parsed?.organization?.id;
+          if (id) return Number(id);
+        }
+      } catch {}
+    }
+    return null;
+  }, [userInfo]);
 
   const selectedDate = [
     date.getFullYear(),
@@ -40,34 +56,32 @@ export default function UserInsightsPage() {
     }
   }, [fetchAllData, selectedDate, organizationId]);
 
-  // Auth store is still initializing from storage
-  if (isChecking) {
-    return <InlineLoading message="Loading..." />;
+  // No organization found — show error
+  if (organizationId === null && typeof window !== "undefined") {
+    // Storage has loaded but no org — show error
+    try {
+      const raw =
+        localStorage.getItem("user") || sessionStorage.getItem("user");
+      if (raw) {
+        return (
+          <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+            <p>No organization found for your account.</p>
+            <p className="text-sm">Please contact your administrator.</p>
+          </div>
+        );
+      }
+    } catch {}
   }
 
-  // Auth store is ready but no organization is attached to this user
-  if (!organizationId) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-        <p>No organization found for your account.</p>
-        <p className="text-sm">Please contact your administrator.</p>
-      </div>
-    );
-  }
-
-  if (loading && !hasCache) {
-    return <InlineLoading message="Loading insights..." />;
+  // Show skeleton whenever there is no cached data yet for the selected date.
+  // This covers: first render (before useEffect fires), fresh date selection,
+  // and new user login (cache cleared by resetAllStores).
+  if (!hasCache) {
+    return <UserInsightsSkeleton />;
   }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Optional: Display organization name */}
-      {/* {organizationName && (
-        <div className="text-sm text-muted-foreground">
-          Organization: <span className="font-medium text-foreground">{organizationName}</span>
-        </div>
-      )} */}
-
       <KpiGrid date={selectedDate} />
 
       <HourlyTrendChart date={selectedDate} />
