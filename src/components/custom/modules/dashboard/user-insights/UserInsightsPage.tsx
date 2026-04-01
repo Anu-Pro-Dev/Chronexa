@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import KpiGrid from "./KpiGrid";
 import HourlyTrendChart from "./HourlyTrendChart";
 import AttendanceSplitChart from "./AttendanceSplitChart";
@@ -12,45 +12,26 @@ import WeeklyTrendChart from "./WeeklyTrendChart";
 import OvertimeCard from "./OvertimeCard";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 import { useSelectedDate } from "@/src/store/useSelectedDate";
+import { useAuthStore } from "@/src/store/useAuthStore";
 import { InlineLoading } from "@/src/app/loading";
-
-// Helper to get user data from localStorage/sessionStorage
-function getUserFromStorage(): any | null {
-  if (typeof window === "undefined") return null;
-  const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
-  if (!userStr) return null;
-  try {
-    return JSON.parse(userStr);
-  } catch {
-    return null;
-  }
-}
 
 export default function UserInsightsPage() {
   const fetchAllData = useUserInsightsStore((s) => s.fetchAllData);
   const loading = useUserInsightsStore((s) => s.loading);
-  const currentOrganization = useUserInsightsStore((s) => s.currentOrganization);
-  
   const summaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const { date } = useSelectedDate();
-  
-  // Get organization ID from localStorage/sessionStorage
-  const [organizationId, setOrganizationId] = useState<number | null>(null);
-  const [organizationName, setOrganizationName] = useState<string | null>(null);
 
-  useEffect(() => {
-    const user = getUserFromStorage();
-    if (user?.organization?.id) {
-      setOrganizationId(user.organization.id);
-      setOrganizationName(user.organization.name || null);
-    }
-  }, []);
+  const isChecking = useAuthStore((s) => s.isChecking);
+  const userInfo = useAuthStore((s) => s.userInfo);
+  const organizationId: number | null = userInfo?.organization?.id ?? null;
+  const organizationName: string | null = userInfo?.organization?.name ?? null;
 
   const selectedDate = [
     date.getFullYear(),
     String(date.getMonth() + 1).padStart(2, "0"),
     String(date.getDate()).padStart(2, "0"),
   ].join("-");
+
   const hasCache = !!summaryCache[selectedDate];
 
   useEffect(() => {
@@ -59,12 +40,12 @@ export default function UserInsightsPage() {
     }
   }, [fetchAllData, selectedDate, organizationId]);
 
-  // Show error if no organization ID is available
-  if (organizationId === null) {
-    // Still loading from storage
+  // Auth store is still initializing from storage
+  if (isChecking) {
     return <InlineLoading message="Loading..." />;
   }
 
+  // Auth store is ready but no organization is attached to this user
   if (!organizationId) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
@@ -81,9 +62,9 @@ export default function UserInsightsPage() {
   return (
     <div className="flex flex-col gap-4">
       {/* Optional: Display organization name */}
-      {/* {(currentOrganization?.name || organizationName) && (
+      {/* {organizationName && (
         <div className="text-sm text-muted-foreground">
-          Organization: <span className="font-medium text-foreground">{currentOrganization?.name || organizationName}</span>
+          Organization: <span className="font-medium text-foreground">{organizationName}</span>
         </div>
       )} */}
 

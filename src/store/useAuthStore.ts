@@ -38,8 +38,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   _initialized: false,
 
   initialize: () => {
-    if (get()._initialized) return;
-    set({ _initialized: true });
+    // ✅ FIX: Removed the early-return guard (_initialized check) that was
+    // here before. That guard prevented re-initialization after login/logout
+    // within the same browser session (no page reload). Now we always run
+    // a full initialization when this is called, which is safe because
+    // apiHandler.loginRequest calls resetAllStores() first (which sets
+    // _initialized: false) and then calls initialize() after writing the
+    // new user to storage — so a second login always picks up fresh data.
+    set({ _initialized: true, isChecking: true });
 
     if (typeof window === 'undefined') {
       set({ isChecking: false });
