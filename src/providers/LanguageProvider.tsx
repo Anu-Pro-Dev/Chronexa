@@ -511,7 +511,7 @@ export default function LanguageProvider({
       alerts,
       userManagement
     };
-  }, [authData.isAuthenticated, authData.isGeofenceEnabled, authData.isChecking, currentLanguageData]);
+  }, [authData.isAuthenticated, authData.isGeofenceEnabled, currentLanguageData]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -523,11 +523,7 @@ export default function LanguageProvider({
       }
     }
 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-
-    return () => clearTimeout(timer);
+    setIsLoading(false);
   }, [language]);
 
   useEffect(() => {

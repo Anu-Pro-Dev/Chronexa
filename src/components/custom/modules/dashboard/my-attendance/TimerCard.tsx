@@ -5,17 +5,40 @@ import { PunchInIcon, PunchOutIcon } from "@/src/icons/icons";
 import { usePunch } from "@/src/providers/PunchProvider";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 
+function useElapsedSeconds(startTime: number | null, isPunchedIn: boolean) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!isPunchedIn || !startTime) {
+      setElapsed(0);
+      return;
+    }
+
+    setElapsed(Math.floor((Date.now() - startTime) / 1000));
+
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPunchedIn, startTime]);
+
+  return elapsed;
+}
+
 function TimerCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
   const [isClient, setIsClient] = useState(false);
 
-  const { 
-    isPunchedIn, 
-    punchInTime, 
-    punchOutTime, 
-    elapsedSeconds,
+  const {
+    isPunchedIn,
+    punchInTime,
+    punchOutTime,
+    startTime,
   } = usePunch();
+
+  const elapsedSeconds = useElapsedSeconds(startTime, isPunchedIn);
 
   useEffect(() => {
     setIsClient(true);
