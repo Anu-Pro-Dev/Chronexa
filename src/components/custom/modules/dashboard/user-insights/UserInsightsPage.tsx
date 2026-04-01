@@ -28,7 +28,7 @@ function getUserFromStorage(): any | null {
 
 export default function UserInsightsPage() {
   const fetchAllData = useUserInsightsStore((s) => s.fetchAllData);
-  const loadingGroupA = useUserInsightsStore((s) => s.loadingGroupA);
+  const loading = useUserInsightsStore((s) => s.loading);
   const currentOrganization = useUserInsightsStore((s) => s.currentOrganization);
   
   const summaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
@@ -74,7 +74,7 @@ export default function UserInsightsPage() {
     );
   }
 
-  if (loadingGroupA && !hasCache) {
+  if (loading && !hasCache) {
     return <InlineLoading message="Loading insights..." />;
   }
 
