@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -8,6 +8,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/src/components/ui/chart";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
+import { getWeekStartStr } from "@/src/lib/userInsightsUtils";
+
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 const ALL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -30,15 +33,6 @@ const LEGEND = [
   { label: "On Leave", ...COLORS.onLeave },
 ];
 
-function getWeekStartStr(fromDate: string): string {
-  const d = new Date(fromDate);
-  const dow = d.getDay(); // 0 = Sunday
-  d.setDate(d.getDate() - dow);
-  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-
 function CustomXTick({ x, y, payload, index, chartData }: any) {
   const item = chartData?.[index];
   return (
@@ -60,44 +54,82 @@ interface WeeklyTrendChartProps {
 }
 
 export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
+  const { organizationId } = useUserInsightsOrganization();
+  const fetchWeeklyTrendData = useUserInsightsStore((s) => s.fetchWeeklyTrendData);
   const insightsWeeklyTrendCache = useUserInsightsStore((s) => s.insightsWeeklyTrendCache);
+  const weeklyTrendError = useUserInsightsStore((s) => s.weeklyTrendError);
 
   const weekStart = getWeekStartStr(date);
+  const hasWeeklyData = weekStart in insightsWeeklyTrendCache;
   const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
 
-  const chartData = useMemo(() => {
-    const byDay = new Map(rawData.map((d: any) => [d.day, d]));
-    return ALL_DAYS.map((day) => {
-      const entry = byDay.get(day) as any;
-      // Format date as "Mar 23" for display
-      const dateLabel = entry?.date
-        ? new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        : "";
-      return {
-        day: day.slice(0, 3),
-        dateLabel,
-        present: entry?.present ?? 0,
-        onLeave: entry?.onLeave ?? 0,
-        absent: entry?.absent ?? 0,
-        missedIn: entry?.missedIn ?? 0,
-        missedOut: entry?.missedOut ?? 0,
-        total: entry?.total ?? 0,
-      };
-    });
-  }, [rawData]);
+  useEffect(() => {
+    if (!organizationId || hasWeeklyData) {
+      return;
+    }
 
-  const summaryStats = useMemo(() => {
-    const daysWithData = chartData.filter((d) => d.total > 0);
-    if (daysWithData.length === 0) return { avgPresent: 0, absenceRate: 0, bestDay: { day: "—", present: 0 } };
-    const totalPresent = daysWithData.reduce((s, d) => s + d.present, 0);
-    const totalHeadcount = daysWithData.reduce((s, d) => s + d.total, 0);
-    const avgPresent = Math.round(totalPresent / daysWithData.length);
-    const absenceRate = totalHeadcount > 0
-      ? Math.round((daysWithData.reduce((s, d) => s + d.absent, 0) / totalHeadcount) * 100)
-      : 0;
-    const bestDay = daysWithData.reduce((max, d) => d.present > max.present ? d : max, daysWithData[0]);
-    return { avgPresent, absenceRate, bestDay };
-  }, [chartData]);
+    void fetchWeeklyTrendData(organizationId, date);
+  }, [date, fetchWeeklyTrendData, hasWeeklyData, organizationId]);
+
+  const byDay = new Map(rawData.map((entry: any) => [entry.day, entry]));
+  const chartData = ALL_DAYS.map((day) => {
+    const entry = byDay.get(day) as any;
+    const dateLabel = entry?.date
+      ? new Date(`${entry.date}T00:00:00`).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      : "";
+
+    return {
+      day: day.slice(0, 3),
+      dateLabel,
+      present: entry?.present ?? 0,
+      onLeave: entry?.onLeave ?? 0,
+      absent: entry?.absent ?? 0,
+      missedIn: entry?.missedIn ?? 0,
+      missedOut: entry?.missedOut ?? 0,
+      total: entry?.total ?? 0,
+    };
+  });
+
+  const daysWithData = chartData.filter((entry) => entry.total > 0);
+  const summaryStats =
+    daysWithData.length === 0
+      ? { avgPresent: 0, absenceRate: 0, bestDay: { day: "—", present: 0 } }
+      : {
+          avgPresent: Math.round(
+            daysWithData.reduce((sum, entry) => sum + entry.present, 0) /
+              daysWithData.length,
+          ),
+          absenceRate: (() => {
+            const totalHeadcount = daysWithData.reduce(
+              (sum, entry) => sum + entry.total,
+              0,
+            );
+
+            if (totalHeadcount === 0) {
+              return 0;
+            }
+
+            return Math.round(
+              (daysWithData.reduce((sum, entry) => sum + entry.absent, 0) /
+                totalHeadcount) * 100,
+            );
+          })(),
+          bestDay: daysWithData.reduce(
+            (best, entry) => (entry.present > best.present ? entry : best),
+            daysWithData[0],
+          ),
+        };
+
+  if (!hasWeeklyData) {
+    return (
+      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[394px] items-center justify-center text-sm text-text-secondary">
+        {weeklyTrendError ? "Failed to load weekly trend." : "Loading weekly trend..."}
+      </div>
+    );
+  }
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">

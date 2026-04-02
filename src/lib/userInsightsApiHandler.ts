@@ -133,7 +133,7 @@ export async function fetchOrganizationList(): Promise<OrganizationListItem[]> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** GET /dashboard/userinsights/org/:orgId/totals-today → organization + totals + today */
-async function fetchTotalsAndToday(
+export async function fetchTotalsAndToday(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "organization" | "totals" | "today">> {
@@ -150,7 +150,7 @@ async function fetchTotalsAndToday(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/hourly-trend → hourlyTrend */
-async function fetchHourlyTrend(
+export async function fetchHourlyTrend(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "hourlyTrend">> {
@@ -163,7 +163,7 @@ async function fetchHourlyTrend(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/attendance-split → attendanceSplit */
-async function fetchAttendanceSplit(
+export async function fetchAttendanceSplit(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "attendanceSplit">> {
@@ -176,7 +176,7 @@ async function fetchAttendanceSplit(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/department-attendance → departmentAttendance */
-async function fetchDepartmentAttendance(
+export async function fetchDepartmentAttendance(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "departmentAttendance">> {
@@ -189,7 +189,7 @@ async function fetchDepartmentAttendance(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/weekly-trend → weeklyTrend */
-async function fetchWeeklyTrend(
+export async function fetchWeeklyTrend(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "weeklyTrend">> {
@@ -202,7 +202,7 @@ async function fetchWeeklyTrend(
 }
 
 /** GET /dashboard/userinsights/org/:orgId/overtime → overtime */
-async function fetchOvertime(
+export async function fetchOvertime(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "overtime">> {
