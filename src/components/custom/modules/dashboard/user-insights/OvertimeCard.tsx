@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 interface OvertimeRow {
@@ -15,9 +16,28 @@ interface OvertimeCardProps {
 }
 
 export default function OvertimeCard({ date }: OvertimeCardProps) {
+  const { organizationId } = useUserInsightsOrganization();
+  const fetchOvertimeData = useUserInsightsStore((s) => s.fetchOvertimeData);
   const insightsOvertimeCache = useUserInsightsStore((s) => s.insightsOvertimeCache);
+  const hasOvertimeData = date in insightsOvertimeCache;
 
   const overtime = insightsOvertimeCache[date];
+
+  React.useEffect(() => {
+    if (!organizationId || hasOvertimeData) {
+      return;
+    }
+
+    void fetchOvertimeData(organizationId, date);
+  }, [date, fetchOvertimeData, hasOvertimeData, organizationId]);
+
+  if (!hasOvertimeData) {
+    return (
+      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[248px] items-center justify-center text-sm text-text-secondary">
+        Loading overtime insights...
+      </div>
+    );
+  }
 
   const overtimeData: OvertimeRow[] = overtime
     ? [

@@ -9,6 +9,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/src/components/ui/chart";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 const chartConfig = {
@@ -21,9 +22,28 @@ interface HourlyTrendChartProps {
 }
 
 export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
+  const { organizationId } = useUserInsightsOrganization();
+  const fetchHourlyTrendData = useUserInsightsStore((s) => s.fetchHourlyTrendData);
   const insightsHourlyTrendCache = useUserInsightsStore((s) => s.insightsHourlyTrendCache);
+  const hasHourlyData = date in insightsHourlyTrendCache;
 
   const hourlyData = insightsHourlyTrendCache[date] ?? [];
+
+  React.useEffect(() => {
+    if (!organizationId || hasHourlyData) {
+      return;
+    }
+
+    void fetchHourlyTrendData(organizationId, date);
+  }, [date, fetchHourlyTrendData, hasHourlyData, organizationId]);
+
+  if (!hasHourlyData) {
+    return (
+      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[247px] items-center justify-center text-sm text-text-secondary">
+        Loading hourly trend...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">

@@ -1,25 +1,45 @@
 "use client";
 
 import * as React from "react";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 interface EarlyDespatchProps {
   date: string;
 }
 
-function severityStyle(severity: "HIGH" | "MEDIUM" | "LOW") {
+function severityStyle(severity: "HIGH" | "MEDIUM" | "LOW" | "MINIMAL") {
   if (severity === "HIGH") return { bg: "bg-[#FDECEA]", text: "text-[#E63946]" };
   if (severity === "MEDIUM") return { bg: "bg-[#FEF3E2]", text: "text-[#E6A817]" };
   return { bg: "bg-[#F3F3F3]", text: "text-text-secondary" };
 }
 
 export default function EarlyDespatch({ date }: EarlyDespatchProps) {
+  const { organizationId } = useUserInsightsOrganization();
+  const fetchEarlyDespatchData = useUserInsightsStore((s) => s.fetchEarlyDespatchData);
   const earlyDespatchError = useUserInsightsStore((s) => s.earlyDespatchError);
   const insightsEarlyDespatchCache = useUserInsightsStore((s) => s.insightsEarlyDespatchCache);
+  const hasEarlyDespatchData = date in insightsEarlyDespatchCache;
 
   const despatchData = insightsEarlyDespatchCache[date];
   const summary = despatchData?.summary;
   const employees = despatchData?.topEarlyDepartures ?? [];
+
+  React.useEffect(() => {
+    if (!organizationId || hasEarlyDespatchData) {
+      return;
+    }
+
+    void fetchEarlyDespatchData(organizationId, date);
+  }, [date, fetchEarlyDespatchData, hasEarlyDespatchData, organizationId]);
+
+  if (!hasEarlyDespatchData && !earlyDespatchError) {
+    return (
+      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[248px] items-center justify-center text-sm text-text-secondary">
+        Loading early departures...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">

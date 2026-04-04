@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 interface AlertRow {
@@ -59,10 +60,29 @@ interface AlertsCardProps {
 }
 
 export default function AlertsCard({ date }: AlertsCardProps) {
+  const { organizationId } = useUserInsightsOrganization();
+  const fetchAlertsData = useUserInsightsStore((s) => s.fetchAlertsData);
   const alertsError = useUserInsightsStore((s) => s.alertsError);
   const insightsAlertsCache = useUserInsightsStore((s) => s.insightsAlertsCache);
+  const hasAlertsData = date in insightsAlertsCache;
 
   const alertsData = insightsAlertsCache[date];
+
+  React.useEffect(() => {
+    if (!organizationId || hasAlertsData) {
+      return;
+    }
+
+    void fetchAlertsData(organizationId, date);
+  }, [date, fetchAlertsData, hasAlertsData, organizationId]);
+
+  if (!hasAlertsData && !alertsError) {
+    return (
+      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[320px] items-center justify-center text-sm text-text-secondary">
+        Loading alerts...
+      </div>
+    );
+  }
 
   const alerts: AlertRow[] = alertsData
     ? [

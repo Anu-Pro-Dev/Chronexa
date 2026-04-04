@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { PunchInIcon, PunchOutIcon, LeaveTakenIcon, AbsentIcon } from "@/src/icons/icons";
+import { PunchInIcon, PunchOutIcon, AbsentIcon } from "@/src/icons/icons";
 import { DevicePhoneMobileIcon, UserPlusIcon, UserMinusIcon } from "@heroicons/react/24/solid";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 export interface KpiData {
@@ -50,10 +51,36 @@ interface KpiGridProps {
 }
 
 export default function KpiGrid({ date }: KpiGridProps) {
+  const { organizationId } = useUserInsightsOrganization();
+  const fetchDailySummary = useUserInsightsStore((s) => s.fetchDailySummary);
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
 
+  const hasSummary = date in insightsDailySummaryCache;
   const summary = insightsDailySummaryCache[date];
   const totalStaff = summary?.totalStaff ?? 0;
+
+  React.useEffect(() => {
+    if (!organizationId || hasSummary) {
+      return;
+    }
+
+    void fetchDailySummary(organizationId, date);
+  }, [date, fetchDailySummary, hasSummary, organizationId]);
+
+  if (!hasSummary) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[126px] items-center justify-center text-sm text-text-secondary"
+          >
+            Loading metrics...
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const kpiData: KpiData[] = [
     {
