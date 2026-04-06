@@ -1,6 +1,6 @@
 "use client";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
@@ -11,7 +11,6 @@ import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -531,7 +530,7 @@ export default function Page() {
         enableExcel
       />
       
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* bg-accent rounded-[15px] items-center px-5 py-6 */}
         <div>
           <Popover
@@ -667,30 +666,29 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
-{/* 
+
         <div>
           <Popover
             open={popoverStates.fromDate}
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
           >
             <PopoverTrigger asChild>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.from_date || "From Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
-                </p>
-                <CalendarIcon/>
+                </span>
+                <CalendarIcon />
               </Button>
             </PopoverTrigger>
-
             <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
               <Calendar
                 mode="single"
@@ -710,23 +708,22 @@ export default function Page() {
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
           >
             <PopoverTrigger asChild>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.to_date || "To Date"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
-                </p>
+                </span>
                 <CalendarIcon />
               </Button>
             </PopoverTrigger>
-
             <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
               <Calendar
                 mode="single"
@@ -740,58 +737,67 @@ export default function Page() {
           </Popover>
         </div>
 
-        <div>
-          <Popover 
-            open={popoverStates.employeeFilter} 
-            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
-          >
-            <PopoverTrigger asChild>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    {t.employee_no || "Employee No"} :
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {employeeFilter
-                      ? getEmployeesData().find((item: any) => 
-                          String(item.employee_id) === employeeFilter
-                        )?.emp_no || (language === "ar" 
-                          ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
-                          : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
-                      : (t.placeholder_employee_filter || "Choose employee")}
+        {(isAdmin || isManager) && (
+          <div>
+            <Popover
+              open={popoverStates.employeeFilter}
+              onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
+                  disabled={isLoadingEmployees}
+                >
+                  <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                    <Label className="font-normal text-secondary shrink-0">
+                      {t.employee_no || "Employee No"} :
+                    </Label>
+                    <span className="px-1 text-sm text-text-primary truncate">
+                      {isLoadingEmployees
+                        ? (t.loading || "Loading...")
+                        : employeeFilter
+                          ? (() => {
+                              const emp = getEmployeesData().find(
+                                (item: any) => String(item.employee_id) === employeeFilter
+                              );
+                              return emp?.emp_no || (language === "ar"
+                                ? `${emp?.firstname_arb || ""} ${emp?.lastname_arb || ""}`.trim()
+                                : `${emp?.firstname_eng || ""} ${emp?.lastname_eng || ""}`.trim());
+                            })()
+                          : (t.placeholder_employee_filter || "Choose employee")}
+                    </span>
                   </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-              <Command>
-                <CommandInput placeholder={t.search_employee || "Search employee..."} />
-                <CommandGroup className="max-h-64 overflow-auto">
-                  {getEmployeesData().map((item: any) => {
-                    const displayName = language === "ar" 
-                      ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
-                      : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
-                    
-                    return (
-                      <CommandItem
-                        key={item.employee_id}
-                        onSelect={() => handleEmployeeFilterChange(String(item.employee_id))}
-                      >
-                        {item.emp_no} - {displayName}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div> */}
+                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder={t.search_employee || "Search employee..."} />
+                  <CommandEmpty>
+                    {isLoadingEmployees ? (t.loading || "Loading...") : (t.no_employee_found || "No employee found")}
+                  </CommandEmpty>
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getEmployeesData().map((item: any) => {
+                      const displayName = language === "ar"
+                        ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
+                        : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
+                      return (
+                        <CommandItem
+                          key={item.employee_id}
+                          onSelect={() => handleEmployeeFilterChange(String(item.employee_id))}
+                        >
+                          {item.emp_no} - {displayName}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
       <div className="bg-accent rounded-2xl">

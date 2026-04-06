@@ -498,7 +498,7 @@ export default function Page() {
                 className="flex items-center space-y-0.5"
                 onClick={handleGroupApplyClick}
               >
-                <span>{t.group_apply || "Group Apply"}</span>
+                <span>{t.manaual_punches || "Manual Transactions"}</span>
               </Button>
             )}
           </>

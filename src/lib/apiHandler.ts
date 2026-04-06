@@ -1467,3 +1467,19 @@ export const getAllDepartments = async () => {
 export const getAllCostCenters = async () => {
   return apiRequest("/employee/costcenters", "GET");
 };
+
+// Function to approve manual transaction by ID
+export const approveManualTransaction = async (employee_manual_transaction_id: number) => {
+  return apiRequest(
+    `/employeeManualTransaction/approve?id=${employee_manual_transaction_id}`,
+    "PUT"
+  );
+};
+
+// Function to reject manual transaction by ID
+export const rejectManualTransaction = async (employee_manual_transaction_id: number) => {
+  return apiRequest(
+    `/employeeManualTransaction/reject?id=${employee_manual_transaction_id}`,
+    "PUT"
+  );
+};

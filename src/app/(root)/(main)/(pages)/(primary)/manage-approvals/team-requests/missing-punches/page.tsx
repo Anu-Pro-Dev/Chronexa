@@ -3,27 +3,32 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
+import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
+import { Download } from "lucide-react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useRouter } from "next/navigation";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce";
-import { approveManualPunchRequest, rejectManualPunchRequest } from "@/src/lib/apiHandler";
-import { useShowToast } from "@/src/utils/toastHelper";
+import { approveManualTransaction, rejectManualTransaction, downloadUploadedFile } from "@/src/lib/apiHandler";
 import { InlineLoading } from "@/src/app/loading";
+import { useShowToast } from "@/src/utils/toastHelper";
 
 export default function Page() {
+  const router = useRouter();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const showToast = useShowToast();
-  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
+  const [columns, setColumns] = useState<{ field: string; headerName: string; cellRenderer?: (data: any) => any }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [sortField, setSortField] = useState<string>("transaction_id");
+  const [sortField, setSortField] = useState<string>("leave_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -32,9 +37,12 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [selectedOption, setSelectedOption] = useState<string>("all");
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
+  const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>("");
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
+  const debouncedLeaveTypeFilter = useDebounce(leaveTypeFilter, 300);
   const [approveOpen, setApproveOpen] = useState<boolean>(false);
   const [rejectOpen, setRejectOpen] = useState<boolean>(false);
   const t = translations?.modules?.manageApprovals || {};
@@ -45,132 +53,179 @@ export default function Page() {
   });
 
   const closePopover = (key: string) => {
-    setPopoverStates((prev) => ({ ...prev, [key]: false }));
+    setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
 
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
-  const getEmployeeName = useCallback((transaction: any) => {
-    const employee = transaction.employee;
+  const getEmployeeDisplayInfo = useCallback((transaction: any) => {
+    // ✅ Added correct API field: transaction.employee
+    const employeeMaster =
+      transaction.employee || // ⭐ IMPORTANT FIX
+      transaction.employee_master ||
+      transaction.employee_master_employee_manual_transactions_employee_idToemployee_master;
 
-    if (!employee) {
-      return `Employee ${transaction.employee_id || "-"}`;
+    if (!employeeMaster) {
+      return {
+        emp_no: `${transaction.employee_id}`,
+        employee_name: `Employee ${transaction.employee_id}`,
+        firstName: '',
+        lastName: '',
+        fullName: `Employee ${transaction.employee_id}`,
+        employee_id: transaction.employee_id,
+      };
     }
 
-    const fullName =
-      language === "ar"
-        ? `${employee.firstname_arb || ""}`.trim()
-        : `${employee.firstname_eng || ""}`.trim();
+    const firstNameEn = employeeMaster.firstname_eng || '';
+    const lastNameEn = employeeMaster.lastname_eng || '';
+    const firstNameAr = employeeMaster.firstname_arb || '';
+    const lastNameAr = employeeMaster.lastname_arb || '';
 
-    return fullName || `Employee ${transaction.employee_id}`;
+    const firstName = language === 'ar' ? firstNameAr : firstNameEn;
+    const lastName = language === 'ar' ? lastNameAr : lastNameEn;
+
+    const fullName =
+      language === 'ar'
+        ? `${firstNameAr} ${lastNameAr}`.trim()
+        : `${firstNameEn} ${lastNameEn}`.trim();
+
+    return {
+      emp_no: employeeMaster.emp_no || `EMP${transaction.employee_id}`,
+      employee_name: fullName || firstName || `Employee ${transaction.employee_id}`,
+      firstName,
+      lastName,
+      fullName: fullName || firstName || `Employee ${transaction.employee_id}`,
+      employee_id: transaction.employee_id,
+    };
   }, [language]);
+
+  const AttachmentCellRenderer = useCallback((data: any) => {
+    const filePath = data.attachment_path;
+
+    if (!filePath || filePath === '-') {
+      return <span className="text-gray-400">-</span>;
+    }
+
+    const handleDownload = async () => {
+      try {
+        await downloadUploadedFile(filePath);
+        showToast("success", "file_download_success");
+      } catch (error) {
+        console.error('Download error:', error);
+        showToast("error", "file_download_error");
+      }
+    };
+
+    return (
+      <button
+        onClick={handleDownload}
+        className="flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer"
+        title="Download attachment"
+      >
+        <Download className="w-4 h-4" />
+        <span>Download</span>
+      </button>
+    );
+  }, []);
 
   useEffect(() => {
     setColumns([
       { field: "emp_no", headerName: t.employee_no || "Employee No" },
-      { field: "employee_name", headerName: t.employee_name || "Employee Name" },
-      { field: "transaction_date", headerName: t.date || "Date" },
-      { field: "transaction_time", headerName: t.time || "Time" },
-      { field: "reason", headerName: t.reason || "Reason" },
-      { field: "transaction_status", headerName: t.status || "Status" },
+      { field: "firstName", headerName: t.employee_name || "Employee Name" },
+      { field: "transaction_date", headerName: t.date || "Date" },      // fix: use transaction_date
+      { field: "transaction_time", headerName: t.time || "Time" },      // fix: use transaction_time
+      { field: "remarks", headerName: t.remarks || "Remarks" },
+      {
+        field: "attachment_path",
+        headerName: t.attachment || "Attachment",
+        cellRenderer: AttachmentCellRenderer
+      },
     ]);
-  }, [language, t]);
+  }, [language, t, AttachmentCellRenderer]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
 
-  const formatDateDisplay = (dateString: string | null) => {
-    if (!dateString) return "-";
-    try {
-      const datePart = dateString.split('T')[0];
-      if (datePart) {
-        const [year, month, day] = datePart.split('-');
-        return `${day}/${month}/${year}`;
-      }
-      return dateString;
-    } catch {
-      return dateString;
-    }
+  const formatDateForDisplay = (dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toISOString().split('T')[0];
   };
 
-  const formatTime = (timeString: string | null) => {
-    if (!timeString) return "-";
-    try {
-      const timePart = timeString.split('T')[1];
-      if (timePart) {
-        return timePart.substring(0, 8);
-      }
-      return timeString;
-    } catch {
-      return timeString;
+  const { data: manualTransactionsData, isLoading: isLoadingManualTransactions, error, refetch } = useFetchAllEntity(
+    "employeeManualTransaction",
+    {
+      searchParams: {
+        pending: "true",
+        limit: String(rowsPerPage),
+        offset: String(offset),
+        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+        ...(toDate && { to_date: formatDateForAPI(toDate) }),
+        ...(debouncedSearchValue && { search: debouncedSearchValue }),
+        ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
+      },
+      enabled: !!employeeId && isAuthenticated && !isChecking,
+      endpoint: `/employeeManualTransaction/all`,
     }
-  };
-
-  const {
-    data: punchesData,
-    isLoading: isLoadingPunches,
-    error,
-    refetch,
-  } = useFetchAllEntity("employeeManualTransaction", {
-    searchParams: {
-      status: "Pending",
-      limit: String(rowsPerPage),
-      offset: String(offset),
-      ...(debouncedSearchValue && { search: debouncedSearchValue }),
-      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-      ...(toDate && { to_date: formatDateForAPI(toDate) }),
-      ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
-    },
-    enabled: !!employeeId && isAuthenticated && !isChecking,
-    endpoint: `/employeeManualTransaction/team/all`,
-  });
+  );
 
   const data = useMemo(() => {
-    if (!Array.isArray(punchesData?.data)) return [];
+    if (!Array.isArray(manualTransactionsData?.data)) {
+      return [];
+    }
 
-    return punchesData.data.map((transaction: any) => {
-      const empNo = transaction.employee?.emp_no || `EMP${transaction.employee_id}`;
+    const processedData = manualTransactionsData.data.map((transaction: any) => {
+      const employeeMaster = transaction.employee ||
+        transaction.employee_master ||
+        transaction.employee_master_employee_manual_transactions_employee_idToemployee_master;
+      const firstNameEn = employeeMaster?.firstname_eng || '';
+      const lastNameEn = employeeMaster?.lastname_eng || '';
+      const firstNameAr = employeeMaster?.firstname_arb || '';
+      const lastNameAr = employeeMaster?.lastname_arb || '';
+
+      const firstName = language === 'ar' ? firstNameAr : firstNameEn;
+      const lastName = language === 'ar' ? lastNameAr : lastNameEn;
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      const transaction_date = transaction.transaction_time?.substring(0, 10) || '';
+      const transaction_time = transaction.transaction_time?.substring(11, 19) || '';
 
       return {
         ...transaction,
         id: transaction.employee_manual_transaction_id,
-        emp_no: empNo,
-        employee_name: getEmployeeName(transaction),
-        transaction_date: formatDateDisplay(transaction.transaction_time),
-        transaction_time: formatTime(transaction.transaction_time),
-        reason: transaction.reason || "-",
-        transaction_status: transaction.transaction_status || "Pending",
-        raw_transaction_time: transaction.transaction_time,
+        emp_no: employeeMaster?.emp_no || `${transaction.employee_id}`,
+        employee_name: fullName || `Employee ${transaction.employee_id}`,
+        firstName,
+        lastName,
+        fullName,
+        transaction_date,
+        transaction_time,
+        employee_master: employeeMaster,
       };
     });
-  }, [punchesData, language, getEmployeeName]);
 
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      setCurrentPage(newPage);
-      if (refetch) {
-        setTimeout(() => refetch(), 100);
-      }
-    },
-    [refetch]
-  );
+    return processedData;
+  }, [manualTransactionsData, language]);
 
-  const handleRowsPerPageChange = useCallback(
-    (newRowsPerPage: number) => {
-      setRowsPerPage(newRowsPerPage);
-      setCurrentPage(1);
-      if (refetch) {
-        setTimeout(() => refetch(), 100);
-      }
-    },
-    [refetch]
-  );
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -183,6 +238,11 @@ export default function Page() {
       setTimeout(() => refetch(), 100);
     }
   }, [refetch]);
+
+  const handleStatusChange = (value: string) => {
+    setSelectedOption(value);
+    handleFilterChange();
+  };
 
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
@@ -199,31 +259,26 @@ export default function Page() {
     setCurrentPage(1);
   };
 
+
+  const handleRowSelection = useCallback((rows: any[]) => {
+    setSelectedRows(rows);
+  }, []);
+
   const handleApprove = async () => {
     if (selectedRows.length === 0) {
       showToast("error", "no_row_selected");
       return;
     }
-
     try {
-      const results = await Promise.all(
-        selectedRows.map((row) =>
-          approveManualPunchRequest({
-            employee_manual_transaction_id: row.id,
-            employee_id: row.employee_id,
-            transaction_time: row.raw_transaction_time,
-            reason: row.reason,
-            remarks: row.remarks || "",
-          })
-        )
+      await Promise.all(
+        selectedRows.map((row) => approveManualTransaction(row.id))
       );
-
-      showToast("success", "approve_punch_success");
+      showToast("success", "approve_transaction_success");
       setSelectedRows([]);
       setApproveOpen(false);
       await refetch();
-    } catch (error: any) {
-      showToast("error", "approve_punch_error");
+    } catch (error) {
+      showToast("error", "approve_transaction_error");
       console.error("Approval error:", error);
     }
   };
@@ -233,63 +288,19 @@ export default function Page() {
       showToast("error", "no_row_selected");
       return;
     }
-
     try {
-      const results = await Promise.all(
-        selectedRows.map((row) =>
-          rejectManualPunchRequest({
-            employee_manual_transaction_id: row.id,
-            employee_id: row.employee_id,
-            transaction_time: row.raw_transaction_time,
-            reason: row.reason,
-            remarks: row.remarks || "",
-          })
-        )
+      await Promise.all(
+        selectedRows.map((row) => rejectManualTransaction(row.id))
       );
-
-      showToast("success", "reject_punch_success");
+      showToast("success", "reject_transaction_success");
       setSelectedRows([]);
       setRejectOpen(false);
       await refetch();
-    } catch (error: any) {
-      showToast("error", "reject_punch_error");
+    } catch (error) {
+      showToast("error", "reject_transaction_error");
       console.error("Rejection error:", error);
     }
   };
-
-  const props = {
-    Data: data,
-    Columns: columns,
-    open,
-    on_open_change: setOpen,
-    selectedRows,
-    setSelectedRows,
-    isLoading: isLoadingPunches || isChecking,
-    SortField: sortField,
-    CurrentPage: currentPage,
-    SetCurrentPage: handlePageChange,
-    SetSortField: setSortField,
-    SortDirection: sortDirection,
-    SetSortDirection: setSortDirection,
-    SearchValue: searchValue,
-    SetSearchValue: handleSearchChange,
-    total: punchesData?.total || 0,
-    hasNext: punchesData?.hasNext,
-    rowsPerPage,
-    setRowsPerPage: handleRowsPerPageChange,
-    filter_open,
-    filter_on_open_change,
-    approve_open: approveOpen,
-    approve_on_open_change: setApproveOpen,
-    reject_open: rejectOpen,
-    reject_on_open_change: setRejectOpen,
-    onApprove: handleApprove,
-    onReject: handleReject,
-  };
-
-  const handleRowSelection = useCallback((rows: any[]) => {
-    setSelectedRows(rows);
-  }, []);
 
   const renderPowerTable = () => {
     if (isChecking) {
@@ -316,10 +327,40 @@ export default function Page() {
       <PowerTable
         props={props}
         onRowSelection={handleRowSelection}
-        isLoading={isLoadingPunches || isChecking}
+        isLoading={isLoadingManualTransactions || isChecking}
         overrideCheckbox={true}
       />
     );
+  };
+
+    const props = {
+    Data: data,
+    Columns: columns,
+    open,
+    on_open_change: setOpen,
+    selectedRows,
+    setSelectedRows,
+    isLoading: isLoadingManualTransactions || isChecking,
+    SortField: sortField,
+    CurrentPage: currentPage,
+    SetCurrentPage: handlePageChange,
+    SetSortField: setSortField,
+    SortDirection: sortDirection,
+    SetSortDirection: setSortDirection,
+    SearchValue: searchValue,
+    SetSearchValue: handleSearchChange,
+    total: manualTransactionsData?.total || 0,
+    hasNext: manualTransactionsData?.hasNext,
+    rowsPerPage,
+    setRowsPerPage: handleRowsPerPageChange,
+    filter_open,
+    filter_on_open_change,
+    approve_open: approveOpen,
+    approve_on_open_change: setApproveOpen,
+    reject_open: rejectOpen,
+    reject_on_open_change: setRejectOpen,
+    onApprove: handleApprove,
+    onReject: handleReject,
   };
 
   return (
@@ -329,25 +370,18 @@ export default function Page() {
         enableApprove
         enableReject
         selectedRows={selectedRows}
-        items={modules?.manageApprovals?.items}
+        items={modules?.manageApprovals.items}
         entityName="employeeManualTransaction"
-        approve_modal_title={t.approve_punch || "Approve Missing Punch"}
-        approve_modal_description={t.approve_punch_desc || "Are you sure you want to approve the selected missing punch request(s)?"}
-        reject_modal_title={t.reject_punch || "Reject Missing Punch"}
-        reject_modal_description={t.reject_punch_desc || "Are you sure you want to reject the selected missing punch request(s)?"}
+        approve_modal_title={t.approve_manual_transaction || "Approve Manual Transaction"}
+        approve_modal_description={t.approve_leave_desc || "Are you sure you want to approve the selected manual transaction(s)?"}
+        reject_modal_title={t.reject_leave || "Reject Manual Transaction"}
+        reject_modal_description={t.reject_leave_desc || "Are you sure you want to reject the selected manual transaction(s)?"}
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
         <div>
-          <Popover
-            open={popoverStates.fromDate}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, fromDate: open }))
-            }
-          >
+          <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
-              <Button
-                size={"lg"}
-                variant={"outline"}
+              <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
@@ -355,9 +389,7 @@ export default function Page() {
                     {t.from_date || "From Date"} :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {fromDate
-                      ? format(fromDate, "dd/MM/yy")
-                      : t.placeholder_date || "Choose date"}
+                    {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
                 <CalendarIcon />
@@ -369,23 +401,16 @@ export default function Page() {
                 selected={fromDate}
                 onSelect={(date) => {
                   handleFromDateChange(date);
-                  closePopover("fromDate");
+                  closePopover('fromDate');
                 }}
               />
             </PopoverContent>
           </Popover>
         </div>
         <div>
-          <Popover
-            open={popoverStates.toDate}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, toDate: open }))
-            }
-          >
+          <Popover open={popoverStates.toDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}>
             <PopoverTrigger asChild>
-              <Button
-                size={"lg"}
-                variant={"outline"}
+              <Button size={"lg"} variant={"outline"}
                 className="w-full bg-accent px-4 flex justify-between border-grey"
               >
                 <p>
@@ -393,9 +418,7 @@ export default function Page() {
                     {t.to_date || "To Date"} :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {toDate
-                      ? format(toDate, "dd/MM/yy")
-                      : t.placeholder_date || "Choose date"}
+                    {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
                   </span>
                 </p>
                 <CalendarIcon />
@@ -407,7 +430,7 @@ export default function Page() {
                 selected={toDate}
                 onSelect={(date) => {
                   handleToDateChange(date);
-                  closePopover("toDate");
+                  closePopover('toDate');
                 }}
                 disabled={(date) => {
                   if (!fromDate) return false;
@@ -428,7 +451,7 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-bold text-xl text-primary">
-            {t.missing_punches_approval || "Missing Punches Approval"}
+            {t.manual_punches_approval || "Manual Punches Approval"}
           </h1>
         </div>
         <div className="px-6">
