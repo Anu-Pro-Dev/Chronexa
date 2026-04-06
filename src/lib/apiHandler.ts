@@ -58,11 +58,6 @@ export const serverTimeZoneRequest = async () => {
 
 // Function for logging in
 export const loginRequest = async (login: string, password: string, rememberMe: boolean) => {
-  // ✅ FIX: Clear all stale store data BEFORE storing new user info,
-  // so Zustand stores never hold the previous user's data during the
-  // brief window between storage write and store re-initialization.
-  resetAllStores();
-
   const response = await apiRequest("/auth/login", "POST", {
     login: login,
     password: password,
@@ -74,24 +69,7 @@ export const loginRequest = async (login: string, password: string, rememberMe: 
     if (rememberMe) {
       localStorage.setItem("user", JSON.stringify(response.user));
     } else {
-      // Store in sessionStorage (primary) AND localStorage (reload fallback).
-      // sessionStorage is the source of truth; localStorage acts as a safety
-      // net so that useAuthStore.initialize() can recover the user's identity
-      // after a hard reload when sessionStorage may not be read in time.
       sessionStorage.setItem("user", JSON.stringify(response.user));
-      localStorage.setItem("user", JSON.stringify(response.user));
-    }
-
-    // ✅ FIX: Re-initialize the auth store SYNCHRONOUSLY right after writing
-    // the new user to storage. This must happen before the router navigates
-    // to /dashboard, otherwise ProtectedLayout reads userInfo = null from the
-    // store (because resetAllStores() cleared it above) and immediately
-    // redirects back to the login page.
-    try {
-      const { useAuthStore } = require("@/src/store/useAuthStore");
-      useAuthStore.getState().initialize();
-    } catch {
-      // Non-fatal — page-level components will initialize the store themselves
     }
   }
 
@@ -117,56 +95,10 @@ export const logoutRequest = async () => {
   }
 };
 
-/**
- * Resets all Zustand stores to a clean state.
- * Called on both login (to clear previous user's data) and logout.
- * Uses dynamic imports to avoid circular dependency issues.
- */
-const resetAllStores = () => {
-  try {
-    // ✅ FIX: Reset useAuthStore so _initialized guard doesn't block
-    // re-initialization with the new user's data after login.
-    const { useAuthStore } = require("@/src/store/useAuthStore");
-    useAuthStore.setState({
-      isAuthenticated: false,
-      employeeId: null,
-      userInfo: null,
-      userRole: "",
-      isGeofenceEnabled: false,
-      _initialized: false,
-      isChecking: false,
-    });
-  } catch {
-    // Store not yet loaded — safe to ignore
-  }
-
-  try {
-    // ✅ FIX: Clear cached insights data so the new user never sees the
-    // previous user's organization data while fresh data is loading.
-    const { useUserInsightsStore } = require("@/src/store/useUserInsightsStore");
-    useUserInsightsStore.getState().clearData();
-  } catch {
-    // Store not yet loaded — safe to ignore
-  }
-
-  try {
-    // Clear dashboard store role/privileges so the new user's role is
-    // fetched fresh rather than reusing the previous user's privileges.
-    const { useDashboardStore } = require("@/src/store/useDashboardStore");
-    useDashboardStore.getState().clearRoleAndPrivileges?.();
-  } catch {
-    // Store not yet loaded or clearRoleAndPrivileges not defined — safe to ignore
-  }
-};
-
 const performLogoutCleanup = () => {
   clearAuthToken();
   localStorage.removeItem("user");
   sessionStorage.removeItem("user");
-
-  // ✅ FIX: Reset all Zustand stores on logout so a subsequent login
-  // (same browser session, no page reload) starts with a clean state.
-  resetAllStores();
 };
 
 // Hook for components that need to trigger logout (preserves timer state)
