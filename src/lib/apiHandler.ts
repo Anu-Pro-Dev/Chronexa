@@ -74,7 +74,12 @@ export const loginRequest = async (login: string, password: string, rememberMe: 
     if (rememberMe) {
       localStorage.setItem("user", JSON.stringify(response.user));
     } else {
+      // Store in sessionStorage (primary) AND localStorage (reload fallback).
+      // sessionStorage is the source of truth; localStorage acts as a safety
+      // net so that useAuthStore.initialize() can recover the user's identity
+      // after a hard reload when sessionStorage may not be read in time.
       sessionStorage.setItem("user", JSON.stringify(response.user));
+      localStorage.setItem("user", JSON.stringify(response.user));
     }
 
     // ✅ FIX: Re-initialize the auth store SYNCHRONOUSLY right after writing
@@ -129,7 +134,7 @@ const resetAllStores = () => {
       userRole: "",
       isGeofenceEnabled: false,
       _initialized: false,
-      isChecking: true,
+      isChecking: false,
     });
   } catch {
     // Store not yet loaded — safe to ignore
