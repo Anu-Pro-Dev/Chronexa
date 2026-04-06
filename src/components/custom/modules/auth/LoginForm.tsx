@@ -141,7 +141,7 @@ export default function LoginForm() {
 
   const handleAdLogin = () => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005";
       window.location.href = `${baseUrl}/auth/azure`;
     } catch (error) {
       console.error("Azure AD redirect failed:", error);

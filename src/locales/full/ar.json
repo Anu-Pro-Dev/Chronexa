@@ -759,7 +759,22 @@
         "leave_type_name_arb": "نوع الإجازة (العربية)",
         "apply_prior_to_days": "التقديم قبل الأيام",
         "completed": "مكتمل",
-        "placeholder_days": "أدخل الأيام"
+        "placeholder_days": "أدخل الأيام",
+        "department": "القسم",
+        "cost_center": "مركز التكلفة",
+        "placeholder_department": "اختر القسم",
+        "placeholder_cost_center": "اختر مركز التكلفة",
+        "search_department": "ابحث عن قسم...",
+        "search_cost_center": "ابحث عن مركز التكلفة...",
+        "no_results": "لا توجد نتائج",
+        "choose_employee": "اختر موظفاً",
+        "selected": "محدد",
+        "type": "نوع",
+        "searching": "جارٍ البحث...",
+        "no_employees": "لا يوجد موظفون متاحون",
+        "search_employee_types": "ابحث عن أنواع الموظفين...",
+        "no_employee_types_found": "لم يتم العثور على أنواع موظفين",
+        "group_apply_attachment_note": "PDF، JPG، PNG — الحد الأقصى 5 ميجابايت"
       },
       "manageApprovals": {
         "team_request": "طلب الفريق",
@@ -806,7 +821,10 @@
         "approve_punch": "الموافقة على التسجيل المفقود",
         "approve_punch_desc": "هل أنت متأكد أنك تريد الموافقة على طلب/طلبات التسجيل المفقود المحددة؟",
         "reject_punch": "رفض التسجيل المفقود",
-        "reject_punch_desc": "هل أنت متأكد أنك تريد رفض طلب/طلبات التسجيل المفقود المحددة؟"
+        "reject_punch_desc": "هل أنت متأكد أنك تريد رفض طلب/طلبات التسجيل المفقود المحددة؟",
+        "view_attachment": "عرض",
+        "downloading": "جارٍ التنزيل...",
+        "attachment_download_error": "فشل تنزيل المرفق"
       },
       "devices": {
         "devices": "الأجهزة",
@@ -1195,6 +1213,7 @@
       "approve_punch_error": "فشل في الموافقة على تسجيل (تسجيلات) الحضور الناقصة",
       "reject_punch_success": "تم رفض تسجيل (تسجيلات) الحضور الناقصة بنجاح!",
       "reject_punch_error": "فشل في رفض تسجيل (تسجيلات) الحضور الناقصة",
+      "attachment_download_error": "فشل تنزيل المرفق. يرجى المحاولة مرة أخرى.",
       "approve_permission_success": "تمت الموافقة على طلب (طلبات) الإذن بنجاح!",
       "approve_permission_error": "فشل في الموافقة على طلب (طلبات) الإذن",
       "reject_permission_success": "تم رفض طلب (طلبات) الإذن بنجاح!",

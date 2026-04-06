@@ -759,7 +759,22 @@
         "leave_type_name_arb": "Leave type (العربية)",
         "apply_prior_to_days": "Apply prior to days",
         "completed": "Completed",
-        "placeholder_days": "Enter the days"
+        "placeholder_days": "Enter the days",
+        "department": "Department",
+        "cost_center": "Cost Center",
+        "placeholder_department": "Choose department",
+        "placeholder_cost_center": "Choose cost center",
+        "search_department": "Search department...",
+        "search_cost_center": "Search cost center...",
+        "no_results": "No results found",
+        "choose_employee": "Choose employee",
+        "selected": "selected",
+        "type": "type",
+        "searching": "Searching...",
+        "no_employees": "No employees available",
+        "search_employee_types": "Search employee types...",
+        "no_employee_types_found": "No employee types found",
+        "group_apply_attachment_note": "PDF, JPG, PNG — max 5 MB"
       },
       "manageApprovals": {
         "team_request": "Team Request",
@@ -806,7 +821,10 @@
         "approve_punch": "Approve Missing Punch",
         "approve_punch_desc": "Are you sure you want to approve the selected missing punch request(s)?",
         "reject_punch": "Reject Missing Punch",
-        "reject_punch_desc": "Are you sure you want to reject the selected missing punch request(s)?"
+        "reject_punch_desc": "Are you sure you want to reject the selected missing punch request(s)?",
+        "view_attachment": "View",
+        "downloading": "Downloading...",
+        "attachment_download_error": "Failed to download attachment"
       },
       "devices": {
         "devices": "Devices",
@@ -1192,6 +1210,7 @@
       "approve_punch_error": "Failed to approve missing punch(es)",
       "reject_punch_success": "Missing punch(es) rejected successfully!",
       "reject_punch_error": "Failed to reject missing punch(es)",
+      "attachment_download_error": "Failed to download the attachment. Please try again.",
       "approve_permission_success": "Permission request(s) approved successfully!",
       "approve_permission_error": "Failed to approve permission request(s)",
       "reject_permission_success": "Permission request(s) rejected successfully!",
