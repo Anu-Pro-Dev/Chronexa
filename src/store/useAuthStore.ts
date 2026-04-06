@@ -30,7 +30,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
-  isChecking: false,
+  isChecking: true,
   employeeId: null,
   userInfo: null,
   userRole: '',
@@ -38,15 +38,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   _initialized: false,
 
   initialize: () => {
-    // ✅ Guard: skip if already initialized. This prevents useAuthGuard
-    // (called on every protected page mount) from wiping a freshly-populated
-    // store that loginRequest already initialized with the new user's data.
-    //
-    // The guard is reset to false by resetAllStores() in apiHandler on both
-    // login and logout, so a new login always triggers a fresh run here.
     if (get()._initialized) return;
-
-    set({ _initialized: true, isChecking: true });
+    set({ _initialized: true });
 
     if (typeof window === 'undefined') {
       set({ isChecking: false });
