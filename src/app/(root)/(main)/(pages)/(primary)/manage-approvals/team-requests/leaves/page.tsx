@@ -60,6 +60,22 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
+  // ─── Admin / Manager logic (same as manual punches page) ───────────────────
+  const isAdmin = useMemo(() => {
+    const role = (userInfo?.role ?? "").toUpperCase();
+    if (role) {
+      return role === "ADMIN" || role === "admin" || role === "Admin";
+    }
+    return userInfo?.roleId === 1;
+  }, [userInfo]);
+
+  const endpoint = useMemo(() => {
+    return isAdmin
+      ? `/employeeLeave/all`
+      : `/employeeLeave/team/all`;
+  }, [isAdmin]);
+  // ───────────────────────────────────────────────────────────────────────────
+
   const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
     const employeeMaster = leave.employee_master_employee_leaves_employee_idToemployee_master;
 
@@ -175,7 +191,7 @@ export default function Page() {
         ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/team/all`,
+      endpoint, // ← now dynamic based on isAdmin
     }
   );
 
@@ -238,11 +254,6 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleStatusChange = (value: string) => {
-    setSelectedOption(value);
-    handleFilterChange();
-  };
-
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
@@ -270,7 +281,7 @@ export default function Page() {
     }
 
     try {
-      const results = await Promise.all(
+      await Promise.all(
         selectedRows.map((row) =>
           approveLeaveRequest({
             employee_leave_id: row.id,
@@ -296,7 +307,7 @@ export default function Page() {
     }
 
     try {
-      const results = await Promise.all(
+      await Promise.all(
         selectedRows.map((row) =>
           approveLeaveRequest({
             employee_leave_id: row.id,
@@ -451,13 +462,10 @@ export default function Page() {
                 }}
                 disabled={(date) => {
                   if (!fromDate) return false;
-
                   const from = new Date(fromDate);
                   from.setHours(0, 0, 0, 0);
-
                   const current = new Date(date);
                   current.setHours(0, 0, 0, 0);
-
                   return current < from;
                 }}
               />

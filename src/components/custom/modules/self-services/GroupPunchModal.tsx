@@ -30,7 +30,7 @@ export default function GroupPunchModal({
       <ResponsiveModalContent size={size}>
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>
-            {t.manaual_punches || "Manual Transactions"}
+            {t.manaual_punches || "Manual Punches"}
           </ResponsiveModalTitle>
         </ResponsiveModalHeader>
 

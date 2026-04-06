@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Checkbox } from "@/src/components/ui/checkbox";
-import { format } from "date-fns";
+import { format, subDays, startOfDay } from "date-fns";
 import { TimePicker } from "@/src/components/ui/time-picker";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
@@ -31,14 +31,13 @@ import TranslatedError from "@/src/utils/translatedError";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
 
-// ── Allowed attachment types (mirrors leave page) ─────────────────────────────
 const ALLOWED_ATTACHMENT_TYPES = [
   "application/pdf",
   "image/jpeg",
   "image/jpg",
   "image/png",
 ];
-const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 
 const formSchema = z.object({
   reason: z
@@ -49,8 +48,6 @@ const formSchema = z.object({
   time: z.date({ required_error: "time_required" }),
   remarks: z.string().max(500, { message: "remarks_max_length" }).optional(),
 
-  // ── Attachment — required, validated for type and size (same pattern as
-  //    leave pages: z.custom with allowedTypes + maxSize guards) ────────────
   attachment: z.custom<File>(
     (value) => {
       if (!value || !(value instanceof File)) return false;
@@ -71,7 +68,7 @@ export default function GroupApplyPunch({
   rowData?: any;
   punchType?: string;
 }) {
-  const { employeeId } = useAuthGuard();
+  const { employeeId, userInfo } = useAuthGuard();
   const { language, translations } = useLanguage();
   const showToast = useShowToast();
 
@@ -87,21 +84,17 @@ export default function GroupApplyPunch({
     fromTime: false,
   });
 
-  // ── Employee Type state ──────────────────────────────────────────────────
   const [selectedEmployeeTypes, setSelectedEmployeeTypes] = useState<string[]>([]);
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
 
-  // ── Employee state ───────────────────────────────────────────────────────
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const debouncedEmployeeSearch = useDebounce(employeeSearchTerm, 300);
   const debouncedEmployeeTypeSearch = useDebounce(employeeTypeSearchTerm, 300);
 
-  // ── Department state ─────────────────────────────────────────────────────
   const [selectedDepartment, setSelectedDepartment] = useState<number | undefined>(undefined);
   const [openDepartment, setOpenDepartment] = useState(false);
 
-  // ── Cost Center state ────────────────────────────────────────────────────
   const [selectedCostCenter, setSelectedCostCenter] = useState<string | undefined>(undefined);
   const [openCostCenter, setOpenCostCenter] = useState(false);
   const [costCenterSearch, setCostCenterSearch] = useState("");
@@ -109,7 +102,19 @@ export default function GroupApplyPunch({
   const closePopover = (key: string) =>
     setPopoverStates((prev) => ({ ...prev, [key]: false }));
 
-  // ── Data fetching ────────────────────────────────────────────────────────
+  const orgId = userInfo?.organization_id ?? userInfo?.organization?.id;
+
+  const today = startOfDay(new Date());
+
+  const allowedDays = orgId === 25 ? 4 : 7;
+
+  const allowedDaysAgo = startOfDay(subDays(today, allowedDays));
+
+  const isDateDisabled = (date: Date) => {
+    const d = startOfDay(date);
+    return d < allowedDaysAgo || d > today;
+  };
+
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
   const { data: departmentsData, isLoading: loadingDepartments } = useFetchAllEntity(
@@ -149,7 +154,6 @@ export default function GroupApplyPunch({
     enabled: debouncedEmployeeSearch.length > 0,
   });
 
-  // ── Dropdown helpers ─────────────────────────────────────────────────────
   const getEmployeeTypesData = () => {
     if (!employeeTypes?.data) return [];
     const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
@@ -187,7 +191,6 @@ export default function GroupApplyPunch({
     );
   };
 
-  // ── Toggle handlers ──────────────────────────────────────────────────────
   const handleEmployeeTypeToggle = (typeId: string) => {
     setSelectedEmployeeTypes((prev) =>
       prev.includes(typeId) ? prev.filter((t) => t !== typeId) : [...prev, typeId]
@@ -202,7 +205,6 @@ export default function GroupApplyPunch({
     );
   };
 
-  // ── Placeholder helpers ──────────────────────────────────────────────────
   const getEmployeeTypePlaceholder = () => {
     if (selectedEmployeeTypes.length === 0) return t.placeholder_employee_type || "Choose type";
     return `${selectedEmployeeTypes.length} ${t.type || "type"}${selectedEmployeeTypes.length > 1 ? "s" : ""} ${t.selected || "selected"}`;
@@ -213,7 +215,6 @@ export default function GroupApplyPunch({
     return `${selectedEmployees.length} ${t.employee || "employee"}${selectedEmployees.length > 1 ? "s" : ""} ${t.selected || "selected"}`;
   };
 
-  // ── Form ─────────────────────────────────────────────────────────────────
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { reason: "", remarks: "" },
@@ -223,7 +224,7 @@ export default function GroupApplyPunch({
     mutationFn: groupApproveByEmployeeIdsRequest,
     onSuccess: () => {
       showToast("success", "group_apply_punch_success");
-      queryClient.invalidateQueries({ queryKey: ["missingMovement"] });
+      queryClient.invalidateQueries({ queryKey: ["missingMovement"],exact: false });
       setIsSubmitting(false);
       if (on_open_change) on_open_change(false);
     },
@@ -315,7 +316,6 @@ export default function GroupApplyPunch({
     <div className="flex flex-col gap-6">
       <div className="bg-accent transition-all duration-300 rounded-xl">
 
-        {/* ── Remarks overflow warning ──────────────────────────────────── */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             {remarksLength > 500 && (
@@ -331,7 +331,6 @@ export default function GroupApplyPunch({
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-2 gap-y-5 gap-10 pt-8">
 
-              {/* ── REASON ─────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
                 name="reason"
@@ -356,7 +355,6 @@ export default function GroupApplyPunch({
                 )}
               />
 
-              {/* ── DATE ───────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
                 name="date"
@@ -399,7 +397,10 @@ export default function GroupApplyPunch({
                             field.onChange(date);
                             closePopover("fromDate");
                           }}
-                          defaultMonth={new Date()}
+                          disabled={isDateDisabled}
+                          defaultMonth={today}
+                          fromDate={allowedDaysAgo}
+                          toDate={today}
                         />
                       </PopoverContent>
                     </Popover>
@@ -408,7 +409,6 @@ export default function GroupApplyPunch({
                 )}
               />
 
-              {/* ── TIME ───────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
                 name="time"
@@ -452,7 +452,6 @@ export default function GroupApplyPunch({
                 )}
               />
 
-              {/* ── EMPLOYEE TYPE (multi-select with checkbox) ──────────── */}
               <FormItem>
                 <FormLabel>{t.employee_type || "Employee Type"}</FormLabel>
                 <Select>
@@ -494,7 +493,6 @@ export default function GroupApplyPunch({
                 </Select>
               </FormItem>
 
-              {/* ── DEPARTMENT ─────────────────────────────────────────── */}
               <FormItem className="flex flex-col">
                 <FormLabel>{t.department || "Department"}</FormLabel>
                 <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
@@ -512,9 +510,9 @@ export default function GroupApplyPunch({
                       <span className="truncate">
                         {selectedDepartment
                           ? getDepartmentsData().find(
-                              (item: any) => item.department_id === selectedDepartment
-                            )?.[language === "ar" ? "department_name_arb" : "department_name_eng"] ||
-                            t.placeholder_department || "Choose department"
+                            (item: any) => item.department_id === selectedDepartment
+                          )?.[language === "ar" ? "department_name_arb" : "department_name_eng"] ||
+                          t.placeholder_department || "Choose department"
                           : t.placeholder_department || "Choose department"}
                       </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -551,7 +549,6 @@ export default function GroupApplyPunch({
                 </Popover>
               </FormItem>
 
-              {/* ── COST CENTER ────────────────────────────────────────── */}
               <FormItem className="flex flex-col">
                 <FormLabel>{t.cost_center || "Cost Center"}</FormLabel>
                 <Popover open={openCostCenter} onOpenChange={setOpenCostCenter}>
@@ -612,91 +609,88 @@ export default function GroupApplyPunch({
 
               <div className="grid gap-3">
 
-              {/* ── EMPLOYEE (multi-select with checkbox) ──────────────── */}
-              <FormItem>
-                <FormLabel>{t.employee || "Employee"}</FormLabel>
-                <Select>
-                  <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                    <SelectValue placeholder={getEmployeePlaceholder()} />
-                  </SelectTrigger>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search_employees || "Search employees..."}
-                    onSearchChange={setEmployeeSearchTerm}
-                    className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                  >
-                    {isSearchingEmployees && debouncedEmployeeSearch.length > 0 && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.searching || "Searching..."}
-                      </div>
-                    )}
-                    {getFilteredEmployees().length === 0 && !isSearchingEmployees && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {debouncedEmployeeSearch.length > 0
-                          ? t.no_employees_found || "No employees found"
-                          : t.no_employees || "No employees available"}
-                      </div>
-                    )}
-                    {getFilteredEmployees().map((item: any) => {
-                      const empId = item?.employee_id?.toString();
-                      const isChecked = selectedEmployees.includes(empId);
-                      return (
-                        <div
-                          key={empId}
-                          className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEmployeeToggle(empId);
-                          }}
-                        >
-                          <Checkbox checked={isChecked} className="mr-2" />
-                          <span>
-                            {language === "ar"
-                              ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ""}`
-                              : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ""}`}
-                          </span>
+                <FormItem>
+                  <FormLabel>{t.employee || "Employee"}</FormLabel>
+                  <Select>
+                    <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                      <SelectValue placeholder={getEmployeePlaceholder()} />
+                    </SelectTrigger>
+                    <SelectContent
+                      showSearch={true}
+                      searchPlaceholder={t.search_employees || "Search employees..."}
+                      onSearchChange={setEmployeeSearchTerm}
+                      className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                    >
+                      {isSearchingEmployees && debouncedEmployeeSearch.length > 0 && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          {t.searching || "Searching..."}
                         </div>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
+                      )}
+                      {getFilteredEmployees().length === 0 && !isSearchingEmployees && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          {debouncedEmployeeSearch.length > 0
+                            ? t.no_employees_found || "No employees found"
+                            : t.no_employees || "No employees available"}
+                        </div>
+                      )}
+                      {getFilteredEmployees().map((item: any) => {
+                        const empId = item?.employee_id?.toString();
+                        const isChecked = selectedEmployees.includes(empId);
+                        return (
+                          <div
+                            key={empId}
+                            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleEmployeeToggle(empId);
+                            }}
+                          >
+                            <Checkbox checked={isChecked} className="mr-2" />
+                            <span>
+                              {language === "ar"
+                                ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ""}`
+                                : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ""}`}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
 
- {/* ── ATTACHMENT (required) ───────────────────────────────── */}
-              <FormField
-                control={form.control}
-                name="attachment"
-                render={({ field: { value, onChange, ...fieldProps } }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t.attachment || "Attachment"} <Required />
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...fieldProps}
-                        className="border-0 p-0 rounded-none h-auto text-text-secondary"
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/jpg,image/png"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          onChange(file ?? undefined);
-                        }}
+                <FormField
+                  control={form.control}
+                  name="attachment"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t.attachment || "Attachment"} <Required />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...fieldProps}
+                          className="border-0 p-0 rounded-none h-auto text-text-secondary"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/jpg,image/png"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            onChange(file ?? undefined);
+                          }}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-text-secondary">
+                        {t.group_apply_attachment_note || "PDF, JPG, PNG — max 5 MB"}
+                      </p>
+                      <TranslatedError
+                        fieldError={form.formState.errors.attachment}
+                        translations={formErrors}
                       />
-                    </FormControl>
-                    <p className="text-xs text-text-secondary">
-                      {t.group_apply_attachment_note || "PDF, JPG, PNG — max 5 MB"}
-                    </p>
-                    <TranslatedError
-                      fieldError={form.formState.errors.attachment}
-                      translations={formErrors}
-                    />
-                  </FormItem>
-                )}
-              />
-</div>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              {/* ── REMARKS ────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
                 name="remarks"
@@ -720,7 +714,6 @@ export default function GroupApplyPunch({
               />
             </div>
 
-            {/* ── Actions ──────────────────────────────────────────────── */}
             <div className="flex justify-end gap-2 items-center py-3 pt-8">
               <div className="flex gap-4">
                 <Button

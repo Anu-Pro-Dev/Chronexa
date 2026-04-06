@@ -22,14 +22,13 @@ import { addManualPunchRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 
-// ── Allowed attachment types ──────────────────────────────────────────────────
 const ALLOWED_ATTACHMENT_TYPES = [
   "application/pdf",
   "image/jpeg",
   "image/jpg",
   "image/png",
 ];
-const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 
 const formSchema = z.object({
   employee: z
@@ -107,7 +106,7 @@ export default function ApplyMissingPunch({
     mutationFn: addManualPunchRequest,
     onSuccess: (data) => {
       showToast("success", "apply_missing_punch_success");
-      queryClient.invalidateQueries({ queryKey: ["missingMovement"] });
+      queryClient.invalidateQueries({ queryKey: ["missingMovement"],exact: false });
       setIsSubmitting(false);
       if (on_open_change) {
         on_open_change(false);

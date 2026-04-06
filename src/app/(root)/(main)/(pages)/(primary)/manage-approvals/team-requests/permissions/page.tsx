@@ -43,16 +43,35 @@ export default function Page() {
   const [approveOpen, setApproveOpen] = useState<boolean>(false);
   const [rejectOpen, setRejectOpen] = useState<boolean>(false);
   const t = translations?.modules?.manageApprovals || {};
+
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
   });
+
   const closePopover = (key: string) => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   };
+
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
+
+  // ─── Admin / Manager logic (same as manual punches page) ───────────────────
+  const isAdmin = useMemo(() => {
+    const role = (userInfo?.role ?? "").toUpperCase();
+    if (role) {
+      return role === "ADMIN" || role === "admin" || role === "Admin";
+    }
+    return userInfo?.roleId === 1;
+  }, [userInfo]);
+
+  const endpoint = useMemo(() => {
+    return isAdmin
+      ? `/employeeShortPermission/all`
+      : `/employeeShortPermission/team/all`;
+  }, [isAdmin]);
+  // ───────────────────────────────────────────────────────────────────────────
 
   const getEmployeeDisplayInfo = useCallback((permission: any, language: string = 'en') => {
     const employeeMaster = permission.employee_master;
@@ -106,7 +125,7 @@ export default function Page() {
       { field: "permission_date", headerName: t.date || "Date" },
       { field: "from_time", headerName: t.from_time || "From Time" },
       { field: "to_time", headerName: t.to_time || "To Time" },
-      { field: "perm_minutes", headerName: t.perm_mins || "Permission Minutes" }, 
+      { field: "perm_minutes", headerName: t.perm_mins || "Permission Minutes" },
     ]);
   }, [language, t, translations]);
 
@@ -130,7 +149,7 @@ export default function Page() {
         ...(debouncedSearchValue && { search: debouncedSearchValue }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeShortPermission/team/all`,
+      endpoint, // ← now dynamic based on isAdmin
     }
   );
 
@@ -139,9 +158,12 @@ export default function Page() {
       return [];
     }
 
-    const filteredData = permissionsData.data.filter((permission: any) =>
-      permission.employee_id !== employeeId
-    );
+    // Admins see all records; managers still exclude their own
+    const filteredData = isAdmin
+      ? permissionsData.data
+      : permissionsData.data.filter((permission: any) =>
+          permission.employee_id !== employeeId
+        );
 
     const processedData = filteredData.map((permission: any) => {
       const employeeInfo = getEmployeeDisplayInfo(permission, language);
@@ -167,7 +189,7 @@ export default function Page() {
     });
 
     return processedData;
-  }, [permissionsData, language, employeeId, getEmployeeDisplayInfo, getPermissionTypeName]);
+  }, [permissionsData, language, employeeId, isAdmin, getEmployeeDisplayInfo, getPermissionTypeName]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -213,7 +235,7 @@ export default function Page() {
     }
 
     try {
-      const results = await Promise.all(
+      await Promise.all(
         selectedRows.map((row) =>
           approvePermissionRequest({
             short_permission_id: row.id,
@@ -239,7 +261,7 @@ export default function Page() {
     }
 
     try {
-      const results = await Promise.all(
+      await Promise.all(
         selectedRows.map((row) =>
           approvePermissionRequest({
             short_permission_id: row.id,
@@ -394,13 +416,10 @@ export default function Page() {
                 }}
                 disabled={(date) => {
                   if (!fromDate) return false;
-
                   const from = new Date(fromDate);
                   from.setHours(0, 0, 0, 0);
-
                   const current = new Date(date);
                   current.setHours(0, 0, 0, 0);
-
                   return current < from;
                 }}
               />

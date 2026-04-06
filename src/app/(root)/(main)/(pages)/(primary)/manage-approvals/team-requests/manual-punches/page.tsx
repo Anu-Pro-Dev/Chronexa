@@ -3,13 +3,11 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
-import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Download } from "lucide-react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
@@ -60,10 +58,23 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
+  const isAdmin = useMemo(() => {
+    const role = (userInfo?.role ?? "").toUpperCase();
+    if (role) {
+      return role === "ADMIN" || role === "admin" || role === "Admin";
+    }
+    return userInfo?.roleId === 1;
+  }, [userInfo]);
+
+  const endpoint = useMemo(() => {
+    return isAdmin
+      ? `/employeeManualTransaction/all`
+      : `/employeeManualTransaction/team/all`;
+  }, [isAdmin]);
+
   const getEmployeeDisplayInfo = useCallback((transaction: any) => {
-    // ✅ Added correct API field: transaction.employee
     const employeeMaster =
-      transaction.employee || // ⭐ IMPORTANT FIX
+      transaction.employee ||
       transaction.employee_master ||
       transaction.employee_master_employee_manual_transactions_employee_idToemployee_master;
 
@@ -134,13 +145,13 @@ export default function Page() {
     setColumns([
       { field: "emp_no", headerName: t.employee_no || "Employee No" },
       { field: "firstName", headerName: t.employee_name || "Employee Name" },
-      { field: "transaction_date", headerName: t.date || "Date" },      // fix: use transaction_date
-      { field: "transaction_time", headerName: t.time || "Time" },      // fix: use transaction_time
+      { field: "transaction_date", headerName: t.date || "Date" },
+      { field: "transaction_time", headerName: t.time || "Time" },
       { field: "remarks", headerName: t.remarks || "Remarks" },
       {
         field: "attachment_path",
         headerName: t.attachment || "Attachment",
-        cellRenderer: AttachmentCellRenderer
+        cellRenderer: AttachmentCellRenderer,
       },
     ]);
   }, [language, t, AttachmentCellRenderer]);
@@ -161,7 +172,7 @@ export default function Page() {
     "employeeManualTransaction",
     {
       searchParams: {
-        pending: "true",
+        status: "pending",
         limit: String(rowsPerPage),
         offset: String(offset),
         ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
@@ -170,7 +181,7 @@ export default function Page() {
         ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeManualTransaction/all`,
+      endpoint,
     }
   );
 
@@ -259,7 +270,6 @@ export default function Page() {
     setCurrentPage(1);
   };
 
-
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -333,7 +343,7 @@ export default function Page() {
     );
   };
 
-    const props = {
+  const props = {
     Data: data,
     Columns: columns,
     open,
