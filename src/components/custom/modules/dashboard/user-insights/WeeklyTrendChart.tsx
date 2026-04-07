@@ -72,14 +72,19 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
   }, [date, fetchWeeklyTrendData, hasWeeklyData, organizationId]);
 
   const byDay = new Map(rawData.map((entry: any) => [entry.day, entry]));
-  const chartData = ALL_DAYS.map((day) => {
+  const weekStartDate = new Date(`${weekStart}T00:00:00`);
+
+  const chartData = ALL_DAYS.map((day, i) => {
     const entry = byDay.get(day) as any;
-    const dateLabel = entry?.date
-      ? new Date(`${entry.date}T00:00:00`).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })
-      : "";
+
+    // Always compute the date from weekStart + day index so days with no API
+    // data (e.g. Thu, Sat) still show their date label under the X axis.
+    const dayDate = new Date(weekStartDate);
+    dayDate.setDate(weekStartDate.getDate() + i);
+    const dateLabel = dayDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
 
     return {
       day: day.slice(0, 3),
@@ -122,14 +127,6 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
             daysWithData[0],
           ),
         };
-
-  if (!hasWeeklyData) {
-    return (
-      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[394px] items-center justify-center text-sm text-text-secondary">
-        {weeklyTrendError ? "Failed to load weekly trend." : "Loading weekly trend..."}
-      </div>
-    );
-  }
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">

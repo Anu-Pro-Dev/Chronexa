@@ -9,30 +9,16 @@ import EarlyDespatch from "./EarlyDespatch";
 import AlertsCard from "./AlertsCard";
 import WeeklyTrendChart from "./WeeklyTrendChart";
 import OvertimeCard from "./OvertimeCard";
-import UserInsightsSkeleton from "./UserInsightsSkeleton";
 import { useSelectedDate } from "@/src/store/useSelectedDate";
-import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { toLocalDateStr } from "@/src/lib/userInsightsUtils";
 
 export default function UserInsightsPage() {
   const { date } = useSelectedDate();
-  const { organizationId, isCheckingOrganization } = useUserInsightsOrganization();
-
   const selectedDate = React.useMemo(() => toLocalDateStr(date), [date]);
 
-  if (isCheckingOrganization) {
-    return <UserInsightsSkeleton />;
-  }
-
-  if (organizationId === null && typeof window !== "undefined") {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-        <p>No organization found for your account.</p>
-        <p className="text-sm">Please contact your administrator.</p>
-      </div>
-    );
-  }
-
+  // No skeleton, no org-checking gate — all widgets render immediately with
+  // 0 values and animate in once their API calls resolve (same pattern as
+  // my-attendance LeaveCard count-up animation).
   return (
     <div className="flex flex-col gap-4">
       <KpiGrid date={selectedDate} />

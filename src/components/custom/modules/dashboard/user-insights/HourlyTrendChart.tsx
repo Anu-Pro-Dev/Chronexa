@@ -17,6 +17,9 @@ const chartConfig = {
   checkouts: { label: "Check-outs", color: "#A05AFF" },
 } satisfies ChartConfig;
 
+// Placeholder hours 0-23 with 0 values so the chart renders immediately
+const EMPTY_DATA = Array.from({ length: 24 }, (_, i) => ({ hour: i, checkins: 0, checkouts: 0 }));
+
 interface HourlyTrendChartProps {
   date: string;
 }
@@ -27,23 +30,12 @@ export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
   const insightsHourlyTrendCache = useUserInsightsStore((s) => s.insightsHourlyTrendCache);
   const hasHourlyData = date in insightsHourlyTrendCache;
 
-  const hourlyData = insightsHourlyTrendCache[date] ?? [];
+  const hourlyData = insightsHourlyTrendCache[date] ?? EMPTY_DATA;
 
   React.useEffect(() => {
-    if (!organizationId || hasHourlyData) {
-      return;
-    }
-
+    if (!organizationId || hasHourlyData) return;
     void fetchHourlyTrendData(organizationId, date);
   }, [date, fetchHourlyTrendData, hasHourlyData, organizationId]);
-
-  if (!hasHourlyData) {
-    return (
-      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[247px] items-center justify-center text-sm text-text-secondary">
-        Loading hourly trend...
-      </div>
-    );
-  }
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
@@ -74,8 +66,8 @@ export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
           <XAxis dataKey="hour" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
           <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
           <ChartTooltip content={<ChartTooltipContent />} />
-          <Area dataKey="checkins" type="monotone" stroke="#8CD231" strokeWidth={2} fill="url(#fillCheckins)" dot={false} />
-          <Area dataKey="checkouts" type="monotone" stroke="#A05AFF" strokeWidth={2} fill="url(#fillCheckouts)" dot={false} />
+          <Area dataKey="checkins" type="monotone" stroke="#8CD231" strokeWidth={2} fill="url(#fillCheckins)" dot={false} isAnimationActive={true} animationDuration={800} />
+          <Area dataKey="checkouts" type="monotone" stroke="#A05AFF" strokeWidth={2} fill="url(#fillCheckouts)" dot={false} isAnimationActive={true} animationDuration={800} />
         </AreaChart>
       </ChartContainer>
     </div>

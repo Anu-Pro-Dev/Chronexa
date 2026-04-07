@@ -31,7 +31,7 @@ const CurrentDate: React.FC<CurrentDateProps> = ({ interactive = false }) => {
   });
 
   return (
-    <div ref={ref} className="relative flex justify-center items-center bg-accent rounded-md px-2">
+    <div ref={ref} className="relative flex justify-center items-center bg-accent rounded-md px-2 h-9">
       <div
         className={`flex items-center gap-2 ${interactive ? "cursor-pointer select-none" : ""}`}
         onClick={() => interactive && setShowCalendar((p) => !p)}

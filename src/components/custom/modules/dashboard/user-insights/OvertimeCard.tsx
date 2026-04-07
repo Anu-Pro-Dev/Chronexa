@@ -15,64 +15,84 @@ interface OvertimeCardProps {
   date: string;
 }
 
+function useCountUp(target: number[], ready: boolean): number[] {
+  const [values, setValues] = React.useState<number[]>(() => target.map(() => 0));
+  const rafRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    if (!ready) return;
+    const startTime = Date.now();
+    const duration = 800;
+    const snapshot = [...target];
+    const tick = () => {
+      const progress = Math.min((Date.now() - startTime) / duration, 1);
+      setValues(snapshot.map((v) => Math.floor(v * progress)));
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, target.join(",")]);
+
+  return values;
+}
+
 export default function OvertimeCard({ date }: OvertimeCardProps) {
   const { organizationId } = useUserInsightsOrganization();
   const fetchOvertimeData = useUserInsightsStore((s) => s.fetchOvertimeData);
   const insightsOvertimeCache = useUserInsightsStore((s) => s.insightsOvertimeCache);
   const hasOvertimeData = date in insightsOvertimeCache;
-
   const overtime = insightsOvertimeCache[date];
 
   React.useEffect(() => {
-    if (!organizationId || hasOvertimeData) {
-      return;
-    }
-
+    if (!organizationId || hasOvertimeData) return;
     void fetchOvertimeData(organizationId, date);
   }, [date, fetchOvertimeData, hasOvertimeData, organizationId]);
 
-  if (!hasOvertimeData) {
-    return (
-      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[248px] items-center justify-center text-sm text-text-secondary">
-        Loading overtime insights...
-      </div>
-    );
-  }
+  const rawValues = [
+    overtime?.avgHoursToday ?? 0,
+    overtime?.overtimeStaff ?? 0,
+    overtime?.earlyDepartures ?? 0,
+    overtime?.shiftCoverage ?? 0,
+    overtime?.weekAttendanceRate ?? 0,
+  ];
+  const animated = useCountUp(rawValues, hasOvertimeData);
 
-  const overtimeData: OvertimeRow[] = overtime
-    ? [
-        {
-          label: "Avg hours today",
-          value: `${overtime.avgHoursToday} / ${overtime.expectedHours}h`,
-          percentage: overtime.expectedHours > 0 ? Math.round((overtime.avgHoursToday / overtime.expectedHours) * 100) : 0,
-          color: "#0078D4",
-        },
-        {
-          label: "Overtime today",
-          value: `${overtime.overtimeStaff} users`,
-          percentage: overtime.totalStaff > 0 ? Math.round((overtime.overtimeStaff / overtime.totalStaff) * 100) : 0,
-          color: "#FF6B2D",
-        },
-        {
-          label: "Early departures",
-          value: `${overtime.earlyDepartures} users`,
-          percentage: overtime.totalStaff > 0 ? Math.round((overtime.earlyDepartures / overtime.totalStaff) * 100) : 0,
-          color: "#FFBF00",
-        },
-        {
-          label: "Shift coverage",
-          value: `${overtime.shiftCoverage}%`,
-          percentage: overtime.shiftCoverage,
-          color: "#1DAA61",
-        },
-        {
-          label: "Week attendance rate",
-          value: `${overtime.weekAttendanceRate}%`,
-          percentage: overtime.weekAttendanceRate,
-          color: "#7D3FFF",
-        },
-      ]
-    : [];
+  const expectedHours = overtime?.expectedHours ?? 9;
+  const totalStaff = overtime?.totalStaff ?? 1;
+
+  const overtimeData: OvertimeRow[] = [
+    {
+      label: "Avg hours today",
+      value: `${animated[0]} / ${expectedHours}h`,
+      percentage: expectedHours > 0 ? Math.round((animated[0] / expectedHours) * 100) : 0,
+      color: "#0078D4",
+    },
+    {
+      label: "Overtime today",
+      value: `${animated[1]} users`,
+      percentage: totalStaff > 0 ? Math.round((animated[1] / totalStaff) * 100) : 0,
+      color: "#FF6B2D",
+    },
+    {
+      label: "Early departures",
+      value: `${animated[2]} users`,
+      percentage: totalStaff > 0 ? Math.round((animated[2] / totalStaff) * 100) : 0,
+      color: "#FFBF00",
+    },
+    {
+      label: "Shift coverage",
+      value: `${animated[3]}%`,
+      percentage: animated[3],
+      color: "#1DAA61",
+    },
+    {
+      label: "Week attendance rate",
+      value: `${animated[4]}%`,
+      percentage: animated[4],
+      color: "#7D3FFF",
+    },
+  ];
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">

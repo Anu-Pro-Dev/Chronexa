@@ -33,14 +33,6 @@ export default function EarlyDespatch({ date }: EarlyDespatchProps) {
     void fetchEarlyDespatchData(organizationId, date);
   }, [date, fetchEarlyDespatchData, hasEarlyDespatchData, organizationId]);
 
-  if (!hasEarlyDespatchData && !earlyDespatchError) {
-    return (
-      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[248px] items-center justify-center text-sm text-text-secondary">
-        Loading early departures...
-      </div>
-    );
-  }
-
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">

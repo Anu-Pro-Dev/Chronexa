@@ -76,14 +76,6 @@ export default function AlertsCard({ date }: AlertsCardProps) {
     void fetchAlertsData(organizationId, date);
   }, [date, fetchAlertsData, hasAlertsData, organizationId]);
 
-  if (!hasAlertsData && !alertsError) {
-    return (
-      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[320px] items-center justify-center text-sm text-text-secondary">
-        Loading alerts...
-      </div>
-    );
-  }
-
   const alerts: AlertRow[] = alertsData
     ? [
         {

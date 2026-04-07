@@ -50,14 +50,6 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
     void fetchDailySummary(organizationId, date);
   }, [date, fetchDailySummary, hasSummary, organizationId]);
 
-  if (!hasSummary) {
-    return (
-      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[320px] items-center justify-center text-sm text-text-secondary">
-        Loading attendance split...
-      </div>
-    );
-  }
-
   const values = SLICES.map((s) => Math.max((summary as any)?.[s.key] ?? 0, 0));
   const total = values.reduce((a, b) => a + b, 0);
   const totalStaff = summary?.totalStaff ?? total;

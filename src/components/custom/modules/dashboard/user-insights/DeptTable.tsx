@@ -60,14 +60,6 @@ export default function DeptTable({ date }: DeptTableProps) {
     void fetchDeptAttendanceData(organizationId, date);
   }, [date, fetchDeptAttendanceData, hasDeptData, organizationId]);
 
-  if (!hasDeptData) {
-    return (
-      <div className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[290px] items-center justify-center text-sm text-text-secondary">
-        Loading department attendance...
-      </div>
-    );
-  }
-
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6 h-full">
       <h5 className="text-lg text-text-primary font-bold pb-2">Attendance by Department</h5>

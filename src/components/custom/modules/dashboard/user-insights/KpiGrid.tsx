@@ -8,11 +8,50 @@ import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 export interface KpiData {
   label: string;
-  value: number | string;
+  value: number;
   subLabel: string;
   progress: number;
   color: string;
   icon?: React.ReactNode;
+}
+
+// Animates a record of numeric values from 0 → target over 800ms
+// using requestAnimationFrame, identical to the my-attendance pattern.
+function useCountUp(target: Record<string, number>, ready: boolean) {
+  const [values, setValues] = React.useState<Record<string, number>>(() =>
+    Object.fromEntries(Object.keys(target).map((k) => [k, 0]))
+  );
+  const rafRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    if (!ready) return;
+
+    const startTime = Date.now();
+    const duration = 800;
+    const snapshot = { ...target };
+
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      setValues(
+        Object.fromEntries(
+          Object.entries(snapshot).map(([k, v]) => [k, Math.floor(v * progress)])
+        )
+      );
+
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [ready, JSON.stringify(target)]);
+
+  return values;
 }
 
 function KpiCard({ data }: { data: KpiData }) {
@@ -31,10 +70,8 @@ function KpiCard({ data }: { data: KpiData }) {
           </div>
         )}
       </div>
-      {/* Reduced from text-3xl → text-2xl */}
       <p className="text-2xl font-bold text-text-primary leading-none">{data.value}</p>
       <p className="text-xs text-text-secondary">{data.subLabel}</p>
-      {/* Increased from h-1 → h-1.5 */}
       <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden mt-1">
         <div
           className="h-full rounded-full transition-all duration-700"
@@ -44,7 +81,6 @@ function KpiCard({ data }: { data: KpiData }) {
     </div>
   );
 }
-
 
 interface KpiGridProps {
   date: string;
@@ -60,74 +96,71 @@ export default function KpiGrid({ date }: KpiGridProps) {
   const totalStaff = summary?.totalStaff ?? 0;
 
   React.useEffect(() => {
-    if (!organizationId || hasSummary) {
-      return;
-    }
-
+    if (!organizationId || hasSummary) return;
     void fetchDailySummary(organizationId, date);
   }, [date, fetchDailySummary, hasSummary, organizationId]);
 
-  if (!hasSummary) {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="bg-accent rounded-[10px] shadow-card p-4 flex min-h-[126px] items-center justify-center text-sm text-text-secondary"
-          >
-            Loading metrics...
-          </div>
-        ))}
-      </div>
-    );
-  }
+  const animated = useCountUp(
+    {
+      checkIns: summary?.checkIns ?? 0,
+      checkOuts: summary?.checkOuts ?? 0,
+      withLicense: summary?.withLicense ?? 0,
+      absentCount: summary?.absentCount ?? 0,
+      onLeave: summary?.onLeave ?? 0,
+      noAppLogin: summary?.noAppLogin ?? 0,
+      totalStaff: summary?.totalStaff ?? 0,
+    },
+    hasSummary
+  );
+
+  const total = animated.totalStaff;
 
   const kpiData: KpiData[] = [
     {
       label: "CHECK-INS",
-      value: summary?.checkIns ?? 0,
-      subLabel: `of ${totalStaff} employees`,
-      progress: totalStaff > 0 ? Math.round(((summary?.checkIns ?? 0) / totalStaff) * 100) : 0,
+      value: animated.checkIns,
+      subLabel: `of ${total} employees`,
+      progress: total > 0 ? Math.round((animated.checkIns / total) * 100) : 0,
       color: "#0078D4",
       icon: <PunchInIcon color="#0078D4" className="w-6 h-6" />,
     },
     {
       label: "CHECK-OUTS",
-      value: summary?.checkOuts ?? 0,
+      value: animated.checkOuts,
       subLabel: "completed today",
-      progress: totalStaff > 0 ? Math.round(((summary?.checkOuts ?? 0) / totalStaff) * 100) : 0,
+      progress: total > 0 ? Math.round((animated.checkOuts / total) * 100) : 0,
       color: "#FF6B2D",
       icon: <PunchOutIcon color="#FF6B2D" className="w-6 h-6" />,
     },
     {
       label: "License Enabled",
-      value: summary?.withLicense ?? 0,
+      value: animated.withLicense,
       subLabel: "licensed users",
-      progress: totalStaff > 0 ? Math.round(((summary?.withLicense ?? 0) / totalStaff) * 100) : 0,
+      progress: total > 0 ? Math.round((animated.withLicense / total) * 100) : 0,
       color: "#1DAA61",
       icon: <UserPlusIcon color="#1DAA61" className="w-6 h-6" />,
     },
     {
       label: "ABSENT",
-      value: summary?.absentCount ?? 0,
+      value: animated.absentCount,
       subLabel: "not at work today",
-      progress: totalStaff > 0 ? Math.round(((summary?.absentCount ?? 0) / totalStaff) * 100) : 0,
+      progress: total > 0 ? Math.round((animated.absentCount / total) * 100) : 0,
       color: "#DA153E",
       icon: <UserMinusIcon color="#DA153E" className="w-6 h-6" />,
     },
     {
       label: "ON LEAVE",
-      value: summary?.onLeave ?? 0,
+      value: animated.onLeave,
       subLabel: "approved absences",
-      progress: totalStaff > 0 ? Math.round(((summary?.onLeave ?? 0) / totalStaff) * 100) : 0,
+      progress: total > 0 ? Math.round((animated.onLeave / total) * 100) : 0,
       color: "#FFBF00",
       icon: <AbsentIcon color="#FFBF00" className="w-6 h-6" />,
     },
     {
       label: "NO APP LOGIN",
-      value: summary?.noAppLogin ?? 0,
+      value: animated.noAppLogin,
       subLabel: "inactive today",
-      progress: totalStaff > 0 ? Math.round(((summary?.noAppLogin ?? 0) / totalStaff) * 100) : 0,
+      progress: total > 0 ? Math.round((animated.noAppLogin / total) * 100) : 0,
       color: "#7D3FFF",
       icon: <DevicePhoneMobileIcon className="w-6 h-6" />,
     },
