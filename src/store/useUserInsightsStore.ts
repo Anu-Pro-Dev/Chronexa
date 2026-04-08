@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import {
-  fetchAttendanceSplit,
   fetchDepartmentAttendance,
   fetchHourlyTrend,
   fetchOvertime,
@@ -17,6 +16,10 @@ import {
   getWeekStartStr,
   toLocalDateStr,
 } from "@/src/lib/userInsightsUtils";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal types
+// ─────────────────────────────────────────────────────────────────────────────
 
 type DailySummary = {
   totalStaff: number;
@@ -91,14 +94,12 @@ type EarlyDespatchEntry = {
   topEarlyDepartures: OrganizationEarlyDespatchData["topEarlyDepartures"];
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
 const ALL_DAYS_FULL = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
+  "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
 ];
 
 function resolveDateKey(date?: string): string {
@@ -107,136 +108,135 @@ function resolveDateKey(date?: string): string {
 
 function setPendingRequest(
   set: (updater: (state: UserInsightsState) => Partial<UserInsightsState>) => void,
-  requestKey: string,
+  requestKey: string
 ) {
   set((state) => ({
-    pendingRequests: {
-      ...state.pendingRequests,
-      [requestKey]: true,
-    },
+    pendingRequests: { ...state.pendingRequests, [requestKey]: true },
   }));
 }
 
 function clearPendingRequest(
   set: (updater: (state: UserInsightsState) => Partial<UserInsightsState>) => void,
-  requestKey: string,
+  requestKey: string
 ) {
   set((state) => {
     const pendingRequests = { ...state.pendingRequests };
-
     delete pendingRequests[requestKey];
-
     return { pendingRequests };
   });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mappers
+// ─────────────────────────────────────────────────────────────────────────────
+
 function mapDailySummary(
-  totalsAndToday: Pick<OrganizationAnalyticsData, "totals" | "today">,
-  attendanceSplit: Pick<OrganizationAnalyticsData, "attendanceSplit">,
+  data: Pick<OrganizationAnalyticsData, "totals" | "today" | "attendanceSplit">
 ): DailySummary {
   return {
-    totalStaff: totalsAndToday.totals.totalEmployees,
-    checkIns: totalsAndToday.today.checkIns,
-    checkOuts: totalsAndToday.today.checkOuts,
-    presentCount: totalsAndToday.today.presentCount,
-    withLicense: totalsAndToday.totals.licenseCounts.withLicense,
-    missedIn: totalsAndToday.today.missedIn,
-    missedOut: totalsAndToday.today.missedOut,
-    onLeave: totalsAndToday.today.onLeave,
-    absentCount: totalsAndToday.today.absentCount,
-    noAppLogin: totalsAndToday.totals.noAppLogin,
-    present: attendanceSplit.attendanceSplit.present,
-    absent: attendanceSplit.attendanceSplit.absent,
+    totalStaff:   data.totals.totalEmployees,
+    checkIns:     data.today.checkIns,
+    checkOuts:    data.today.checkOuts,
+    presentCount: data.today.presentCount,
+    withLicense:  data.totals.licenseCounts.withLicense,
+    missedIn:     data.today.missedIn,
+    missedOut:    data.today.missedOut,
+    onLeave:      data.today.onLeave,
+    absentCount:  data.today.absentCount,
+    noAppLogin:   data.totals.noAppLogin,
+    present:      data.attendanceSplit.present,
+    absent:       data.attendanceSplit.absent,
   };
 }
 
 function mapWeeklyTrend(
-  weeklyTrend: Pick<OrganizationAnalyticsData, "weeklyTrend">,
-  selectedDate: string,
-  weekStart: string,
+  weeklyTrend: OrganizationAnalyticsData["weeklyTrend"],
+  weekStart: string
 ): WeeklyEntry[] {
-  return weeklyTrend.weeklyTrend.map((entry) => {
+  return weeklyTrend.map((entry, i) => {
+    // Use the dayName from SP, fall back to index-based calculation
     let dayName = entry.label;
-
     if (dayName === "Today") {
-      const todayDate = new Date(`${selectedDate}T00:00:00`);
-      dayName = ALL_DAYS_FULL[todayDate.getDay()];
+      dayName = ALL_DAYS_FULL[new Date().getDay()];
     }
 
     const dayIndex = ALL_DAYS_FULL.indexOf(dayName);
-    const dayDate = new Date(`${weekStart}T00:00:00`);
-
-    if (dayIndex >= 0) {
-      dayDate.setDate(dayDate.getDate() + dayIndex);
-    }
+    const dayDate  = new Date(`${weekStart}T00:00:00`);
+    dayDate.setDate(dayDate.getDate() + (dayIndex >= 0 ? dayIndex : i));
 
     return {
-      day: dayName,
-      date: toLocalDateStr(dayDate),
-      present: entry.present,
-      onLeave: entry.onLeave,
-      absent: entry.absent,
-      missedIn: entry.missedIn,
+      day:      dayName,
+      date:     toLocalDateStr(dayDate),
+      present:  entry.present,
+      onLeave:  entry.onLeave,
+      absent:   entry.absent,
+      missedIn:  entry.missedIn,
       missedOut: entry.missedOut,
-      total: entry.total,
+      total:    entry.total,
     };
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State interface
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface UserInsightsState {
   alertsError: string | null;
   earlyDespatchError: string | null;
   weeklyTrendError: string | null;
   pendingRequests: Record<string, boolean>;
-  fetchDailySummary: (orgId: number, date?: string) => Promise<void>;
-  fetchHourlyTrendData: (orgId: number, date?: string) => Promise<void>;
-  fetchDeptAttendanceData: (orgId: number, date?: string) => Promise<void>;
-  fetchWeeklyTrendData: (orgId: number, date?: string) => Promise<void>;
-  fetchOvertimeData: (orgId: number, date?: string) => Promise<void>;
-  fetchAlertsData: (orgId: number, date?: string) => Promise<void>;
+
+  insightsDailySummaryCache:  Record<string, DailySummary>;
+  insightsHourlyTrendCache:   Record<string, HourlyEntry[]>;
+  insightsWeeklyTrendCache:   Record<string, WeeklyEntry[]>;
+  insightsDeptAttendanceCache: Record<string, DeptEntry[]>;
+  insightsOvertimeCache:      Record<string, OvertimeData>;
+  insightsAlertsCache:        Record<string, AlertItem>;
+  insightsEarlyDespatchCache: Record<string, EarlyDespatchEntry>;
+
+  fetchDailySummary:      (orgId: number, date?: string) => Promise<void>;
+  fetchHourlyTrendData:   (orgId: number, date?: string) => Promise<void>;
+  fetchDeptAttendanceData:(orgId: number, date?: string) => Promise<void>;
+  fetchWeeklyTrendData:   (orgId: number, date?: string) => Promise<void>;
+  fetchOvertimeData:      (orgId: number, date?: string) => Promise<void>;
+  fetchAlertsData:        (orgId: number, date?: string) => Promise<void>;
   fetchEarlyDespatchData: (orgId: number, date?: string) => Promise<void>;
   clearData: () => void;
-  insightsDailySummaryCache: Record<string, DailySummary>;
-  insightsHourlyTrendCache: Record<string, HourlyEntry[]>;
-  insightsWeeklyTrendCache: Record<string, WeeklyEntry[]>;
-  insightsDeptAttendanceCache: Record<string, DeptEntry[]>;
-  insightsOvertimeCache: Record<string, OvertimeData>;
-  insightsAlertsCache: Record<string, AlertItem>;
-  insightsEarlyDespatchCache: Record<string, EarlyDespatchEntry>;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Store
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
-  alertsError: null,
+  alertsError:       null,
   earlyDespatchError: null,
-  weeklyTrendError: null,
-  pendingRequests: {},
+  weeklyTrendError:  null,
+  pendingRequests:   {},
 
-  insightsDailySummaryCache: {},
-  insightsHourlyTrendCache: {},
-  insightsWeeklyTrendCache: {},
+  insightsDailySummaryCache:   {},
+  insightsHourlyTrendCache:    {},
+  insightsWeeklyTrendCache:    {},
   insightsDeptAttendanceCache: {},
-  insightsOvertimeCache: {},
-  insightsAlertsCache: {},
-  insightsEarlyDespatchCache: {},
+  insightsOvertimeCache:       {},
+  insightsAlertsCache:         {},
+  insightsEarlyDespatchCache:  {},
 
-  fetchDailySummary: async (orgId: number, date?: string) => {
-    const cacheKey = resolveDateKey(date);
+  // ── Daily summary ───────────────────────────────────────────────────────────
+  // Merged: totals + attendanceSplit come from a single snapshot call now.
+  fetchDailySummary: async (orgId, date) => {
+    const cacheKey   = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("dailySummary", orgId, cacheKey);
     const { insightsDailySummaryCache, pendingRequests } = get();
 
-    if (insightsDailySummaryCache[cacheKey] || pendingRequests[requestKey]) {
-      return;
-    }
+    if (insightsDailySummaryCache[cacheKey] || pendingRequests[requestKey]) return;
 
     setPendingRequest(set, requestKey);
-
     try {
-      const [totalsAndToday, attendanceSplit] = await Promise.all([
-        fetchTotalsAndToday(orgId, cacheKey),
-        fetchAttendanceSplit(orgId, cacheKey),
-      ]);
-
-      const summary = mapDailySummary(totalsAndToday, attendanceSplit);
+      // Single API call — fetchTotalsAndToday now returns attendanceSplit too
+      const data = await fetchTotalsAndToday(orgId, cacheKey);
+      const summary = mapDailySummary(data);
 
       set((state) => ({
         insightsDailySummaryCache: {
@@ -251,22 +251,20 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     }
   },
 
-  fetchHourlyTrendData: async (orgId: number, date?: string) => {
-    const cacheKey = resolveDateKey(date);
+  // ── Hourly trend ────────────────────────────────────────────────────────────
+  fetchHourlyTrendData: async (orgId, date) => {
+    const cacheKey   = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("hourlyTrend", orgId, cacheKey);
     const { insightsHourlyTrendCache, pendingRequests } = get();
 
-    if (insightsHourlyTrendCache[cacheKey] || pendingRequests[requestKey]) {
-      return;
-    }
+    if (insightsHourlyTrendCache[cacheKey] || pendingRequests[requestKey]) return;
 
     setPendingRequest(set, requestKey);
-
     try {
       const response = await fetchHourlyTrend(orgId, cacheKey);
       const hourlyTrend: HourlyEntry[] = response.hourlyTrend.map((entry) => ({
-        hour: entry.hour,
-        checkins: entry.checkIns,
+        hour:      entry.hour,
+        checkins:  entry.checkIns,
         checkouts: entry.checkOuts,
       }));
 
@@ -283,23 +281,21 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     }
   },
 
-  fetchDeptAttendanceData: async (orgId: number, date?: string) => {
-    const cacheKey = resolveDateKey(date);
+  // ── Department attendance ───────────────────────────────────────────────────
+  fetchDeptAttendanceData: async (orgId, date) => {
+    const cacheKey   = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("deptAttendance", orgId, cacheKey);
     const { insightsDeptAttendanceCache, pendingRequests } = get();
 
-    if (insightsDeptAttendanceCache[cacheKey] || pendingRequests[requestKey]) {
-      return;
-    }
+    if (insightsDeptAttendanceCache[cacheKey] || pendingRequests[requestKey]) return;
 
     setPendingRequest(set, requestKey);
-
     try {
       const response = await fetchDepartmentAttendance(orgId, cacheKey);
       const deptAttendance: DeptEntry[] = response.departmentAttendance.map((entry) => ({
-        name: entry.department,
+        name:    entry.department,
         present: entry.present,
-        total: entry.total,
+        total:   entry.total,
       }));
 
       set((state) => ({
@@ -315,22 +311,20 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     }
   },
 
-  fetchWeeklyTrendData: async (orgId: number, date?: string) => {
-    const cacheKey = resolveDateKey(date);
-    const weekStart = getWeekStartStr(cacheKey);
+  // ── Weekly trend ────────────────────────────────────────────────────────────
+  fetchWeeklyTrendData: async (orgId, date) => {
+    const cacheKey   = resolveDateKey(date);
+    const weekStart  = getWeekStartStr(cacheKey);
     const requestKey = buildInsightsRequestKey("weeklyTrend", orgId, weekStart);
     const { insightsWeeklyTrendCache, pendingRequests } = get();
 
-    if (insightsWeeklyTrendCache[weekStart] || pendingRequests[requestKey]) {
-      return;
-    }
+    if (insightsWeeklyTrendCache[weekStart] || pendingRequests[requestKey]) return;
 
     set({ weeklyTrendError: null });
     setPendingRequest(set, requestKey);
-
     try {
-      const response = await fetchWeeklyTrend(orgId, cacheKey);
-      const weeklyTrend = mapWeeklyTrend(response, cacheKey, weekStart);
+      const response     = await fetchWeeklyTrend(orgId, cacheKey);
+      const weeklyTrend  = mapWeeklyTrend(response.weeklyTrend, weekStart);
 
       set((state) => ({
         insightsWeeklyTrendCache: {
@@ -339,41 +333,34 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
         },
       }));
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to fetch weekly trend data";
-
-      set({ weeklyTrendError: errorMessage });
+      set({ weeklyTrendError: error instanceof Error ? error.message : "Failed to fetch weekly trend" });
       console.error("UserInsightsStore fetchWeeklyTrendData error:", error);
     } finally {
       clearPendingRequest(set, requestKey);
     }
   },
 
-  fetchOvertimeData: async (orgId: number, date?: string) => {
-    const cacheKey = resolveDateKey(date);
+  // ── Overtime ────────────────────────────────────────────────────────────────
+  fetchOvertimeData: async (orgId, date) => {
+    const cacheKey   = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("overtime", orgId, cacheKey);
     const { insightsOvertimeCache, pendingRequests } = get();
 
-    if (insightsOvertimeCache[cacheKey] || pendingRequests[requestKey]) {
-      return;
-    }
+    if (insightsOvertimeCache[cacheKey] || pendingRequests[requestKey]) return;
 
     setPendingRequest(set, requestKey);
-
     try {
-      const [overtimeResponse, totalsAndToday] = await Promise.all([
-        fetchOvertime(orgId, cacheKey),
-        fetchTotalsAndToday(orgId, cacheKey),
-      ]);
+      // Single call — overtime SP already returns totalEmployees
+      const overtimeResponse = await fetchOvertime(orgId, cacheKey);
 
       const overtime: OvertimeData = {
-        avgHoursToday: overtimeResponse.overtime.avgHoursToday,
-        overtimeStaff: overtimeResponse.overtime.overtimeCount,
-        earlyDepartures: overtimeResponse.overtime.earlyDepartures,
-        shiftCoverage: overtimeResponse.overtime.shiftCoverage,
+        avgHoursToday:      overtimeResponse.overtime.avgHoursToday,
+        overtimeStaff:      overtimeResponse.overtime.overtimeCount,
+        earlyDepartures:    overtimeResponse.overtime.earlyDepartures,
+        shiftCoverage:      overtimeResponse.overtime.shiftCoverage,
         weekAttendanceRate: overtimeResponse.overtime.weekAttendanceRate,
-        expectedHours: overtimeResponse.overtime.requiredHours ?? 9,
-        totalStaff: totalsAndToday.totals.totalEmployees,
+        expectedHours:      overtimeResponse.overtime.requiredHours ?? 9,
+        totalStaff:         overtimeResponse.overtime.totalEmployees ?? 0,
       };
 
       set((state) => ({
@@ -389,92 +376,81 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     }
   },
 
-  fetchAlertsData: async (orgId: number, date?: string) => {
-    const cacheKey = resolveDateKey(date);
+  // ── Alerts ──────────────────────────────────────────────────────────────────
+  fetchAlertsData: async (orgId, date) => {
+    const cacheKey   = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("alerts", orgId, cacheKey);
     const { insightsAlertsCache, pendingRequests } = get();
 
-    if (insightsAlertsCache[cacheKey] || pendingRequests[requestKey]) {
-      return;
-    }
+    if (insightsAlertsCache[cacheKey] || pendingRequests[requestKey]) return;
 
     set({ alertsError: null });
     setPendingRequest(set, requestKey);
-
     try {
-      const alertsData: OrganizationAlertsData = await getUserAlertsData(orgId, cacheKey);
-      const alertItem: AlertItem = { ...alertsData };
+      const alertsData = await getUserAlertsData(orgId, cacheKey);
 
       set((state) => ({
         alertsError: null,
         insightsAlertsCache: {
           ...state.insightsAlertsCache,
-          [cacheKey]: alertItem,
+          [cacheKey]: { ...alertsData },
         },
       }));
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to fetch alerts data";
-
-      set({ alertsError: errorMessage });
+      set({ alertsError: error instanceof Error ? error.message : "Failed to fetch alerts" });
       console.error("UserInsightsStore fetchAlertsData error:", error);
     } finally {
       clearPendingRequest(set, requestKey);
     }
   },
 
-  fetchEarlyDespatchData: async (orgId: number, date?: string) => {
-    const cacheKey = resolveDateKey(date);
+  // ── Early despatch ──────────────────────────────────────────────────────────
+  fetchEarlyDespatchData: async (orgId, date) => {
+    const cacheKey   = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("earlyDespatch", orgId, cacheKey);
     const { insightsEarlyDespatchCache, pendingRequests } = get();
 
-    if (insightsEarlyDespatchCache[cacheKey] || pendingRequests[requestKey]) {
-      return;
-    }
+    if (insightsEarlyDespatchCache[cacheKey] || pendingRequests[requestKey]) return;
 
     set({ earlyDespatchError: null });
     setPendingRequest(set, requestKey);
-
     try {
-      const earlyDespatchData: OrganizationEarlyDespatchData = await getEarlyDespatchData(orgId, cacheKey);
-      const entry: EarlyDespatchEntry = {
-        targetDate: earlyDespatchData.targetDate,
-        thresholdMinutes: earlyDespatchData.thresholdMinutes,
-        summary: earlyDespatchData.summary,
-        topEarlyDepartures: earlyDespatchData.topEarlyDepartures,
-      };
+      const data = await getEarlyDespatchData(orgId, cacheKey);
 
       set((state) => ({
         earlyDespatchError: null,
         insightsEarlyDespatchCache: {
           ...state.insightsEarlyDespatchCache,
-          [cacheKey]: entry,
+          [cacheKey]: {
+            targetDate:        data.targetDate,
+            thresholdMinutes:  data.thresholdMinutes,
+            summary:           data.summary,
+            topEarlyDepartures: data.topEarlyDepartures,
+          },
         },
       }));
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to fetch early despatch data";
-
-      set({ earlyDespatchError: errorMessage });
+      set({ earlyDespatchError: error instanceof Error ? error.message : "Failed to fetch early despatch" });
       console.error("UserInsightsStore fetchEarlyDespatchData error:", error);
     } finally {
       clearPendingRequest(set, requestKey);
     }
   },
 
+  // ── Clear ───────────────────────────────────────────────────────────────────
   clearData: () => {
     set({
-      alertsError: null,
+      alertsError:        null,
       earlyDespatchError: null,
-      weeklyTrendError: null,
-      pendingRequests: {},
-      insightsDailySummaryCache: {},
-      insightsHourlyTrendCache: {},
-      insightsWeeklyTrendCache: {},
+      weeklyTrendError:   null,
+      pendingRequests:    {},
+      insightsDailySummaryCache:   {},
+      insightsHourlyTrendCache:    {},
+      insightsWeeklyTrendCache:    {},
       insightsDeptAttendanceCache: {},
-      insightsOvertimeCache: {},
-      insightsAlertsCache: {},
-      insightsEarlyDespatchCache: {},
+      insightsOvertimeCache:       {},
+      insightsAlertsCache:         {},
+      insightsEarlyDespatchCache:  {},
     });
   },
 }));
