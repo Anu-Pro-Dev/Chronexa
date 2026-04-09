@@ -245,8 +245,9 @@ export async function fetchTotalsAndToday(
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "organization" | "totals" | "today" | "attendanceSplit">> {
   // Single snapshot call covers totals + today + attendanceSplit (derived)
-  const rows = await fetchSnapshot<TotalsRow[]>(orgId, "totals", date);
-  const row = rows[0];
+  // The API may return a plain object OR a single-element array — handle both.
+  const raw = await fetchSnapshot<TotalsRow | TotalsRow[]>(orgId, "totals", date);
+  const row = Array.isArray(raw) ? raw[0] : raw;
   if (!row) throw new Error("Empty totals response");
 
   return {
@@ -349,8 +350,8 @@ export async function fetchOvertime(
   orgId: number,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "overtime">> {
-  const rows = await fetchSnapshot<OvertimeRow[]>(orgId, "overtime", date);
-  const row = rows[0];
+  const raw = await fetchSnapshot<OvertimeRow | OvertimeRow[]>(orgId, "overtime", date);
+  const row = Array.isArray(raw) ? raw[0] : raw;
   if (!row) throw new Error("Empty overtime response");
   return {
     overtime: {
@@ -402,8 +403,8 @@ export const getUserAlertsData = async (
   orgId: number,
   date?: string
 ): Promise<OrganizationAlertsData> => {
-  const rows = await fetchSnapshot<AlertsRow[]>(orgId, "alerts", date);
-  const row = rows[0];
+  const raw = await fetchSnapshot<AlertsRow | AlertsRow[]>(orgId, "alerts", date);
+  const row = Array.isArray(raw) ? raw[0] : raw;
   if (!row) throw new Error("Empty alerts response");
 
   return {

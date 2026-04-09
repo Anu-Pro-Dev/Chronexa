@@ -11,11 +11,15 @@ import { useDashboardStore } from "@/src/store/useDashboardStore";
  * Call it right after the token is stored.  It fetches the role's privilege
  * map, derives the first accessible route, and pushes the router there.
  *
+ * IMPORTANT: After fetching privileges we write them directly into the
+ * dashboard store so the destination layout (PrivilegeProvider → useRBAC)
+ * sees `loadedPrivileges: true` immediately and doesn't re-fetch or flash
+ * a loading screen.
+ *
  * Falls back to "/dashboard" if the fetch fails or no viewable route exists.
  */
 export function usePostLoginRedirect() {
   const router = useRouter();
-  const setRole = useDashboardStore((s) => s.setRole);
 
   const redirectAfterLogin = useCallback(
     async (roleId: number | string | null | undefined) => {
@@ -28,9 +32,6 @@ export function usePostLoginRedirect() {
 
       const numericRoleId = Number(roleId);
 
-      // Persist the role in the store so the rest of the app picks it up
-      setRole(numericRoleId);
-
       try {
         const res = await apiRequest(
           `/secRolePrivilege?roleId=${numericRoleId}`,
@@ -39,14 +40,35 @@ export function usePostLoginRedirect() {
 
         const raw = res?.data;
         if (!raw || (Array.isArray(raw) && raw.length === 0)) {
+          // Store the role even on empty privileges so the layout doesn't
+          // try to re-fetch indefinitely.
+          useDashboardStore.setState({
+            roleId: numericRoleId,
+            privileges: [],
+            loadedPrivileges: true,
+            loadingPrivileges: false,
+          });
           router.push(FALLBACK);
           return;
         }
 
-        // The store normalises privileges as an array; the actual map is [0]
-        const data = Array.isArray(raw) ? raw[0] : raw;
+        // ── Persist privileges in the store BEFORE navigating ────────────
+        // This is the key fix: the destination page's PrivilegeProvider
+        // (via useRBAC) checks `loadedPrivileges` — if it's already true
+        // and `privileges` is populated, it skips the fetch entirely.
+        //
+        // We store the raw API response exactly as fetchPrivileges() would.
+        const rawPrivileges = Array.isArray(raw) ? raw : [raw];
 
-        // Build a lightweight privilegeMap (hasView only — we don't need full RBAC here)
+        useDashboardStore.setState({
+          roleId: numericRoleId,
+          privileges: rawPrivileges,
+          loadedPrivileges: true,
+          loadingPrivileges: false,
+        });
+
+        // ── Derive the first accessible route (same logic as before) ─────
+        const data = rawPrivileges[0];
         const privilegeMap: Record<string, any> = {};
 
         Object.keys(data).forEach((moduleKey) => {
@@ -75,10 +97,17 @@ export function usePostLoginRedirect() {
         router.push(destination);
       } catch (err) {
         console.error("Failed to fetch privileges for redirect:", err);
+        // Even on error, mark as loaded so the layout doesn't spin forever
+        useDashboardStore.setState({
+          roleId: numericRoleId,
+          privileges: [],
+          loadedPrivileges: true,
+          loadingPrivileges: false,
+        });
         router.push(FALLBACK);
       }
     },
-    [router, setRole]
+    [router]
   );
 
   return { redirectAfterLogin };
