@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 interface DeptRow {
@@ -45,20 +44,11 @@ interface DeptTableProps {
 }
 
 export default function DeptTable({ date }: DeptTableProps) {
-  const { organizationId } = useUserInsightsOrganization();
-  const fetchDeptAttendanceData = useUserInsightsStore((s) => s.fetchDeptAttendanceData);
   const insightsDeptAttendanceCache = useUserInsightsStore((s) => s.insightsDeptAttendanceCache);
   const hasDeptData = date in insightsDeptAttendanceCache;
 
   const deptData: DeptRow[] = (insightsDeptAttendanceCache[date] ?? []).slice(0, 6);
 
-  React.useEffect(() => {
-    if (!organizationId || hasDeptData) {
-      return;
-    }
-
-    void fetchDeptAttendanceData(organizationId, date);
-  }, [date, fetchDeptAttendanceData, hasDeptData, organizationId]);
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6 h-full">

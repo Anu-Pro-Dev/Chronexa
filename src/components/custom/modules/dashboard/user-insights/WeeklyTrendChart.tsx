@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -8,7 +7,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/src/components/ui/chart";
-import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { getWeekStartStr } from "@/src/lib/userInsightsUtils";
 
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
@@ -54,8 +52,6 @@ interface WeeklyTrendChartProps {
 }
 
 export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
-  const { organizationId } = useUserInsightsOrganization();
-  const fetchWeeklyTrendData = useUserInsightsStore((s) => s.fetchWeeklyTrendData);
   const insightsWeeklyTrendCache = useUserInsightsStore((s) => s.insightsWeeklyTrendCache);
   const weeklyTrendError = useUserInsightsStore((s) => s.weeklyTrendError);
 
@@ -63,13 +59,6 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
   const hasWeeklyData = weekStart in insightsWeeklyTrendCache;
   const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
 
-  useEffect(() => {
-    if (!organizationId || hasWeeklyData) {
-      return;
-    }
-
-    void fetchWeeklyTrendData(organizationId, date);
-  }, [date, fetchWeeklyTrendData, hasWeeklyData, organizationId]);
 
   const byDay = new Map(rawData.map((entry: any) => [entry.day, entry]));
   const weekStartDate = new Date(`${weekStart}T00:00:00`);

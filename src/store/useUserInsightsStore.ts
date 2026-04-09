@@ -85,7 +85,7 @@ type AlertItem = {
 
 type EarlyDespatchEntry = {
   targetDate: string;
-  thresholdMinutes: number;
+  // thresholdMinutes: number;
   summary: {
     earlyDepartureCount: number;
     avgEarlyMinutes: number;
@@ -423,7 +423,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
           ...state.insightsEarlyDespatchCache,
           [cacheKey]: {
             targetDate:        data.targetDate,
-            thresholdMinutes:  data.thresholdMinutes,
+            // thresholdMinutes:  data.thresholdMinutes,
             summary:           data.summary,
             topEarlyDepartures: data.topEarlyDepartures,
           },

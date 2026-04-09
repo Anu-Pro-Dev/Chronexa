@@ -1,112 +1,118 @@
 "use client";
+
 import * as React from "react";
-import UserInsightsPage from "@/src/components/custom/modules/dashboard/user-insights/UserInsightsPage";
-import PowerHeader from "@/src/components/custom/power-comps/power-header";
-import { PunchButton } from "@/src/components/custom/common/punch-button";
-import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import CurrentDate from "@/src/components/ui/currentdate";
-import { fetchOrganizationList, OrganizationListItem } from "@/src/lib/userInsightsApiHandler";
-import { useSelectedOrganization } from "@/src/store/useSelectedOrganization";
+import KpiGrid from "./KpiGrid";
+import HourlyTrendChart from "./HourlyTrendChart";
+import AttendanceSplitChart from "./AttendanceSplitChart";
+import DeptTable from "./DeptTable";
+import EarlyDespatch from "./EarlyDespatch";
+import AlertsCard from "./AlertsCard";
+import WeeklyTrendChart from "./WeeklyTrendChart";
+import OvertimeCard from "./OvertimeCard";
+import { useSelectedDate } from "@/src/store/useSelectedDate";
+import { toLocalDateStr } from "@/src/lib/userInsightsUtils";
 import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
 
-function OrganizationDropdown() {
-  const [organizations, setOrganizations] = React.useState<OrganizationListItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
+// ─────────────────────────────────────────────────────────────────────────────
+// Loading waves — controls which fetch fires and when.
+//
+// Wave 1 (0 ms delay)   → totals + hourly   — above the fold, user sees first
+// Wave 2 (120 ms delay) → departments       — middle of page
+// Wave 3 (240 ms delay) → overtime + despatch
+// Wave 4 (360 ms delay) → weekly + alerts   — bottom of page, least urgent
+//
+// Each widget still has its own cache-guard so if the store already has data
+// (e.g. org change) it exits immediately — the delay only applies on cold load.
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const { selectedOrganizationId, setSelectedOrganizationId } = useSelectedOrganization();
-  const { defaultOrganizationId } = useUserInsightsOrganization();
-  const clearData = useUserInsightsStore((s) => s.clearData);
+const WAVE_DELAY_MS = 120;
 
-  const initialized = React.useRef(false);
+export default function UserInsightsPage() {
+  const { date } = useSelectedDate();
+  const selectedDate = React.useMemo(() => toLocalDateStr(date), [date]);
 
-  // Fetch org list once on mount
+  const { organizationId } = useUserInsightsOrganization();
+
+  const {
+    fetchDailySummary,
+    fetchHourlyTrendData,
+    fetchDeptAttendanceData,
+    fetchOvertimeData,
+    fetchEarlyDespatchData,
+    fetchWeeklyTrendData,
+    fetchAlertsData,
+  } = useUserInsightsStore();
+
   React.useEffect(() => {
-    fetchOrganizationList()
-      .then((orgs) => setOrganizations(orgs))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!organizationId) return;
 
-  // Set default org whenever defaultOrganizationId resolves (auth store may be slow)
-  React.useEffect(() => {
-    if (!initialized.current && defaultOrganizationId && !selectedOrganizationId) {
-      setSelectedOrganizationId(defaultOrganizationId);
-      initialized.current = true;
-    }
-  }, [defaultOrganizationId, selectedOrganizationId, setSelectedOrganizationId]);
+    // ── Wave 1: above-the-fold KPIs + hourly chart ─────────────────────
+    void fetchDailySummary(organizationId, selectedDate);
+    void fetchHourlyTrendData(organizationId, selectedDate);
 
-  const handleChange = (value: string) => {
-    clearData();
-    setSelectedOrganizationId(Number(value));
-  };
+    // ── Wave 2: department table ────────────────────────────────────────
+    const t2 = setTimeout(() => {
+      void fetchDeptAttendanceData(organizationId, selectedDate);
+    }, WAVE_DELAY_MS);
 
-  const currentValue = String(selectedOrganizationId ?? defaultOrganizationId ?? "");
+    // ── Wave 3: overtime + early despatch ───────────────────────────────
+    const t3 = setTimeout(() => {
+      void fetchOvertimeData(organizationId, selectedDate);
+      void fetchEarlyDespatchData(organizationId, selectedDate);
+    }, WAVE_DELAY_MS * 2);
 
-  if (loading || organizations.length === 0) {
-    return <div className="h-9 w-52 bg-accent animate-pulse rounded-md" />;
-  }
+    // ── Wave 4: weekly trend + alerts (bottom of page) ──────────────────
+    const t4 = setTimeout(() => {
+      void fetchWeeklyTrendData(organizationId, selectedDate);
+      void fetchAlertsData(organizationId, selectedDate);
+    }, WAVE_DELAY_MS * 3);
 
-  return (
-    <Select value={currentValue} onValueChange={handleChange}>
-      <SelectTrigger
-        iconSize={16}
-        className="h-9 w-52 rounded-md border-0 bg-accent px-2 shadow-none ring-0 focus:ring-0 gap-2 [&>span]:truncate [&>span]:max-w-[130px] [&>span]:text-sm [&>span]:font-semibold [&>span]:text-text-primary"
-      >
-        {/* Icon bubble — identical to CurrentDate: w-7 h-7 bg-backdrop rounded-full */}
-        <div className="w-7 h-7 bg-backdrop rounded-full flex items-center justify-center shrink-0">
-          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M3 7l9-4 9 4M4 21V7m16 14V7M9 21v-4a1 1 0 011-1h4a1 1 0 011 1v4" />
-          </svg>
-        </div>
-        <SelectValue />
-      </SelectTrigger>
-      {/* min-w-[280px] gives enough room so org names don't get clipped */}
-      <SelectContent className="max-h-60 min-w-[280px]">
-        {organizations.map((org) => (
-          <SelectItem key={org.id} value={String(org.id)} className="whitespace-normal">
-            {org.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
-export default function Dashboard() {
-  const { modules } = useLanguage();
-  const { userInfo } = useAuthGuard();
-
-  const shouldShowPunchButton = userInfo?.isWebPunch === true;
+    return () => {
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, [
+    organizationId,
+    selectedDate,
+    fetchDailySummary,
+    fetchHourlyTrendData,
+    fetchDeptAttendanceData,
+    fetchOvertimeData,
+    fetchEarlyDespatchData,
+    fetchWeeklyTrendData,
+    fetchAlertsData,
+  ]);
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-between items-start">
-        <PowerHeader
-          disableAdd
-          disableDelete
-          disableSearch
-          items={modules?.dashboard.items}
-        />
-        <div className="flex gap-4 items-center">
-          <OrganizationDropdown />
-          <CurrentDate interactive />
-          <div className="h-9">
-            {shouldShowPunchButton && <PunchButton />}
-          </div>
+      <KpiGrid date={selectedDate} />
+
+      <HourlyTrendChart date={selectedDate} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        <div className="lg:col-span-2 flex flex-col">
+          <DeptTable date={selectedDate} />
+        </div>
+        <div className="flex flex-col">
+          <AttendanceSplitChart date={selectedDate} />
         </div>
       </div>
 
-      <UserInsightsPage />
+      <div className="grid grid-cols-1 xl:grid-cols-[55%_45%] gap-4">
+        <EarlyDespatch date={selectedDate} />
+        <OvertimeCard date={selectedDate} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          <WeeklyTrendChart date={selectedDate} />
+        </div>
+        <div>
+          <AlertsCard date={selectedDate} />
+        </div>
+      </div>
     </div>
   );
 }

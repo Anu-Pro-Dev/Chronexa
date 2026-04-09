@@ -28,19 +28,22 @@ function OrganizationDropdown() {
 
   const initialized = React.useRef(false);
 
+  // Fetch org list once on mount
   React.useEffect(() => {
     fetchOrganizationList()
-      .then((orgs) => {
-        setOrganizations(orgs);
-        if (!initialized.current && defaultOrganizationId) {
-          setSelectedOrganizationId(defaultOrganizationId);
-          initialized.current = true;
-        }
-      })
+      .then((orgs) => setOrganizations(orgs))
       .catch(console.error)
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Set default org whenever defaultOrganizationId resolves (auth store may be slow)
+  React.useEffect(() => {
+    if (!initialized.current && defaultOrganizationId && !selectedOrganizationId) {
+      setSelectedOrganizationId(defaultOrganizationId);
+      initialized.current = true;
+    }
+  }, [defaultOrganizationId, selectedOrganizationId, setSelectedOrganizationId]);
 
   const handleChange = (value: string) => {
     clearData();

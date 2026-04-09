@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 interface AttendanceSplitChartProps {
@@ -36,19 +35,10 @@ function donutArcPath(cx: number, cy: number, r: number, innerR: number, startDe
 }
 
 export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps) {
-  const { organizationId } = useUserInsightsOrganization();
-  const fetchDailySummary = useUserInsightsStore((s) => s.fetchDailySummary);
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const hasSummary = date in insightsDailySummaryCache;
   const summary = insightsDailySummaryCache[date];
 
-  React.useEffect(() => {
-    if (!organizationId || hasSummary) {
-      return;
-    }
-
-    void fetchDailySummary(organizationId, date);
-  }, [date, fetchDailySummary, hasSummary, organizationId]);
 
   const values = SLICES.map((s) => Math.max((summary as any)?.[s.key] ?? 0, 0));
   const total = values.reduce((a, b) => a + b, 0);

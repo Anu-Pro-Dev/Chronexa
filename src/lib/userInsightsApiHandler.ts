@@ -201,7 +201,7 @@ export interface OrganizationAlertsData {
 
 export interface OrganizationEarlyDespatchData {
   targetDate: string;
-  thresholdMinutes: number;
+  // thresholdMinutes: number;
   summary: {
     earlyDepartureCount: number;
     avgEarlyMinutes: number;
@@ -428,10 +428,10 @@ export const getUserAlertsData = async (
 export const getEarlyDespatchData = async (
   orgId: number,
   date?: string,
-  threshold = 30,
-  topN = 10
+  // threshold = 30,
+  // topN = 10
 ): Promise<OrganizationEarlyDespatchData> => {
-  const query = buildQuery({ action: "despatch", date, threshold, topN });
+  const query = buildQuery({ action: "despatch", date});
   const response = await apiRequest(
     `/insights/${orgId}?${query}`,
     "GET"
@@ -444,7 +444,7 @@ export const getEarlyDespatchData = async (
 
   return {
     targetDate:       date ?? new Date().toISOString().slice(0, 10),
-    thresholdMinutes: threshold,
+    // thresholdMinutes: threshold,
     summary: {
       earlyDepartureCount: summaryRow?.earlyDepartureCount ?? 0,
       avgEarlyMinutes:     summaryRow?.avgEarlyMinutes     ?? 0,

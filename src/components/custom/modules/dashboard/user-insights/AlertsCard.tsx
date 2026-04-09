@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 interface AlertRow {
@@ -60,21 +59,12 @@ interface AlertsCardProps {
 }
 
 export default function AlertsCard({ date }: AlertsCardProps) {
-  const { organizationId } = useUserInsightsOrganization();
-  const fetchAlertsData = useUserInsightsStore((s) => s.fetchAlertsData);
   const alertsError = useUserInsightsStore((s) => s.alertsError);
   const insightsAlertsCache = useUserInsightsStore((s) => s.insightsAlertsCache);
   const hasAlertsData = date in insightsAlertsCache;
 
   const alertsData = insightsAlertsCache[date];
 
-  React.useEffect(() => {
-    if (!organizationId || hasAlertsData) {
-      return;
-    }
-
-    void fetchAlertsData(organizationId, date);
-  }, [date, fetchAlertsData, hasAlertsData, organizationId]);
 
   const alerts: AlertRow[] = alertsData
     ? [
