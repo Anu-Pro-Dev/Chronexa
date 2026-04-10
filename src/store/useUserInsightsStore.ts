@@ -56,6 +56,7 @@ type WeeklyEntry = {
 type DeptEntry = {
   name: string;
   present: number;
+  checkIns: number;
   total: number;
 };
 
@@ -67,6 +68,8 @@ type OvertimeData = {
   weekAttendanceRate: number;
   expectedHours: number;
   totalStaff: number;
+  noPunchToday: number;
+  onTimeRate: number;
 };
 
 type AlertItem = {
@@ -134,18 +137,18 @@ function mapDailySummary(
   data: Pick<OrganizationAnalyticsData, "totals" | "today" | "attendanceSplit">
 ): DailySummary {
   return {
-    totalStaff:   data.totals.totalEmployees,
-    checkIns:     data.today.checkIns,
-    checkOuts:    data.today.checkOuts,
+    totalStaff: data.totals.totalEmployees,
+    checkIns: data.today.checkIns,
+    checkOuts: data.today.checkOuts,
     presentCount: data.today.presentCount,
-    withLicense:  data.totals.licenseCounts.withLicense,
-    missedIn:     data.today.missedIn,
-    missedOut:    data.today.missedOut,
-    onLeave:      data.today.onLeave,
-    absentCount:  data.today.absentCount,
-    noAppLogin:   data.totals.noAppLogin,
-    present:      data.attendanceSplit.present,
-    absent:       data.attendanceSplit.absent,
+    withLicense: data.totals.licenseCounts.withLicense,
+    missedIn: data.today.missedIn,
+    missedOut: data.today.missedOut,
+    onLeave: data.today.onLeave,
+    absentCount: data.today.absentCount,
+    noAppLogin: data.totals.noAppLogin,
+    present: data.attendanceSplit.present,
+    absent: data.attendanceSplit.absent,
   };
 }
 
@@ -161,18 +164,18 @@ function mapWeeklyTrend(
     }
 
     const dayIndex = ALL_DAYS_FULL.indexOf(dayName);
-    const dayDate  = new Date(`${weekStart}T00:00:00`);
+    const dayDate = new Date(`${weekStart}T00:00:00`);
     dayDate.setDate(dayDate.getDate() + (dayIndex >= 0 ? dayIndex : i));
 
     return {
-      day:      dayName,
-      date:     toLocalDateStr(dayDate),
-      present:  entry.present,
-      onLeave:  entry.onLeave,
-      absent:   entry.absent,
-      missedIn:  entry.missedIn,
+      day: dayName,
+      date: toLocalDateStr(dayDate),
+      present: entry.present,
+      onLeave: entry.onLeave,
+      absent: entry.absent,
+      missedIn: entry.missedIn,
       missedOut: entry.missedOut,
-      total:    entry.total,
+      total: entry.total,
     };
   });
 }
@@ -187,20 +190,20 @@ export interface UserInsightsState {
   weeklyTrendError: string | null;
   pendingRequests: Record<string, boolean>;
 
-  insightsDailySummaryCache:  Record<string, DailySummary>;
-  insightsHourlyTrendCache:   Record<string, HourlyEntry[]>;
-  insightsWeeklyTrendCache:   Record<string, WeeklyEntry[]>;
+  insightsDailySummaryCache: Record<string, DailySummary>;
+  insightsHourlyTrendCache: Record<string, HourlyEntry[]>;
+  insightsWeeklyTrendCache: Record<string, WeeklyEntry[]>;
   insightsDeptAttendanceCache: Record<string, DeptEntry[]>;
-  insightsOvertimeCache:      Record<string, OvertimeData>;
-  insightsAlertsCache:        Record<string, AlertItem>;
+  insightsOvertimeCache: Record<string, OvertimeData>;
+  insightsAlertsCache: Record<string, AlertItem>;
   insightsEarlyDespatchCache: Record<string, EarlyDespatchEntry>;
 
-  fetchDailySummary:      (orgId: number, date?: string) => Promise<void>;
-  fetchHourlyTrendData:   (orgId: number, date?: string) => Promise<void>;
-  fetchDeptAttendanceData:(orgId: number, date?: string) => Promise<void>;
-  fetchWeeklyTrendData:   (orgId: number, date?: string) => Promise<void>;
-  fetchOvertimeData:      (orgId: number, date?: string) => Promise<void>;
-  fetchAlertsData:        (orgId: number, date?: string) => Promise<void>;
+  fetchDailySummary: (orgId: number, date?: string) => Promise<void>;
+  fetchHourlyTrendData: (orgId: number, date?: string) => Promise<void>;
+  fetchDeptAttendanceData: (orgId: number, date?: string) => Promise<void>;
+  fetchWeeklyTrendData: (orgId: number, date?: string) => Promise<void>;
+  fetchOvertimeData: (orgId: number, date?: string) => Promise<void>;
+  fetchAlertsData: (orgId: number, date?: string) => Promise<void>;
   fetchEarlyDespatchData: (orgId: number, date?: string) => Promise<void>;
   clearData: () => void;
 }
@@ -210,23 +213,23 @@ export interface UserInsightsState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
-  alertsError:       null,
+  alertsError: null,
   earlyDespatchError: null,
-  weeklyTrendError:  null,
-  pendingRequests:   {},
+  weeklyTrendError: null,
+  pendingRequests: {},
 
-  insightsDailySummaryCache:   {},
-  insightsHourlyTrendCache:    {},
-  insightsWeeklyTrendCache:    {},
+  insightsDailySummaryCache: {},
+  insightsHourlyTrendCache: {},
+  insightsWeeklyTrendCache: {},
   insightsDeptAttendanceCache: {},
-  insightsOvertimeCache:       {},
-  insightsAlertsCache:         {},
-  insightsEarlyDespatchCache:  {},
+  insightsOvertimeCache: {},
+  insightsAlertsCache: {},
+  insightsEarlyDespatchCache: {},
 
   // ── Daily summary ───────────────────────────────────────────────────────────
   // Merged: totals + attendanceSplit come from a single snapshot call now.
   fetchDailySummary: async (orgId, date) => {
-    const cacheKey   = resolveDateKey(date);
+    const cacheKey = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("dailySummary", orgId, cacheKey);
     const { insightsDailySummaryCache, pendingRequests } = get();
 
@@ -253,7 +256,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
   // ── Hourly trend ────────────────────────────────────────────────────────────
   fetchHourlyTrendData: async (orgId, date) => {
-    const cacheKey   = resolveDateKey(date);
+    const cacheKey = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("hourlyTrend", orgId, cacheKey);
     const { insightsHourlyTrendCache, pendingRequests } = get();
 
@@ -263,8 +266,8 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     try {
       const response = await fetchHourlyTrend(orgId, cacheKey);
       const hourlyTrend: HourlyEntry[] = response.hourlyTrend.map((entry) => ({
-        hour:      entry.hour,
-        checkins:  entry.checkIns,
+        hour: entry.hour,
+        checkins: entry.checkIns,
         checkouts: entry.checkOuts,
       }));
 
@@ -283,7 +286,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
   // ── Department attendance ───────────────────────────────────────────────────
   fetchDeptAttendanceData: async (orgId, date) => {
-    const cacheKey   = resolveDateKey(date);
+    const cacheKey = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("deptAttendance", orgId, cacheKey);
     const { insightsDeptAttendanceCache, pendingRequests } = get();
 
@@ -293,9 +296,10 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     try {
       const response = await fetchDepartmentAttendance(orgId, cacheKey);
       const deptAttendance: DeptEntry[] = response.departmentAttendance.map((entry) => ({
-        name:    entry.department,
+        name: entry.department,
         present: entry.present,
-        total:   entry.total,
+        checkIns: entry.checkin,
+        total: entry.total,
       }));
 
       set((state) => ({
@@ -313,8 +317,8 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
   // ── Weekly trend ────────────────────────────────────────────────────────────
   fetchWeeklyTrendData: async (orgId, date) => {
-    const cacheKey   = resolveDateKey(date);
-    const weekStart  = getWeekStartStr(cacheKey);
+    const cacheKey = resolveDateKey(date);
+    const weekStart = getWeekStartStr(cacheKey);
     const requestKey = buildInsightsRequestKey("weeklyTrend", orgId, weekStart);
     const { insightsWeeklyTrendCache, pendingRequests } = get();
 
@@ -323,8 +327,8 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
     set({ weeklyTrendError: null });
     setPendingRequest(set, requestKey);
     try {
-      const response     = await fetchWeeklyTrend(orgId, cacheKey);
-      const weeklyTrend  = mapWeeklyTrend(response.weeklyTrend, weekStart);
+      const response = await fetchWeeklyTrend(orgId, cacheKey);
+      const weeklyTrend = mapWeeklyTrend(response.weeklyTrend, weekStart);
 
       set((state) => ({
         insightsWeeklyTrendCache: {
@@ -342,7 +346,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
   // ── Overtime ────────────────────────────────────────────────────────────────
   fetchOvertimeData: async (orgId, date) => {
-    const cacheKey   = resolveDateKey(date);
+    const cacheKey = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("overtime", orgId, cacheKey);
     const { insightsOvertimeCache, pendingRequests } = get();
 
@@ -354,13 +358,15 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
       const overtimeResponse = await fetchOvertime(orgId, cacheKey);
 
       const overtime: OvertimeData = {
-        avgHoursToday:      overtimeResponse.overtime.avgHoursToday,
-        overtimeStaff:      overtimeResponse.overtime.overtimeCount,
-        earlyDepartures:    overtimeResponse.overtime.earlyDepartures,
-        shiftCoverage:      overtimeResponse.overtime.shiftCoverage,
+        avgHoursToday: overtimeResponse.overtime.avgHoursToday,
+        overtimeStaff: overtimeResponse.overtime.overtimeCount,
+        earlyDepartures: overtimeResponse.overtime.earlyDepartures,
+        shiftCoverage: overtimeResponse.overtime.shiftCoverage,
         weekAttendanceRate: overtimeResponse.overtime.weekAttendanceRate,
-        expectedHours:      overtimeResponse.overtime.requiredHours ?? 9,
-        totalStaff:         overtimeResponse.overtime.totalEmployees ?? 0,
+        expectedHours: overtimeResponse.overtime.requiredHours ?? 9,
+        totalStaff: overtimeResponse.overtime.totalEmployees ?? 0,
+        noPunchToday: overtimeResponse.overtime.noPunchToday ?? 0,
+        onTimeRate: overtimeResponse.overtime.onTimeRate ?? 0,
       };
 
       set((state) => ({
@@ -378,7 +384,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
   // ── Alerts ──────────────────────────────────────────────────────────────────
   fetchAlertsData: async (orgId, date) => {
-    const cacheKey   = resolveDateKey(date);
+    const cacheKey = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("alerts", orgId, cacheKey);
     const { insightsAlertsCache, pendingRequests } = get();
 
@@ -406,7 +412,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
   // ── Early despatch ──────────────────────────────────────────────────────────
   fetchEarlyDespatchData: async (orgId, date) => {
-    const cacheKey   = resolveDateKey(date);
+    const cacheKey = resolveDateKey(date);
     const requestKey = buildInsightsRequestKey("earlyDespatch", orgId, cacheKey);
     const { insightsEarlyDespatchCache, pendingRequests } = get();
 
@@ -422,9 +428,9 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
         insightsEarlyDespatchCache: {
           ...state.insightsEarlyDespatchCache,
           [cacheKey]: {
-            targetDate:        data.targetDate,
+            targetDate: data.targetDate,
             // thresholdMinutes:  data.thresholdMinutes,
-            summary:           data.summary,
+            summary: data.summary,
             topEarlyDepartures: data.topEarlyDepartures,
           },
         },
@@ -440,17 +446,17 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   // ── Clear ───────────────────────────────────────────────────────────────────
   clearData: () => {
     set({
-      alertsError:        null,
+      alertsError: null,
       earlyDespatchError: null,
-      weeklyTrendError:   null,
-      pendingRequests:    {},
-      insightsDailySummaryCache:   {},
-      insightsHourlyTrendCache:    {},
-      insightsWeeklyTrendCache:    {},
+      weeklyTrendError: null,
+      pendingRequests: {},
+      insightsDailySummaryCache: {},
+      insightsHourlyTrendCache: {},
+      insightsWeeklyTrendCache: {},
       insightsDeptAttendanceCache: {},
-      insightsOvertimeCache:       {},
-      insightsAlertsCache:         {},
-      insightsEarlyDespatchCache:  {},
+      insightsOvertimeCache: {},
+      insightsAlertsCache: {},
+      insightsEarlyDespatchCache: {},
     });
   },
 }));

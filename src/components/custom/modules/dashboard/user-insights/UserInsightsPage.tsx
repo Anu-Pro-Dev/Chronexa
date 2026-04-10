@@ -13,6 +13,7 @@ import { useSelectedDate } from "@/src/store/useSelectedDate";
 import { toLocalDateStr } from "@/src/lib/userInsightsUtils";
 import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+import WeeklySummaryCard from "./WeeklySummaryCard";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Loading waves — controls which fetch fires and when.
@@ -100,19 +101,21 @@ export default function UserInsightsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[55%_45%] gap-4">
-        <EarlyDespatch date={selectedDate} />
-        <OvertimeCard date={selectedDate} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
+      <div className="grid gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-[40%_60%] gap-4">
+          <OvertimeCard date={selectedDate} />
           <WeeklyTrendChart date={selectedDate} />
         </div>
         <div>
-          <AlertsCard date={selectedDate} />
+          <WeeklySummaryCard date={selectedDate} />
         </div>
       </div>
+
+      {/* <div className="grid grid-cols-1 xl:grid-cols-[55%_45%] gap-4">
+        <EarlyDespatch date={selectedDate} />
+        <AlertsCard date={selectedDate} />
+      </div> */}
+
     </div>
   );
 }

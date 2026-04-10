@@ -5,7 +5,7 @@ import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 interface DeptRow {
   name: string;
-  present: number;
+  checkIns: number;
   total: number;
 }
 
@@ -71,7 +71,7 @@ export default function DeptTable({ date }: DeptTableProps) {
           </thead>
           <tbody>
             {deptData.map((row, idx) => {
-              const pct = row.total > 0 ? Math.round((row.present / row.total) * 100) : 0;
+              const pct = row.total > 0 ? Math.round((row.checkIns / row.total) * 100) : 0;
               const color = getDeptColor(idx);
               return (
                 <tr key={row.name} className="border-b border-border/50 last:border-0">
@@ -82,7 +82,7 @@ export default function DeptTable({ date }: DeptTableProps) {
                     </div>
                   </td>
                   <td className="py-3 text-center text-text-secondary tabular-nums">
-                    {row.present.toLocaleString()}/{row.total.toLocaleString()}
+                    {row.checkIns.toLocaleString()}/{row.total.toLocaleString()}
                   </td>
                   <td className="py-3 pl-3">
                     <div className="flex items-center gap-1.5">

@@ -125,14 +125,6 @@ export default function KpiGrid({ date }: KpiGridProps) {
       icon: <PunchOutIcon color="#FF6B2D" className="w-6 h-6" />,
     },
     {
-      label: "License Enabled",
-      value: animated.withLicense,
-      subLabel: "licensed users",
-      progress: total > 0 ? Math.round((animated.withLicense / total) * 100) : 0,
-      color: "#1DAA61",
-      icon: <UserPlusIcon color="#1DAA61" className="w-6 h-6" />,
-    },
-    {
       label: "ABSENT",
       value: animated.absentCount,
       subLabel: "not at work today",
@@ -147,6 +139,14 @@ export default function KpiGrid({ date }: KpiGridProps) {
       progress: total > 0 ? Math.round((animated.onLeave / total) * 100) : 0,
       color: "#FFBF00",
       icon: <AbsentIcon color="#FFBF00" className="w-6 h-6" />,
+    },
+    {
+      label: "License Enabled",
+      value: animated.withLicense,
+      subLabel: "licensed users",
+      progress: total > 0 ? Math.round((animated.withLicense / total) * 100) : 0,
+      color: "#1DAA61",
+      icon: <UserPlusIcon color="#1DAA61" className="w-6 h-6" />,
     },
     {
       label: "NO APP LOGIN",

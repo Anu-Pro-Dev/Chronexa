@@ -53,6 +53,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
   const [apiResponseMessage, setApiResponseMessage] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { t, language } = useLiteLanguage();
   const showToast = useShowToast();
   const loginFormSchema = useLoginFormSchema();
@@ -87,8 +88,9 @@ export default function LoginForm() {
           response?.user?.roleId ??
           response?.user?.role_id ??
           null;
-        await redirectAfterLogin(roleId);
+        await redirectAfterLogin(roleId, response);
       } else {
+        setIsLoggingIn(false);
         loginForm.setError("username", {
           type: "manual",
           message: t('modules.login.error_login')
@@ -96,6 +98,7 @@ export default function LoginForm() {
       }
     },
     onError: (error: any) => {
+      setIsLoggingIn(false);
       loginForm.setError("username", {
         type: "manual",
         message: t('modules.login.error_login')
@@ -115,6 +118,7 @@ export default function LoginForm() {
   });
 
   async function onLoginSubmit(values: z.infer<typeof loginFormSchema>) {
+    setIsLoggingIn(true);
     loginMutation.mutate({
       username: values.username,
       password: values.password,
@@ -247,9 +251,9 @@ export default function LoginForm() {
               size={"lg"}
               className="w-full min-w-[300px] mx-auto mt-2"
               suppressHydrationWarning
-              disabled={loginMutation.status === "pending"}
+              disabled={isLoggingIn}
             >
-              {loginMutation.status === "pending" ? (
+              {isLoggingIn ? (
                 <div className="flex items-center gap-2">
                   {t('buttons.logging_in')}
                   <ThreeDotsLoader />

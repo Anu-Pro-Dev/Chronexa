@@ -30,7 +30,7 @@ function useCountUp(target: number[], ready: boolean): number[] {
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, target.join(",")]);
 
   return values;
@@ -47,6 +47,8 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
     overtime?.earlyDepartures ?? 0,
     overtime?.shiftCoverage ?? 0,
     overtime?.weekAttendanceRate ?? 0,
+    overtime?.noPunchToday ?? 0,
+    overtime?.onTimeRate ?? 0,
   ];
   const animated = useCountUp(rawValues, hasOvertimeData);
 
@@ -55,13 +57,13 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
 
   const overtimeData: OvertimeRow[] = [
     {
-      label: "Avg hours today",
+      label: "Avg hours",
       value: `${animated[0]} / ${expectedHours}h`,
       percentage: expectedHours > 0 ? Math.round((animated[0] / expectedHours) * 100) : 0,
       color: "#0078D4",
     },
     {
-      label: "Overtime today",
+      label: "Overtime",
       value: `${animated[1]} users`,
       percentage: totalStaff > 0 ? Math.round((animated[1] / totalStaff) * 100) : 0,
       color: "#FF6B2D",
@@ -84,10 +86,22 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
       percentage: animated[4],
       color: "#7D3FFF",
     },
+    {
+      label: "No punch",
+      value: `${animated[5]} users`,
+      percentage: totalStaff > 0 ? Math.round((animated[5] / totalStaff) * 100) : 0,
+      color: "#E53935",
+    },
+    {
+      label: "On-time rate",
+      value: `${animated[6]}%`,
+      percentage: animated[6],
+      color: "#00897B",
+    },
   ];
 
   return (
-    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
+    <div className="bg-accent rounded-[10px] shadow-card p-6 flex flex-col gap-3">
       <h5 className="text-lg text-text-primary font-bold">Overtime & Hours Worked</h5>
       <div className="flex flex-col gap-4">
         {overtimeData.map((row) => (
@@ -96,7 +110,7 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
               <span className="text-text-secondary font-medium">{row.label}</span>
               <span className="font-semibold text-text-primary">{row.value}</span>
             </div>
-            <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${row.percentage}%`, backgroundColor: row.color }}

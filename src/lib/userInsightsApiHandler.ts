@@ -81,6 +81,8 @@ interface OvertimeRow {
   shiftCoverage: number;
   weekAttendanceRate: number;
   requiredHours: number;
+  noPunchToday: number;
+  onTimeRate: number;
 }
 
 interface AlertsRow {
@@ -182,6 +184,8 @@ export interface OrganizationAnalyticsData {
     shiftCoverage: number;
     weekAttendanceRate: number;
     requiredHours: number;
+    noPunchToday: number;
+    onTimeRate: number;
   };
 }
 
@@ -253,33 +257,33 @@ export async function fetchTotalsAndToday(
   return {
     organization: { id: orgId, name: "" },
     totals: {
-      totalEmployees:  row.totalEmployees,
-      employeesInUse:  row.presentCount,
-      noAppLogin:      row.noAppLogin,
+      totalEmployees: row.totalEmployees,
+      employeesInUse: row.presentCount,
+      noAppLogin: row.noAppLogin,
       licenseCounts: {
-        withLicense:    row.withLicense,
+        withLicense: row.withLicense,
         withoutLicense: row.withoutLicense,
       },
     },
     today: {
-      checkIns:     row.checkIns,
-      checkOuts:    row.checkOuts,
+      checkIns: row.checkIns,
+      checkOuts: row.checkOuts,
       presentCount: row.presentCount,
-      missedIn:     row.missedIn,
-      missedOut:    row.missedOut,
-      onLeave:      row.onLeave,
-      absentCount:  row.absentCount,
+      missedIn: row.missedIn,
+      missedOut: row.missedOut,
+      onLeave: row.onLeave,
+      absentCount: row.absentCount,
     },
     // Derived from same row — no extra API call needed
     attendanceSplit: {
-      checkedIn:  row.checkIns,
+      checkedIn: row.checkIns,
       checkedOut: row.checkOuts,
-      present:    row.presentCount,
-      missedIn:   row.missedIn,
-      missedOut:  row.missedOut,
-      onLeave:    row.onLeave,
-      absent:     row.absentCount,
-      noLogin:    row.noAppLogin,
+      present: row.presentCount,
+      missedIn: row.missedIn,
+      missedOut: row.missedOut,
+      onLeave: row.onLeave,
+      absent: row.absentCount,
+      noLogin: row.noAppLogin,
     },
   };
 }
@@ -300,8 +304,8 @@ export async function fetchHourlyTrend(
   const rows = await fetchSnapshot<HourlyRow[]>(orgId, "hourly", date);
   return {
     hourlyTrend: rows.map((r) => ({
-      hour:      r.hour,
-      checkIns:  r.checkIns,
+      hour: r.hour,
+      checkIns: r.checkIns,
       checkOuts: r.checkOuts,
     })),
   };
@@ -315,15 +319,15 @@ export async function fetchDepartmentAttendance(
   return {
     departmentAttendance: rows.map((r) => ({
       department: r.Department,
-      present:    r.present,
-      absent:     r.absent,
-      onLeave:    r.onLeave,
-      missedIn:   r.missedIn,
-      missedOut:  r.missedOut,
-      checkin:    r.checkIns,
-      checkout:   r.checkOuts,
-      total:      r.total,
-      rate:       r.rate,
+      present: r.present,
+      absent: r.absent,
+      onLeave: r.onLeave,
+      missedIn: r.missedIn,
+      missedOut: r.missedOut,
+      checkin: r.checkIns,
+      checkout: r.checkOuts,
+      total: r.total,
+      rate: r.rate,
     })),
   };
 }
@@ -335,13 +339,13 @@ export async function fetchWeeklyTrend(
   const rows = await fetchSnapshot<WeeklyRow[]>(orgId, "weekly", date);
   return {
     weeklyTrend: rows.map((r) => ({
-      label:    r.dayName,
-      present:  r.present,
-      onLeave:  r.onLeave,
-      absent:   r.absent,
-      missedIn:  0,
+      label: r.dayName,
+      present: r.present,
+      onLeave: r.onLeave,
+      absent: r.absent,
+      missedIn: 0,
       missedOut: 0,
-      total:    r.totalEmployees,
+      total: r.totalEmployees,
     })),
   };
 }
@@ -355,13 +359,15 @@ export async function fetchOvertime(
   if (!row) throw new Error("Empty overtime response");
   return {
     overtime: {
-      totalEmployees:     row.totalEmployees,
-      avgHoursToday:      row.avgHoursToday,
-      overtimeCount:      row.overtimeCount,
-      earlyDepartures:    row.earlyDepartures,
-      shiftCoverage:      row.shiftCoverage,
+      totalEmployees: row.totalEmployees,
+      avgHoursToday: row.avgHoursToday,
+      overtimeCount: row.overtimeCount,
+      earlyDepartures: row.earlyDepartures,
+      shiftCoverage: row.shiftCoverage,
       weekAttendanceRate: row.weekAttendanceRate,
-      requiredHours:      row.requiredHours,
+      requiredHours: row.requiredHours,
+      noPunchToday: row.noPunchToday,
+      onTimeRate: row.onTimeRate
     },
   };
 }
@@ -384,14 +390,14 @@ export const getUserInsightsData = async (
     ]);
 
   return {
-    organization:         totalsData.organization,
-    totals:               totalsData.totals,
-    today:                totalsData.today,
-    attendanceSplit:      totalsData.attendanceSplit,
-    hourlyTrend:          hourlyTrend.hourlyTrend,
+    organization: totalsData.organization,
+    totals: totalsData.totals,
+    today: totalsData.today,
+    attendanceSplit: totalsData.attendanceSplit,
+    hourlyTrend: hourlyTrend.hourlyTrend,
     departmentAttendance: departmentAttendance.departmentAttendance,
-    weeklyTrend:          weeklyTrend.weeklyTrend,
-    overtime:             overtime.overtime,
+    weeklyTrend: weeklyTrend.weeklyTrend,
+    overtime: overtime.overtime,
   };
 };
 
@@ -408,17 +414,17 @@ export const getUserAlertsData = async (
   if (!row) throw new Error("Empty alerts response");
 
   return {
-    targetDate:                  row.targetDate,
-    no_checkin_today:            row.noCheckinToday,
-    missing_checkout_yesterday:  row.missingCheckoutYesterday,
-    depts_below_60pct:           row.deptBelow60Pct,
-    lowest_dept_name:            row.lowestDeptName ?? "",
-    lowest_dept_pct:             row.lowestDeptPct ?? 0,
-    leave_requests_today:        row.leaveRequestsToday,
-    overtime_count:              row.overtimeCount,
-    geofence_violations:         0,   // not in SP — reserved for future
-    unapproved_wfh:              0,   // not in SP — reserved for future
-    consecutive_absent_3plus:    row.consecutiveAbsent3Plus,
+    targetDate: row.targetDate,
+    no_checkin_today: row.noCheckinToday,
+    missing_checkout_yesterday: row.missingCheckoutYesterday,
+    depts_below_60pct: row.deptBelow60Pct,
+    lowest_dept_name: row.lowestDeptName ?? "",
+    lowest_dept_pct: row.lowestDeptPct ?? 0,
+    leave_requests_today: row.leaveRequestsToday,
+    overtime_count: row.overtimeCount,
+    geofence_violations: 0,   // not in SP — reserved for future
+    unapproved_wfh: 0,   // not in SP — reserved for future
+    consecutive_absent_3plus: row.consecutiveAbsent3Plus,
   };
 };
 
@@ -432,7 +438,7 @@ export const getEarlyDespatchData = async (
   // threshold = 30,
   // topN = 10
 ): Promise<OrganizationEarlyDespatchData> => {
-  const query = buildQuery({ action: "despatch", date});
+  const query = buildQuery({ action: "despatch", date });
   const response = await apiRequest(
     `/insights/${orgId}?${query}`,
     "GET"
@@ -440,25 +446,25 @@ export const getEarlyDespatchData = async (
   if (!response?.data) throw new Error("No despatch data returned");
 
   const rows = response.data as DespatchRow[];
-  const summaryRow  = rows.find((r) => r.isSummary === 1);
-  const detailRows  = rows.filter((r) => r.isSummary === 0);
+  const summaryRow = rows.find((r) => r.isSummary === 1);
+  const detailRows = rows.filter((r) => r.isSummary === 0);
 
   return {
-    targetDate:       date ?? new Date().toISOString().slice(0, 10),
+    targetDate: date ?? new Date().toISOString().slice(0, 10),
     // thresholdMinutes: threshold,
     summary: {
       earlyDepartureCount: summaryRow?.earlyDepartureCount ?? 0,
-      avgEarlyMinutes:     summaryRow?.avgEarlyMinutes     ?? 0,
-      onTimePct:           summaryRow?.onTimePct           ?? 0,
+      avgEarlyMinutes: summaryRow?.avgEarlyMinutes ?? 0,
+      onTimePct: summaryRow?.onTimePct ?? 0,
     },
     topEarlyDepartures: detailRows.map((r) => ({
-      name:           r.empName        ?? "",
-      department:     r.department     ?? "",
-      departureTime:  r.departureTime  ?? "",
-      dailyMissedHrs: r.workedHrs      ?? "00:00",
-      earlyMinutes:   r.earlyMinutes   ?? 0,
-      earlyLabel:     r.earlyLabel     ?? "",
-      severity:       r.severity       ?? "MINIMAL",
+      name: r.empName ?? "",
+      department: r.department ?? "",
+      departureTime: r.departureTime ?? "",
+      dailyMissedHrs: r.workedHrs ?? "00:00",
+      earlyMinutes: r.earlyMinutes ?? 0,
+      earlyLabel: r.earlyLabel ?? "",
+      severity: r.severity ?? "MINIMAL",
     })),
   };
 };
@@ -467,6 +473,6 @@ export const getEarlyDespatchData = async (
 // Legacy type aliases
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type SparkAnalyticsData    = OrganizationAnalyticsData;
-export type SparkAlertsData       = OrganizationAlertsData;
+export type SparkAnalyticsData = OrganizationAnalyticsData;
+export type SparkAlertsData = OrganizationAlertsData;
 export type SparkEarlyDespatchData = OrganizationEarlyDespatchData;

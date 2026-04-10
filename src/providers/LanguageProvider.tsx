@@ -69,7 +69,7 @@ export default function LanguageProvider({
       const baseItems = [
         {
           label: currentLanguageData.translations?.modules?.dashboard?.my_attendance || "My Attendance",
-          path: "/dashboard/my-attendance/",
+          path: "/dashboard/user-insights/",
           value: "my_attendance",
         },
         {

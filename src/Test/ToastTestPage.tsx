@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { ToastContainer } from "@/src/components/custom/modules/dashboard/my-attendance/ToastNotification";
+import { ToastContainer } from "@/src/components/custom/modules/dashboard/user-insights/ToastNotification";
 
 interface ToastNotification {
   title: string;

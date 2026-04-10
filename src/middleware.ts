@@ -72,7 +72,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  if (isLoginPage && isTokenValid && rememberMe === "true") {
+  if (isLoginPage && isTokenValid) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

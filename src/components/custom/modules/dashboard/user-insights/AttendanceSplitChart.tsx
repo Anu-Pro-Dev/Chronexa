@@ -8,10 +8,10 @@ interface AttendanceSplitChartProps {
 }
 
 const SLICES = [
-  { key: "present",  label: "Present",   from: "#86EFAC", to: "#34D399" },
+  { key: "checkIns",  label: "Present",   from: "#86EFAC", to: "#34D399" },
+  { key: "checkOuts", label: "Check Out", from: "#FDE68A", to: "#FCD34D" },
   { key: "onLeave",  label: "On Leave",  from: "#93C5FD", to: "#60A5FA" },
   { key: "absent",   label: "Absent",    from: "#FCA5A5", to: "#F87171" },
-  { key: "missedIn", label: "Missed In", from: "#FDE68A", to: "#FCD34D" },
 ];
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {

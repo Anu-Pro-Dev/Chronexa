@@ -24,8 +24,16 @@ export function useAuthGuard() {
   useEffect(() => {
     if (isChecking) return;
 
-    const publicRoutes = ['/auth/azure/success', '/reset-password', '/forgot-password'];
-    const isPublicRoute = publicRoutes.some(route => pathname?.includes(route));
+    // The login page ("/") and other public routes should never trigger
+    // an unauthenticated redirect — they ARE the destination for
+    // unauthenticated users. Without this, calling router.replace("/")
+    // while already on "/" creates an infinite RSC fetch loop.
+    const publicRoutes = ['/', '/login', '/auth/azure/success', '/reset-password', '/forgot-password'];
+    const isPublicRoute = publicRoutes.some(route =>
+      route === '/' || route === '/login'
+        ? pathname === route
+        : pathname?.includes(route)
+    );
 
     if (!isPublicRoute && !isAuthenticated) {
       router.replace("/");

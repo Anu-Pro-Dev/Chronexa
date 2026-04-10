@@ -8,15 +8,14 @@ import {
   ChartTooltipContent,
 } from "@/src/components/ui/chart";
 import { getWeekStartStr } from "@/src/lib/userInsightsUtils";
-
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 
 const ALL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const COLORS = {
-  present:  { bar: "#2DD4BF", hover: "#14B8A6", stat: "#2DD4BF" }, 
-  absent:   { bar: "#C084FC", hover: "#A855F7", stat: "#C084FC" },
-  onLeave:  { bar: "#F59E0B", hover: "#D97706", stat: "#F59E0B" },
+  present: { bar: "#2DD4BF", hover: "#14B8A6" },
+  absent: { bar: "#C084FC", hover: "#A855F7" },
+  onLeave: { bar: "#F59E0B", hover: "#D97706" },
 };
 
 const chartConfig = {
@@ -26,9 +25,9 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const LEGEND = [
-  { label: "Present", ...COLORS.present },
-  { label: "Absent", ...COLORS.absent },
-  { label: "On Leave", ...COLORS.onLeave },
+  { label: "Present", color: COLORS.present.bar },
+  { label: "Absent", color: COLORS.absent.bar },
+  { label: "On Leave", color: COLORS.onLeave.bar },
 ];
 
 function CustomXTick({ x, y, payload, index, chartData }: any) {
@@ -53,21 +52,14 @@ interface WeeklyTrendChartProps {
 
 export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
   const insightsWeeklyTrendCache = useUserInsightsStore((s) => s.insightsWeeklyTrendCache);
-  const weeklyTrendError = useUserInsightsStore((s) => s.weeklyTrendError);
-
   const weekStart = getWeekStartStr(date);
-  const hasWeeklyData = weekStart in insightsWeeklyTrendCache;
   const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
-
 
   const byDay = new Map(rawData.map((entry: any) => [entry.day, entry]));
   const weekStartDate = new Date(`${weekStart}T00:00:00`);
 
   const chartData = ALL_DAYS.map((day, i) => {
     const entry = byDay.get(day) as any;
-
-    // Always compute the date from weekStart + day index so days with no API
-    // data (e.g. Thu, Sat) still show their date label under the X axis.
     const dayDate = new Date(weekStartDate);
     dayDate.setDate(weekStartDate.getDate() + i);
     const dateLabel = dayDate.toLocaleDateString("en-US", {
@@ -87,45 +79,15 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
     };
   });
 
-  const daysWithData = chartData.filter((entry) => entry.total > 0);
-  const summaryStats =
-    daysWithData.length === 0
-      ? { avgPresent: 0, absenceRate: 0, bestDay: { day: "—", present: 0 } }
-      : {
-          avgPresent: Math.round(
-            daysWithData.reduce((sum, entry) => sum + entry.present, 0) /
-              daysWithData.length,
-          ),
-          absenceRate: (() => {
-            const totalHeadcount = daysWithData.reduce(
-              (sum, entry) => sum + entry.total,
-              0,
-            );
-
-            if (totalHeadcount === 0) {
-              return 0;
-            }
-
-            return Math.round(
-              (daysWithData.reduce((sum, entry) => sum + entry.absent, 0) /
-                totalHeadcount) * 100,
-            );
-          })(),
-          bestDay: daysWithData.reduce(
-            (best, entry) => (entry.present > best.present ? entry : best),
-            daysWithData[0],
-          ),
-        };
-
   return (
-    <div className="shadow-card rounded-[10px] bg-accent p-2">
+    <div className="shadow-card rounded-[10px] bg-accent p-2 h-full flex flex-col">
       {/* Header */}
       <div className="flex flex-row justify-between items-center px-4 py-4">
         <h5 className="text-lg text-text-primary font-bold pb-2">Weekly Attendance Trend</h5>
         <div className="flex items-center gap-3 text-xs text-text-secondary">
           {LEGEND.map((item) => (
             <span key={item.label} className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.bar }} />
+              <span className="inline-block h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
               {item.label}
             </span>
           ))}
@@ -133,7 +95,7 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
       </div>
 
       {/* Chart */}
-      <ChartContainer config={chartConfig} className="relative w-full h-[260px] -left-[10px]">
+      <ChartContainer config={chartConfig} className="relative w-full flex-1 min-h-[220px] -left-[10px]">
         <BarChart data={chartData} barSize={28} barCategoryGap="35%">
           <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
           <XAxis
@@ -161,31 +123,6 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
           <Bar dataKey="onLeave" stackId="a" fill="var(--color-onLeave)" radius={[4, 4, 0, 0]} name="On Leave" activeBar={{ fill: COLORS.onLeave.hover }} />
         </BarChart>
       </ChartContainer>
-
-      {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-3 px-4 pb-3 pt-3">
-        <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-2xl font-bold" style={{ color: COLORS.present.stat }}>
-            {summaryStats.avgPresent}
-          </p>
-          <p className="text-xs text-text-secondary mt-0.5">Avg Present / Day</p>
-        </div>
-        <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-lg font-bold" style={{ color: COLORS.onLeave.stat }}>
-            {summaryStats.bestDay.day}
-          </p>
-          <p className="text-xs text-text-secondary mt-0.5">Best Day</p>
-          <p className="text-xs font-semibold mt-0.5" style={{ color: COLORS.onLeave.stat }}>
-            {summaryStats.bestDay.present} present
-          </p>
-        </div>
-        <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-2xl font-bold" style={{ color: COLORS.absent.stat }}>
-            {summaryStats.absenceRate}%
-          </p>
-          <p className="text-xs text-text-secondary mt-0.5">Absence Rate</p>
-        </div>
-      </div>
     </div>
   );
 }
