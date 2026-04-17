@@ -405,7 +405,7 @@ export default function Page() {
         reject_modal_title={t.reject_leave || "Reject Leave"}
         reject_modal_description={t.reject_leave_desc || "Are you sure you want to reject the selected leave request(s)?"}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
         <div>
           <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>

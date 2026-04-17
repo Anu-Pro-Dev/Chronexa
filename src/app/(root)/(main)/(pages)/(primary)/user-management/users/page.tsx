@@ -348,7 +348,7 @@ export default function Page() {
       />
 
       {/* ─── Filters ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
 
         {/* License filter */}
         <div>

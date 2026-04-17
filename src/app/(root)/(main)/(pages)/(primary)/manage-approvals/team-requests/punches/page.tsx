@@ -338,7 +338,7 @@ export default function Page() {
         reject_modal_title={t.reject_manual_transaction || "Reject Manual Punches"}
         reject_modal_description={t.reject_manual_punch_desc || "Are you sure you want to reject the selected manual punche(s)?"}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
         <div>
           <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>

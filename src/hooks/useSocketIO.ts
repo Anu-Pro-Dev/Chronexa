@@ -19,7 +19,7 @@ export function useSocketIO({ auth }: UseSocketIOProps = {}) {
       return;
     }
 
-    const newSocket = io(process.env.NEXT_PUBLIC_API_URL || "https://wfm.khidmah.com:5000", {
+    const newSocket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:3005", {
       auth: {
         token: auth.token,
         userId: auth.userId,
