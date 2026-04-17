@@ -83,8 +83,10 @@ function PunchStatusSection() {
   useEffect(() => {
     fetchTodayStatusData();
 
-    const interval = setInterval(fetchTodayStatusData, 5 * 60 * 1000);
-    
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchTodayStatusData();
+    }, 5 * 60 * 1000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -329,12 +331,11 @@ function MyAttendancePage() {
     <AttendanceDataProvider>
       <Suspense fallback={<InlineLoading message="Loading dashboard..." />}>
         <div className="space-y-4">
+          {/* Single instance — rendered once for all breakpoints */}
+          <PunchStatusSection />
+
           {/* Mobile / Tablet */}
           <div className="3xl:hidden space-y-4">
-            <div>
-              <PunchStatusSection />
-            </div>
-            
             <div className="flex flex-col md:flex-row justify-between gap-4">
               <div className="w-full md:max-w-[calc(100vh/3*4)] h-auto flex flex-col gap-4">
                 <LeaveCard />
@@ -355,10 +356,6 @@ function MyAttendancePage() {
 
           {/* Desktop */}
           <div className="hidden 3xl:block space-y-4">
-            <div>
-              <PunchStatusSection />
-            </div>
-
             <div className="grid grid-cols-3 gap-4 auto-rows-fr">
               <div className="w-full min-h-full">
                 <LeaveCard />

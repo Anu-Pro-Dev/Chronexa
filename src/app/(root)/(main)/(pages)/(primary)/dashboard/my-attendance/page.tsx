@@ -1,6 +1,6 @@
 "use client";
 import { cn } from "@/src/lib/utils";
-import MyAttendancePage from "@/src/components/custom/modules/dashboard/my-attendance/MAPage";
+import MyAttendancePage from "@/src/components/custom/modules/dashboard/user-insights/MAPage";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { PunchButton } from "@/src/components/custom/common/punch-button";
 import {

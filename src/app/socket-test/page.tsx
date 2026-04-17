@@ -167,7 +167,7 @@ export default function SocketTestPage() {
               <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded border border-amber-200">
                 Socket is attempting to connect. If this persists, check:
                 <ul className="list-disc list-inside mt-2 ml-2">
-                  <li>Backend server is running on http://localhost:8000</li>
+                  <li>Backend server is running on https://wfm.khidmah.com:5000</li>
                   <li>Your token is valid and not expired</li>
                   <li>Backend authentication middleware is configured correctly</li>
                 </ul>
@@ -182,7 +182,7 @@ export default function SocketTestPage() {
                 </div>
                 <div className="text-sm">
                   <span className="font-semibold">Server URL:</span>{' '}
-                  <code className="bg-gray-100 px-2 py-1 rounded">http://localhost:8000</code>
+                  <code className="bg-gray-100 px-2 py-1 rounded">https://wfm.khidmah.com:5000</code>
                 </div>
               </>
             )}

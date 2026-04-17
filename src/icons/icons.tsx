@@ -501,6 +501,39 @@ export const AlertsIcon = (color: string = "#64748B") => (
   </svg>
 );
 
+export const UserManagementIcon = (color: string = "#64748B") => (
+  <svg
+    width="17"
+    height="16"
+    viewBox="0 0 17 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <mask
+      id="um"
+      maskUnits="userSpaceOnUse"
+      x="0"
+      y="0"
+      width="17"
+      height="16"
+      fill="#000"
+    >
+      <path fill="#fff" d="M0 0h17v16H0z" />
+      <path d="M8.5 1a3.25 3.25 0 1 0 0 6.5A3.25 3.25 0 0 0 8.5 1m-2.25 3.25a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0M4.75 9A2.75 2.75 0 0 0 2 11.75v.75c0 .414.336.75.75.75h11.5a.75.75 0 0 0 .75-.75v-.75A2.75 2.75 0 0 0 12.25 9zm-1.75 2.75A1.75 1.75 0 0 1 4.75 10h7.5a1.75 1.75 0 0 1 1.75 1.75v.25H3z" />
+    </mask>
+    <path
+      d="M8.5 1a3.25 3.25 0 1 0 0 6.5A3.25 3.25 0 0 0 8.5 1m-2.25 3.25a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0M4.75 9A2.75 2.75 0 0 0 2 11.75v.75c0 .414.336.75.75.75h11.5a.75.75 0 0 0 .75-.75v-.75A2.75 2.75 0 0 0 12.25 9zm-1.75 2.75A1.75 1.75 0 0 1 4.75 10h7.5a1.75 1.75 0 0 1 1.75 1.75v.25H3z"
+      fill="currentColor"
+    />
+    <path
+      d="M8.5 1a3.25 3.25 0 1 0 0 6.5A3.25 3.25 0 0 0 8.5 1Zm-2.25 3.25a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0ZM4.75 9A2.75 2.75 0 0 0 2 11.75v.75c0 .414.336.75.75.75h11.5a.75.75 0 0 0 .75-.75v-.75A2.75 2.75 0 0 0 12.25 9Zm-1.75 2.75A1.75 1.75 0 0 1 4.75 10h7.5a1.75 1.75 0 0 1 1.75 1.75v.25H3Z"
+      stroke="currentColor"
+      strokeWidth=".4"
+      mask="url(#um)"
+    />
+  </svg>
+);
+
 export const AddIcon: React.FC<IconProps> = ({ className, color, width, height }) => (
   <svg
     className={className}

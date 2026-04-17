@@ -22,6 +22,7 @@ import { loginRequest, forgotPasswordRequest } from "@/src/lib/apiHandler";
 import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import { useShowToast } from "@/src/utils/toastHelper";
 import ThreeDotsLoader from "@/src/animations/ThreeDotsLoader";
+import { usePostLoginRedirect } from "@/src/hooks/usePostLoginRedirect";
 
 export const useLoginFormSchema = () => {
   const { t } = useLiteLanguage();
@@ -52,6 +53,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
   const [apiResponseMessage, setApiResponseMessage] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { t, language } = useLiteLanguage();
   const showToast = useShowToast();
   const loginFormSchema = useLoginFormSchema();
@@ -74,15 +76,21 @@ export default function LoginForm() {
   });
 
   const router = useRouter();
+  const { redirectAfterLogin } = usePostLoginRedirect();
 
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
       loginRequest(values.username, values.password, values.remember_me),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       if (response?.token) {
         showToast("success", "login_success");
-        router.push("/dashboard");
+        const roleId =
+          response?.user?.roleId ??
+          response?.user?.role_id ??
+          null;
+        await redirectAfterLogin(roleId, response);
       } else {
+        setIsLoggingIn(false);
         loginForm.setError("username", {
           type: "manual",
           message: t('modules.login.error_login')
@@ -90,6 +98,7 @@ export default function LoginForm() {
       }
     },
     onError: (error: any) => {
+      setIsLoggingIn(false);
       loginForm.setError("username", {
         type: "manual",
         message: t('modules.login.error_login')
@@ -109,6 +118,7 @@ export default function LoginForm() {
   });
 
   async function onLoginSubmit(values: z.infer<typeof loginFormSchema>) {
+    setIsLoggingIn(true);
     loginMutation.mutate({
       username: values.username,
       password: values.password,
@@ -135,7 +145,7 @@ export default function LoginForm() {
 
   const handleAdLogin = () => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://wfm.khidmah.com:5000";
       window.location.href = `${baseUrl}/auth/azure`;
     } catch (error) {
       console.error("Azure AD redirect failed:", error);
@@ -241,9 +251,9 @@ export default function LoginForm() {
               size={"lg"}
               className="w-full min-w-[300px] mx-auto mt-2"
               suppressHydrationWarning
-              disabled={loginMutation.status === "pending"}
+              disabled={isLoggingIn}
             >
-              {loginMutation.status === "pending" ? (
+              {isLoggingIn ? (
                 <div className="flex items-center gap-2">
                   {t('buttons.logging_in')}
                   <ThreeDotsLoader />

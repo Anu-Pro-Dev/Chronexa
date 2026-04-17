@@ -103,7 +103,8 @@
         "employee_master": "سجل الموظف الرئيسي",
         "scheduling": "الجدولة",
         "self_services": "الخدمات الذاتية",
-        "manage_approvals": "إدارة الموافقات"
+        "manage_approvals": "إدارة الموافقات",
+        "user_management": "إدارة المستخدم"
       },
       "secondary": {
         "devices": "الأجهزة",
@@ -126,7 +127,8 @@
         "reports": "التقارير",
         "configuration": "التكوين",
         "settings": "الإعدادات",
-        "alerts": "التنبيهات"
+        "alerts": "التنبيهات",
+        "user_management": "إدارة المستخدم"
       },
       "auth": {
         "reset_password": "إعادة تعيين كلمة المرور",
@@ -284,7 +286,8 @@
         "check_out": "تسجيل الخروج",
         "missed_check_in": "تسجيل دخول فائت",
         "missed_check_out": "تسجيل خروج فائت",
-        "missing_hours": "الساعات المفقودة"
+        "missing_hours": "الساعات المفقودة",
+        "user_insights": "رؤى المستخدم"
       },
       "companyMaster": {
         "locations": "المواقع",
@@ -710,6 +713,7 @@
         "apply": "تطبيق",
         "applied": "تم التطبيق",
         "group_apply": "تطبيق جماعي",
+        "manaual_punches": "اللكمات اليدوية",
         "workflow_name_eng": "اسم سير العمل (English)",
         "workflow_name_arb": "اسم سير العمل (العربية)",
         "edit_workflow": "تعديل سير العمل",
@@ -756,7 +760,22 @@
         "leave_type_name_arb": "نوع الإجازة (العربية)",
         "apply_prior_to_days": "التقديم قبل الأيام",
         "completed": "مكتمل",
-        "placeholder_days": "أدخل الأيام"
+        "placeholder_days": "أدخل الأيام",
+        "department": "القسم",
+        "cost_center": "مركز التكلفة",
+        "placeholder_department": "اختر القسم",
+        "placeholder_cost_center": "اختر مركز التكلفة",
+        "search_department": "ابحث عن قسم...",
+        "search_cost_center": "ابحث عن مركز التكلفة...",
+        "no_results": "لا توجد نتائج",
+        "choose_employee": "اختر موظفاً",
+        "selected": "محدد",
+        "type": "نوع",
+        "searching": "جارٍ البحث...",
+        "no_employees": "لا يوجد موظفون متاحون",
+        "search_employee_types": "ابحث عن أنواع الموظفين...",
+        "no_employee_types_found": "لم يتم العثور على أنواع موظفين",
+        "group_apply_attachment_note": "PDF، JPG، PNG — الحد الأقصى 5 ميجابايت"
       },
       "manageApprovals": {
         "team_request": "طلب الفريق",
@@ -789,6 +808,7 @@
         "attachment": "مرفق",
         "placeholder_date": "اختر التاريخ",
         "missing_punches_approval": "اعتماد التسجيلات المفقودة",
+        "manual_punches_approval": "اعتماد التسجيلات اليدوية",
         "employee_no": "رقم الموظف",
         "employee_name": "اسم الموظف",
         "time": "الوقت",
@@ -803,7 +823,10 @@
         "approve_punch": "الموافقة على التسجيل المفقود",
         "approve_punch_desc": "هل أنت متأكد أنك تريد الموافقة على طلب/طلبات التسجيل المفقود المحددة؟",
         "reject_punch": "رفض التسجيل المفقود",
-        "reject_punch_desc": "هل أنت متأكد أنك تريد رفض طلب/طلبات التسجيل المفقود المحددة؟"
+        "reject_punch_desc": "هل أنت متأكد أنك تريد رفض طلب/طلبات التسجيل المفقود المحددة؟",
+        "view_attachment": "عرض",
+        "downloading": "جارٍ التنزيل...",
+        "attachment_download_error": "فشل تنزيل المرفق"
       },
       "devices": {
         "devices": "الأجهزة",
@@ -969,6 +992,37 @@
         "placeholder_date": "اختر التاريخ",
         "bcc_email": "نسخة كربونية مخفية (BCC)",
         "sent_at": "أرسلت في"
+      },
+      "userManagement": {
+        "users": "المستخدمون",
+        "user": "مستخدم",
+        "username": "اسم المستخدم",
+        "password": "كلمة المرور",
+        "employee": "الموظف",
+        "mobile_app_license": "ترخيص تطبيق الجوال",
+        "create_user": "إنشاء مستخدم",
+        "placeholder_username": "أدخل اسم المستخدم",
+        "placeholder_password": "أدخل كلمة المرور",
+        "placeholder_employee": "اختر الموظف",
+        "filter_license": "الترخيص",
+        "filter_emp_no": "رقم الموظف",
+        "filter_employee_type": "نوع الموظف",
+        "choose_license": "اختر الترخيص",
+        "choose_emp_no": "اختر رقم الموظف",
+        "choose_type": "اختر النوع",
+        "all": "الكل",
+        "enabled": "مفعّل",
+        "disabled": "معطّل",
+        "col_number": "الرقم",
+        "col_name": "الاسم",
+        "col_email": "البريد الإلكتروني",
+        "col_username": "اسم المستخدم",
+        "col_password": "كلمة المرور",
+        "col_license": "الترخيص",
+        "password_reset_success_title": "تمت إعادة تعيين كلمة المرور بنجاح",
+        "password_reset_success_desc": "تم إنشاء كلمة مرور جديدة وإرسالها إلى بريد المستخدم الإلكتروني.",
+        "password_reset_sent_to": "أُرسل إلى",
+        "password_reset_footer": "تم إرسال كلمة المرور الجديدة إلى عنوان البريد الإلكتروني المسجل."
       }
     },
     "sub_modules": {
@@ -1005,7 +1059,8 @@
       "email_settings": "إعدادات البريد الإلكتروني",
       "app_settings": "إعدادات التطبيق",
       "email": "البريد الإلكتروني",
-      "assign_roles": "تعيين الأدوار"
+      "assign_roles": "تعيين الأدوار",
+      "users": "المستخدمون"
     },
     "toastNotifications": {
       "formsubmission_error": "خطأ في إرسال النموذج",
@@ -1160,6 +1215,7 @@
       "approve_punch_error": "فشل في الموافقة على تسجيل (تسجيلات) الحضور الناقصة",
       "reject_punch_success": "تم رفض تسجيل (تسجيلات) الحضور الناقصة بنجاح!",
       "reject_punch_error": "فشل في رفض تسجيل (تسجيلات) الحضور الناقصة",
+      "attachment_download_error": "فشل تنزيل المرفق. يرجى المحاولة مرة أخرى.",
       "approve_permission_success": "تمت الموافقة على طلب (طلبات) الإذن بنجاح!",
       "approve_permission_error": "فشل في الموافقة على طلب (طلبات) الإذن",
       "reject_permission_success": "تم رفض طلب (طلبات) الإذن بنجاح!",

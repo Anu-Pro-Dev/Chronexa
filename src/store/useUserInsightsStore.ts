@@ -1,0 +1,462 @@
+import { create } from "zustand";
+import {
+  fetchDepartmentAttendance,
+  fetchHourlyTrend,
+  fetchOvertime,
+  fetchTotalsAndToday,
+  fetchWeeklyTrend,
+  getEarlyDespatchData,
+  getUserAlertsData,
+  OrganizationAlertsData,
+  OrganizationAnalyticsData,
+  OrganizationEarlyDespatchData,
+} from "@/src/lib/userInsightsApiHandler";
+import {
+  buildInsightsRequestKey,
+  getWeekStartStr,
+  toLocalDateStr,
+} from "@/src/lib/userInsightsUtils";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal types
+// ─────────────────────────────────────────────────────────────────────────────
+
+type DailySummary = {
+  totalStaff: number;
+  checkIns: number;
+  checkOuts: number;
+  presentCount: number;
+  missedIn: number;
+  withLicense: number;
+  missedOut: number;
+  onLeave: number;
+  absentCount: number;
+  noAppLogin: number;
+  present: number;
+  absent: number;
+};
+
+type HourlyEntry = {
+  hour: number;
+  checkins: number;
+  checkouts: number;
+};
+
+type WeeklyEntry = {
+  day: string;
+  date: string;
+  present: number;
+  onLeave: number;
+  absent: number;
+  missedIn: number;
+  missedOut: number;
+  total: number;
+};
+
+type DeptEntry = {
+  name: string;
+  present: number;
+  checkIns: number;
+  total: number;
+};
+
+type OvertimeData = {
+  avgHoursToday: number;
+  overtimeStaff: number;
+  earlyDepartures: number;
+  shiftCoverage: number;
+  weekAttendanceRate: number;
+  expectedHours: number;
+  totalStaff: number;
+  noPunchToday: number;
+  onTimeRate: number;
+};
+
+type AlertItem = {
+  targetDate: string;
+  no_checkin_today: number;
+  missing_checkout_yesterday: number;
+  depts_below_60pct: number;
+  lowest_dept_name: string;
+  lowest_dept_pct: number;
+  leave_requests_today: number;
+  overtime_count: number;
+  geofence_violations: number;
+  unapproved_wfh: number;
+  consecutive_absent_3plus: number;
+};
+
+type EarlyDespatchEntry = {
+  targetDate: string;
+  // thresholdMinutes: number;
+  summary: {
+    earlyDepartureCount: number;
+    avgEarlyMinutes: number;
+    onTimePct: number;
+  };
+  topEarlyDepartures: OrganizationEarlyDespatchData["topEarlyDepartures"];
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ALL_DAYS_FULL = [
+  "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
+];
+
+function resolveDateKey(date?: string): string {
+  return date ?? toLocalDateStr(new Date());
+}
+
+function setPendingRequest(
+  set: (updater: (state: UserInsightsState) => Partial<UserInsightsState>) => void,
+  requestKey: string
+) {
+  set((state) => ({
+    pendingRequests: { ...state.pendingRequests, [requestKey]: true },
+  }));
+}
+
+function clearPendingRequest(
+  set: (updater: (state: UserInsightsState) => Partial<UserInsightsState>) => void,
+  requestKey: string
+) {
+  set((state) => {
+    const pendingRequests = { ...state.pendingRequests };
+    delete pendingRequests[requestKey];
+    return { pendingRequests };
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mappers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function mapDailySummary(
+  data: Pick<OrganizationAnalyticsData, "totals" | "today" | "attendanceSplit">
+): DailySummary {
+  return {
+    totalStaff: data.totals.totalEmployees,
+    checkIns: data.today.checkIns,
+    checkOuts: data.today.checkOuts,
+    presentCount: data.today.presentCount,
+    withLicense: data.totals.licenseCounts.withLicense,
+    missedIn: data.today.missedIn,
+    missedOut: data.today.missedOut,
+    onLeave: data.today.onLeave,
+    absentCount: data.today.absentCount,
+    noAppLogin: data.totals.noAppLogin,
+    present: data.attendanceSplit.present,
+    absent: data.attendanceSplit.absent,
+  };
+}
+
+function mapWeeklyTrend(
+  weeklyTrend: OrganizationAnalyticsData["weeklyTrend"],
+  weekStart: string
+): WeeklyEntry[] {
+  return weeklyTrend.map((entry, i) => {
+    // Use the dayName from SP, fall back to index-based calculation
+    let dayName = entry.label;
+    if (dayName === "Today") {
+      dayName = ALL_DAYS_FULL[new Date().getDay()];
+    }
+
+    const dayIndex = ALL_DAYS_FULL.indexOf(dayName);
+    const dayDate = new Date(`${weekStart}T00:00:00`);
+    dayDate.setDate(dayDate.getDate() + (dayIndex >= 0 ? dayIndex : i));
+
+    return {
+      day: dayName,
+      date: toLocalDateStr(dayDate),
+      present: entry.present,
+      onLeave: entry.onLeave,
+      absent: entry.absent,
+      missedIn: entry.missedIn,
+      missedOut: entry.missedOut,
+      total: entry.total,
+    };
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State interface
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface UserInsightsState {
+  alertsError: string | null;
+  earlyDespatchError: string | null;
+  weeklyTrendError: string | null;
+  pendingRequests: Record<string, boolean>;
+
+  insightsDailySummaryCache: Record<string, DailySummary>;
+  insightsHourlyTrendCache: Record<string, HourlyEntry[]>;
+  insightsWeeklyTrendCache: Record<string, WeeklyEntry[]>;
+  insightsDeptAttendanceCache: Record<string, DeptEntry[]>;
+  insightsOvertimeCache: Record<string, OvertimeData>;
+  insightsAlertsCache: Record<string, AlertItem>;
+  insightsEarlyDespatchCache: Record<string, EarlyDespatchEntry>;
+
+  fetchDailySummary: (orgId: number, date?: string) => Promise<void>;
+  fetchHourlyTrendData: (orgId: number, date?: string) => Promise<void>;
+  fetchDeptAttendanceData: (orgId: number, date?: string) => Promise<void>;
+  fetchWeeklyTrendData: (orgId: number, date?: string) => Promise<void>;
+  fetchOvertimeData: (orgId: number, date?: string) => Promise<void>;
+  fetchAlertsData: (orgId: number, date?: string) => Promise<void>;
+  fetchEarlyDespatchData: (orgId: number, date?: string) => Promise<void>;
+  clearData: () => void;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Store
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
+  alertsError: null,
+  earlyDespatchError: null,
+  weeklyTrendError: null,
+  pendingRequests: {},
+
+  insightsDailySummaryCache: {},
+  insightsHourlyTrendCache: {},
+  insightsWeeklyTrendCache: {},
+  insightsDeptAttendanceCache: {},
+  insightsOvertimeCache: {},
+  insightsAlertsCache: {},
+  insightsEarlyDespatchCache: {},
+
+  // ── Daily summary ───────────────────────────────────────────────────────────
+  // Merged: totals + attendanceSplit come from a single snapshot call now.
+  fetchDailySummary: async (orgId, date) => {
+    const cacheKey = resolveDateKey(date);
+    const requestKey = buildInsightsRequestKey("dailySummary", orgId, cacheKey);
+    const { insightsDailySummaryCache, pendingRequests } = get();
+
+    if (insightsDailySummaryCache[cacheKey] || pendingRequests[requestKey]) return;
+
+    setPendingRequest(set, requestKey);
+    try {
+      // Single API call — fetchTotalsAndToday now returns attendanceSplit too
+      const data = await fetchTotalsAndToday(orgId, cacheKey);
+      const summary = mapDailySummary(data);
+
+      set((state) => ({
+        insightsDailySummaryCache: {
+          ...state.insightsDailySummaryCache,
+          [cacheKey]: summary,
+        },
+      }));
+    } catch (error) {
+      console.error("UserInsightsStore fetchDailySummary error:", error);
+    } finally {
+      clearPendingRequest(set, requestKey);
+    }
+  },
+
+  // ── Hourly trend ────────────────────────────────────────────────────────────
+  fetchHourlyTrendData: async (orgId, date) => {
+    const cacheKey = resolveDateKey(date);
+    const requestKey = buildInsightsRequestKey("hourlyTrend", orgId, cacheKey);
+    const { insightsHourlyTrendCache, pendingRequests } = get();
+
+    if (insightsHourlyTrendCache[cacheKey] || pendingRequests[requestKey]) return;
+
+    setPendingRequest(set, requestKey);
+    try {
+      const response = await fetchHourlyTrend(orgId, cacheKey);
+      const hourlyTrend: HourlyEntry[] = response.hourlyTrend.map((entry) => ({
+        hour: entry.hour,
+        checkins: entry.checkIns,
+        checkouts: entry.checkOuts,
+      }));
+
+      set((state) => ({
+        insightsHourlyTrendCache: {
+          ...state.insightsHourlyTrendCache,
+          [cacheKey]: hourlyTrend,
+        },
+      }));
+    } catch (error) {
+      console.error("UserInsightsStore fetchHourlyTrendData error:", error);
+    } finally {
+      clearPendingRequest(set, requestKey);
+    }
+  },
+
+  // ── Department attendance ───────────────────────────────────────────────────
+  fetchDeptAttendanceData: async (orgId, date) => {
+    const cacheKey = resolveDateKey(date);
+    const requestKey = buildInsightsRequestKey("deptAttendance", orgId, cacheKey);
+    const { insightsDeptAttendanceCache, pendingRequests } = get();
+
+    if (insightsDeptAttendanceCache[cacheKey] || pendingRequests[requestKey]) return;
+
+    setPendingRequest(set, requestKey);
+    try {
+      const response = await fetchDepartmentAttendance(orgId, cacheKey);
+      const deptAttendance: DeptEntry[] = response.departmentAttendance.map((entry) => ({
+        name: entry.department,
+        present: entry.present,
+        checkIns: entry.checkin,
+        total: entry.total,
+      }));
+
+      set((state) => ({
+        insightsDeptAttendanceCache: {
+          ...state.insightsDeptAttendanceCache,
+          [cacheKey]: deptAttendance,
+        },
+      }));
+    } catch (error) {
+      console.error("UserInsightsStore fetchDeptAttendanceData error:", error);
+    } finally {
+      clearPendingRequest(set, requestKey);
+    }
+  },
+
+  // ── Weekly trend ────────────────────────────────────────────────────────────
+  fetchWeeklyTrendData: async (orgId, date) => {
+    const cacheKey = resolveDateKey(date);
+    const weekStart = getWeekStartStr(cacheKey);
+    const requestKey = buildInsightsRequestKey("weeklyTrend", orgId, weekStart);
+    const { insightsWeeklyTrendCache, pendingRequests } = get();
+
+    if (insightsWeeklyTrendCache[weekStart] || pendingRequests[requestKey]) return;
+
+    set({ weeklyTrendError: null });
+    setPendingRequest(set, requestKey);
+    try {
+      const response = await fetchWeeklyTrend(orgId, cacheKey);
+      const weeklyTrend = mapWeeklyTrend(response.weeklyTrend, weekStart);
+
+      set((state) => ({
+        insightsWeeklyTrendCache: {
+          ...state.insightsWeeklyTrendCache,
+          [weekStart]: weeklyTrend,
+        },
+      }));
+    } catch (error) {
+      set({ weeklyTrendError: error instanceof Error ? error.message : "Failed to fetch weekly trend" });
+      console.error("UserInsightsStore fetchWeeklyTrendData error:", error);
+    } finally {
+      clearPendingRequest(set, requestKey);
+    }
+  },
+
+  // ── Overtime ────────────────────────────────────────────────────────────────
+  fetchOvertimeData: async (orgId, date) => {
+    const cacheKey = resolveDateKey(date);
+    const requestKey = buildInsightsRequestKey("overtime", orgId, cacheKey);
+    const { insightsOvertimeCache, pendingRequests } = get();
+
+    if (insightsOvertimeCache[cacheKey] || pendingRequests[requestKey]) return;
+
+    setPendingRequest(set, requestKey);
+    try {
+      // Single call — overtime SP already returns totalEmployees
+      const overtimeResponse = await fetchOvertime(orgId, cacheKey);
+
+      const overtime: OvertimeData = {
+        avgHoursToday: overtimeResponse.overtime.avgHoursToday,
+        overtimeStaff: overtimeResponse.overtime.overtimeCount,
+        earlyDepartures: overtimeResponse.overtime.earlyDepartures,
+        shiftCoverage: overtimeResponse.overtime.shiftCoverage,
+        weekAttendanceRate: overtimeResponse.overtime.weekAttendanceRate,
+        expectedHours: overtimeResponse.overtime.requiredHours ?? 9,
+        totalStaff: overtimeResponse.overtime.totalEmployees ?? 0,
+        noPunchToday: overtimeResponse.overtime.noPunchToday ?? 0,
+        onTimeRate: overtimeResponse.overtime.onTimeRate ?? 0,
+      };
+
+      set((state) => ({
+        insightsOvertimeCache: {
+          ...state.insightsOvertimeCache,
+          [cacheKey]: overtime,
+        },
+      }));
+    } catch (error) {
+      console.error("UserInsightsStore fetchOvertimeData error:", error);
+    } finally {
+      clearPendingRequest(set, requestKey);
+    }
+  },
+
+  // ── Alerts ──────────────────────────────────────────────────────────────────
+  fetchAlertsData: async (orgId, date) => {
+    const cacheKey = resolveDateKey(date);
+    const requestKey = buildInsightsRequestKey("alerts", orgId, cacheKey);
+    const { insightsAlertsCache, pendingRequests } = get();
+
+    if (insightsAlertsCache[cacheKey] || pendingRequests[requestKey]) return;
+
+    set({ alertsError: null });
+    setPendingRequest(set, requestKey);
+    try {
+      const alertsData = await getUserAlertsData(orgId, cacheKey);
+
+      set((state) => ({
+        alertsError: null,
+        insightsAlertsCache: {
+          ...state.insightsAlertsCache,
+          [cacheKey]: { ...alertsData },
+        },
+      }));
+    } catch (error) {
+      set({ alertsError: error instanceof Error ? error.message : "Failed to fetch alerts" });
+      console.error("UserInsightsStore fetchAlertsData error:", error);
+    } finally {
+      clearPendingRequest(set, requestKey);
+    }
+  },
+
+  // ── Early despatch ──────────────────────────────────────────────────────────
+  fetchEarlyDespatchData: async (orgId, date) => {
+    const cacheKey = resolveDateKey(date);
+    const requestKey = buildInsightsRequestKey("earlyDespatch", orgId, cacheKey);
+    const { insightsEarlyDespatchCache, pendingRequests } = get();
+
+    if (insightsEarlyDespatchCache[cacheKey] || pendingRequests[requestKey]) return;
+
+    set({ earlyDespatchError: null });
+    setPendingRequest(set, requestKey);
+    try {
+      const data = await getEarlyDespatchData(orgId, cacheKey);
+
+      set((state) => ({
+        earlyDespatchError: null,
+        insightsEarlyDespatchCache: {
+          ...state.insightsEarlyDespatchCache,
+          [cacheKey]: {
+            targetDate: data.targetDate,
+            // thresholdMinutes:  data.thresholdMinutes,
+            summary: data.summary,
+            topEarlyDepartures: data.topEarlyDepartures,
+          },
+        },
+      }));
+    } catch (error) {
+      set({ earlyDespatchError: error instanceof Error ? error.message : "Failed to fetch early despatch" });
+      console.error("UserInsightsStore fetchEarlyDespatchData error:", error);
+    } finally {
+      clearPendingRequest(set, requestKey);
+    }
+  },
+
+  // ── Clear ───────────────────────────────────────────────────────────────────
+  clearData: () => {
+    set({
+      alertsError: null,
+      earlyDespatchError: null,
+      weeklyTrendError: null,
+      pendingRequests: {},
+      insightsDailySummaryCache: {},
+      insightsHourlyTrendCache: {},
+      insightsWeeklyTrendCache: {},
+      insightsDeptAttendanceCache: {},
+      insightsOvertimeCache: {},
+      insightsAlertsCache: {},
+      insightsEarlyDespatchCache: {},
+    });
+  },
+}));

@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import Papa from "papaparse";
-import { apiRequest } from "@/src/lib/apiHandler";
-import { formatInTimeZone } from "date-fns-tz";
+import { getAuthToken } from "@/src/utils/authToken";
+import { DEFAULT_API_URL } from "@/src/utils/constants";
 
 export interface CSVExporterProps {
   formValues: any;
@@ -28,42 +28,54 @@ export class CSVExporter {
 
   private getFilteredHeaders() {   
     return [
-      'employee_number',     
-      'firstname_eng',
-      'parent_org_eng',
-      'organization_eng',
-      'department_name_eng',
-      'employee_type',
-      'transdate',
+      'EmployeeNo',
+      'Name',
+      'ParentOrganization',
+      'Organization',
+      'Department',
+      'EmployeeType',
+      'WorkDate',
       'WorkDay',
-      'punch_in',
-      'GeoLocation_In',
-      'punch_out',
-      'GeoLocation_Out',
-      'dailyworkhrs',
+      'Shift',
+      'PunchIn',
+      'GeoLocationIn',
+      'PunchOut',
+      'GeoLocationOut',
+      'DailyWorkedHrs',
       'DailyMissedHrs',
-      'dailyextrawork',
-      'isabsent',
+      'DailyExtraWork',
+      'IsAbsent',
       'MissedPunch',
-      'EmployeeStatus'
+      'EmployeeStatus',
     ];
   }
   
   private formatCellValue(header: string, value: any): string {
-    if (header === 'transdate' && value) {
+    if (value === null || value === undefined || value === '') return '';
+    
+    if (header === 'WorkDate' && value) {
       try {
-        return formatInTimeZone(value, 'UTC', 'dd-MM-yyyy');
+        const date = new Date(value);
+        return format(date, 'dd-MM-yyyy');
       } catch {
         return value;
       }
     }
 
-    if ((header === 'punch_in' || header === 'punch_out') && value) {
-      try {
-        return formatInTimeZone(value, 'UTC', 'HH:mm:ss');
-      } catch {
-        return value;
-      }
+    if (header === 'PunchIn' || header === 'PunchOut') {
+      return value || '';
+    }
+
+    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) {
+      return value || '';
+    }
+
+    if (header === 'IsAbsent') {
+      return value || '';
+    }
+
+    if (header === 'MissedPunch') {
+      return value || '';
     }
 
     return value || '';
@@ -73,61 +85,89 @@ export class CSVExporter {
     return new Promise(resolve => setTimeout(resolve, 0));
   }
 
-  private buildQueryParams(): Record<string, string> {
-    const params: Record<string, string> = {};
-
-    if (this.formValues.from_date) {
-      params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
-    }
-
-    if (this.formValues.to_date) {
-      params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
-    }
-
-    if (this.formValues.manager_id) {
-      params.manager_id = this.formValues.manager_id.toString();
-    }
-
-    if (this.formValues.organization) {
-      params.organization_id = this.formValues.organization.toString();
-    }
-
-    if (this.formValues.company) {
-      params.organization_id = this.formValues.company.toString();
-    }
-
-    if (this.formValues.department) {
-      params.department_id = this.formValues.department.toString();
-    }
-
-    if (this.formValues.vertical) {
-      params.parent_orgid = this.formValues.vertical.toString();
-    }
-
-    return params;
-  }
-
-  private buildUrl(params: Record<string, string>): string {
+  private buildExportUrl(): string {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
     const queryParts: string[] = [];
 
-    // employee_ids — comma-separated, same as main component
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
       queryParts.push(`employee_ids=${this.formValues.employee_ids.join(',')}`);
     }
 
-    // employee_type_ids — comma-separated, same as main component
     if (this.formValues.employee_type_ids && this.formValues.employee_type_ids.length > 0) {
       queryParts.push(`employee_type_ids=${this.formValues.employee_type_ids.join(',')}`);
     }
 
-    Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .forEach(([key, value]) => {
-        queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
-      });
+    if (this.formValues.from_date) {
+      queryParts.push(`from_date=${format(this.formValues.from_date, 'yyyy-MM-dd')}`);
+    }
+
+    if (this.formValues.to_date) {
+      queryParts.push(`to_date=${format(this.formValues.to_date, 'yyyy-MM-dd')}`);
+    }
+
+    if (this.formValues.manager_id) {
+      queryParts.push(`manager_id=${this.formValues.manager_id}`);
+    }
+
+    if (this.formValues.organization) {
+      queryParts.push(`organization_id=${this.formValues.organization}`);
+    }
+
+    if (this.formValues.company) {
+      queryParts.push(`organization_id=${this.formValues.company}`);
+    }
+
+    if (this.formValues.department) {
+      queryParts.push(`department_id=${this.formValues.department}`);
+    }
+
+    if (this.formValues.vertical) {
+      queryParts.push(`parent_orgid=${this.formValues.vertical}`);
+    }
+
+    // NOTE: No limit or offset — fetch ALL matching records in one request.
+    // The backend's /report/attendance endpoint does not support offset-based
+    // pagination reliably, so we request everything at once for exports.
 
     const queryString = queryParts.join('&');
-    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
+    return `${API_URL}/report/attendance${queryString ? `?${queryString}` : ''}`;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Fetch all report data in a single request using the native fetch API.
+  //
+  // We use fetch() instead of axios because for very large JSON responses
+  // (10+ MB), axios can block the main thread during JSON parsing. The
+  // native fetch API handles this more gracefully.
+  // ─────────────────────────────────────────────────────────────────────────
+  private async fetchAllData(): Promise<any[]> {
+    const token = getAuthToken();
+    const url = this.buildExportUrl();
+
+    this.onProgress?.(0, 0, 'fetching');
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+    }
+
+    // Parse JSON — for very large responses this may take a moment
+    this.onProgress?.(0, 0, 'parsing');
+    const json = await response.json();
+
+    // Handle both { data: [...] } and direct array responses
+    const rows = Array.isArray(json) ? json : (json?.data || []);
+
+    this.onProgress?.(rows.length, rows.length, 'fetching');
+    return rows;
   }
 
   async exportStreaming(): Promise<void> {
@@ -136,88 +176,55 @@ export class CSVExporter {
 
       const filteredHeaders = this.getFilteredHeaders();
       const displayHeaders = filteredHeaders.map(h => this.headerMap[h] || h);
-      
-      let csvContent = Papa.unparse([displayHeaders], { header: false }) + '\n';
-      
-      const BATCH_SIZE = 2000;
-      let offset = 0;
-      let hasMore = true;
-      let totalRecords = 0;
-      let apiTotal = 0;
-      let fetchedRecords = 0;
 
-      while (hasMore) {
-        try {
-          const baseParams = this.buildQueryParams();
-          const params = {
-            ...baseParams,
-            limit: BATCH_SIZE.toString(),
-            offset: offset.toString(),
-          };
+      let allData: any[];
 
-          const url = this.buildUrl(params);
-          const response = await apiRequest(url, "GET");
-
-          const batch = Array.isArray(response) ? response : (response.data || []);
-          const total = response?.total || 0;
-
-          if (offset === 0 && total > 0) {
-            apiTotal = total;
-          }
-
-          if (batch.length === 0) {
-            hasMore = false;
-            break;
-          }
-
-          const formattedBatch = batch.map((row: any) => {
-            return filteredHeaders.map(header => 
-              this.formatCellValue(header, row[header])
-            );
-          });
-
-          csvContent += Papa.unparse(formattedBatch, { header: false }) + '\n';
-          
-          totalRecords += batch.length;
-          fetchedRecords += batch.length;
-          offset += BATCH_SIZE;
-
-          hasMore = batch.length === BATCH_SIZE;
-
-          this.onProgress?.(fetchedRecords, apiTotal || totalRecords, 'fetching');
-
-          await this.yieldToMain();
-
-        } catch (error) {
-          console.error('Error fetching batch:', error);
-          
-          if (error && typeof error === 'object' && 'requireLogin' in error) {
-            this.showToast('error', 'csv_session_expired');
-            throw new Error('Session expired. Please login again.');
-          }
-          
-          this.showToast('error', 'csv_fetch_error');
-          throw new Error('Failed to fetch data from server');
+      try {
+        allData = await this.fetchAllData();
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        if (error && typeof error === 'object' && 'requireLogin' in error) {
+          this.showToast('error', 'csv_session_expired');
+          throw new Error('Session expired. Please login again.');
         }
+        this.showToast('error', 'csv_fetch_error');
+        throw new Error('Failed to fetch data from server');
       }
 
-      if (totalRecords === 0) {
+      if (allData.length === 0) {
         this.showToast('error', 'csv_no_data_error');
         return;
       }
 
-      this.onProgress?.(totalRecords, totalRecords, 'processing');
+      this.onProgress?.(0, allData.length, 'processing');
       await this.yieldToMain();
 
-      this.onProgress?.(totalRecords, totalRecords, 'generating');
+      // Build CSV in chunks to keep the UI responsive
+      let csvContent = Papa.unparse([displayHeaders], { header: false }) + '\n';
+      const CHUNK = 500;
+
+      for (let i = 0; i < allData.length; i += CHUNK) {
+        const chunk = allData.slice(i, i + CHUNK);
+        const formatted = chunk.map((row: any) =>
+          filteredHeaders.map(header => this.formatCellValue(header, row[header]))
+        );
+        csvContent += Papa.unparse(formatted, { header: false }) + '\n';
+
+        if (i % 2000 === 0) {
+          this.onProgress?.(Math.min(i + CHUNK, allData.length), allData.length, 'processing');
+          await this.yieldToMain();
+        }
+      }
+
+      this.onProgress?.(allData.length, allData.length, 'generating');
 
       const BOM = '\uFEFF';
       const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
       
       const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
       
-      link.setAttribute('href', url);
+      link.setAttribute('href', blobUrl);
       link.setAttribute('download', `report_${
         this.formValues.employee_ids?.length > 0
           ? this.formValues.employee_ids.length === 1
@@ -231,16 +238,14 @@ export class CSVExporter {
       link.click();
       document.body.removeChild(link);
       
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(blobUrl);
 
-      this.onProgress?.(totalRecords, totalRecords, 'complete');
-      this.showToast('success', 'csv_export_success', { count: totalRecords.toLocaleString() });
+      this.onProgress?.(allData.length, allData.length, 'complete');
+      this.showToast('success', 'csv_export_success', { count: allData.length.toLocaleString() });
       
     } catch (error) {
       console.error("CSV export error:", error);
-      
-      if (error instanceof Error && error.message.includes('Session expired')) {
-      } else {
+      if (!(error instanceof Error && error.message.includes('Session expired'))) {
         this.showToast('error', 'csv_export_error');
       }
       throw error;
@@ -251,7 +256,19 @@ export class CSVExporter {
     try {
       this.onProgress?.(0, 0, 'initializing');
 
-      const allData = await this.fetchDataInBatches();
+      let allData: any[];
+
+      try {
+        allData = await this.fetchAllData();
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        if (error && typeof error === 'object' && 'requireLogin' in error) {
+          this.showToast('error', 'csv_session_expired');
+          throw new Error('Session expired. Please login again.');
+        }
+        this.showToast('error', 'csv_fetch_error');
+        throw new Error('Failed to fetch data from server');
+      }
 
       if (allData.length === 0) {
         this.showToast('error', 'csv_no_data_error');
@@ -279,23 +296,21 @@ export class CSVExporter {
       formattedData.push({});
       
       const summaryHeader: any = {};
-      summaryHeader[this.headerMap['employee_number']] = 'SUMMARY TOTALS';
+      summaryHeader[this.headerMap['EmployeeNo'] || 'Emp No'] = 'SUMMARY TOTALS';
       formattedData.push(summaryHeader);
       
       formattedData.push({
-        [this.headerMap['employee_number']]: 'Total Late In Hours',
-        [this.headerMap['firstname_eng']]: summaryTotals.totalLateInHours,
-        [this.headerMap['organization_eng']]: 'Total Early Out Hours',
-        [this.headerMap['transdate']]: summaryTotals.totalEarlyOutHours,
-        [this.headerMap['punch_in']]: 'Total Missed Hours',
-        [this.headerMap['punch_out']]: summaryTotals.totalMissedHours,
+        [this.headerMap['EmployeeNo'] || 'Emp No']: 'Total Worked Hours',
+        [this.headerMap['Name'] || 'Employee Name']: summaryTotals.totalWorkedHours,
+        [this.headerMap['Organization'] || 'Organization']: 'Total Missed Hours',
+        [this.headerMap['WorkDate'] || 'Work Date']: summaryTotals.totalMissedHours,
+        [this.headerMap['PunchIn'] || 'Punch In']: 'Total Extra Hours',
+        [this.headerMap['PunchOut'] || 'Punch Out']: summaryTotals.totalExtraHours,
       });
       
       formattedData.push({
-        [this.headerMap['employee_number']]: 'Total Worked Hours',
-        [this.headerMap['firstname_eng']]: summaryTotals.totalWorkedHours,
-        [this.headerMap['organization_eng']]: 'Total Extra Hours',
-        [this.headerMap['transdate']]: summaryTotals.totalExtraHours,
+        [this.headerMap['EmployeeNo'] || 'Emp No']: 'Total Absents',
+        [this.headerMap['Name'] || 'Employee Name']: summaryTotals.totalAbsents,
       });
 
       this.onProgress?.(allData.length, allData.length, 'generating');
@@ -313,9 +328,9 @@ export class CSVExporter {
       const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
       
       const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
       
-      link.setAttribute('href', url);
+      link.setAttribute('href', blobUrl);
       link.setAttribute('download', `report_${
         this.formValues.employee_ids?.length > 0
           ? this.formValues.employee_ids.length === 1
@@ -329,77 +344,17 @@ export class CSVExporter {
       link.click();
       document.body.removeChild(link);
       
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(blobUrl);
 
       this.onProgress?.(allData.length, allData.length, 'complete');
       this.showToast('success', 'csv_export_success', { count: allData.length.toLocaleString() });
       
     } catch (error) {
       console.error("CSV export error:", error);
-      
-      if (error instanceof Error && error.message.includes('Session expired')) {
-      } else {
+      if (!(error instanceof Error && error.message.includes('Session expired'))) {
         this.showToast('error', 'csv_export_error');
       }
       throw error;
     }
-  }
-
-  private async fetchDataInBatches(): Promise<any[]> {
-    const allData: any[] = [];
-    const BATCH_SIZE = 2000;
-    let offset = 0;
-    let hasMore = true;
-    let apiTotal = 0;
-    let fetchedRecords = 0;
-
-    while (hasMore) {
-      try {
-        const baseParams = this.buildQueryParams();
-        const params = {
-          ...baseParams,
-          limit: BATCH_SIZE.toString(),
-          offset: offset.toString(),
-        };
-
-        const url = this.buildUrl(params);
-        const response = await apiRequest(url, "GET");
-
-        const batch = Array.isArray(response) ? response : (response.data || []);
-        const total = response?.total || 0;
-
-        if (offset === 0 && total > 0) {
-          apiTotal = total;
-        }
-
-        if (batch.length === 0) {
-          hasMore = false;
-          break;
-        }
-
-        allData.push(...batch);
-        fetchedRecords += batch.length;
-        offset += BATCH_SIZE;
-
-        hasMore = batch.length === BATCH_SIZE;
-
-        this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
-
-        await this.yieldToMain();
-
-      } catch (error) {
-        console.error('Error fetching batch:', error);
-        
-        if (error && typeof error === 'object' && 'requireLogin' in error) {
-          this.showToast('error', 'csv_session_expired');
-          throw new Error('Session expired. Please login again.');
-        }
-        
-        this.showToast('error', 'csv_fetch_error');
-        throw new Error('Failed to fetch data from server');
-      }
-    }
-
-    return allData;
   }
 }

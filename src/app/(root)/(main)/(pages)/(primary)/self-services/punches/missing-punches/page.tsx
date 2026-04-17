@@ -9,8 +9,7 @@ import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { ChevronsUpDown } from "lucide-react";
+import { startOfDay, subDays } from "date-fns";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -21,12 +20,24 @@ import { useDebounce } from "@/src/hooks/useDebounce";
 import MissingPunchModal from "@/src/components/custom/modules/self-services/MissingPunchModal";
 import GroupPunchModal from "@/src/components/custom/modules/self-services/GroupPunchModal";
 import { InlineLoading } from "@/src/app/loading";
+import {
+  Command,
+  CommandInput,
+  CommandGroup,
+  CommandItem,
+} from "@/src/components/ui/command";
+import { ChevronsUpDown } from "lucide-react";
 
 export default function Page() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  const orgId = userInfo?.organization_id ?? userInfo?.organization?.id;
+
+  const today = startOfDay(new Date());
+  const allowedDays = orgId === 25 ? 4 : 7;
+  const defaultFromDate = startOfDay(subDays(today, allowedDays));
 
   type Columns = {
     field: string;
@@ -147,6 +158,14 @@ export default function Page() {
     return employeesData.data.filter((item: any) => item.employee_id);
   }, [employeesData]);
 
+
+  useEffect(() => {
+    if (!orgId || fromDate || toDate) return;
+
+    setFromDate(defaultFromDate);
+    setToDate(today);
+  }, [orgId]);
+
   const { apiEndpoint, searchParams } = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
 
@@ -163,11 +182,11 @@ export default function Page() {
         apiEndpoint: "/missingMovement/all",
         searchParams: {
           ...commonParams,
-          ...(employeeId && { employee_id: String(employeeId) }),
+          // ...(employeeId && { employee_id: String(employeeId) }),
           // ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
         },
       };
-    }else if (userRole === "manager") {
+    } else if (userRole === "manager") {
       return {
         apiEndpoint: "/missingMovement/team/all",
         searchParams: {
@@ -407,6 +426,23 @@ export default function Page() {
     setSelectedRows(rows);
   }, []);
 
+  useEffect(() => {
+    const handleFocus = () => {
+      refetch && refetch();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [refetch]);
+
+  const handleModalClose = (open: boolean) => {
+    setIsModalOpen(open);
+
+    if (!open) {
+      refetch && refetch(); // refresh after apply
+    }
+  };
+
   const props = useMemo(() => ({
     Data: data,
     Columns: columns,
@@ -480,7 +516,7 @@ export default function Page() {
   };
 
   const isAdmin = userInfo?.role?.toLowerCase() === "admin";
-  // const isManager = userInfo?.role?.toLowerCase() === "manager";
+  const isManager = userInfo?.role?.toLowerCase() === "manager";
 
   return (
     <div className="flex flex-col gap-4">
@@ -498,7 +534,7 @@ export default function Page() {
                 className="flex items-center space-y-0.5"
                 onClick={handleGroupApplyClick}
               >
-                <span>{t.group_apply || "Group Apply"}</span>
+                <span>{t.manaual_punches || "Manual Punches"}</span>
               </Button>
             )}
           </>
@@ -506,7 +542,7 @@ export default function Page() {
       />
 
       <div className={`grid grid-cols-1 ${isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4 xl:max-w-[${isAdmin ? '1050px' : '700px'}]`}>
-        <div>
+        {/* <div>
           <Popover
             open={popoverStates.fromDate}
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
@@ -578,7 +614,7 @@ export default function Page() {
               />
             </PopoverContent>
           </Popover>
-        </div>
+        </div> */}
 
         {/* {(isAdmin || isManager) && (
           <div>
@@ -651,7 +687,7 @@ export default function Page() {
       {isModalOpen && selectedRowData && (
         <MissingPunchModal
           open={isModalOpen}
-          onOpenChange={setIsModalOpen}
+          onOpenChange={handleModalClose}
           rowData={selectedRowData.rowData}
           punchType={selectedRowData.punchType}
           size="large"
@@ -660,7 +696,10 @@ export default function Page() {
       {isGroupModalOpen && (
         <GroupPunchModal
           open={isGroupModalOpen}
-          onOpenChange={setIsGroupModalOpen}
+          onOpenChange={(open) => {
+            setIsGroupModalOpen(open);
+            if (!open) refetch && refetch();
+          }}
           size="large"
         />
       )}

@@ -7,7 +7,7 @@ export const getAuthToken = (): string | null => {
 
     if (!token) return null;
 
-    const expiration = localStorage.getItem(TOKEN_EXPIRATION);
+    const expiration = localStorage.getItem(TOKEN_EXPIRATION) || sessionStorage.getItem(TOKEN_EXPIRATION);
     if (expiration && Date.now() > parseInt(expiration)) {
         clearAuthToken();
         return null;
