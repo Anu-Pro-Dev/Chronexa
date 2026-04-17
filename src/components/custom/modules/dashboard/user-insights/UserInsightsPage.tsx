@@ -102,7 +102,7 @@ export default function UserInsightsPage() {
       </div>
 
       <div className="grid gap-4">
-        <div className="grid grid-cols-1 xl:grid-cols-[40%_60%] gap-4 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-4 items-stretch">
           <OvertimeCard date={selectedDate} />
           <WeeklyTrendChart date={selectedDate} />
         </div>

@@ -63,7 +63,7 @@ function Page() {
 
           // ── Privilege-based redirect ─────────────────────────────────
           const roleId = res.data.user?.roleId ?? res.data.user?.role_id ?? null;
-          let destination = "/dashboard";
+          let destination = "/dashboard/user-insights";
 
           if (roleId) {
             try {
@@ -142,7 +142,7 @@ function Page() {
         </p>
         <p className="text-sm text-text-secondary">
           If you are not redirected automatically,{" "}
-          <a href="/dashboard" className="text-primary underline">
+          <a href="/dashboard/user-insights" className="text-primary underline">
             click here
           </a>
           .

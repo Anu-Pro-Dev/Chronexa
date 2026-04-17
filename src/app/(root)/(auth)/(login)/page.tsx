@@ -43,7 +43,7 @@ export default function Login() {
     <PageTransitionProvider>
       <main className="relative h-screen">
         <div className={`absolute top-2 ${language === "ar" ? "left-2" : "right-2"} z-[100]`}>
-          <IconLanguageSwitcher />
+          <IconLanguageSwitcher lite />
         </div>
         <div className="main-container h-full flex flex-col sm:flex-row">
           <div className="hidden sm:flex sm:flex-1 relative">

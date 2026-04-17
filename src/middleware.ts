@@ -75,7 +75,7 @@ export function middleware(req: NextRequest) {
   }
 
   if (isLoginPage && isTokenValid) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/dashboard/user-insights", req.url));
   }
 
   return res;

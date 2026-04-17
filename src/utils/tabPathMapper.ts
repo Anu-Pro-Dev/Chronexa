@@ -51,7 +51,7 @@ export const createTabPathMapper = (translations?: any) => {
   if (translations?.modules?.selfServices) {
     const t = translations.modules.selfServices;
     
-    if (t.my_requests) {
+    if (t.my_request) {
       translatedTabPathMapping[t.my_request] = 'my-request';
       translatedTabPathMapping[t.my_request.toLowerCase()] = 'my-request';
     }

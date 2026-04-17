@@ -54,8 +54,11 @@ export default function Page() {
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
-  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
-  const isManager = userInfo?.role?.toLowerCase() === "manager";
+  // Defer role resolution until the auth store has finished initializing.
+  // Evaluating roles while isChecking=true causes a hydration mismatch because
+  // userInfo is null on the server but populated on the client.
+  const isAdmin = !isChecking && userInfo?.role?.toLowerCase() === "admin";
+  const isManager = !isChecking && userInfo?.role?.toLowerCase() === "manager";
 
   const options = useMemo(() => [
     { value: "all", label: "All" },
@@ -81,14 +84,25 @@ export default function Page() {
   }, []);
 
   // Fetch employees for the filter dropdown (admin: all, manager: their team only)
+  // Keep options shape stable across renders to avoid React Query key instability.
+  const employeeFetchOptions = useMemo(() => {
+    const isReady = !!userInfo?.role && !isChecking;
+    if (isManager && !isAdmin && employeeId) {
+      return {
+        endpoint: `/employee/all?manager_id=${employeeId}`,
+        enabled: isReady,
+      };
+    }
+    return {
+      endpoint: `/employee/all`,
+      searchParams: { limit: "1000" },
+      enabled: isReady && isAdmin,
+    };
+  }, [isManager, isAdmin, employeeId, userInfo?.role, isChecking]);
+
   const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
     "employee",
-    isManager && !isAdmin && employeeId
-      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
-      : {
-          searchParams: { limit: "1000" },
-          enabled: !!userInfo && isAdmin,
-        }
+    employeeFetchOptions
   );
 
   const getEmployeesData = useCallback(() => {
