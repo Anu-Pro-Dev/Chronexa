@@ -63,7 +63,9 @@ export function middleware(req: NextRequest) {
   const isLoginPage = pathname === "/" || pathname === "/login";
   const isForgotPassword = pathname === "/forgot-password";
   const isAuthRoute = pathname.startsWith("/auth/");
-  const isPublicRoute = isLoginPage || isForgotPassword || isAuthRoute;
+  const isNoAccess = pathname === "/no-access";
+  const isPublicRoute = isLoginPage || isForgotPassword || isAuthRoute || isNoAccess;
+
 
   const isTokenValid =
     token && (!tokenExpiration || Date.now() <= Number(tokenExpiration));

@@ -35,9 +35,12 @@ export default function Page() {
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const orgId = userInfo?.organization_id ?? userInfo?.organization?.id;
 
-  const today = startOfDay(new Date());
+  const today = new Date();
+  const yesterday = subDays(today, 1);
+
   const allowedDays = orgId === 25 ? 4 : 7;
-  const defaultFromDate = startOfDay(subDays(today, allowedDays));
+
+  const defaultFromDate = startOfDay(subDays(yesterday, allowedDays));
 
   type Columns = {
     field: string;

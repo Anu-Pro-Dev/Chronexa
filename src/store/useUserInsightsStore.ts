@@ -28,12 +28,16 @@ type DailySummary = {
   presentCount: number;
   missedIn: number;
   withLicense: number;
+  withoutLicense: number;
   missedOut: number;
   onLeave: number;
   absentCount: number;
   noAppLogin: number;
   present: number;
   absent: number;
+  yesterdayPresentCount?: number;
+  yesterdayMissedIn?: number;
+  yesterdayMissedOut?: number;
 };
 
 type HourlyEntry = {
@@ -136,12 +140,21 @@ function clearPendingRequest(
 function mapDailySummary(
   data: Pick<OrganizationAnalyticsData, "totals" | "today" | "attendanceSplit">
 ): DailySummary {
+  // The API's today object may carry yesterday* fields (new from updated SP).
+  // Cast so TS doesn't complain even if the type hasn't been updated yet.
+  const today = data.today as typeof data.today & {
+    yesterdayPresentCount?: number;
+    yesterdayMissedIn?: number;
+    yesterdayMissedOut?: number;
+  };
+
   return {
     totalStaff: data.totals.totalEmployees,
     checkIns: data.today.checkIns,
     checkOuts: data.today.checkOuts,
     presentCount: data.today.presentCount,
     withLicense: data.totals.licenseCounts.withLicense,
+    withoutLicense: data.totals.licenseCounts.withoutLicense,
     missedIn: data.today.missedIn,
     missedOut: data.today.missedOut,
     onLeave: data.today.onLeave,
@@ -149,6 +162,10 @@ function mapDailySummary(
     noAppLogin: data.totals.noAppLogin,
     present: data.attendanceSplit.present,
     absent: data.attendanceSplit.absent,
+    // ── Yesterday fields from SP totals (via today object) ──
+    yesterdayPresentCount: today.yesterdayPresentCount,
+    yesterdayMissedIn: today.yesterdayMissedIn,
+    yesterdayMissedOut: today.yesterdayMissedOut,
   };
 }
 
@@ -237,7 +254,6 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
     setPendingRequest(set, requestKey);
     try {
-      // Single API call — fetchTotalsAndToday now returns attendanceSplit too
       const data = await fetchTotalsAndToday(orgId, cacheKey);
       const summary = mapDailySummary(data);
 
@@ -354,7 +370,6 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
 
     setPendingRequest(set, requestKey);
     try {
-      // Single call — overtime SP already returns totalEmployees
       const overtimeResponse = await fetchOvertime(orgId, cacheKey);
 
       const overtime: OvertimeData = {

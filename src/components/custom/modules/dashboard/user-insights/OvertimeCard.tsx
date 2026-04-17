@@ -101,7 +101,7 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
   ];
 
   return (
-    <div className="bg-accent rounded-[10px] shadow-card p-6 flex flex-col gap-3">
+    <div className="bg-accent rounded-[10px] shadow-card p-6 flex flex-col gap-3 h-full">
       <h5 className="text-lg text-text-primary font-bold">Overtime & Hours Worked</h5>
       <div className="flex flex-col gap-4">
         {overtimeData.map((row) => (

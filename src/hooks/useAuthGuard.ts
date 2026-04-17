@@ -28,7 +28,7 @@ export function useAuthGuard() {
     // an unauthenticated redirect — they ARE the destination for
     // unauthenticated users. Without this, calling router.replace("/")
     // while already on "/" creates an infinite RSC fetch loop.
-    const publicRoutes = ['/', '/login', '/auth/azure/success', '/reset-password', '/forgot-password'];
+    const publicRoutes = ['/', '/login', '/auth/azure/success', '/reset-password', '/forgot-password', '/no-access'];
     const isPublicRoute = publicRoutes.some(route =>
       route === '/' || route === '/login'
         ? pathname === route

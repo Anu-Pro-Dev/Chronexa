@@ -283,7 +283,8 @@ export default function AddRoleToUser({
   useEffect(() => {
     setColumns([
       { field: "user_id", headerName: t.user_id || "User ID" },
-      { field: "employee_id", headerName: t.employee_id || "Employee ID" },
+      { field: "sap_id", headerName:  "SAP ID" },
+      { field: "name", headerName: t.name || "Name" },
       { field: "login", headerName: t.username || "Username" },
     ]);
   }, [language, t]);
@@ -307,6 +308,8 @@ export default function AddRoleToUser({
         id: user.user_id,
         email: user.email || user.email_address || "N/A",
         employee_no: user.employee_no || user.emp_no || "N/A",
+        sap_id: user.employee_master?.emp_no || "N/A",
+        name: user.employee_master?.firstname_eng || "N/A",
       }));
   }, [userData, assignedUserIds]);
 

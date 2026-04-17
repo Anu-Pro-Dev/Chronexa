@@ -68,19 +68,19 @@ export default function LanguageProvider({
     const getDashboardItems = () => {
       const baseItems = [
         {
-          label: currentLanguageData.translations?.modules?.dashboard?.my_attendance || "My Attendance",
+          label: currentLanguageData.translations?.modules?.dashboard?.user_insights || "User Insights",
           path: "/dashboard/user-insights/",
+          value: "user_insights",
+        },
+        {
+          label: currentLanguageData.translations?.modules?.dashboard?.my_attendance || "My Attendance",
+          path: "/dashboard/my-attendance/",
           value: "my_attendance",
         },
         {
           label: currentLanguageData.translations?.modules?.dashboard?.team_attendance || "Team Attendance",
           path: "/dashboard/team-attendance/",
           value: "team_attendance",
-        },
-        {
-          label: currentLanguageData.translations?.modules?.dashboard?.user_insights || "User Insights",
-          path: "/dashboard/user-insights/",
-          value: "user_insights",
         },
       ];
 

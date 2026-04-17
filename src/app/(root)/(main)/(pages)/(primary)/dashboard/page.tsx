@@ -14,6 +14,5 @@ export default function Page() {
     }
   }, [modules, router]);
 
-  // Show nothing while redirecting — the layout already has the sidebar/navbar
   return null;
 }

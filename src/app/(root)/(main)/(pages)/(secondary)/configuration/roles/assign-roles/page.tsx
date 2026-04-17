@@ -23,7 +23,7 @@ export default function MembersTable() {
     { field: "user_name", headerName: t.employee_name || "Employee Name" },
     { field: "designation", headerName: t.designation || "Designation" },
     { field: "organization", headerName: t.organization || "Organization" },
-    { field: "created_date", headerName: t.assigned_date || "Assigned Date" },
+    { field: "last_updated_date", headerName: t.assigned_date || "Assigned Date" },
   ]);
 
   const [open, setOpen] = useState(false);
@@ -163,7 +163,7 @@ export default function MembersTable() {
       { field: "user_name", headerName: t.employee_name || "Employee Name" },
       { field: "designation", headerName: t.designation || "Designation" },
       { field: "organization", headerName: t.organization || "Organization" },
-      { field: "created_date", headerName: t.assigned_date || "Assigned Date" },
+      { field: "last_updated_date", headerName: t.assigned_date || "Assigned Date" },
     ]);
   }, [t, language]);
 
@@ -244,7 +244,7 @@ export default function MembersTable() {
             props={props}
           />
         }
-        size="large"
+        size="extraLarge"
       />
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-0">

@@ -8,10 +8,10 @@ interface AttendanceSplitChartProps {
 }
 
 const SLICES = [
-  { key: "checkIns",  label: "Present",   from: "#86EFAC", to: "#34D399" },
-  { key: "checkOuts", label: "Check Out", from: "#FDE68A", to: "#FCD34D" },
-  { key: "onLeave",  label: "On Leave",  from: "#93C5FD", to: "#60A5FA" },
-  { key: "absent",   label: "Absent",    from: "#FCA5A5", to: "#F87171" },
+  { key: "yesterdayPresentCount",  label: "Present",   from: "#86EFAC", to: "#34D399" },
+  { key: "withoutLicense", label: "No Licensed", from: "#FDE68A", to: "#FCD34D" },
+  { key: "yesterdayMissedIn",  label: "Missed In",  from: "#93C5FD", to: "#60A5FA" },
+  { key: "yesterdayMissedOut",   label: "Missed Out",    from: "#FCA5A5", to: "#F87171" },
 ];
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
@@ -58,7 +58,7 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 h-full">
-      <h5 className="text-lg text-text-primary font-bold pb-4">Today's Attendance Split</h5>
+      <h5 className="text-lg text-text-primary font-bold pb-4">Yesterday's Attendance Split</h5>
 
       <div className="flex flex-col items-center gap-4">
         {/* Donut */}

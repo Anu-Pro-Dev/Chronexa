@@ -35,8 +35,11 @@ interface TotalsRow {
   checkIns: number;
   checkOuts: number;
   presentCount: number;
+  yesterdayPresentCount: number;
   missedOut: number;
+  yesterdayMissedOut: number;
   missedIn: number;
+  yesterdayMissedIn: number;
   absentCount: number;
   onLeave: number;
   withLicense: number;
@@ -135,8 +138,11 @@ export interface OrganizationAnalyticsData {
     checkIns: number;
     checkOuts: number;
     presentCount: number;
+    yesterdayPresentCount: number;
     missedIn: number;
+    yesterdayMissedIn: number;
     missedOut: number;
+    yesterdayMissedOut: number;
     onLeave: number;
     absentCount: number;
   };
@@ -269,8 +275,11 @@ export async function fetchTotalsAndToday(
       checkIns: row.checkIns,
       checkOuts: row.checkOuts,
       presentCount: row.presentCount,
+      yesterdayPresentCount: row.yesterdayPresentCount,
       missedIn: row.missedIn,
+      yesterdayMissedIn: row.yesterdayMissedIn,
       missedOut: row.missedOut,
+      yesterdayMissedOut: row.yesterdayMissedOut,
       onLeave: row.onLeave,
       absentCount: row.absentCount,
     },

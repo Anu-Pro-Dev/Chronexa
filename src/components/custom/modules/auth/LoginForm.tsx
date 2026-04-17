@@ -43,7 +43,7 @@ export const useLoginFormSchema = () => {
 
 const useForgotPasswordSchema = () => {
   const { t } = useLiteLanguage();
-  
+
   return z.object({
     username: z.string().trim().min(1, { message: t('formErrors.username_required') }),
   });
@@ -99,10 +99,18 @@ export default function LoginForm() {
     },
     onError: (error: any) => {
       setIsLoggingIn(false);
-      loginForm.setError("username", {
-        type: "manual",
-        message: t('modules.login.error_login')
-      });
+
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 403 && message) {
+        router.replace(`/no-access?message=${encodeURIComponent(message)}`);
+      } else {
+        loginForm.setError("username", {
+          type: "manual",
+          message: t('modules.login.error_login')
+        });
+      }
     },
   });
 
