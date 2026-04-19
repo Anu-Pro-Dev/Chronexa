@@ -22,6 +22,7 @@ import GroupPunchModal from "@/src/components/custom/modules/self-services/Group
 import { InlineLoading } from "@/src/app/loading";
 import {
   Command,
+  CommandEmpty,
   CommandInput,
   CommandGroup,
   CommandItem,
@@ -65,10 +66,12 @@ export default function Page() {
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
     employeeFilter: false,
+    department: false,
   });
 
   const debouncedSearchValue = useDebounce(searchValue, 300);
@@ -77,7 +80,7 @@ export default function Page() {
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
-  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter') => {
+  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter' | 'department') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   }, []);
 
@@ -156,10 +159,25 @@ export default function Page() {
     },
   });
 
+  const { data: departmentsData, isLoading: isLoadingDepartments } = useFetchAllEntity(
+    "department",
+    {
+      searchParams: {
+        offset: "1",
+        limit: "1000",
+      },
+    }
+  );
+
   const getEmployeesData = useCallback(() => {
     if (!employeesData?.data) return [];
     return employeesData.data.filter((item: any) => item.employee_id);
   }, [employeesData]);
+
+  const getDepartmentsData = useCallback(() => {
+    if (!departmentsData?.data) return [];
+    return departmentsData.data.filter((item: any) => item.department_id);
+  }, [departmentsData]);
 
 
   useEffect(() => {
@@ -178,6 +196,7 @@ export default function Page() {
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
       ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
       ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(selectedDepartment && { department_id: selectedDepartment }),
     };
 
     if (userRole === "admin") {
@@ -217,6 +236,7 @@ export default function Page() {
     fromDate,
     toDate,
     debouncedEmployeeFilter,
+    selectedDepartment,
     formatDateForAPI,
   ]);
 
@@ -406,6 +426,13 @@ export default function Page() {
     }
   }, [refetch, closePopover]);
 
+  const handleDepartmentChange = useCallback((value: string) => {
+    setSelectedDepartment(value);
+    setCurrentPage(1);
+    closePopover('department');
+    // Let useFetchAllEntity refetch on param change.
+  }, [refetch, closePopover]);
+
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({
       queryKey: ["employeeEventTransaction", employeeId],
@@ -544,7 +571,86 @@ export default function Page() {
         }
       />
 
-      <div className={`grid grid-cols-1 ${isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4 xl:max-w-[${isAdmin ? '1050px' : '700px'}]`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div>
+          <Popover
+            open={popoverStates.department}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, department: open }))
+            }
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
+                disabled={isLoadingDepartments}
+              >
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
+                    {t.department || "Department"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary truncate">
+                    {isLoadingDepartments
+                      ? (t.loading || "Loading...")
+                      : selectedDepartment
+                        ? (() => {
+                          const dept = getDepartmentsData().find(
+                            (item: any) =>
+                              String(item.department_id) === selectedDepartment
+                          );
+                          return (
+                            (language === "ar"
+                              ? dept?.department_name_arb
+                              : dept?.department_name_eng) ||
+                            dept?.department_code ||
+                            selectedDepartment
+                          );
+                        })()
+                        : (t.placeholder_department || "Choose department")}
+                  </span>
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+              <Command>
+                <CommandInput
+                  placeholder={t.search_department || "Search department..."}
+                />
+                <CommandEmpty>
+                  {isLoadingDepartments
+                    ? (t.loading || "Loading...")
+                    : (t.no_department_found || "No department found")}
+                </CommandEmpty>
+                <CommandGroup className="max-h-64 overflow-auto">
+                  <CommandItem onSelect={() => handleDepartmentChange("") }>
+                    {t.all || "All"}
+                  </CommandItem>
+                  {getDepartmentsData().map((item: any) => {
+                    const name =
+                      language === "ar"
+                        ? item.department_name_arb
+                        : item.department_name_eng;
+
+                    return (
+                      <CommandItem
+                        key={item.department_id}
+                        onSelect={() =>
+                          handleDepartmentChange(String(item.department_id))
+                        }
+                      >
+                        {item.department_code}
+                        {name ? ` - ${name}` : ""}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
         {/* <div>
           <Popover
             open={popoverStates.fromDate}
