@@ -78,6 +78,10 @@ export default function Page() {
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
   const t = translations?.modules?.selfServices || {};
 
+  const minToDate = useMemo(() => {
+    return fromDate ? startOfDay(fromDate) : undefined;
+  }, [fromDate]);
+
   const offset = useMemo(() => currentPage, [currentPage]);
 
   const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter' | 'department') => {
@@ -184,7 +188,7 @@ export default function Page() {
     if (!orgId || fromDate || toDate) return;
 
     setFromDate(defaultFromDate);
-    setToDate(today);
+    setToDate(startOfDay(today));
   }, [orgId]);
 
   const { apiEndpoint, searchParams } = useMemo(() => {
@@ -408,14 +412,32 @@ export default function Page() {
   }, [refetch]);
 
   const handleFromDateChange = useCallback((date: Date | undefined) => {
-    setFromDate(date);
+    const nextFromDate = date ? startOfDay(date) : undefined;
+
+    setFromDate(nextFromDate);
+
+    if (nextFromDate && toDate) {
+      const currentToDate = startOfDay(toDate);
+      if (currentToDate < nextFromDate) {
+        setToDate(nextFromDate);
+      }
+    }
+
     handleFilterChange();
-  }, [handleFilterChange]);
+  }, [handleFilterChange, toDate]);
 
   const handleToDateChange = useCallback((date: Date | undefined) => {
-    setToDate(date);
+    const nextToDate = date ? startOfDay(date) : undefined;
+
+    if (minToDate && nextToDate && nextToDate < minToDate) {
+      setToDate(minToDate);
+      handleFilterChange();
+      return;
+    }
+
+    setToDate(nextToDate);
     handleFilterChange();
-  }, [handleFilterChange]);
+  }, [handleFilterChange, minToDate]);
 
   const handleEmployeeFilterChange = useCallback((value: string) => {
     setEmployeeFilter(value);
@@ -571,7 +593,88 @@ export default function Page() {
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
+      <div className="grid grid-cols-1  md:grid-cols-4 gap-4 ">
+        <div>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, fromDate: open }))
+            }
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.from_date || "From Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {fromDate
+                      ? format(fromDate, "dd/MM/yy")
+                      : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={fromDate}
+                onSelect={(date) => {
+                  handleFromDateChange(date);
+                  closePopover("fromDate");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, toDate: open }))
+            }
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey"
+              >
+                <p>
+                  <Label className="font-normal text-secondary">
+                    {t.to_date || "To Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {toDate
+                      ? format(toDate, "dd/MM/yy")
+                      : (t.placeholder_date || "Choose date")}
+                  </span>
+                </p>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={toDate}
+                disabled={minToDate ? { before: minToDate } : undefined}
+                onSelect={(date) => {
+                  handleToDateChange(date);
+                  closePopover("toDate");
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        {/* </div> */}
+
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]"> */}
         <div>
           <Popover
             open={popoverStates.department}
@@ -625,7 +728,7 @@ export default function Page() {
                     : (t.no_department_found || "No department found")}
                 </CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
-                  <CommandItem onSelect={() => handleDepartmentChange("") }>
+                  <CommandItem onSelect={() => handleDepartmentChange("")}>
                     {t.all || "All"}
                   </CommandItem>
                   {getDepartmentsData().map((item: any) => {
