@@ -12,6 +12,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
+import { Checkbox } from "@/src/components/ui/checkbox";
 import { searchEmployees, apiRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import { useLanguage } from "@/src/providers/LanguageProvider";
@@ -19,13 +20,13 @@ import { PDFExporter } from './PDFExporter';
 import { ExcelExporter } from './ExcelExporter';
 import { CSVExporter } from './CSVExporter';
 import { DeleteIcon, CalendarIcon, ExportExcelIcon, LoginIcon } from "@/src/icons/icons";
-import { FileText, Trash2Icon, TrashIcon } from "lucide-react";
+import { FileText, Trash2Icon, TrashIcon, Eye, Download } from "lucide-react";
 
 const formSchema = z.object({
   vertical: z.string().optional(),
   company: z.string().optional(),
   department: z.string().optional(),
-  employee_type: z.string().optional(),
+  employee_type: z.array(z.string()).optional(),
   manager_id: z.string().optional(),
   employee: z.string().optional(),
   from_date: z.date().optional(),
@@ -39,7 +40,9 @@ export default function EmployeeReports() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      employee_type: [],
+    },
   });
 
   const [popoverStates, setPopoverStates] = useState({
@@ -57,6 +60,16 @@ export default function EmployeeReports() {
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [selectedEmployeeTypes, setSelectedEmployeeTypes] = useState<string[]>([]);
+  const [showReportView, setShowReportView] = useState(false);
+  const [reportData, setReportData] = useState<any[]>([]);
+  const [loadingReportData, setLoadingReportData] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [showExportButtons, setShowExportButtons] = useState(false);
+  const [showViewButton, setShowViewButton] = useState(true);
+  const rowsPerPage = 50;
 
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
@@ -88,19 +101,40 @@ export default function EmployeeReports() {
     enabled: !!selectedCompany,
   });
 
-  const { data: managers } = useFetchAllEntity("employee", {
-    searchParams: {
+  const getManagerSearchParams = () => {
+    const params: any = {
       manager_flag: "true",
       limit: "1000",
       offset: "1"
+    };
+    if (selectedCompany) {
+      params.organization_id = selectedCompany;
     }
-  });
+    if (selectedDepartment) {
+      params.department_id = selectedDepartment;
+    }
+    return { searchParams: params };
+  };
+
+  const { data: managers } = useFetchAllEntity(
+    "employee",
+    (selectedCompany || selectedDepartment) ? getManagerSearchParams() : {
+      searchParams: {
+        manager_flag: "true",
+        limit: "1000",
+        offset: "1"
+      }
+    }
+  );
 
   const getEmployeeSearchParams = () => {
     const params: any = {
       limit: "1000",
       offset: "1"
     };
+    if (selectedCompany) {
+      params.organization_id = selectedCompany;
+    }
     if (selectedDepartment) {
       params.department_id = selectedDepartment;
     }
@@ -112,7 +146,7 @@ export default function EmployeeReports() {
 
   const { data: employees } = useFetchAllEntity(
     "employee",
-    (selectedDepartment || selectedManagerId) ? getEmployeeSearchParams() : {
+    (selectedCompany || selectedDepartment || selectedManagerId) ? getEmployeeSearchParams() : {
       searchParams: {
         limit: "1000",
         offset: "1"
@@ -165,18 +199,35 @@ export default function EmployeeReports() {
   );
 
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
-    queryKey: ["employeeSearch", employeeSearchTerm],
-    queryFn: () => searchEmployees(employeeSearchTerm),
+    queryKey: ["employeeSearch", employeeSearchTerm, selectedCompany, selectedDepartment, selectedManagerId],
+    queryFn: async () => {
+      let url = `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`;
+      if (selectedCompany) {
+        url += `&organization_id=${selectedCompany}`;
+      }
+      if (selectedDepartment) {
+        url += `&department_id=${selectedDepartment}`;
+      }
+      if (selectedManagerId) {
+        url += `&manager_id=${selectedManagerId}`;
+      }
+      const response = await apiRequest(url, "GET");
+      return response;
+    },
     enabled: employeeSearchTerm.length > 0,
   });
 
   const { data: searchedManagers, isLoading: isSearchingManagers } = useQuery({
-    queryKey: ["managerSearch", managerSearchTerm],
+    queryKey: ["managerSearch", managerSearchTerm, selectedCompany, selectedDepartment],
     queryFn: async () => {
-      const response = await apiRequest(
-        `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`,
-        "GET"
-      );
+      let url = `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`;
+      if (selectedCompany) {
+        url += `&organization_id=${selectedCompany}`;
+      }
+      if (selectedDepartment) {
+        url += `&department_id=${selectedDepartment}`;
+      }
+      const response = await apiRequest(url, "GET");
       return response;
     },
     enabled: managerSearchTerm.length > 0,
@@ -298,6 +349,29 @@ export default function EmployeeReports() {
     );
   };
 
+  const handleEmployeeToggle = (employeeId: string) => {
+    setSelectedEmployees(prev => {
+      return prev.includes(employeeId)
+        ? prev.filter(id => id !== employeeId)
+        : [...prev, employeeId];
+    });
+  };
+
+  const handleEmployeeTypeToggle = (employeeTypeId: string) => {
+    setSelectedEmployeeTypes(prev => {
+      const newTypes = prev.includes(employeeTypeId)
+        ? prev.filter(type => type !== employeeTypeId)
+        : [...prev, employeeTypeId];
+
+      if (showReportView) {
+        resetButtons();
+        setShowReportView(false);
+      }
+
+      return newTypes;
+    });
+  };
+
   const headerMap: Record<string, string> = {
     employee_number: "EmpNo",
     firstname_eng: "EmployeeName",
@@ -317,6 +391,97 @@ export default function EmployeeReports() {
     isabsent: "DayStatus",
     MissedPunch: "Missed Punch",
     EmployeeStatus: "EmployeeStatus"
+  };
+
+  const getDepartmentName = (row: any) => {
+    if (row?.departments?.department_name_eng) {
+      return language === 'ar'
+        ? (row.departments.department_name_arb || row.departments.department_name_eng)
+        : row.departments.department_name_eng;
+    }
+    return row?.department_name_eng || '-';
+  };
+
+  const isSingleEmployee = selectedEmployees.length === 1;
+
+  const getViewHeaders = () => {
+    if (isSingleEmployee) {
+      return [
+        'transdate',
+        'WorkDay',
+        'punch_in',
+        'punch_out',
+        'dailyworkhrs',
+        'DailyMissedHrs',
+        'dailyextrawork',
+        'isabsent',
+        'MissedPunch'
+      ];
+    } else {
+      return [
+        'employee_number',
+        'firstname_eng',
+        'parent_org_eng',
+        'organization_eng',
+        'department_name_eng',
+        'employee_type',
+        'transdate',
+        'WorkDay',
+        'punch_in',
+        'punch_out',
+        'dailyworkhrs',
+        'DailyMissedHrs',
+        'dailyextrawork',
+        'isabsent',
+        'MissedPunch'
+      ];
+    }
+  };
+
+  const viewHeaders = getViewHeaders();
+
+  const formatCellValue = (header: string, value: any): string => {
+    if (!value && value !== 0) return '-';
+
+    if (header === 'transdate' && value) {
+      try {
+        return format(new Date(value), 'dd-MM-yyyy');
+      } catch {
+        return value;
+      }
+    }
+
+    if ((header === 'punch_in' || header === 'punch_out') && value) {
+      try {
+        return format(new Date(value), 'HH:mm:ss');
+      } catch {
+        return value;
+      }
+    }
+
+    if (['dailyworkhrs', 'DailyMissedHrs', 'dailyextrawork'].includes(header)) {
+      if (value === '0' || value === 0) return '00:00:00';
+
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return '00:00:00';
+
+      const totalSeconds = Math.round(Math.abs(numValue) * 3600);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    if (header === 'isabsent') {
+      return value ? 'Absent' : 'Present';
+    }
+
+    if (header === 'MissedPunch') {
+      return value ? 'Yes' : 'No';
+    }
+
+    return String(value);
   };
 
   const calculateSummaryTotals = (dataArray: any[]) => {
@@ -395,6 +560,104 @@ export default function EmployeeReports() {
     setExportProgress(percentage);
   };
 
+  const buildQueryParams = (): Record<string, string> => {
+    const params: Record<string, string> = {};
+    const values = form.getValues();
+
+    if (values.vertical) params.parent_orgid = values.vertical;
+    if (values.company) params.organization_id = values.company;
+    if (values.department) params.department_id = values.department;
+    if (values.manager_id) params.manager_id = values.manager_id;
+    if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
+    if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
+
+    return params;
+  };
+
+  const buildUrl = (params: Record<string, string>, page?: number): string => {
+    const queryParts: string[] = [];
+
+    if (selectedEmployees.length > 0) {
+      queryParts.push(`employee_ids=${selectedEmployees.join(',')}`);
+    }
+
+    if (selectedEmployeeTypes.length > 0) {
+      queryParts.push(`employee_type_ids=${selectedEmployeeTypes.join(',')}`);
+    }
+
+    if (page !== undefined) {
+      queryParts.push(`limit=${rowsPerPage}`);
+      queryParts.push(`offset=${(page - 1) * rowsPerPage}`);
+    }
+
+    Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .forEach(([key, value]) => {
+        queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      });
+
+    const queryString = queryParts.join('&');
+    return `/report/attendance${queryString ? `?${queryString}` : ''}`;
+  };
+
+  const fetchReportData = async (page: number = 1) => {
+    setLoadingReportData(true);
+    try {
+      const params = buildQueryParams();
+      const url = buildUrl(params, page);
+
+      const response = await apiRequest(url, "GET");
+
+      const data = Array.isArray(response) ? response : (response?.data || []);
+      const total = response?.total || data.length;
+
+      setReportData(data);
+      setTotalRecords(total);
+      setCurrentPage(page);
+
+      if (data.length === 0) {
+        showToast("error", "no_data_found");
+      }
+    } catch (error) {
+      console.error("Error fetching report data:", error);
+      showToast("error", "fetch_report_error");
+      setReportData([]);
+      setTotalRecords(0);
+    } finally {
+      setLoadingReportData(false);
+    }
+  };
+
+  const handleViewReport = async () => {
+    try {
+      setShowReportView(true);
+      setShowExportButtons(true);
+      setShowViewButton(false);
+      await fetchReportData(1);
+    } catch (error) {
+      console.error("Error in handleViewReport:", error);
+      setShowReportView(false);
+      setShowExportButtons(false);
+      setShowViewButton(true);
+    }
+  };
+
+  const resetButtons = () => {
+    setShowExportButtons(false);
+    setShowViewButton(true);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    fetchReportData(newPage);
+  };
+
+  // ─── passes employee_ids & employee_type_ids to all exporters ───
+  const getExportFormValues = () => ({
+    ...form.getValues(),
+    employee_ids: selectedEmployees,
+    employee_type_ids: selectedEmployeeTypes,
+  });
+
   const handleExportCSV = async () => {
     setLoading(true);
     setExportProgress(0);
@@ -403,7 +666,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new CSVExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -419,6 +682,7 @@ export default function EmployeeReports() {
         setLoading(false);
         setExportProgress(0);
         setExportType(null);
+        resetButtons();
         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
       }, 500);
     }
@@ -432,7 +696,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new ExcelExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         onProgress: handleProgressUpdate,
@@ -448,6 +712,7 @@ export default function EmployeeReports() {
         setLoading(false);
         setExportProgress(0);
         setExportType(null);
+        resetButtons();
         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
       }, 500);
     }
@@ -461,7 +726,7 @@ export default function EmployeeReports() {
 
     try {
       const exporter = new PDFExporter({
-        formValues: form.getValues(),
+        formValues: getExportFormValues(),
         headerMap,
         calculateSummaryTotals,
         logoUrl: '/Logo.png',
@@ -478,6 +743,7 @@ export default function EmployeeReports() {
         setLoading(false);
         setExportProgress(0);
         setExportType(null);
+        resetButtons();
         setProgressDetails({ current: 0, total: 0, phase: 'initializing' });
       }, 500);
     }
@@ -494,6 +760,13 @@ export default function EmployeeReports() {
     };
   }, [debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch,
     debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
+
+  useEffect(() => {
+    if (showReportView) {
+      resetButtons();
+      setShowReportView(false);
+    }
+  }, [selectedVertical, selectedCompany, selectedDepartment, selectedManagerId, selectedEmployees, selectedEmployeeTypes, form.watch('from_date'), form.watch('to_date')]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;
@@ -545,20 +818,49 @@ export default function EmployeeReports() {
     return '';
   };
 
+  const getPlaceholderText = () => {
+    if (selectedEmployees.length === 0) {
+      return t.choose_employee || "Choose employee";
+    }
+    return `${selectedEmployees.length} ${t.employee || 'employee'}${selectedEmployees.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const getEmployeeTypePlaceholderText = () => {
+    if (selectedEmployeeTypes.length === 0) {
+      return t.placeholder_employee_type || "Choose type";
+    }
+    return `${selectedEmployeeTypes.length} ${t.type || 'type'}${selectedEmployeeTypes.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const totalPages = Math.ceil(totalRecords / rowsPerPage);
+  const summaryTotals = reportData.length > 0 ? calculateSummaryTotals(reportData) : null;
+
+  const singleEmployeeInfo = isSingleEmployee && reportData.length > 0
+    ? {
+      name: reportData[0]?.firstname_eng,
+      empNo: reportData[0]?.employee_number,
+      company: reportData[0]?.parent_org_eng,
+      division: reportData[0]?.organization_eng,
+      department: getDepartmentName(reportData[0]),
+      type: reportData[0]?.employee_type,
+    }
+    : null;
+
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="relative bg-accent p-6 rounded-2xl">
           <div className="col-span-2 py-6">
-            <h1 className="font-bold text-xl text-primary">
-              {t.employee_time_attendance_report || 'Employee Time Attendance Report'}          </h1>
+            <h1 className="font-medium text-xl text-primary">
+              {t.employee_time_attendance_report || 'Employee Time Attendance Report'}
+            </h1>
           </div>
-          <div className="relative">
+          <div>
             <p
-              className={`text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"
+              className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"
                 }`}
             >
-              <strong>💡 {t.tip || 'Tip'}:</strong> {t.csv_fastest || 'For datasets over 5,000 records, use CSV export for best performance. Excel export works great for up to 20,000 records. PDF shows last 1,000 records for large datasets.'}
+              <strong>{t.tip || 'Tip'}:</strong> {t.view_before_export || 'View the report on-screen first, then export to PDF, Excel, or CSV as needed.'}
             </p>
           </div>
           <div className="flex flex-col gap-6">
@@ -712,13 +1014,10 @@ export default function EmployeeReports() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value || ""}
-                      >
+                      <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={t.placeholder_employee_type || "Choose type"} />
+                            <SelectValue placeholder={getEmployeeTypePlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -732,11 +1031,26 @@ export default function EmployeeReports() {
                               {t.no_employee_types_found || "No employee types found"}
                             </div>
                           )}
-                          {getEmployeeTypesData().map((item: any) => (
-                            <SelectItem key={item.employee_type_id} value={item.employee_type_eng || item.employee_type_id.toString()}>
-                              {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
-                            </SelectItem>
-                          ))}
+                          {getEmployeeTypesData().map((item: any) => {
+                            const typeValue = item.employee_type_id.toString();
+                            const isChecked = selectedEmployeeTypes.includes(typeValue);
+                            return (
+                              <div
+                                key={item.employee_type_id}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleEmployeeTypeToggle(typeValue);
+                                }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>
+                                  {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -801,13 +1115,10 @@ export default function EmployeeReports() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">{t.employee || 'Employee'}</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(val)}
-                        value={field.value || ""}
-                      >
+                      <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={t.choose_employee || "Choose employee"} />
+                            <SelectValue placeholder={getPlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -826,14 +1137,29 @@ export default function EmployeeReports() {
                               {t.no_employees_found || "No employees found"}
                             </div>
                           )}
-                          {getFilteredEmployees().map((item: any) => (
-                            <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
-                              {language === 'ar'
-                                ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
-                                : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
-                              }
-                            </SelectItem>
-                          ))}
+                          {getFilteredEmployees().map((item: any) => {
+                            const empId = item?.employee_id?.toString();
+                            const isChecked = selectedEmployees.includes(empId);
+                            return (
+                              <div
+                                key={empId}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleEmployeeToggle(empId);
+                                }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>
+                                  {language === 'ar'
+                                    ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                    : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                  }
+                                </span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -929,10 +1255,10 @@ export default function EmployeeReports() {
               <div className="px-8 pb-2">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-blue-900">
+                    <span className="text-sm font-regular text-blue-900">
                       {getProgressMessage()}
                     </span>
-                    <span className="text-sm font-bold text-blue-900">
+                    <span className="text-sm font-medium text-blue-900">
                       {exportProgress}%
                     </span>
                   </div>
@@ -956,51 +1282,244 @@ export default function EmployeeReports() {
                   size={"sm"}
                   variant="outline"
                   className="flex items-center gap-2"
-                  onClick={() => form.reset()}
+                  onClick={() => {
+                    form.reset();
+                    setSelectedEmployees([]);
+                    setSelectedEmployeeTypes([]);
+                    setShowReportView(false);
+                    setReportData([]);
+                    resetButtons();
+                  }}
                   disabled={loading}
                 >
                   <Trash2Icon />
                   {translations?.buttons?.clear || 'Clear Filters'}
                 </Button>
 
-                <Button
-                  type="button"
-                  size={"sm"}
-                  className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
-                  onClick={handleShowReport}
-                  disabled={loading}
-                >
-                  <LoginIcon />
-                  {translations?.buttons?.show_pdf || 'Show PDF'}
-                </Button>
+                {showViewButton && (
+                  <Button
+                    type="button"
+                    size={"sm"}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                    onClick={handleViewReport}
+                    disabled={loading || loadingReportData}
+                  >
+                    <Eye className="w-4 h-4" />
+                    {translations?.buttons?.view_report || 'View Report'}
+                  </Button>
+                )}
 
-                <Button
-                  type="button"
-                  size={"sm"}
-                  className="flex items-center gap-2 bg-[#0073C6]"
-                  onClick={handleExportCSV}
-                  disabled={loading}
-                >
-                  <FileText className="w-4 h-4" />
-                  {translations?.buttons?.export_csv || 'Export CSV'}
-                </Button>
+                {showExportButtons && reportData.length > 0 && (
+                  <>
+                    <Button
+                      type="button"
+                      size={"sm"}
+                      className="flex items-center gap-2 bg-[#0073C6]"
+                      onClick={() => {
+                        handleExportCSV();
+                        setShowReportView(false);
+                      }}
+                      disabled={loading}
+                    >
+                      <Download className="w-4 h-4" />
+                      {translations?.buttons?.export_csv || 'Export CSV'}
+                    </Button>
 
-                <Button
-                  type="button"
-                  variant={"success"}
-                  size={"sm"}
-                  className="flex items-center gap-2 bg-[#21A366]"
-                  onClick={handleExportExcel}
-                  disabled={loading}
-                >
-                  <ExportExcelIcon />
-                  {translations?.buttons?.export_excel || 'Export Excel'}
-                </Button>
+                    <Button
+                      type="button"
+                      size={"sm"}
+                      className="flex items-center gap-2 bg-[#217346] hover:bg-[#1a5c37]"
+                      onClick={() => {
+                        handleExportExcel();
+                        setShowReportView(false);
+                      }}
+                      disabled={loading}
+                    >
+                      <Download className="w-4 h-4" />
+                      {translations?.buttons?.export_excel || 'Export Excel'}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size={"sm"}
+                      className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
+                      onClick={() => {
+                        handleShowReport();
+                        setShowReportView(false);
+                      }}
+                      disabled={loading}
+                    >
+                      <Download className="w-4 h-4" />
+                      {translations?.buttons?.export_pdf || 'Export PDF'}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </form>
       </Form>
+
+      {showReportView && (
+        <div className="mt-6 bg-accent p-6 rounded-2xl">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-medium text-lg text-primary">
+              {t.report_preview || "Report Preview"} ({totalRecords.toLocaleString()} {t.records || "records"})
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setShowReportView(false);
+                resetButtons();
+              }}
+            >
+              {translations?.buttons?.close || "Close"}
+            </Button>
+          </div>
+
+          {loadingReportData ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : reportData.length === 0 ? (
+            <div className="text-center py-12 text-text-secondary">
+              {t.no_data_found || "No data found for the selected criteria"}
+            </div>
+          ) : (
+            <>
+              <div className="w-full">
+                {isSingleEmployee && singleEmployeeInfo && (
+                  <div className="mb-6 p-4 bg-backdrop rounded-lg border border-grey">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.employee_name || "Employee Name"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.emp_no || "Emp No"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.empNo}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.employee_type || "Employee Type"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.type}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.company || "Company"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.company}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.division || "Division"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.division}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.department || "Department"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.department}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-primary">
+                        {viewHeaders.map((header) => (
+                          <th
+                            key={header}
+                            className="border border-grey px-3 py-2 text-left text-xs font-semibold text-white"
+                          >
+                            {headerMap[header] || header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reportData.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-backdrop">
+                          {viewHeaders.map((header) => {
+                            let cellValue;
+                            if (header === 'department_name_eng') {
+                              cellValue = getDepartmentName(row);
+                            } else {
+                              cellValue = formatCellValue(header, row[header]);
+                            }
+
+                            const isAbsent = header === "isabsent" && cellValue === "Absent";
+                            const isMissed = header === "MissedPunch" && cellValue === "Yes";
+
+                            return (
+                              <td
+                                key={header}
+                                className={`border border-grey px-3 py-2 text-xs ${isAbsent || isMissed ? "text-red-600 font-semibold" : ""
+                                  }`}
+                              >
+                                {cellValue}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {summaryTotals && (
+                    <div className="mt-8 border-t border-grey pt-6">
+                      <h3 className="font-medium text-md text-primary mb-4">
+                        {t.summary_totals || "Summary Totals"} ({t.current_page || "Current Page"})
+                      </h3>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-backdrop p-4 rounded-lg">
+                          <p className="text-xs text-text-secondary mb-1">{t.total_late_hours || "Total Late Hours"}</p>
+                          <p className="text-lg font-semibold text-primary">{summaryTotals.totalLateInHours}</p>
+                        </div>
+                        <div className="bg-backdrop p-4 rounded-lg">
+                          <p className="text-xs text-text-secondary mb-1">{t.total_early_hours || "Total Early Out Hours"}</p>
+                          <p className="text-lg font-semibold text-primary">{summaryTotals.totalEarlyOutHours}</p>
+                        </div>
+                        <div className="bg-backdrop p-4 rounded-lg">
+                          <p className="text-xs text-text-secondary mb-1">{t.total_missed_hours || "Total Missed Hours"}</p>
+                          <p className="text-lg font-semibold text-primary">{summaryTotals.totalMissedHours}</p>
+                        </div>
+                        <div className="bg-backdrop p-4 rounded-lg">
+                          <p className="text-xs text-text-secondary mb-1">{t.total_worked_hours || "Total Worked Hours"}</p>
+                          <p className="text-lg font-semibold text-primary">{summaryTotals.totalWorkedHours}</p>
+                        </div>
+                        <div className="bg-backdrop p-4 rounded-lg">
+                          <p className="text-xs text-text-secondary mb-1">{t.total_extra_hours || "Total Extra Hours"}</p>
+                          <p className="text-lg font-semibold text-primary">{summaryTotals.totalExtraHours}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || loadingReportData}
+                  >
+                    {translations?.buttons?.previous || "Previous"}
+                  </Button>
+                  <span className="text-sm text-text-secondary">
+                    {t.page || "Page"} {currentPage} {t.of || "of"} {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || loadingReportData}
+                  >
+                    {translations?.buttons?.next || "Next"}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

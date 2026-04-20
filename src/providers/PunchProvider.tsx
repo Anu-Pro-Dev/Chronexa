@@ -1,33 +1,33 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { USER_TOKEN } from "@/src/utils/constants";
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { getAuthToken } from "@/src/utils/authToken";
 
 type PunchContextType = {
   isPunchedIn: boolean;
   punchInTime: string | null;
   punchOutTime: string | null;
-  elapsedSeconds: number;
+  startTime: number | null;
   togglePunch: () => void;
-  updateElapsedSeconds: (seconds: number) => void;
+  setIsPunchedIn: (value: boolean) => void;
   isClient: boolean;
 };
 
 const PunchContext = createContext<PunchContextType | undefined>(undefined);
 
+// Custom event name for same-tab user change detection
+const USER_CHANGE_EVENT = 'chronexa:user-change';
+
 export function PunchProvider({ children }: { children: React.ReactNode }) {
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [punchInTime, setPunchInTime] = useState<string | null>(null);
   const [punchOutTime, setPunchOutTime] = useState<string | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  
-  const timerInterval = useRef<NodeJS.Timeout | null>(null);
 
   const getCurrentUserId = (): string | null => {
-    const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);
-    
+    const token = getAuthToken();
+
     if (token) {
       try {
         const base64Url = token.split('.')[1];
@@ -37,87 +37,147 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         }).join(''));
         const decodedToken = JSON.parse(jsonPayload);
         return decodedToken.id ? String(decodedToken.id) : null;
-      } catch (error) {
-        console.error('Error decoding token for user ID:', error);
+      } catch {
+        // Token decode failed
       }
     }
-    
+
     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (userData) {
       try {
         const parsedUser = JSON.parse(userData);
         return parsedUser.employeenumber ? String(parsedUser.employeenumber) : null;
-      } catch (error) {
-        console.error('Error parsing user data for ID:', error);
+      } catch {
+        // Parse failed
       }
     }
-    
+
     return null;
   };
 
-  const resetCurrentSessionState = () => {
+  const resetCurrentSessionState = useCallback(() => {
     setIsPunchedIn(false);
     setPunchInTime(null);
     setPunchOutTime(null);
-    setElapsedSeconds(0);
     setStartTime(null);
-    
-    if (timerInterval.current) {
-      clearInterval(timerInterval.current);
-      timerInterval.current = null;
-    }
-  };
+  }, []);
 
   const getPunchStateKey = (userId: string) => `punchState_${userId}`;
 
   const clearUserPunchState = (userId: string) => {
-    const userPunchStateKey = getPunchStateKey(userId);
-    localStorage.removeItem(userPunchStateKey);
+    localStorage.removeItem(getPunchStateKey(userId));
   };
 
+  const getLastTransactionFromStorage = () => {
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        return parsedUser.lastTransaction || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const determinePunchStateFromTransaction = (lastTransaction: any) => {
+    if (!lastTransaction) {
+      return { shouldBePunchedIn: false };
+    }
+
+    const { date, type, device_id } = lastTransaction;
+
+    const transactionDate = new Date(date);
+    const today = new Date();
+    const isToday = transactionDate.getDate() === today.getDate() &&
+                   transactionDate.getMonth() === today.getMonth() &&
+                   transactionDate.getFullYear() === today.getFullYear();
+
+    let shouldBePunchedIn = false;
+    let punchTime = null;
+    let startTimestamp = null;
+
+    if (!isToday) {
+      shouldBePunchedIn = false;
+    } else if (type === "OUT") {
+      shouldBePunchedIn = false;
+    } else if (type === "IN" && (device_id === 102 || device_id === 103)) {
+      shouldBePunchedIn = false;
+    } else if (type === "IN") {
+      shouldBePunchedIn = true;
+
+      const punchDateTime = new Date(date);
+      punchTime = punchDateTime.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      startTimestamp = punchDateTime.getTime();
+    }
+
+    return { shouldBePunchedIn, punchTime, startTimestamp };
+  };
+
+  const loadUserPunchState = useCallback((userId: string) => {
+    const lastTransaction = getLastTransactionFromStorage();
+
+    if (lastTransaction) {
+      const { shouldBePunchedIn, punchTime, startTimestamp } =
+        determinePunchStateFromTransaction(lastTransaction);
+
+      setIsPunchedIn(shouldBePunchedIn);
+
+      if (shouldBePunchedIn && punchTime && startTimestamp) {
+        setPunchInTime(punchTime);
+        setStartTime(startTimestamp);
+      }
+    } else {
+      const savedState = localStorage.getItem(getPunchStateKey(userId));
+
+      if (savedState) {
+        try {
+          const {
+            isPunchedIn: savedIsPunchedIn,
+            punchInTime: savedPunchInTime,
+            startTime: savedStartTime
+          } = JSON.parse(savedState);
+
+          if (savedIsPunchedIn && savedStartTime) {
+            setIsPunchedIn(true);
+            setPunchInTime(savedPunchInTime);
+            setStartTime(savedStartTime);
+          }
+        } catch {
+          localStorage.removeItem(getPunchStateKey(userId));
+        }
+      }
+    }
+  }, []);
+
+  // Initial mount: load punch state
   useEffect(() => {
     setIsClient(true);
-    
+
     const userId = getCurrentUserId();
-    
+
     if (!userId) {
       resetCurrentSessionState();
       setCurrentUserId(null);
       return;
     }
-    
-    setCurrentUserId(userId);
-    
-    const userPunchStateKey = getPunchStateKey(userId);
-    const savedState = localStorage.getItem(userPunchStateKey);
-    
-    if (savedState) {
-      try {
-        const { 
-          isPunchedIn: savedIsPunchedIn, 
-          punchInTime: savedPunchInTime, 
-          startTime: savedStartTime 
-        } = JSON.parse(savedState);
-        
-        if (savedIsPunchedIn && savedStartTime) {
-          setIsPunchedIn(true);
-          setPunchInTime(savedPunchInTime);
-          setStartTime(savedStartTime);
-          setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
-        }
-      } catch (error) {
-        console.error('Error loading punch state:', error);
-        localStorage.removeItem(userPunchStateKey);
-      }
-    }
-  }, []);
 
+    setCurrentUserId(userId);
+    loadUserPunchState(userId);
+  }, [resetCurrentSessionState, loadUserPunchState]);
+
+  // Listen for user changes via storage events (cross-tab) and custom events (same-tab)
   useEffect(() => {
     if (!isClient) return;
 
-    const checkUserChange = () => {
+    const handleUserChange = () => {
       const newUserId = getCurrentUserId();
-      
+
       if (!newUserId) {
         if (currentUserId) {
           resetCurrentSessionState();
@@ -125,101 +185,34 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
         }
         return;
       }
-      
-      if (!currentUserId) {
-        setCurrentUserId(newUserId);
-        
-        const userPunchStateKey = getPunchStateKey(newUserId);
-        const savedState = localStorage.getItem(userPunchStateKey);
-        
-        if (savedState) {
-          try {
-            const { 
-              isPunchedIn: savedIsPunchedIn, 
-              punchInTime: savedPunchInTime, 
-              startTime: savedStartTime 
-            } = JSON.parse(savedState);
-            
-            if (savedIsPunchedIn && savedStartTime) {
-              setIsPunchedIn(true);
-              setPunchInTime(savedPunchInTime);
-              setStartTime(savedStartTime);
-              setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
-            }
-          } catch (error) {
-            console.error('Error loading user punch state:', error);
-            localStorage.removeItem(userPunchStateKey);
-          }
-        }
-        return;
-      }
-      
-      if (newUserId === currentUserId) {
-        return;
-      }
-      
-      if (newUserId !== currentUserId) {        
+
+      if (newUserId === currentUserId) return;
+
+      // User changed
+      if (currentUserId) {
         clearUserPunchState(currentUserId);
-        
-        resetCurrentSessionState();
-        
-        setCurrentUserId(newUserId);
-        
-        const userPunchStateKey = getPunchStateKey(newUserId);
-        const savedState = localStorage.getItem(userPunchStateKey);
-        
-        if (savedState) {
-          try {
-            const { 
-              isPunchedIn: savedIsPunchedIn, 
-              punchInTime: savedPunchInTime, 
-              startTime: savedStartTime 
-            } = JSON.parse(savedState);
-            
-            if (savedIsPunchedIn && savedStartTime) {
-              setIsPunchedIn(true);
-              setPunchInTime(savedPunchInTime);
-              setStartTime(savedStartTime);
-              setElapsedSeconds(Math.floor((Date.now() - savedStartTime) / 1000));
-            }
-          } catch (error) {
-            console.error('Error loading new user punch state:', error);
-            localStorage.removeItem(userPunchStateKey);
-          }
-        }
       }
+      resetCurrentSessionState();
+      setCurrentUserId(newUserId);
+      loadUserPunchState(newUserId);
     };
 
-    checkUserChange();
-
-    const userCheckInterval = setInterval(checkUserChange, 2000);
-
-    return () => clearInterval(userCheckInterval);
-  }, [isClient, currentUserId]);
-
-  useEffect(() => {
-    if (timerInterval.current) {
-      clearInterval(timerInterval.current);
-    }
-
-    if (isPunchedIn && startTime && isClient) {
-      timerInterval.current = setInterval(() => {
-        const currentElapsed = Math.floor((Date.now() - startTime) / 1000);
-        setElapsedSeconds(currentElapsed);
-      }, 1000);
-    }
+    // Cross-tab storage changes
+    window.addEventListener('storage', handleUserChange);
+    // Same-tab user changes (dispatched from login/logout)
+    window.addEventListener(USER_CHANGE_EVENT, handleUserChange);
 
     return () => {
-      if (timerInterval.current) {
-        clearInterval(timerInterval.current);
-      }
+      window.removeEventListener('storage', handleUserChange);
+      window.removeEventListener(USER_CHANGE_EVENT, handleUserChange);
     };
-  }, [isPunchedIn, startTime, isClient]);
+  }, [isClient, currentUserId, resetCurrentSessionState, loadUserPunchState]);
 
+  // Persist punch state to localStorage
   useEffect(() => {
     if (isClient && currentUserId) {
       const userPunchStateKey = getPunchStateKey(currentUserId);
-      
+
       if (isPunchedIn && startTime) {
         localStorage.setItem(userPunchStateKey, JSON.stringify({
           isPunchedIn,
@@ -232,48 +225,50 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isPunchedIn, punchInTime, startTime, isClient, currentUserId]);
 
-  const togglePunch = () => {
+  const togglePunch = useCallback(() => {
     if (!isClient || !currentUserId) return;
-    
-    const currentTime = new Date().toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: true 
+
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     });
-    
+
     if (!isPunchedIn) {
       const now = Date.now();
       setPunchInTime(currentTime);
       setPunchOutTime(null);
-      setElapsedSeconds(0);
       setStartTime(now);
     } else {
       setPunchOutTime(currentTime);
       setStartTime(null);
     }
-    
-    setIsPunchedIn(!isPunchedIn);
-  };
 
-  const updateElapsedSeconds = (seconds: number) => {
-    setElapsedSeconds(seconds);
-  };
+    setIsPunchedIn(!isPunchedIn);
+  }, [isClient, currentUserId, isPunchedIn]);
+
+  const value = useMemo(() => ({
+    isPunchedIn,
+    punchInTime,
+    punchOutTime,
+    startTime,
+    togglePunch,
+    setIsPunchedIn,
+    isClient
+  }), [isPunchedIn, punchInTime, punchOutTime, startTime, togglePunch, isClient]);
 
   return (
-    <PunchContext.Provider 
-      value={{ 
-        isPunchedIn, 
-        punchInTime, 
-        punchOutTime, 
-        elapsedSeconds,
-        togglePunch,
-        updateElapsedSeconds,
-        isClient
-      }}
-    >
+    <PunchContext.Provider value={value}>
       {children}
     </PunchContext.Provider>
   );
+}
+
+// Dispatch this from login/logout to notify PunchProvider of user changes
+export function notifyUserChange() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(USER_CHANGE_EVENT));
+  }
 }
 
 export function usePunch() {

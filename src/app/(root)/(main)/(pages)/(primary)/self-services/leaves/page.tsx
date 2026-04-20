@@ -19,7 +19,7 @@ export default function LeavesRedirectPage() {
 
     const selfServicesModule = privilegeMap?.['Self Services'];
     if (!selfServicesModule?.allowed) {
-      router.replace('/dashboard/my-attendance');
+      router.replace('/dashboard/user-insights');
       return;
     }
 
@@ -34,7 +34,7 @@ export default function LeavesRedirectPage() {
       if (firstAllowedSubmodule) {
         router.replace(`/self-services/${firstAllowedSubmodule.path}`);
       } else {
-        router.replace('/dashboard/my-attendance');
+        router.replace('/dashboard/user-insights');
       }
       return;
     }
@@ -52,7 +52,7 @@ export default function LeavesRedirectPage() {
       if (firstAllowedSubmodule) {
         router.replace(`/self-services/${firstAllowedSubmodule.path}`);
       } else {
-        router.replace('/dashboard/my-attendance');
+        router.replace('/dashboard/user-insights');
       }
     }
   }, [privilegeMap, isLoading, router]);

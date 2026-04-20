@@ -3,6 +3,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { AgGridReact } from "ag-grid-react";
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import { useTheme } from "next-themes";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/src/lib/dynamicApi";
 import { themeQuartz } from "ag-grid-community";
@@ -150,48 +151,16 @@ export default function PowerTable({
     gridRef.current = params;
   };
   
-  useEffect(() => {
-  }, [dir]);
+  const { theme } = useTheme();
+  const cellTextColor = theme === 'dark' ? '#b5b6b7' : '#2B3674';
 
-  const [cellTextColor, setCellTextColor] = useState("#2B3674");
-
-  useEffect(() => {
-    const updateCellTextColor = () => {
-      const htmlElement = document.documentElement;
-      if (htmlElement.classList.contains('dark') || htmlElement.classList.contains('night')) {
-        setCellTextColor('#b5b6b7'); 
-      } else {
-        setCellTextColor('#2B3674');
-      }
-    };
-
-    updateCellTextColor();
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          updateCellTextColor();
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
-  const myTheme = themeQuartz.withParams({
+  const myTheme = useMemo(() => themeQuartz.withParams({
     fontFamily: "inherit",
     borderColor: "#EEEEEE",
     borderRadius: "0px",
     browserColorScheme: "light",
-    headerTextColor: "#9BA9D2",
-    headerBackgroundColor: "transparent", 
+    headerTextColor: "#0078D4",
+    headerBackgroundColor: "transparent",
     backgroundColor: "transparent", 
     oddRowBackgroundColor: "transparent", 
     headerFontSize: 15,
@@ -211,7 +180,7 @@ export default function PowerTable({
     checkboxCheckedBorderColor: "transparent",
     checkboxIndeterminateBackgroundColor: "#E5E7EB",
     checkboxIndeterminateBorderColor: "transparent",
-  });
+  }), [cellTextColor, props?.EnableBorders]);
 
   const ClickableCellRenderer = ({ value, data, onCellClick }: { value: any, data: any, onCellClick: (data: any) => void }) => {
     const handleClick = (event: React.MouseEvent) => {
@@ -238,8 +207,10 @@ export default function PowerTable({
     ? overrideCheckbox 
     : effectivePrivileges.delete;
 
+  const displayData = api ? tableData : (props?.Data || []);
+
   const columnDefs = [
-    ...(showCheckbox
+    ...(showCheckbox && displayData.length > 0 
       ? [
           {
             field: "checkbox",
@@ -307,8 +278,6 @@ export default function PowerTable({
       : []),
   ];
 
-  const displayData = api ? tableData : (props?.Data || []);
-
   return (
     <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6 overflow-auto scrollbar-hide mb-4">
       
@@ -343,6 +312,7 @@ export default function PowerTable({
               flex: 1,
               wrapText: true,
               resizable: false,
+              headerClass: 'custom-header',
               cellStyle: {
                 display: "flex",
                 alignItems: "center",
@@ -353,7 +323,7 @@ export default function PowerTable({
               },
               ...customColDef,
             }}
-            rowStyle={{ fontWeight: "bold" }}
+            rowStyle={{ fontWeight: "500" }}
             components={{
               editIconRenderer: (params: any) => <EditIconRenderer {...params} onEditClick={onEditClick} />,
             }}

@@ -161,9 +161,18 @@ export default function AddEmployeeSchedule({
     );
   };
 
+  // Fixed function to get employee name from both sources
   const getEmployeeName = (empId: number) => {
-    const emp = employees?.data?.find((o: any) => o.employee_id === empId);
+    // First try to find in the main employees list
+    let emp = employees?.data?.find((o: any) => o.employee_id === empId);
+    
+    // If not found and we have searched employees, check there
+    if (!emp && searchedEmployees?.data) {
+      emp = searchedEmployees.data.find((o: any) => o.employee_id === empId);
+    }
+    
     if (!emp) return "";
+    
     return language === "ar"
       ? emp.firstname_arb || emp.employee_arb || emp.employee_name
       : emp.firstname_eng || emp.employee_eng || emp.employee_name;
@@ -334,7 +343,7 @@ export default function AddEmployeeSchedule({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <h1 className="text-primary text-lg font-bold mb-4">
+        <h1 className="text-primary text-lg font-medium mb-4">
           {isEditMode ? t.edit_employee_schedule || "Edit Employee Schedule" : t.employee_schedule || "Employee Schedule"}
         </h1>
         <div className="flex flex-col gap-6 px-5">
@@ -369,11 +378,6 @@ export default function AddEmployeeSchedule({
                         onSelect={(date) => {
                           field.onChange(date)
                           closePopover('fromDate')
-                        }}
-                        disabled={(date) => {
-                          const today = new Date();
-                          today.setHours(0, 0, 0, 0);
-                          return date < today;
                         }}
                       />
                     </PopoverContent>
@@ -428,7 +432,7 @@ export default function AddEmployeeSchedule({
                           
                           const compareDate = new Date(date);
                           compareDate.setHours(0, 0, 0, 0);
-                          return compareDate <= startDate;
+                          return compareDate < startDate;
                         }}
                       />
                     </PopoverContent>

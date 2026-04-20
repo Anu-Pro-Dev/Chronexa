@@ -541,7 +541,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
                     <TableRow key={`group-${index}`} className="bg-[#a3aed040]">
                       <TableCell
                         colSpan={37}
-                        className="pl-6 font-bold text-[15px] text-text-content"
+                        className="pl-6 font-medium text-[15px] text-text-content"
                       >
                         {item.name}
                       </TableCell>
@@ -552,7 +552,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
                 return (
                   <TableRow
                     key={item.id}
-                    className="text-text-content text-sm font-bold hover:bg-backdrop"
+                    className="text-text-content text-sm font-medium hover:bg-backdrop"
                   >
                     <TableCell className="w-12 px-4">
                       <Checkbox

@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import Link from "next/link";
 import ProgressBarChart from "../my-attendance/ProgressBarChart";
-import { useAttendanceData } from "../my-attendance/AttendanceData";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 
 const timeStringToHours = (timeStr: string | null): number => {
   if (!timeStr) return 0;
@@ -23,11 +23,14 @@ const timeStringToHours = (timeStr: string | null): number => {
 function ScheduleCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { workSchedule, loading, error } = useAttendanceData();
+  
+  const workSchedule = useDashboardStore((state) => state.workSchedule);
+  const loadingDashboard = useDashboardStore((state) => state.loadingDashboard);
+  const errorDashboard = useDashboardStore((state) => state.errorDashboard);
 
-  const { totalHours, workedHours, overtimeHours, pendingHours } = useMemo(() => {
+  const { totalHours, workedHours, overtimeHours, pendingHours, workCompletionPercent } = useMemo(() => {
     if (!workSchedule) {
-      return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0 };
+      return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0, workCompletionPercent: 0 };
     }
 
     const totalHours = timeStringToHours(workSchedule.TotalMonthlyExpectedWrkHrs as string);
@@ -36,17 +39,20 @@ function ScheduleCard() {
     
     const pendingHours = timeStringToHours(workSchedule.PendingWorkHrs as string);
     
-    const overtimeHours = timeStringToHours(workSchedule.OvertimeHrs as string);
+    const overtimeHours = timeStringToHours(workSchedule.TotalExtraHrs as string);
+
+    const workCompletionPercent = workSchedule.WorkCompletionPercent || 0;
 
     return { 
       totalHours, 
       workedHours,
       overtimeHours, 
-      pendingHours 
+      pendingHours,
+      workCompletionPercent 
     };
   }, [workSchedule]);
 
-  if (error) {
+  if (errorDashboard) {
     return (
       <div className='flex justify-center items-center h-[200px] shadow-card rounded-[10px] bg-accent'>
         <p className='text-text-secondary'>No schedule data available</p>
@@ -57,8 +63,8 @@ function ScheduleCard() {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-5">
       <div className="flex items-center justify-between mb-6">
-        <h5 className="text-lg text-text-primary font-bold">{t?.schedule}</h5>
-        <Link href="/scheduling/weekly-schedule/organization-schedule" className="text-primary text-sm font-medium">
+        <h5 className="text-lg text-text-primary font-medium">{t?.schedule}</h5>
+        <Link href="/scheduling/weekly-schedule/organization-schedule" className="text-primary text-sm font-regular">
           {translations?.buttons?.show_all}
         </Link>
       </div>
@@ -68,6 +74,7 @@ function ScheduleCard() {
         workedHours={workedHours}
         overtimeHours={overtimeHours}
         pendingHours={pendingHours}
+        workCompletionPercent={workCompletionPercent}
       />
     </div>
   );

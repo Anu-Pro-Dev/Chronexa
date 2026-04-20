@@ -95,7 +95,6 @@ export const logoutRequest = async () => {
   }
 };
 
-// Separate function to handle logout cleanup - PRESERVES punch timer state
 const performLogoutCleanup = () => {
   clearAuthToken();
   localStorage.removeItem("user");
@@ -422,8 +421,25 @@ export const addSecUserRequest = async (data: {
   employee_id: number;
   login: string;
   password: string;
+  access_control_panel?: boolean;
+  app_type?: "ontime" | "fieldtrack";
 }) => {
   return apiRequest("/secuser/add", "POST", data);
+};
+
+// Function to edit a sec user (used for license toggle, password update, etc.)
+export const editSecUserRequest = async (data: {
+  user_id: number;
+  [key: string]: any;
+}) => {
+  const { user_id, ...payload } = data;
+  return apiRequest(`/secuser/edit/${user_id}`, "PUT", payload);
+};
+
+// Function to reset a Spark user's password via forgot-password flow
+// Sends a new generated password to the user's email and returns it
+export const sparkForgotPasswordRequest = async (login: string) => {
+  return apiRequest("/auth/spark/forgot-password", "POST", { login });
 };
 
 // Function to fetch secuser by Id
@@ -821,6 +837,18 @@ export const approveLeaveRequest = async (data: {
   return apiRequest(`/employeeLeave/approve/${employee_leave_id}`, "PUT", payload);
 };
 
+// Function to add new a transaction
+export const addEventTransaction = async (data: {
+  transaction_id?: number;
+  employee_id: number;
+  transaction_time: string;
+  reason: string;
+  user_entry_flag: boolean;
+  [key: string]: any;
+}) => {
+  return apiRequest("/employeeEventTransaction/add", "POST", data);
+}
+
 // Function to fetch event transaction of specfic employee
 export const getEmployeeTransactionById = async (data: {
   employee_id?: number;
@@ -828,6 +856,16 @@ export const getEmployeeTransactionById = async (data: {
   const { employee_id } = data;
 
   return apiRequest(`/employeeEventTransaction/employee/${employee_id}`, "GET");
+};
+
+// Function to get last transaction details
+export const getLastTransaction = async () => {
+  return apiRequest(`/employeeEventTransaction/mylastTransaction`, "POST");
+};
+
+// Function to fetch today's status of specfic employee
+export const getTodayStatus = async () => {
+  return apiRequest(`/employeeEventTransaction/todayStatus`, "GET");
 };
 
 // Function to fetch all roles
@@ -955,18 +993,6 @@ export const addOrUpdateUserRole = async (data: {
   role_id: number;
 }) => {
   return apiRequest(`/secUserRole/update-roles`, "PATCH", data);
-}
-
-// Function to add new a transaction
-export const addEventTransaction = async (data: {
-  transaction_id?: number;
-  employee_id: number;
-  transaction_time: string;
-  reason: string;
-  user_entry_flag: boolean;
-  [key: string]: any;
-}) => {
-  return apiRequest("/employeeEventTransaction/add", "POST", data);
 }
 
 // Function to fetch reports of specfic employee
@@ -1226,8 +1252,17 @@ export const addManualPunchRequest = async (data: {
   reason: string;
   remarks?: string;
   transaction_status?: string;
+  attachment: File;
 }) => {
-  return apiRequest("/employeeManualTransaction/add", "POST", data);
+  const formData = new FormData();
+  formData.append("employee_id", String(data.employee_id));
+  formData.append("transaction_time", data.transaction_time);
+  formData.append("Emp_Missing_Movements_Id", String(data.Emp_Missing_Movements_Id));
+  formData.append("reason", data.reason);
+  if (data.remarks) formData.append("remarks", data.remarks);
+  if (data.transaction_status) formData.append("transaction_status", data.transaction_status);
+  formData.append("attachment", data.attachment);
+  return apiRequest("/employeeManualTransaction/add", "POST", formData);
 };
 
 export const approveManualPunchRequest = async (data: {
@@ -1282,6 +1317,42 @@ export const groupApproveTransactionsRequest = async (data: {
   return apiRequest("/employeeManualTransaction/groupApproveTransactions", "PUT", data);
 };
 
+// Function for group approve transactions by employee IDs (with attachment)
+export const groupApproveByEmployeeIdsRequest = async (data: {
+  transaction_time: string;
+  reason: string;
+  remarks?: string;
+  employeeIds?: number[];
+  employeeTypeIds?: number[];
+  department_id?: number;
+  cost_center?: string;
+  attachment: File;
+}) => {
+  const formData = new FormData();
+
+  formData.append("transaction_time", data.transaction_time);
+  formData.append("reason", data.reason);
+  if (data.remarks) formData.append("remarks", data.remarks);
+  if (data.department_id) formData.append("department_id", String(data.department_id));
+  if (data.cost_center) formData.append("cost_center", data.cost_center);
+
+  // Arrays must be appended as repeated fields
+  if (data.employeeIds && data.employeeIds.length > 0) {
+    data.employeeIds.forEach((id) => formData.append("employeeIds", String(id)));
+  }
+  if (data.employeeTypeIds && data.employeeTypeIds.length > 0) {
+    data.employeeTypeIds.forEach((id) => formData.append("employeeTypeIds", String(id)));
+  }
+
+  formData.append("attachment", data.attachment);
+
+  return apiRequest(
+    "/employeeManualTransaction/groupApproveByEmployeeIds",
+    "PUT",
+    formData
+  );
+};
+
 // Function to download uploaded files
 export const downloadUploadedFile = async (filePath: string) => {
   const token = getAuthToken();
@@ -1319,4 +1390,30 @@ export const downloadUploadedFile = async (filePath: string) => {
   window.URL.revokeObjectURL(url);
 
   return { success: true, fileName };
+};
+
+// Function to fetch all departments
+export const getAllDepartments = async () => {
+  return apiRequest("/department/all?offset=1&limit=1000", "GET");
+};
+
+// Function to fetch all cost centers
+export const getAllCostCenters = async () => {
+  return apiRequest("/employee/costcenters", "GET");
+};
+
+// Function to approve manual transaction by ID
+export const approveManualTransaction = async (employee_manual_transaction_id: number) => {
+  return apiRequest(
+    `/employeeManualTransaction/approve?id=${employee_manual_transaction_id}`,
+    "PUT"
+  );
+};
+
+// Function to reject manual transaction by ID
+export const rejectManualTransaction = async (employee_manual_transaction_id: number) => {
+  return apiRequest(
+    `/employeeManualTransaction/reject?id=${employee_manual_transaction_id}`,
+    "PUT"
+  );
 };

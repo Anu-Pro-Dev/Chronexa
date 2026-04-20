@@ -313,7 +313,7 @@ export default function Page() {
         entityName="employeeEventTransaction"
       />
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
         <div>
           <Popover 
             open={popoverStates.fromDate} 
@@ -387,7 +387,7 @@ export default function Page() {
 
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">
+          <h1 className="font-medium text-xl text-primary">
             {t.manage_my_punches || "Manage My Punches"}
           </h1>
         </div>

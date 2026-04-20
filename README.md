@@ -8,12 +8,6 @@ late arrivals, manage leaves, and generate insightful reports.
 This is a Next.js project with NextUI & shadcn/ui.
 ## Run Locally
 
-Clone the project
-
-```bash
-  git clone https://github.com/Anu-Pro-Dev/Chronexa.git
-```
-
 Install dependencies
 
 ```bash

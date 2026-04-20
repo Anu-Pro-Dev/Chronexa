@@ -71,7 +71,7 @@ function TeamAnalyticsCard() {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className='flex flex-row justify-between p-4'>
-        <h5 className='text-lg text-text-primary font-bold'> {t?.team_analytics}</h5>
+        <h5 className='text-lg text-text-primary font-medium'> {t?.team_analytics}</h5>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />

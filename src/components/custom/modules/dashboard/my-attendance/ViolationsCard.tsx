@@ -14,19 +14,22 @@ import {
   EarlyOutIcon,
   LateInIcon,
 } from "@/src/icons/icons";
-import { useAttendanceData } from "../my-attendance/AttendanceData";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 
 function ViolationsCard() {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  const { attendanceDetails, loading } = useAttendanceData();
+  
+  const attendanceDetails = useDashboardStore((state) => state.attendanceDetails);
+  const loadingDashboard = useDashboardStore((state) => state.loadingDashboard);
+  
   const [animatedValues, setAnimatedValues] = useState<any>(null);
 
   useEffect(() => {
-    if (attendanceDetails && !loading) {
+    if (attendanceDetails && !loadingDashboard) {
       animateValues(attendanceDetails);
     }
-  }, [attendanceDetails, loading]);
+  }, [attendanceDetails, loadingDashboard]);
 
   const animateValues = (data: any) => {
     const startTime = Date.now();
@@ -75,7 +78,7 @@ function ViolationsCard() {
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute left-[50px] top-[50px]"></div>
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute right-[50px] bottom-[50px]"></div>
       <div className="flex flex-row justify-between py-4">
-        <h5 className="text-lg text-text-primary font-bold">{t?.violations}</h5>
+        <h5 className="text-lg text-text-primary font-medium">{t?.violations}</h5>
       </div>
       <Carousel className="w-full max-w-xs px-5" dir={dir}>
         <CarouselContent className={dir === "rtl" ? "flex-row-reverse" : ""}>
@@ -89,7 +92,7 @@ function ViolationsCard() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl text-text-primary font-bold">
+                    <p className="text-3xl text-text-primary font-medium">
                       {missedIn}
                     </p>
                     <p className="text-text-secondary font-semibold text-sm">
@@ -107,7 +110,7 @@ function ViolationsCard() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl text-text-primary font-bold">
+                    <p className="text-3xl text-text-primary font-medium">
                       {missedOut}
                     </p>
                     <p className="text-text-secondary font-semibold text-sm">
@@ -129,7 +132,7 @@ function ViolationsCard() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl text-text-primary font-bold">
+                    <p className="text-3xl text-text-primary font-medium">
                       {lateIn}
                     </p>
                     <p className="text-text-secondary font-semibold text-sm">
@@ -147,7 +150,7 @@ function ViolationsCard() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl text-text-primary font-bold">
+                    <p className="text-3xl text-text-primary font-medium">
                       {earlyOut}
                     </p>
                     <p className="text-text-secondary font-semibold text-sm">

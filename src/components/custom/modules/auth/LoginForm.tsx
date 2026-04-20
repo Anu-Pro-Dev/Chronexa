@@ -22,6 +22,7 @@ import { loginRequest, forgotPasswordRequest } from "@/src/lib/apiHandler";
 import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import { useShowToast } from "@/src/utils/toastHelper";
 import ThreeDotsLoader from "@/src/animations/ThreeDotsLoader";
+import { usePostLoginRedirect } from "@/src/hooks/usePostLoginRedirect";
 
 export const useLoginFormSchema = () => {
   const { t } = useLiteLanguage();
@@ -42,7 +43,7 @@ export const useLoginFormSchema = () => {
 
 const useForgotPasswordSchema = () => {
   const { t } = useLiteLanguage();
-  
+
   return z.object({
     username: z.string().trim().min(1, { message: t('formErrors.username_required') }),
   });
@@ -52,6 +53,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordModalOpen, setForgotPasswordModalOpen] = useState(false);
   const [apiResponseMessage, setApiResponseMessage] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { t, language } = useLiteLanguage();
   const showToast = useShowToast();
   const loginFormSchema = useLoginFormSchema();
@@ -74,15 +76,21 @@ export default function LoginForm() {
   });
 
   const router = useRouter();
+  const { redirectAfterLogin } = usePostLoginRedirect();
 
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string; remember_me: boolean }) =>
       loginRequest(values.username, values.password, values.remember_me),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       if (response?.token) {
         showToast("success", "login_success");
-        router.push("/dashboard");
+        const roleId =
+          response?.user?.roleId ??
+          response?.user?.role_id ??
+          null;
+        await redirectAfterLogin(roleId, response);
       } else {
+        setIsLoggingIn(false);
         loginForm.setError("username", {
           type: "manual",
           message: t('modules.login.error_login')
@@ -90,10 +98,19 @@ export default function LoginForm() {
       }
     },
     onError: (error: any) => {
-      loginForm.setError("username", {
-        type: "manual",
-        message: t('modules.login.error_login')
-      });
+      setIsLoggingIn(false);
+
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 403 && message) {
+        router.replace(`/no-access?message=${encodeURIComponent(message)}`);
+      } else {
+        loginForm.setError("username", {
+          type: "manual",
+          message: t('modules.login.error_login')
+        });
+      }
     },
   });
 
@@ -109,6 +126,7 @@ export default function LoginForm() {
   });
 
   async function onLoginSubmit(values: z.infer<typeof loginFormSchema>) {
+    setIsLoggingIn(true);
     loginMutation.mutate({
       username: values.username,
       password: values.password,
@@ -135,7 +153,7 @@ export default function LoginForm() {
 
   const handleAdLogin = () => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3005";
       window.location.href = `${baseUrl}/auth/azure`;
     } catch (error) {
       console.error("Azure AD redirect failed:", error);
@@ -146,6 +164,7 @@ export default function LoginForm() {
       <Form {...loginForm}>
         <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="">
           <div className="flex flex-col gap-4">
+            {/* Username Field */}
             <FormField
               control={loginForm.control}
               name="username"
@@ -158,6 +177,7 @@ export default function LoginForm() {
                     <Input
                       placeholder={t('modules.login.placeholder_username')}
                       type="text"
+                      suppressHydrationWarning
                       {...field}
                     />
                   </FormControl>
@@ -166,6 +186,7 @@ export default function LoginForm() {
               )}
             />
 
+            {/* Password Field */}
             <FormField
               control={loginForm.control}
               name="password"
@@ -179,6 +200,7 @@ export default function LoginForm() {
                       <Input
                         placeholder={t('modules.login.placeholder_password')}
                         type={showPassword ? "text" : "password"}
+                        suppressHydrationWarning
                         {...field}
                       />
                     </FormControl>
@@ -197,6 +219,7 @@ export default function LoginForm() {
               )}
             />
 
+            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <FormField
                 control={loginForm.control}
@@ -209,6 +232,7 @@ export default function LoginForm() {
                           id="remember_me"
                           checked={field.value}
                           onCheckedChange={(checked) => field.onChange(checked === true)}
+                          suppressHydrationWarning
                         />
                         <FormLabel htmlFor="remember_me" className="text-sm text-text-primary font-semibold">
                           {t('modules.login.remember_me')}
@@ -220,20 +244,23 @@ export default function LoginForm() {
               />
               <button
                 type="button"
-                className="text-sm text-primary font-bold"
+                className="text-sm text-primary font-medium"
                 onClick={handleForgotPasswordClick}
+                suppressHydrationWarning
               >
                 {t('modules.login.forgot_password')}
               </button>
             </div>
 
+            {/* Submit Button */}
             <Button
               type="submit"
               size={"lg"}
               className="w-full min-w-[300px] mx-auto mt-2"
-              disabled={loginMutation.status === "pending"}
+              suppressHydrationWarning
+              disabled={isLoggingIn}
             >
-              {loginMutation.status === "pending" ? (
+              {isLoggingIn ? (
                 <div className="flex items-center gap-2">
                   {t('buttons.logging_in')}
                   <ThreeDotsLoader />
@@ -242,7 +269,7 @@ export default function LoginForm() {
                 t('buttons.login')
               )}
             </Button>
-          <div className="relative my-2">
+            <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border-grey" />
               </div>
@@ -272,6 +299,7 @@ export default function LoginForm() {
         </form>
       </Form>
 
+      {/* Forgot Password Modal */}
       <ResponsiveModal open={forgotPasswordModalOpen} onOpenChange={handleCloseForgotPasswordModal}>
         <ResponsiveModalContent size="medium">
           <ResponsiveModalHeader className="gap-1">

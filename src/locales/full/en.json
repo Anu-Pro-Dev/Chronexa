@@ -3,7 +3,7 @@
   "dir": "ltr",
   "language": "English",
   "translations": {
-    "product_name": "Federal Geographic Information Center",
+    "product_name": "Chronexa",
     "records_per_page": "Records per page",
     "search": "Search",
     "logout": "Logout",
@@ -68,6 +68,7 @@
       "update": "Update",
       "updating": "Updating...",
       "chatbot": "Chatbot",
+      "previous": "Previous",
       "next": "Next",
       "create_password": "Create Password",
       "generate": "Generate",
@@ -84,7 +85,8 @@
       "clear_filters": "Clear Filters",
       "apply_filters": "Apply Filters",
       "filtering": "Filtering...",
-      "applying": "Applying..."
+      "applying": "Applying...",
+      "view_report": "View Report"
     },
     "actions": {
       "add": "Add",
@@ -101,7 +103,8 @@
         "employee_master": "Employee Master",
         "scheduling": "Scheduling",
         "self_services": "Self Services",
-        "manage_approvals": "Manage Approvals"
+        "manage_approvals": "Manage Approvals",
+        "user_management": "User Management"
       },
       "secondary": {
         "devices": "Devices",
@@ -124,7 +127,8 @@
         "reports": "Reports",
         "configuration": "Configuration",
         "settings": "Settings",
-        "alerts": "Alerts"
+        "alerts": "Alerts",
+        "user_management": "User Management"
       },
       "auth": {
         "reset_password": "Reset Password",
@@ -156,9 +160,7 @@
         "error_login": "Invalid username or password",
         "error_password": "Password is required",
         "forgot_password_msg": "Please connect with IT Department",
-        "forgot_password_desc": "Enter your username to receive a password reset link",
-        "or": "OR",
-        "login_with_azure": "Sign in with Azure AD"
+        "forgot_password_desc": "Enter your username to receive a password reset link"
       },
       "dashboard": {
         "my_attendance": "My Attendance",
@@ -212,8 +214,13 @@
         "punched_in": "Punched In",
         "punched_out": "Punched Out",
         "successfully": "Successfully!",
+        "punch_in": "Punch In",
+        "punch_out": "Punch Out",
         "punch_in_success": "You Have Successfully punched In",
         "punch_out_success": "You Have Successfully punched Out",
+        "progress": "Progress",
+        "shift_progress": "Shift Progress",
+        "shift_complete": "Shift Completed",
         "apply": "Apply",
         "show_all": "Show all",
         "schedules": "Schedules",
@@ -279,7 +286,8 @@
         "check_out": "Check Out",
         "missed_check_in": "Missed CheckIn",
         "missed_check_out": "Missed CheckOut",
-        "missing_hours": "Missing Hours"
+        "missing_hours": "Missing Hours",
+        "user_insights": "User Insights"
       },
       "companyMaster": {
         "locations": "Locations",
@@ -488,6 +496,7 @@
         "public_holiday": "Public Holiday",
         "holiday_name": "Holiday Name",
         "ramadan_name": "Ramadan Name",
+        "ramadan": "Ramadan",
         "schedules_code": "Schedules Code",
         "placeholder_organization": "Choose Organization",
         "placeholder_employee": "Choose Employee",
@@ -597,6 +606,7 @@
         "policy": "Policy",
         "perm_attributes": "Permission Attributes",
         "group_apply": "Group Apply",
+        "manaual_punches": "Manual Punches",
         "official": "Official",
         "mandatory_attachment": "Mandatory Attachment",
         "medical_attachment": "Medical Pass Attachment",
@@ -750,7 +760,22 @@
         "leave_type_name_arb": "Leave type (العربية)",
         "apply_prior_to_days": "Apply prior to days",
         "completed": "Completed",
-        "placeholder_days": "Enter the days"
+        "placeholder_days": "Enter the days",
+        "department": "Department",
+        "cost_center": "Cost Center",
+        "placeholder_department": "Choose department",
+        "placeholder_cost_center": "Choose cost center",
+        "search_department": "Search department...",
+        "search_cost_center": "Search cost center...",
+        "no_results": "No results found",
+        "choose_employee": "Choose employee",
+        "selected": "selected",
+        "type": "type",
+        "searching": "Searching...",
+        "no_employees": "No employees available",
+        "search_employee_types": "Search employee types...",
+        "no_employee_types_found": "No employee types found",
+        "group_apply_attachment_note": "PDF, JPG, PNG — max 5 MB"
       },
       "manageApprovals": {
         "team_request": "Team Request",
@@ -783,6 +808,7 @@
         "attachment": "Attachment",
         "placeholder_date": "Choose date",
         "missing_punches_approval": "Missing Punches Approval",
+        "manual_punches_approval": "Manual Punches Approval",
         "employee_no": "Employee No",
         "employee_name": "Employee Name",
         "time": "Time",
@@ -797,7 +823,10 @@
         "approve_punch": "Approve Missing Punch",
         "approve_punch_desc": "Are you sure you want to approve the selected missing punch request(s)?",
         "reject_punch": "Reject Missing Punch",
-        "reject_punch_desc": "Are you sure you want to reject the selected missing punch request(s)?"
+        "reject_punch_desc": "Are you sure you want to reject the selected missing punch request(s)?",
+        "view_attachment": "View",
+        "downloading": "Downloading...",
+        "attachment_download_error": "Failed to download attachment"
       },
       "devices": {
         "devices": "Devices",
@@ -878,7 +907,21 @@
         "search_employee_types": "Search employee types...",
         "no_employee_types_found": "No employee types found",
         "search_managers": "Search managers...",
-        "no_managers_found": "No managers found"
+        "no_managers_found": "No managers found",
+        "report_preview": "Report Preview",
+        "late": "Late",
+        "early": "Early",
+        "in_time": "In Time",
+        "out_time": "Out Time",
+        "page": "Page",
+        "summary_totals": "Summary Totals",
+        "current_page": "Current Page",
+        "total_late_hours": "Total Late In Hours",
+        "total_early_hours": "Total Early Out Hours",
+        "total_missed_hours": "Total Missed Hours",
+        "total_worked_hours": "Total Worked Hours",
+        "total_extra_hours": "Total Extra Hours",
+        "view_before_export": "View the report on-screen first, then export to PDF or CSV as needed."
       },
       "configurations": {
         "roles": "Roles",
@@ -950,6 +993,37 @@
         "placeholder_date": "Choose date",
         "bcc_email": "BCC Email",
         "sent_at": "Sent At"
+      },
+      "userManagement": {
+        "users": "Users",
+        "user": "User",
+        "username": "Username",
+        "password": "Password",
+        "employee": "Employee",
+        "mobile_app_license": "Mobile App License",
+        "create_user": "Create User",
+        "placeholder_username": "Enter username",
+        "placeholder_password": "Enter password",
+        "placeholder_employee": "Choose employee",
+        "filter_license": "License",
+        "filter_emp_no": "Emp No",
+        "filter_employee_type": "Employee Type",
+        "choose_license": "Choose license",
+        "choose_emp_no": "Choose emp no",
+        "choose_type": "Choose type",
+        "all": "All",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "col_number": "Number",
+        "col_name": "Name",
+        "col_email": "Email",
+        "col_username": "Username",
+        "col_password": "Password",
+        "col_license": "License",
+        "password_reset_success_title": "Password Reset Successful",
+        "password_reset_success_desc": "A new password has been generated and sent to the user's email.",
+        "password_reset_sent_to": "Sent To",
+        "password_reset_footer": "The new password has been sent to the registered email address."
       }
     },
     "sub_modules": {
@@ -982,7 +1056,8 @@
       "email_settings": "Email Settings",
       "app_settings": "App Settings",
       "email": "Email",
-      "assign_roles": "Assign Roles"
+      "assign_roles": "Assign Roles",
+      "users": "Users"
     },
     "toastNotifications": {
       "formsubmission_error": "Form submission error.",
@@ -1137,6 +1212,7 @@
       "approve_punch_error": "Failed to approve missing punch(es)",
       "reject_punch_success": "Missing punch(es) rejected successfully!",
       "reject_punch_error": "Failed to reject missing punch(es)",
+      "attachment_download_error": "Failed to download the attachment. Please try again.",
       "approve_permission_success": "Permission request(s) approved successfully!",
       "approve_permission_error": "Failed to approve permission request(s)",
       "reject_permission_success": "Permission request(s) rejected successfully!",

@@ -72,7 +72,7 @@ export function ScheduleSettings({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6 bg-accent p-6 rounded-2xl">
       <div>
-        <h2 className="font-bold text-xl text-primary">Schedule settings</h2>
+        <h2 className="font-medium text-xl text-primary">Schedule settings</h2>
         <p className="font-semibold text-sm text-text-secondary">
           Choose the information for employee schedule
         </p>

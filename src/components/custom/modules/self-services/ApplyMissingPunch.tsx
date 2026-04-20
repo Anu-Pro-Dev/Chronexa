@@ -22,6 +22,14 @@ import { addManualPunchRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 
+const ALLOWED_ATTACHMENT_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+];
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
+
 const formSchema = z.object({
   employee: z
     .string()
@@ -48,6 +56,15 @@ const formSchema = z.object({
   employee_remarks: z.string().max(500, {
     message: "remarks_max_length",
   }).optional(),
+  attachment: z.custom<File>(
+    (value) => {
+      if (!value || !(value instanceof File)) return false;
+      if (value.size > MAX_ATTACHMENT_SIZE) return false;
+      if (!ALLOWED_ATTACHMENT_TYPES.includes(value.type)) return false;
+      return true;
+    },
+    { message: "invalid_file_error" }
+  ),
 });
 
 export default function ApplyMissingPunch({
@@ -89,7 +106,7 @@ export default function ApplyMissingPunch({
     mutationFn: addManualPunchRequest,
     onSuccess: (data) => {
       showToast("success", "apply_missing_punch_success");
-      queryClient.invalidateQueries({ queryKey: ["missingMovement"] });
+      queryClient.invalidateQueries({ queryKey: ["missingMovement"],exact: false });
       setIsSubmitting(false);
       if (on_open_change) {
         on_open_change(false);
@@ -161,6 +178,7 @@ export default function ApplyMissingPunch({
         reason: values.reason,
         remarks: values.employee_remarks || "",
         transaction_status: "Pending",
+        attachment: values.attachment,
       };
       applyMissingPunchMutation.mutate(payload);
     } catch (error) {
@@ -297,11 +315,42 @@ export default function ApplyMissingPunch({
                   </FormItem>
                 )}
               />
+              {/* ── ATTACHMENT (required) ───────────────────────────────── */}
+              <FormField
+                control={form.control}
+                name="attachment"
+                render={({ field: { value, onChange, ...fieldProps } }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t.attachment || "Attachment"} <Required />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...fieldProps}
+                        className="border-0 p-0 rounded-none h-auto text-text-secondary"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/jpg,image/png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          onChange(file ?? undefined);
+                        }}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-text-secondary">
+                      {t.group_apply_attachment_note || "PDF, JPG, PNG — max 5 MB"}
+                    </p>
+                    <TranslatedError
+                      fieldError={form.formState.errors.attachment}
+                      translations={formErrors}
+                    />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="employee_remarks"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
+                  <FormItem>
                     <FormLabel>{t.remarks || "Remarks"} </FormLabel>
                     <FormControl>
                       <Textarea

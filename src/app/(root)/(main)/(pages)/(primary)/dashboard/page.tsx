@@ -1,8 +1,18 @@
 "use client";
-import { redirect } from "next/navigation";
-
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+
 export default function Page() {
+  const router = useRouter();
   const { modules } = useLanguage();
-  return redirect(modules?.dashboard.items[0].path);
+
+  useEffect(() => {
+    const path = modules?.dashboard?.items?.[0]?.path;
+    if (path) {
+      router.replace(path);
+    }
+  }, [modules, router]);
+
+  return null;
 }

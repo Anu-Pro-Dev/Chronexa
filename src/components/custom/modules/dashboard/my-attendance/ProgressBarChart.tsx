@@ -8,6 +8,7 @@ type ProgressBarChartProps = {
   workedHours: number;
   overtimeHours: number;
   pendingHours: number;
+  workCompletionPercent: number;
 };
 
 const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
@@ -15,15 +16,17 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
   workedHours,
   overtimeHours,
   pendingHours,
+  workCompletionPercent,
 }) => {
   const { dir, translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
-  
+
   const [animatedValues, setAnimatedValues] = React.useState({
     totalHours: 0,
     workedHours: 0,
     overtimeHours: 0,
     pendingHours: 0,
+    workCompletionPercent: 0,
   });
 
   React.useEffect(() => {
@@ -43,6 +46,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         workedHours: workedHours * progress,
         overtimeHours: overtimeHours * progress,
         pendingHours: pendingHours * progress,
+        workCompletionPercent: workCompletionPercent * progress,
       });
 
       if (progress < 1) {
@@ -51,7 +55,33 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
     };
 
     animate();
-  }, [totalHours, workedHours, overtimeHours, pendingHours]);
+  }, [totalHours, workedHours, overtimeHours, pendingHours, workCompletionPercent]);
+
+  const formatHours = (value: number) => {
+    const hours = Math.floor(value);
+    const minutes = Math.round((value - hours) * 60);
+
+    const paddedMinutes = minutes.toString().padStart(2, '0');
+
+    if (dir === "rtl") {
+      return (
+        <>
+          <span className="px-1 font-regular text-sm text-text-secondary">m</span>
+          {paddedMinutes}
+          <span className="px-1 font-regular text-sm text-text-secondary">h</span>
+          {hours}
+        </>
+      );
+    }
+    return (
+      <>
+        {hours}
+        <span className="px-1 font-regular text-sm text-text-secondary">h</span>
+        {paddedMinutes}
+        <span className="px-1 font-regular text-sm text-text-secondary">m</span>
+      </>
+    );
+  };
 
   // Helper function for RTL hrs placement
   const formatHours = (value: number) => {
@@ -94,28 +124,39 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
 
   return (
     <div>
-      <div className="flex items-center mt-5 mb-2 font-bold text-3xl">
-        {animatedValues.totalHours.toFixed(2)}
-        <span className="pl-2 font-medium text-sm text-text-secondary">
+      <div className="flex items-center mt-5 mb-2 font-medium text-3xl">
+        {Math.floor(animatedValues.totalHours)}
+        <span className="px-1 font-regular text-sm text-text-secondary">h</span>
+        {Math.round((animatedValues.totalHours - Math.floor(animatedValues.totalHours)) * 60).toString().padStart(2, '0')}
+        <span className="px-1 font-regular text-sm text-text-secondary">m</span>
+        <span className="pl-2 font-regular text-sm text-text-secondary">
           {t?.exp_work_hrs || "Expected working hours"}
         </span>
       </div>
 
-      <div className={`flex justify-between ${dir === "rtl" ? "flex-row-reverse" : ""}`}>
-        {barsToRender.map((barColor, index) => (
-          <div
-            key={index}
-            className="w-[3px] h-[40px] rounded-[3px]"
-            style={{ backgroundColor: barColor }}
-          />
-        ))}
+      <div className="flex justify-between gap-2">
+        <div className={`flex flex-1 justify-between ${dir === "rtl" ? "flex-row-reverse" : ""}`}>
+          {barsToRender.map((barColor, index) => (
+            <div
+              key={index}
+              className="w-[3px] h-[40px] rounded-[3px]"
+              style={{ backgroundColor: barColor }}
+            />
+          ))}
+        </div>
+
+        <div className={`flex ${dir === "rtl" ? "justify-start" : "justify-end"} items-center mt-2 mb-1`}>
+          <span className="font-medium text-lg text-primary">
+            {Math.round(animatedValues.workCompletionPercent)}%
+          </span>
+        </div>
       </div>
 
       <div className={`flex justify-between mt-3 ${dir === "rtl" ? "flex-row-reverse" : ""}`}>
         <div className="font-semibold text-xs text-text-secondary">
           {t?.worked || "Worked"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
+            className="font-medium text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,
@@ -132,7 +173,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         <div className="font-semibold text-xs text-text-secondary">
           {t?.overtime || "Overtime"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
+            className="font-medium text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,
@@ -149,7 +190,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         <div className="font-semibold text-xs text-text-secondary">
           {t?.pending || "Pending"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
+            className="font-medium text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,

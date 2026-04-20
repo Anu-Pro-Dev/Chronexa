@@ -68,6 +68,11 @@ export default function LanguageProvider({
     const getDashboardItems = () => {
       const baseItems = [
         {
+          label: currentLanguageData.translations?.modules?.dashboard?.user_insights || "User Insights",
+          path: "/dashboard/user-insights/",
+          value: "user_insights",
+        },
+        {
           label: currentLanguageData.translations?.modules?.dashboard?.my_attendance || "My Attendance",
           path: "/dashboard/my-attendance/",
           value: "my_attendance",
@@ -479,6 +484,18 @@ export default function LanguageProvider({
       ],
     };
 
+    const userManagement = {
+      route_name: "User Management",
+      path: "/user-management/",
+      items: [
+        {
+          label: currentLanguageData.translations?.modules?.userManagement?.users || "Users",
+          path: "/user-management/users/",
+          value: "users",
+        },
+      ],
+    };
+
     return {
       dashboard,
       companyMaster,
@@ -492,8 +509,9 @@ export default function LanguageProvider({
       configuration,
       settings,
       alerts,
+      userManagement
     };
-  }, [authData.isAuthenticated, authData.isGeofenceEnabled, authData.isChecking, currentLanguageData]);
+  }, [authData.isAuthenticated, authData.isGeofenceEnabled, currentLanguageData]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -505,11 +523,7 @@ export default function LanguageProvider({
       }
     }
 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-
-    return () => clearTimeout(timer);
+    setIsLoading(false);
   }, [language]);
 
   useEffect(() => {

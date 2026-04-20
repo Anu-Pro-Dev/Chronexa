@@ -60,6 +60,22 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
+  // ─── Admin / Manager logic (same as manual punches page) ───────────────────
+  const isAdmin = useMemo(() => {
+    const role = (userInfo?.role ?? "").toUpperCase();
+    if (role) {
+      return role === "ADMIN" || role === "admin" || role === "Admin";
+    }
+    return userInfo?.roleId === 1;
+  }, [userInfo]);
+
+  const endpoint = useMemo(() => {
+    return isAdmin
+      ? `/employeeLeave/all`
+      : `/employeeLeave/team/all`;
+  }, [isAdmin]);
+  // ───────────────────────────────────────────────────────────────────────────
+
   const getEmployeeDisplayInfo = useCallback((leave: any, language: string = 'en') => {
     const employeeMaster = leave.employee_master_employee_leaves_employee_idToemployee_master;
 
@@ -175,7 +191,7 @@ export default function Page() {
         ...(debouncedLeaveTypeFilter && { leave_type_id: debouncedLeaveTypeFilter }),
       },
       enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeLeave/team/all`,
+      endpoint, // ← now dynamic based on isAdmin
     }
   );
 
@@ -238,11 +254,6 @@ export default function Page() {
     }
   }, [refetch]);
 
-  const handleStatusChange = (value: string) => {
-    setSelectedOption(value);
-    handleFilterChange();
-  };
-
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
@@ -270,7 +281,7 @@ export default function Page() {
     }
 
     try {
-      const results = await Promise.all(
+      await Promise.all(
         selectedRows.map((row) =>
           approveLeaveRequest({
             employee_leave_id: row.id,
@@ -296,7 +307,7 @@ export default function Page() {
     }
 
     try {
-      const results = await Promise.all(
+      await Promise.all(
         selectedRows.map((row) =>
           approveLeaveRequest({
             employee_leave_id: row.id,
@@ -394,7 +405,7 @@ export default function Page() {
         reject_modal_title={t.reject_leave || "Reject Leave"}
         reject_modal_description={t.reject_leave_desc || "Are you sure you want to reject the selected leave request(s)?"}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xl:max-w-[700px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
         <div>
           <Popover open={popoverStates.fromDate} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}>
             <PopoverTrigger asChild>
@@ -451,13 +462,10 @@ export default function Page() {
                 }}
                 disabled={(date) => {
                   if (!fromDate) return false;
-
                   const from = new Date(fromDate);
                   from.setHours(0, 0, 0, 0);
-
                   const current = new Date(date);
                   current.setHours(0, 0, 0, 0);
-
                   return current < from;
                 }}
               />
@@ -467,7 +475,7 @@ export default function Page() {
       </div>
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">
+          <h1 className="font-medium text-xl text-primary">
             {t.leaves_approval || "Leave Approval"}
           </h1>
         </div>

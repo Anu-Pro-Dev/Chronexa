@@ -117,7 +117,7 @@ const ResponsiveModalTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-base font-bold text-text-primary uppercase", className)}
+    className={cn("text-base font-medium text-text-primary uppercase", className)}
     {...props}
   />
 ));

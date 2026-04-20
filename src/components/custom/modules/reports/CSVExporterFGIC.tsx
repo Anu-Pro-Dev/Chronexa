@@ -44,7 +44,7 @@ export class CSVExporterFGIC {
       'late',
       'early',
       'missed_punch',
-      'day_status'
+      'comment'
     ];
   }
 

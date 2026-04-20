@@ -40,7 +40,7 @@ function InsightsCard() {
         endpoint: '/ta-emails/all',
         searchParams: {
             recipient: userInfo?.email || '',
-            limit: '2',
+            limit: '1',
             offset: '0',
         },
         enabled: !!userInfo?.email,
@@ -80,8 +80,8 @@ function InsightsCard() {
     return(
         <div className='shadow-card rounded-[10px] bg-accent p-6'>
             <div className='flex flex-row justify-between'>
-                <h5 className='text-lg text-text-primary font-bold'>{t?.important}</h5>
-                <Link href="/alerts/email" className='text-primary text-sm font-medium flex items-center justify-center gap-1'>
+                <h5 className='text-lg text-text-primary font-medium'>{t?.important}</h5>
+                <Link href="/alerts/email" className='text-primary text-sm font-regular flex items-center justify-center gap-1'>
                     {translations?.buttons?.show_all}
                 </Link>
             </div> 
@@ -91,9 +91,9 @@ function InsightsCard() {
                         <div className="text-primary font-semibold text-sm">{emailData.senderInitials}</div>
                     </div>
                     <div className='flex-1 flex flex-col justify-evenly'>
-                        <p className='text-sm font-bold text-text-primary line-clamp-1'>{emailData.subject}</p>
-                        <p className='text-xs font-medium text-text-secondary line-clamp-1'>{emailData.sender}</p>
-                        <p className='text-xs font-medium text-text-secondary'>{emailData.timestamp}</p>
+                        <p className='text-sm font-medium text-text-primary line-clamp-1'>{emailData.subject}</p>
+                        <p className='text-xs font-regular text-text-secondary line-clamp-1'>{emailData.sender}</p>
+                        <p className='text-xs font-regular text-text-secondary'>{emailData.timestamp}</p>
                     </div>
                 </div>
             ) : (
@@ -102,8 +102,8 @@ function InsightsCard() {
                         <div className="text-primary font-semibold text-sm">—</div>
                     </div>
                     <div className='h-12 w-auto flex flex-col justify-evenly'>
-                        <p className='text-sm font-bold text-text-primary'>No emails available</p>
-                        <p className='text-xs font-medium text-text-secondary'>Check back later</p>
+                        <p className='text-sm font-medium text-text-primary'>No emails available</p>
+                        <p className='text-xs font-regular text-text-secondary'>Check back later</p>
                     </div>
                 </div>
             )}

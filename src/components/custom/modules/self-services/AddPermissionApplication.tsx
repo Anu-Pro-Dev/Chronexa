@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState, useCallback } from "react"
 import { useForm } from "react-hook-form";
@@ -177,8 +176,12 @@ export default function AddPermissionApplication({
       if (onSave) {
         onSave(null, data.data);
       }
-      queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      
       router.push("/self-services/permissions/my-request");
+      
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      }, 0);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -197,8 +200,12 @@ export default function AddPermissionApplication({
       if (onSave) {
         onSave(variables.short_permission_id?.toString() ?? null, variables);
       }
-      queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      
       router.push("/self-services/permissions/my-request");
+      
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["employeeShortPermission"] });
+      }, 0);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
@@ -598,12 +605,12 @@ export default function AddPermissionApplication({
     <div className="flex flex-col gap-6">
       <div className="bg-accent transition-all duration-300 rounded-xl p-6">
         <div className="flex justify-between items-center">
-          <h1 className="font-bold text-xl text-primary flex items-center justify-between">
+          <h1 className="font-medium text-xl text-primary flex items-center justify-between">
             {displayPageTitle}
           </h1>
           <div>
             {selectedPermission === "Personal" && (
-              <p className="text-xs text-primary border border-blue-200 rounded-md px-2 py-1 font-semibold bg-blue-400 bg-opacity-10 ">
+              <p className="text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop">
                 {t.personal_permission_note || "Note: Personal permission is allowed for a maximum of 6 hours per month."}
               </p>
             )}

@@ -6,9 +6,9 @@ interface PDFExporterFGICProps {
   formValues: any;
   headerMap: Record<string, string>;
   calculateSummaryTotals: (data: any[]) => any;
-  logoUrl?: string; 
+  logoUrl?: string;
   onProgress?: (current: number, total: number, phase: string) => void;
-  showToast: (type: "success" | "error" , key: string, options?: { duration?: number }) => void;
+  showToast: (type: "success" | "error", key: string, options?: { duration?: number }) => void;
 }
 
 export class PDFExporterFGIC {
@@ -17,7 +17,7 @@ export class PDFExporterFGIC {
   private calculateSummaryTotals: (data: any[]) => any;
   private logoUrl?: string;
   private onProgress?: (current: number, total: number, phase: string) => void;
-  private showToast: (type: "success" | "error" , key: string, options?: { duration?: number }) => void;
+  private showToast: (type: "success" | "error", key: string, options?: { duration?: number }) => void;
 
   constructor({ formValues, headerMap, calculateSummaryTotals, logoUrl, onProgress, showToast }: PDFExporterFGICProps) {
     this.formValues = formValues;
@@ -68,7 +68,7 @@ export class PDFExporterFGIC {
   private async yieldToMain(): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, 0));
   }
-  
+
   private buildQueryParams(): Record<string, string> {
     const params: Record<string, string> = {};
 
@@ -194,6 +194,7 @@ export class PDFExporterFGIC {
         employeeId: `${this.formValues.employee_ids.length} Employees`,
         employeeName: `${this.formValues.employee_ids.length} Employees Selected`,
         employeeNo: '',
+        isSingleEmployee: false,
       };
     } else if (isSpecificEmployee && data.length > 0) {
       const firstRow = data[0];
@@ -201,44 +202,72 @@ export class PDFExporterFGIC {
         employeeId: firstRow?.employee_id || this.formValues.employee || this.formValues.employee_ids?.[0] || '',
         employeeName: firstRow?.firstname_eng || '',
         employeeNo: firstRow?.employee_number || '',
+        company: firstRow?.parent_org_eng || '',
+        division: firstRow?.organization_eng || '',
+        type: firstRow?.employee_type || '',
+        isSingleEmployee: true,
       };
     } else {
       return {
         employeeId: 'All Employees',
         employeeName: 'All Employees',
         employeeNo: '',
+        isSingleEmployee: false,
       };
     }
   }
 
-  private getFilteredHeaders() {
-    return [
-      'employee_number',
-      'firstname_eng',
-      'parent_org_eng',
-      'organization_eng',
-      'employee_type',
-      'schCode',
-      'transdate',
-      'WorkDay',
-      'punch_in',
-      'punch_out',
-      'dailyworkhrs',
-      'DailyMissedHrs',
-      'dailyextrawork',
-      'missed_punch',
-      'day_status'
-    ];
+  private getFilteredHeaders(isSingleEmployee: boolean) {
+    if (isSingleEmployee) {
+      return [
+        'schCode',
+        'in_time',
+        'out_time',
+        'transdate',
+        'WorkDay',
+        'punch_in',
+        'punch_out',
+        'dailyworkhrs',
+        'DailyMissedHrs',
+        'dailyextrawork',
+        'late',
+        'early',
+        'missed_punch',
+        'comment'
+      ];
+    } else {
+      return [
+        'employee_number',
+        'firstname_eng',
+        'organization_eng',
+        'employee_type',
+        'schCode',
+        'in_time',
+        'out_time',
+        'transdate',
+        'WorkDay',
+        'punch_in',
+        'punch_out',
+        'dailyworkhrs',
+        'DailyMissedHrs',
+        'dailyextrawork',
+        'late',
+        'early',
+        'missed_punch',
+        'comment'
+      ];
+    }
   }
 
   private getColumnWidth(header: string): string {
     const widthMap: Record<string, string> = {
-      'employee_number': '4%',
-      'firstname_eng': '7%',
-      'parent_org_eng': '6%',
-      'organization_eng': '6%',
-      'employee_type': '5%',
+      'employee_number': '5%',
+      'firstname_eng': '8%',
+      'organization_eng': '7%',
+      'employee_type': '6%',
       'schCode': '6%',
+      'in_time': '5%',
+      'out_time': '5%',
       'transdate': '5%',
       'WorkDay': '4%',
       'punch_in': '5%',
@@ -246,8 +275,10 @@ export class PDFExporterFGIC {
       'dailyworkhrs': '5%',
       'DailyMissedHrs': '5%',
       'dailyextrawork': '5%',
+      'late': '5%',
+      'early': '5%',
       'missed_punch': '5%',
-      'day_status': '5%',
+      'comment': '6%',
     };
     return widthMap[header] || '5%';
   }
@@ -274,7 +305,7 @@ export class PDFExporterFGIC {
       }
     }
 
-    if ((header === 'punch_in' || header === 'punch_out') && value) {
+    if ((header === 'punch_in' || header === 'punch_out' || header === 'in_time' || header === 'out_time') && value) {
       try {
         return formatInTimeZone(value, 'UTC', 'HH:mm:ss');
       } catch {
@@ -324,8 +355,9 @@ export class PDFExporterFGIC {
 
   private generateHTMLContent(displayData: any[], allData?: any[], logoBase64?: string | null): string {
     const dataForSummary = allData || displayData;
-    const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(dataForSummary);
-    const filteredHeaders = this.getFilteredHeaders();
+    const employeeDetails = this.getEmployeeDetails(dataForSummary);
+    const { isSingleEmployee, employeeName, employeeNo, company, division, type } = employeeDetails;
+    const filteredHeaders = this.getFilteredHeaders(isSingleEmployee);
     const summaryTotals = this.calculateSummaryTotals(dataForSummary);
 
     const MAX_PDF_ROWS = 1000;
@@ -334,15 +366,15 @@ export class PDFExporterFGIC {
     const dataArray = [...displayData];
 
     return `
-      <div style="padding: 10px; font-family: Arial, sans-serif; width: 100%; font-size: 7px;">
+      <div style="padding: 15px; font-family: Arial, sans-serif; width: 100%; font-size: 13px;">
         ${showingLimitedData ? `
-          <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 8px; margin-bottom: 10px; font-size: 9px;">
+          <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 14px; margin-bottom: 18px; font-size: 14px;">
             <strong>Note:</strong> PDF showing first ${MAX_PDF_ROWS.toLocaleString()} of ${allData!.length.toLocaleString()} records. 
             Summary totals reflect all ${allData!.length.toLocaleString()} records. Use Excel export for complete dataset.
           </div>
         ` : ''}
 
-        <table style="width: 100%; margin-bottom: 8px; font-size: 9px;">
+        <table style="width: 100%; margin-bottom: 18px; font-size: 14px;">
           <tr>
             <td style="text-align: right;">
               <strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}
@@ -351,37 +383,94 @@ export class PDFExporterFGIC {
         </table>
         
         ${logoBase64 ? `
-          <div style="text-align: center; margin-bottom: 8px;">
+          <div style="text-align: center; margin-bottom: 18px;">
             <img src="${logoBase64}" alt="Logo" style="height: 84px;" />
           </div>
         ` : ''}
         
-        <h1 style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0 10px 0;">
+        <h1 style="text-align: center; font-size: 20px; font-weight: bold; margin: 18px 0 25px 0;">
           EMPLOYEE TIME ATTENDANCE REPORT
         </h1>
-         
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px;">
-          <tr>
-            <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NAME</td>
-            <td style="border: 1px solid black; padding: 5px; width: 25%;">${employeeName}</td>
-            <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NO</td>
-            <td style="border: 1px solid black; padding: 5px; width: 25%;">${employeeNo}</td>
-          </tr>
-          ${this.formValues.from_date || this.formValues.to_date ?
-        `<tr>
-              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">FROM DATE</td>
-              <td style="border: 1px solid black; padding: 5px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : ''}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">TO DATE</td>
-              <td style="border: 1px solid black; padding: 5px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : ''}</td>
-            </tr>`
-        : ''}
-        </table>
+
+        ${isSingleEmployee ? `
+          <div style="margin-bottom: 22px; padding: 18px; background-color: #f3702110; border: 1px solid #fff; border-radius: 6px;">
+            <table style="page-break-inside: avoid;width: 100%; font-size: 13px; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px 12px; width: 33%; vertical-align: top;">
+                  <div style="color: #6b7280; font-size: 12px;">Employee Name</div>
+                  <div style="color: #F37021; font-weight: 600; font-size: 14px;">${employeeName}</div>
+                </td>
+                <td style="padding: 10px 12px; width: 33%; vertical-align: top;">
+                  <div style="color: #6b7280; font-size: 12px;">Emp No</div>
+                  <div style="color: #F37021; font-weight: 600; font-size: 14px;">${employeeNo}</div>
+                </td>
+                <td style="padding: 10px 12px; width: 34%; vertical-align: top;">
+                  <div style="color: #6b7280; font-size: 12px;">Employee Type</div>
+                  <div style="color: #F37021; font-weight: 600; font-size: 14px;">${type}</div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 12px; vertical-align: top;">
+                  <div style="color: #6b7280; font-size: 12px;">Company</div>
+                  <div style="color: #F37021; font-weight: 600; font-size: 14px;">Federal Geographic Information Center</div>
+                </td>
+                <td style="padding: 10px 12px; vertical-align: top;">
+                  <div style="color: #6b7280; font-size: 12px;">Division</div>
+                  <div style="color: #F37021; font-weight: 600; font-size: 14px;">${company}</div>
+                </td>
+                <td style="padding: 10px 12px; vertical-align: top;" colspan="2">
+                  <div style="color: #6b7280; font-size: 12px;">Sub Division</div>
+                  <div style="color: #F37021; font-weight: 600; font-size: 14px;">${division}</div>
+                </td>
+              </tr>
+              ${this.formValues.from_date || this.formValues.to_date ? `
+                <tr>
+                  <td style="padding: 10px 12px; vertical-align: top;">
+                    <div style="color: #6b7280; font-size: 12px;">From Date</div>
+                    <div style="color: #F37021; font-weight: 600; font-size: 14px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : ''}</div>
+                  </td>
+                  <td style="padding: 10px 12px; vertical-align: top;">
+                  </td>
+                  <td style="padding: 10px 12px; vertical-align: top;" colspan="2">
+                    <div style="color: #6b7280; font-size: 12px;">To Date</div>
+                    <div style="color: #F37021; font-weight: 600; font-size: 14px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : ''}</div>
+                  </td>
+                </tr>
+              ` : ''}
+            </table>
+          </div>
+        ` : (this.formValues.from_date || this.formValues.to_date ? `
+            <div style="
+              margin-bottom: 22px;
+              padding: 0 18px 10px 18px;
+              background-color: #f3702110;
+              border: 1px solid #fff;
+              border-radius: 6px;
+              page-break-inside: avoid;
+              break-inside: avoid;
+            ">
+              <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 10px 12px; vertical-align: top;">
+                    <div style="color: #6b7280; font-size: 12px;">From Date</div>
+                    <div style="color: #F37021; font-weight: 600; font-size: 14px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : ''}</div>
+                  </td>
+                  <td style="padding: 10px 12px; vertical-align: top;">
+                  </td>
+                  <td style="padding: 10px 12px; vertical-align: top;" colspan="2">
+                    <div style="color: #6b7280; font-size: 12px;">To Date</div>
+                    <div style="color: #F37021; font-weight: 600; font-size: 14px;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : ''}</div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+        ` : '')}
       
-        <table style="width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 18px; table-layout: fixed;">
           <thead>
             <tr style="background-color: #F37021;">
               ${filteredHeaders.map(header => `
-                <th style="border: 1px solid black; padding: 4px; text-align: center; color: white; font-weight: bold; font-size: 7px; width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden;">${(this.headerMap[header] || header).toUpperCase()}</th>
+                <th style="border: 1px solid black; padding: 7px; text-align: center; color: white; font-weight: bold; font-size: 11px; width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden;">${(this.headerMap[header] || header).toUpperCase()}</th>
               `).join('')}
             </tr>
           </thead>
@@ -389,56 +478,77 @@ export class PDFExporterFGIC {
             ${dataArray.map((row: Record<string, any>) => `
               <tr>
                 ${filteredHeaders.map(header => {
-          const cellValue = this.formatCellValue(header, row[header], row);
-          const isLateOrMissed = header === 'late' || header === 'DailyMissedHrs';
+      const cellValue = this.formatCellValue(header, row[header], row);
+      const isLateOrMissed = header === 'late' || header === 'DailyMissedHrs';
 
-          let textColor = '';
-          if (header === 'day_status') {
-            const statusLower = String(cellValue).toLowerCase();
-            if (statusLower === 'absent') {
-              textColor = 'color: red;';
-            } else if (statusLower === 'week off') {
-              textColor = 'color: green;';
-            }
-          } else if (isLateOrMissed && parseFloat(cellValue) > 0) {
-            textColor = 'color: red;';
-          }
+      let textColor = '';
+      if (header === 'comment') {
+        const statusLower = String(cellValue).toLowerCase();
+        if (statusLower === 'absent') {
+          textColor = 'color: red;';
+        } else if (statusLower === 'week off') {
+          textColor = 'color: green;';
+        }
+      } else if (isLateOrMissed && parseFloat(cellValue) > 0) {
+        textColor = 'color: red;';
+      }
 
-          return `
-                    <td style="border: 1px solid black; padding: 3px; font-size: 6px; ${textColor} width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis;">${cellValue}</td>
+      return `
+                    <td style="border: 1px solid black; padding: 6px; font-size: 10px; ${textColor} width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis;">${cellValue}</td>
                   `;
-        }).join('')}
+    }).join('')}
               </tr>
             `).join('')}
           </tbody>
         </table>
 
-        <div style="margin-top: 20px; page-break-before: avoid;">
-          <h2 style="text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 10px;">
-            SUMMARY TOTALS ${showingLimitedData ? `(All ${allData!.length.toLocaleString()} Records)` : ''}
-          </h2>
-          
-          <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+        <div style="
+          margin-top: 28px;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        ">
+
+          <!-- Heading inside table to avoid split -->
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
             <tr>
-              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Late In Hours</td>
-              <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalLateInHours}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Early Out Hours</td>
-              <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalEarlyOutHours}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center; width: 16.66%;">Total Missed Hours</td>
-              <td style="border: 1px solid black; padding: 5px; text-align: center; width: 16.66%;">${summaryTotals.totalMissedHours}</td>
+              <td style="
+                text-align: center;
+                font-size: 18px;
+                font-weight: bold;
+                padding: 10px 0;
+              ">
+                SUMMARY TOTALS ${showingLimitedData ? `(All ${allData!.length.toLocaleString()} Records)` : ''}
+              </td>
             </tr>
+          </table>
+
+          <table style="
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            page-break-inside: avoid;
+          ">
             <tr>
-              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Worked Hours</td>
-              <td style="border: 1px solid black; padding: 5px; text-align: center;">${summaryTotals.totalWorkedHours}</td>
-              <td style="border: 1px solid black; padding: 5px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Extra Hours</td>
-              <td style="border: 1px solid black; padding: 5px; text-align: center;">${summaryTotals.totalExtraHours}</td>
-              <td colspan="2" style="border: 1px solid black; padding: 5px;"></td>
+              <td style="border: 1px solid black; padding: 10px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Late In Hours</td>
+              <td style="border: 1px solid black; padding: 10px; text-align: center;">${summaryTotals.totalLateInHours}</td>
+              <td style="border: 1px solid black; padding: 10px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Early Out Hours</td>
+              <td style="border: 1px solid black; padding: 10px; text-align: center;">${summaryTotals.totalEarlyOutHours}</td>
+              <td style="border: 1px solid black; padding: 10px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Missed Hours</td>
+              <td style="border: 1px solid black; padding: 10px; text-align: center;">${summaryTotals.totalMissedHours}</td>
+            </tr>
+
+            <tr>
+              <td style="border: 1px solid black; padding: 10px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Worked Hours</td>
+              <td style="border: 1px solid black; padding: 10px; text-align: center;">${summaryTotals.totalWorkedHours}</td>
+              <td style="border: 1px solid black; padding: 10px; background-color: #F37021; color: white; font-weight: bold; text-align: center;">Total Extra Hours</td>
+              <td style="border: 1px solid black; padding: 10px; text-align: center;">${summaryTotals.totalExtraHours}</td>
+              <td colspan="2" style="border: 1px solid black;"></td>
             </tr>
           </table>
         </div>
 
-        <div style="margin-top: 20px; padding: 10px; page-break-inside: avoid;">
-          <p style="font-size: 10px; font-weight: bold; color: #d32f2f; text-align: center; margin: 0;">
+        <div style="margin-top: 28px; padding: 18px; page-break-inside: avoid;">
+          <p style="font-size: 14px; font-weight: bold; color: #d32f2f; text-align: center; margin: 0;">
             Please take action for all the violations within two days; otherwise, this will be treated as a violation.
           </p>
         </div>

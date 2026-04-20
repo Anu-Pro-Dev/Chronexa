@@ -5,17 +5,40 @@ import { PunchInIcon, PunchOutIcon } from "@/src/icons/icons";
 import { usePunch } from "@/src/providers/PunchProvider";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 
+function useElapsedSeconds(startTime: number | null, isPunchedIn: boolean) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!isPunchedIn || !startTime) {
+      setElapsed(0);
+      return;
+    }
+
+    setElapsed(Math.floor((Date.now() - startTime) / 1000));
+
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPunchedIn, startTime]);
+
+  return elapsed;
+}
+
 function TimerCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
   const [isClient, setIsClient] = useState(false);
 
-  const { 
-    isPunchedIn, 
-    punchInTime, 
-    punchOutTime, 
-    elapsedSeconds,
+  const {
+    isPunchedIn,
+    punchInTime,
+    punchOutTime,
+    startTime,
   } = usePunch();
+
+  const elapsedSeconds = useElapsedSeconds(startTime, isPunchedIn);
 
   useEffect(() => {
     setIsClient(true);
@@ -32,26 +55,26 @@ function TimerCard() {
           unoptimized
           className="object-cover blur-[2px] !absolute"
         />
-        <h5 className="text-base font-bold">{t?.clock_hrs}</h5>
-        <p className="text-[35px] font-bold align-center py-4">
+        <h5 className="text-base font-medium">{t?.clock_hrs}</h5>
+        <p className="text-[35px] font-medium align-center py-4">
           00:00:00
         </p>
         <div className="flex gap-8">
           <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
             <p className="font-semibold pb-1">{t?.remaining}</p>
-            <p className="text-[13px] font-bold">08:00</p>
+            <p className="text-[13px] font-medium">08:00</p>
           </div>
           <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
             <p className="font-semibold pb-1">{t?.overtime}</p>
-            <p className="text-[13px] font-bold">00:00</p>
+            <p className="text-[13px] font-medium">00:00</p>
           </div>
         </div>
         <div className="w-full pt-5 flex justify-between uppercase">
-          <div className="flex items-center gap-2 font-bold text-xs">
+          <div className="flex items-center gap-2 font-medium text-xs">
             <PunchInIcon/>
             <p>_ _ : _ _</p>
           </div>
-          <div className="flex items-center gap-2 font-bold text-xs">
+          <div className="flex items-center gap-2 font-medium text-xs">
             <PunchOutIcon/>
             <p>_ _ : _ _</p>
           </div>
@@ -83,8 +106,8 @@ function TimerCard() {
         unoptimized
         className="object-cover blur-[2px] !absolute"
       />
-      <h5 className="text-base font-bold">{t?.clock_hrs}</h5>
-      <p className={`text-[35px] font-bold align-center py-4`}>
+      <h5 className="text-base font-medium">{t?.clock_hrs}</h5>
+      <p className={`text-[35px] font-medium align-center py-4`}>
         {hours.toString().padStart(2, "0")}:
         {minutes.toString().padStart(2, "0")}:
         {remainingSeconds.toString().padStart(2, "0")}
@@ -92,25 +115,25 @@ function TimerCard() {
       <div className="flex gap-8">
         <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
           <p className="font-semibold pb-1">{t?.remaining}</p>
-          <p className="text-[13px] font-bold">
+          <p className="text-[13px] font-medium">
             {remainingHours.toString().padStart(2, "0")}:
             {remainingMinutes.toString().padStart(2, "0")}
           </p>
         </div>
         <div className="flex text-center items-center flex-col rounded-[10px] bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.23)] text-xs px-4 py-2">
           <p className="font-semibold pb-1">{t?.overtime}</p>
-          <p className="text-[13px] font-bold">
+          <p className="text-[13px] font-medium">
             {overtimeHours.toString().padStart(2, "0")}:
             {overtimeMinutes.toString().padStart(2, "0")}
           </p>
         </div>
       </div>
       <div className="w-full pt-5 flex justify-between uppercase">
-        <div className="flex items-center gap-2 font-bold text-xs">
+        <div className="flex items-center gap-2 font-medium text-xs">
           <PunchInIcon/>
           <p>{punchInTime || "_ _ : _ _"}</p>
         </div>
-        <div className="flex items-center gap-2 font-bold text-xs">
+        <div className="flex items-center gap-2 font-medium text-xs">
           <PunchOutIcon/>
           <p>{punchOutTime || "_ _ : _ _"}</p>
         </div>

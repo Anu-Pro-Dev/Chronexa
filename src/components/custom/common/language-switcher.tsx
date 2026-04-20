@@ -10,9 +10,39 @@ import {
   SelectValue,
 } from "@/src/components/ui/select"
 import { useLanguage } from "@/src/providers/LanguageProvider"
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider"
 
 export default function LanguageSwitcher() {
-  const { language, setLanguage, dir } = useLanguage();
+  const [languageContext, setLanguageContext] = React.useState<'full' | 'lite' | null>(null);
+
+  let fullContext = null;
+  let liteContext = null;
+
+  try {
+    fullContext = useLanguage();
+  } catch (e) {
+  }
+
+  try {
+    liteContext = useLiteLanguage();
+  } catch (e) {
+  }
+
+  React.useEffect(() => {
+    if (fullContext) {
+      setLanguageContext('full');
+    } else if (liteContext) {
+      setLanguageContext('lite');
+    }
+  }, [fullContext, liteContext]);
+
+  if (!languageContext) {
+    return null;
+  }
+
+  const { language, setLanguage, dir } = languageContext === 'full'
+    ? fullContext!
+    : liteContext!;
 
   const languageOptions = [
     { value: "en", label: "English", flag: "/EnglishFlag.svg" },
@@ -20,14 +50,14 @@ export default function LanguageSwitcher() {
   ];
 
   return (
-  <div>
+    <div>
       <Select
         value={language}
         onValueChange={(value: string) => {
           setLanguage(value);
         }}
       >
-        <SelectTrigger className="w-[128px] min-w-[128px] max-w-[128px] border-none shadow-none font-bold">
+        <SelectTrigger className="w-[128px] min-w-[128px] max-w-[128px] border-none shadow-none font-medium">
           <SelectValue placeholder="Select Language" />
         </SelectTrigger>
         <SelectContent>

@@ -102,7 +102,7 @@ export default function EmployeeCardData() {
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-bold pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
+              <p className={`text-2xl ${item.color} font-medium pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
             </div>
             {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
           </React.Fragment>
@@ -127,7 +127,7 @@ export default function EmployeeCardData() {
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-bold pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
+              <p className={`text-2xl ${item.color} font-medium pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
             </div>
             {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
           </React.Fragment>

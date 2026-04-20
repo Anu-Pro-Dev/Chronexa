@@ -1,38 +1,19 @@
 "use client";
 import { useMemo } from "react";
-import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 
 export function useRBAC() {
   const { userRole } = useAuthGuard();
+  
+  const roleId = useDashboardStore((s) => s.roleId);
+  const privileges = useDashboardStore((s) => s.privileges);
+  const loadedPrivileges = useDashboardStore((s) => s.loadedPrivileges);
 
-  const { data: rolesData, isLoading: rolesLoading } = useFetchAllEntity("secRole", {
-    removeAll: true,
-  });
-
-  const roleId = useMemo(() => {
-    if (!rolesData?.data || !userRole) return null;
-    const role = rolesData.data.find(
-      (r: any) => r.role_name.toLowerCase() === userRole.toLowerCase().trim()
-    );
-    return role?.role_id ?? null;
-  }, [rolesData, userRole]);
-
-  const {
-    data: rolePrivilegesData,
-    isLoading: rolePrivilegesLoading,
-    error,
-    refetch,
-  } = useFetchAllEntity("secRolePrivilege", {
-    endpoint: roleId ? `/secRolePrivilege?roleId=${roleId}` : undefined,
-    enabled: !!roleId,
-    removeAll: true,
-  });
-
-  const isLoading = rolesLoading || rolePrivilegesLoading || !userRole;
+  const isLoading = !loadedPrivileges || !userRole;
 
   const { privilegeMap, allowedModules, allowedSubModules, allowedTabs } = useMemo(() => {
-    if (!rolePrivilegesData?.data) {
+    if (!privileges || privileges.length === 0) {
       return {
         privilegeMap: {},
         allowedModules: [],
@@ -41,7 +22,7 @@ export function useRBAC() {
       };
     }
 
-    const data = rolePrivilegesData.data;
+    const data = Array.isArray(privileges) ? privileges[0] : privileges;
     
     const modules: any[] = [];
     const subModules: any[] = [];
@@ -51,6 +32,8 @@ export function useRBAC() {
 
     Object.keys(data).forEach((moduleKey, moduleIndex) => {
       const moduleData = data[moduleKey];
+      
+      if (typeof moduleData !== 'object' || moduleData === null) return;
       
       const moduleHasView = moduleData.allowed === true;
       
@@ -134,7 +117,7 @@ export function useRBAC() {
       allowedSubModules: subModules.filter(sm => sm.hasView),
       allowedTabs: tabs.filter(t => t.hasView)
     };
-  }, [rolePrivilegesData]);
+  }, [privileges]);
 
   return {
     roleId,
@@ -143,7 +126,7 @@ export function useRBAC() {
     allowedSubModules,
     allowedTabs,
     isLoading,
-    error,
-    refetch,
+    error: null,
+    refetch: () => {},
   };
 }

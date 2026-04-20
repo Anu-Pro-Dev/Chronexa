@@ -10,7 +10,7 @@ const Switch: React.FC<SwitchProps> = ({ checked, onChange, label }) => {
   return (
     <label className="flex items-center cursor-pointer space-x-2">
       {label && <span>{label}</span>}
-      <div className="relative w-14 h-8">
+      <div className="relative w-14 h-6">
         <input
           type="checkbox"
           className="sr-only"

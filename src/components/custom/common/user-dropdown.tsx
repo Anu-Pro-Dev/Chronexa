@@ -67,18 +67,18 @@ export function UserDropdown() {
 
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 px-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex gap-3 items-center outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
-              <Avatar className="w-10 h-10 rounded-full bg-backdrop flex justify-center items-center">
+              <Avatar className="w-10 h-10 rounded-full bg-primary flex justify-center items-center">
                 <AvatarImage alt={`${user?.firstName} ${user?.lastName}`} />
-                <AvatarFallback className="text-primary font-semibold text-xl uppercase">
+                <AvatarFallback className="text-white font-medium text-xl uppercase">
                   {user?.firstName?.[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight capitalize">
-                <span className="truncate text-sm font-bold text-text-primary">
+                <span className="truncate text-sm font-medium text-text-primary">
                   {user?.firstName}
                 </span>
                 <span className="truncate text-xs font-semibold text-secondary capitalize">
@@ -89,7 +89,7 @@ export function UserDropdown() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-52"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-52 max-w-52 font-semibold"
             side="bottom"
             align="end"
             sideOffset={4}
@@ -103,7 +103,7 @@ export function UserDropdown() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer text-destructive"
               onClick={logout}
             >
               {LogoutIcon()}

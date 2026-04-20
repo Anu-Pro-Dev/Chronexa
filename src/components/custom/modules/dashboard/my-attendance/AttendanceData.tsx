@@ -1,107 +1,67 @@
 "use client";
-import React, { useState, useEffect, createContext, useContext, useCallback, useRef } from "react";
-import { getAttendanceDetails, getWorkSchedule } from '@/src/lib/dashboardApiHandler';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { getAttendanceDetails, getWorkSchedule } from "@/src/lib/dashboardApiHandler";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 
-interface AttendanceDetails {
-    [key: string]: any;
+interface AttendanceDataContextType {
+  attendanceDetails: any | null;
+  workSchedule: any | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
 }
 
-interface WorkSchedule {
-    [key: string]: any;
-}
-
-interface DashboardData {
-    attendanceDetails: AttendanceDetails | null;
-    workSchedule: WorkSchedule | null;
-    loading: boolean;
-    error: string | null;
-    refetch: () => Promise<void>;
-}
-
-const AttendanceDataContext = createContext<DashboardData | undefined>(undefined);
+const AttendanceDataContext = createContext<AttendanceDataContextType | undefined>(undefined);
 
 export const useAttendanceData = () => {
-    const context = useContext(AttendanceDataContext);
-    if (!context) {
-        throw new Error('useAttendanceData must be used within AttendanceDataProvider');
-    }
-    return context;
+  const context = useContext(AttendanceDataContext);
+  if (!context) {
+    throw new Error("useAttendanceData must be used within AttendanceDataProvider");
+  }
+  return context;
 };
 
-interface AttendanceDataProviderProps {
-    children: React.ReactNode;
-}
+export const AttendanceDataProvider = ({ children }: { children: React.ReactNode }) => {
+  const {
+    attendanceDetails,
+    workSchedule,
+    fetchDashboardData,
+    loadingDashboard,
+    errorDashboard,
+  } = useDashboardStore();
 
-export const AttendanceDataProvider = ({ children }: AttendanceDataProviderProps) => {
-    const [attendanceDetails, setAttendanceDetails] = useState<AttendanceDetails | null>(null);
-    const [workSchedule, setWorkSchedule] = useState<WorkSchedule | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    
-    const mountedRef = useRef(false);
-    const hasInitializedRef = useRef(false);
+  const [localLoading, setLocalLoading] = useState(loadingDashboard);
+  const [localError, setLocalError] = useState<string | null>(errorDashboard);
 
-    const fetchDashboardData = useCallback(async () => {
-        if (!mountedRef.current) {
-            return;
-        }
+  const refetch = async () => {
+    setLocalLoading(true);
+    setLocalError(null);
+    try {
+      await fetchDashboardData();
+    } catch (err: any) {
+      setLocalError(err?.message || "Failed to fetch dashboard data");
+    } finally {
+      setLocalLoading(false);
+    }
+  };
 
-        try {
-            setLoading(true);
-            setError(null);            
-            const [attendance, schedule] = await Promise.all([
-                getAttendanceDetails(),
-                getWorkSchedule()
-            ]);
-            
-            if (!mountedRef.current) {
-                return;
-            }
-            
-            if (attendance?.success && attendance.data?.length > 0) {
-                setAttendanceDetails(attendance.data[0]);
-            }
-            
-            if (schedule?.success && schedule.data?.length > 0) {
-                setWorkSchedule(schedule.data[0]);
-            }
-            
-        } catch (err) {
-            console.error('Error in fetchDashboardData:', err);
-            if (mountedRef.current) {
-                setError('Failed to fetch dashboard data');
-            }
-        } finally {
-            if (mountedRef.current) {
-                setLoading(false);
-            }
-        }
-    }, []);
+  useEffect(() => {
+    if (!attendanceDetails && !workSchedule) {
+      refetch();
+    }
+  }, []);
 
-    useEffect(() => {
-        mountedRef.current = true;
-        
-        if (!hasInitializedRef.current) {
-            hasInitializedRef.current = true;
-            fetchDashboardData();
-        }
-
-        return () => {
-            mountedRef.current = false;
-        };
-    }, []);
-
-    const value: DashboardData = {
+  return (
+    <AttendanceDataContext.Provider
+      value={{
         attendanceDetails,
         workSchedule,
-        loading,
-        error,
-        refetch: fetchDashboardData
-    };
-
-    return (
-        <AttendanceDataContext.Provider value={value}>
-            {children}
-        </AttendanceDataContext.Provider>
-    );
+        loading: localLoading,
+        error: localError,
+        refetch,
+      }}
+    >
+      {children}
+    </AttendanceDataContext.Provider>
+  );
 };

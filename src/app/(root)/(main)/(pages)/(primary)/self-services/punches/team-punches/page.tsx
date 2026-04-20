@@ -1,17 +1,16 @@
 "use client";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
+import { ChevronsUpDown } from "lucide-react";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -45,6 +44,7 @@ export default function Page() {
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
+    employeeFilter: false,
     vertical: false,
     organization: false,
     employeeType: false,
@@ -56,7 +56,7 @@ export default function Page() {
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
-  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'organization' | 'employeeType' | 'vertical') => {
+  const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter' | 'organization' | 'employeeType' | 'vertical') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
   }, []);
 
@@ -83,11 +83,14 @@ export default function Page() {
     }
     
     const fullName = language === "ar"
-      ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
-      : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim();
+      ? `${employee.firstname_arb || ""}`.trim()
+      : `${employee.firstname_eng || ""}`.trim();
     
     return fullName || `Emp ${transaction.employee_id}`;
   }, [language, userInfo, employeeId]);
+
+  const isAdmin   = userInfo?.role?.toLowerCase() === "admin";
+  const isManager = userInfo?.role?.toLowerCase() === "manager";
 
   const { data: organizationData } = useFetchAllEntity("organization", {
     searchParams: {
@@ -159,19 +162,74 @@ export default function Page() {
     ]);
   }, [language, t]);
 
+  const apiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    const commonParams = {
+      limit: String(rowsPerPage),
+      offset: String(offset),
+      ...(debouncedSearchValue      && { search:           debouncedSearchValue }),
+      ...(fromDate                  && { from_date:         formatDateForAPI(fromDate) }),
+      ...(toDate                    && { to_date:           formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter   && { employeeId:        debouncedEmployeeFilter }),
+      ...(selectedOrganization      && { organization_id:   selectedOrganization }),
+      ...(selectedVertical          && { vertical_id:       selectedVertical }),
+      ...(selectedEmployeeType      && { employee_type_id:  selectedEmployeeType }),
+    };
+    if (userRole === "admin") {
+      return { endpoint: "/employeeEventTransaction/all",      searchParams: commonParams };
+    } else if (userRole === "manager") {
+      return { endpoint: "/employeeEventTransaction/team/all", searchParams: commonParams };
+    } else {
+      return {
+        endpoint: "/employeeEventTransaction/all",
+        searchParams: { ...commonParams, ...(employeeId && { employeeId: String(employeeId) }) },
+      };
+    }
+  }, [
+    userInfo?.role, rowsPerPage, offset,
+    debouncedSearchValue, fromDate, toDate, debouncedEmployeeFilter,
+    selectedOrganization, selectedVertical, selectedEmployeeType,
+    employeeId, formatDateForAPI,
+  ]);
+
+  const exportApiConfig = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    const commonParams = {
+      ...(debouncedSearchValue      && { search:           debouncedSearchValue }),
+      ...(fromDate                  && { from_date:         formatDateForAPI(fromDate) }),
+      ...(toDate                    && { to_date:           formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter   && { employeeId:        debouncedEmployeeFilter }),
+      ...(selectedOrganization      && { organization_id:   selectedOrganization }),
+      ...(selectedVertical          && { vertical_id:       selectedVertical }),
+      ...(selectedEmployeeType      && { employee_type_id:  selectedEmployeeType }),
+    };
+    if (userRole === "admin") {
+      return { endpoint: "/employeeEventTransaction",      searchParams: commonParams };
+    } else {
+      return { endpoint: "/employeeEventTransaction/team", searchParams: commonParams };
+    }
+  }, [
+    userInfo?.role,
+    debouncedSearchValue, fromDate, toDate, debouncedEmployeeFilter,
+    selectedOrganization, selectedVertical, selectedEmployeeType,
+    formatDateForAPI,
+  ]);
+
   const { data: punchesData, isLoading: isLoadingTransactions, error, refetch } = useFetchAllEntity(
-    "employeeEventTransaction", 
+    "employeeEventTransaction",
     {
-      searchParams: {
-        limit: String(rowsPerPage),
-        offset: String(offset),
-        ...(debouncedSearchValue && { search: debouncedSearchValue }),
-        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
-        ...(toDate && { to_date: formatDateForAPI(toDate) }),
-        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      },
-      enabled: !!employeeId && isAuthenticated && !isChecking,
-      endpoint: `/employeeEventTransaction/team/all`,
+      searchParams: apiConfig.searchParams,
+      enabled: !!employeeId && isAuthenticated && !isChecking && !!userInfo?.role,
+      endpoint: apiConfig.endpoint,
+    }
+  );
+
+  const { data: allPunchesData } = useFetchAllEntity(
+    "employeeEventTransactionExport",
+    {
+      searchParams: exportApiConfig.searchParams,
+      enabled: false,
+      endpoint: exportApiConfig.endpoint,
     }
   );
 
@@ -192,6 +250,13 @@ export default function Page() {
         formattedDate = date.toISOString().substr(0, 10);
       }
 
+      let geolocationDisplay = '';
+      if (transaction.latitude && transaction.longitude) {
+        geolocationDisplay = `${transaction.latitude}, ${transaction.longitude}`;
+      } else if (transaction.geolocation) {
+        geolocationDisplay = transaction.geolocation;
+      }
+
       return {
         ...transaction,
         id: transaction.transaction_id,
@@ -199,6 +264,9 @@ export default function Page() {
         employee_name: getEmployeeName(transaction),
         transaction_date: formattedDate,
         transaction_time: formattedTime,
+        geolocation: geolocationDisplay,
+        latitude: transaction.latitude,
+        longitude: transaction.longitude,
       };
     });
   }, [punchesData, getEmployeeName]);
@@ -240,6 +308,15 @@ export default function Page() {
     handleFilterChange();
   }, [handleFilterChange]);
 
+  const handleEmployeeFilterChange = useCallback((value: string) => {
+    setEmployeeFilter(value);
+    setCurrentPage(1);
+    closePopover('employeeFilter');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
+
   const handleOrganizationChange = useCallback((value: string) => {
     setSelectedOrganization(value);
     setCurrentPage(1);
@@ -261,13 +338,27 @@ export default function Page() {
   const handleVerticalChange = useCallback((value: string) => {
     setSelectedVertical(value);
     setSelectedOrganization("");
-    closePopover('vertical');
-  }, [closePopover]);
-
-  const handleEmployeeFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmployeeFilter(event.target.value);
     setCurrentPage(1);
-  }, []);
+    closePopover('vertical');
+    if (refetch) {
+      setTimeout(() => refetch(), 100);
+    }
+  }, [refetch, closePopover]);
+
+  const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
+    "employee",
+    isManager && !isAdmin && employeeId
+      ? { endpoint: `/employee/all?manager_id=${employeeId}` }
+      : {
+          searchParams: { limit: "1000" },
+          enabled: !!userInfo && isAdmin,
+        }
+  );
+
+  const getEmployeesData = useCallback(() => {
+    if (!employeesData?.data) return [];
+    return employeesData.data.filter((item: any) => item.employee_id);
+  }, [employeesData]);
 
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["employeeEventTransaction", employeeId] });
@@ -331,6 +422,71 @@ export default function Page() {
     handleRowsPerPageChange
   ]);
 
+  const propsForExport = useMemo(() => {
+    if (selectedRows.length > 0) {
+      const selectedRowsForExport = selectedRows.map((item: any) => ({
+        emp_no: item.emp_no,
+        employee_name: item.employee_name,
+        reason: item.reason,
+        transaction_date: item.transaction_date,
+        transaction_time: item.transaction_time,
+        geolocation: item.geolocation,
+        remarks: item.remarks,
+      }));
+
+      return {
+        ...props,
+        Data: selectedRowsForExport,
+        selectedRows: selectedRowsForExport,
+      };
+    }
+
+    const allData = Array.isArray(allPunchesData?.data) 
+      ? allPunchesData.data.map((transaction: any) => {
+          const transactionTimeStr = transaction.transaction_time;
+          
+          let formattedTime = '';
+          let formattedDate = '';
+          
+          if (transactionTimeStr) {
+            const date = new Date(transactionTimeStr);
+            formattedTime = date.toISOString().substr(11, 8);
+            formattedDate = date.toISOString().substr(0, 10);
+          }
+
+          let geolocationDisplay = '';
+          if (transaction.latitude && transaction.longitude) {
+            geolocationDisplay = `${transaction.latitude}, ${transaction.longitude}`;
+          } else if (transaction.geolocation) {
+            geolocationDisplay = transaction.geolocation;
+          }
+
+          const employee = transaction.employee_master;
+          const employeeName = employee 
+            ? (language === "ar"
+                ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
+                : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim())
+            : `Emp ${transaction.employee_id}`;
+
+          return {
+            emp_no: employee?.emp_no || `EMP${transaction.employee_id}`,
+            employee_name: employeeName || `Emp ${transaction.employee_id}`,
+            reason: transaction.reason,
+            transaction_date: formattedDate,
+            transaction_time: formattedTime,
+            geolocation: geolocationDisplay,
+            remarks: transaction.remarks,
+          };
+        })
+      : [];
+
+    return {
+      ...props,
+      Data: allData,
+      selectedRows: [],
+    };
+  }, [props, allPunchesData, selectedRows, language]);
+
   const renderPowerTable = () => {
     if (isChecking) {
       return (
@@ -358,6 +514,7 @@ export default function Page() {
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoadingTransactions || isChecking}
+        overrideCheckbox={true}
       />
     );
   };
@@ -365,13 +522,16 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
-        props={props}
-        selectedRows={selectedRows}
+        props={propsForExport}
+        selectedRows={propsForExport.selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
+        isExport
+        enableExcel
       />
       
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        {/* bg-accent rounded-[15px] items-center px-5 py-6 */}
         <div>
           <Popover
             open={popoverStates.vertical}
@@ -381,21 +541,21 @@ export default function Page() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.vertical || "Vertical"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {selectedVertical
                       ? getVerticalData().find((item: any) =>
                           String(item.organization_id) === selectedVertical
                         )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : (t.placeholder_vertical || "Choose Vertical")}
                   </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
               </Button>
             </PopoverTrigger>
 
@@ -426,21 +586,21 @@ export default function Page() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.organization || "Organization"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {selectedOrganization
                       ? getOrganizationsData().find((item: any) =>
                           String(item.organization_id) === selectedOrganization
                         )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : (t.placeholder_org || "Choose Organization")}
                   </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
               </Button>
             </PopoverTrigger>
 
@@ -471,21 +631,21 @@ export default function Page() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="w-full bg-accent px-4 flex justify-between border-grey"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
-                <p>
-                  <Label className="font-normal text-secondary">
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
                     {t.employee_type || "Employee Type"} :
                   </Label>
-                  <span className="px-1 text-sm text-text-primary">
+                  <span className="px-1 text-sm text-text-primary truncate">
                     {selectedEmployeeType
                       ? getEmployeeTypesData().find((item: any) => 
                           String(item.employee_type_id) === selectedEmployeeType
                         )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
                       : (t.placeholder_employee_type || "Choose type")}
                   </span>
-                </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
               </Button>
             </PopoverTrigger>
 
@@ -506,11 +666,143 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
+
+        <div>
+          <Popover
+            open={popoverStates.fromDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
+              >
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
+                    {t.from_date || "From Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary truncate">
+                    {fromDate ? format(fromDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  </span>
+                </span>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
+              <Calendar
+                mode="single"
+                selected={fromDate}
+                onSelect={(date) => {
+                  handleFromDateChange(date);
+                  closePopover('fromDate');
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div>
+          <Popover
+            open={popoverStates.toDate}
+            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
+              >
+                <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <Label className="font-normal text-secondary shrink-0">
+                    {t.to_date || "To Date"} :
+                  </Label>
+                  <span className="px-1 text-sm text-text-primary truncate">
+                    {toDate ? format(toDate, "dd/MM/yy") : (t.placeholder_date || "Choose date")}
+                  </span>
+                </span>
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
+              <Calendar
+                mode="single"
+                selected={toDate}
+                onSelect={(date) => {
+                  handleToDateChange(date);
+                  closePopover('toDate');
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {(isAdmin || isManager) && (
+          <div>
+            <Popover
+              open={popoverStates.employeeFilter}
+              onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
+                  disabled={isLoadingEmployees}
+                >
+                  <span className="flex items-center gap-1 min-w-0 overflow-hidden">
+                    <Label className="font-normal text-secondary shrink-0">
+                      {t.employee_no || "Employee No"} :
+                    </Label>
+                    <span className="px-1 text-sm text-text-primary truncate">
+                      {isLoadingEmployees
+                        ? (t.loading || "Loading...")
+                        : employeeFilter
+                          ? (() => {
+                              const emp = getEmployeesData().find(
+                                (item: any) => String(item.employee_id) === employeeFilter
+                              );
+                              return emp?.emp_no || (language === "ar"
+                                ? `${emp?.firstname_arb || ""} ${emp?.lastname_arb || ""}`.trim()
+                                : `${emp?.firstname_eng || ""} ${emp?.lastname_eng || ""}`.trim());
+                            })()
+                          : (t.placeholder_employee_filter || "Choose employee")}
+                    </span>
+                  </span>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder={t.search_employee || "Search employee..."} />
+                  <CommandEmpty>
+                    {isLoadingEmployees ? (t.loading || "Loading...") : (t.no_employee_found || "No employee found")}
+                  </CommandEmpty>
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {getEmployeesData().map((item: any) => {
+                      const displayName = language === "ar"
+                        ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
+                        : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
+                      return (
+                        <CommandItem
+                          key={item.employee_id}
+                          onSelect={() => handleEmployeeFilterChange(String(item.employee_id))}
+                        >
+                          {item.emp_no} - {displayName}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
-          <h1 className="font-bold text-xl text-primary">
+          <h1 className="font-medium text-xl text-primary">
             {t.team_punches_header || "Manage Team Punches"}
           </h1>
         </div>

@@ -24,8 +24,7 @@ const optionalNumber = z.preprocess(
 const ramadanFormSchemaOptional = z.object({
   ramadan_in_time: timeString,
   ramadan_out_time: timeString,
-  ramadan_break_time: timeString,
-  ramadan_prayer_time: timeString,
+  ramadan_required_work_hours: timeString,
   ramadan_flexible_min: optionalNumber,
   ramadan_grace_in_min: optionalNumber,
   ramadan_grace_out_min: optionalNumber,
@@ -53,7 +52,7 @@ export const useScheduleForm = () => {
     mode: "onSubmit",
     defaultValues: {
       schedule_code: "",
-      schedule_location: undefined,
+      schedule_location: null,
       organization_id: undefined,
       in_time: "",
       out_time: "",
@@ -67,10 +66,9 @@ export const useScheduleForm = () => {
       grace_out_min: undefined,
       inactive_date: null,
       
-      ramadan_in_time: "",
-      ramadan_out_time: "",
-      ramadan_break_time: "",
-      ramadan_prayer_time: "",
+      ramadan_in_time: undefined,
+      ramadan_out_time: undefined,
+      ramadan_required_work_hours: undefined,
       ramadan_flexible_min: undefined,
       ramadan_grace_in_min: undefined,
       ramadan_grace_out_min: undefined,
@@ -88,6 +86,12 @@ export const useScheduleForm = () => {
   function normalizeTimeString(timeStr: string | null | undefined): string {
     if (!timeStr) return "";
     
+    if (timeStr.includes('T') && timeStr.includes('Z')) {
+      const timePart = timeStr.split('T')[1];
+      const timeOnly = timePart.split('.')[0];
+      return timeOnly;
+    }
+    
     if (/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/.test(timeStr)) {
       return timeStr;
     }
@@ -99,9 +103,9 @@ export const useScheduleForm = () => {
     try {
       const date = new Date(timeStr);
       if (!isNaN(date.getTime())) {
-        const hours = date.getHours().toString().padStart(2, "0");
-        const minutes = date.getMinutes().toString().padStart(2, "0");
-        const seconds = date.getSeconds().toString().padStart(2, "0");
+        const hours = date.getUTCHours().toString().padStart(2, "0");
+        const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+        const seconds = date.getUTCSeconds().toString().padStart(2, "0");
         return `${hours}:${minutes}:${seconds}`;
       }
     } catch (e) {}
@@ -115,17 +119,25 @@ export const useScheduleForm = () => {
   }
 
   useEffect(() => {
-    if (selectedRowData) {
+    if (selectedRowData) {      
       form.reset({
         ...selectedRowData,
         organization_id: Number(selectedRowData.organization_id),
-        schedule_location: Number(selectedRowData.schedule_location),
+        schedule_location: selectedRowData.schedule_location,
         in_time: normalizeTimeString(selectedRowData.in_time),
         out_time: normalizeTimeString(selectedRowData.out_time),
         required_work_hours: normalizeTimeString(selectedRowData.required_work_hours),
-        ramadan_in_time: normalizeTimeString(selectedRowData.ramadan_in_time),
-        ramadan_out_time: normalizeTimeString(selectedRowData.ramadan_out_time),
-        ramadan_required_work_hours: normalizeTimeString(selectedRowData.ramadan_required_work_hours),
+        
+        ramadan_in_time: selectedRowData.ramadan_in_time 
+          ? normalizeTimeString(selectedRowData.ramadan_in_time)
+          : undefined,
+        ramadan_out_time: selectedRowData.ramadan_out_time
+          ? normalizeTimeString(selectedRowData.ramadan_out_time)
+          : undefined,
+        ramadan_required_work_hours: selectedRowData.ramadan_required_work_hours
+          ? normalizeTimeString(selectedRowData.ramadan_required_work_hours)
+          : undefined,
+        
         inactive_date: selectedRowData.inactive_date ? new Date(selectedRowData.inactive_date) : null,
         flexible_min: normalizeNumericField(selectedRowData.flexible_min),
         grace_in_min: normalizeNumericField(selectedRowData.grace_in_min),

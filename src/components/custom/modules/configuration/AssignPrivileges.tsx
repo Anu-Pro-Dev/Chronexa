@@ -491,9 +491,9 @@ export default function AssignPrivileges({
                         <table className="w-full text-sm text-left border">
                           <thead className="border-b bg-gray-50">
                             <tr className="text-secondary">
-                              <th className="px-4 py-2 font-medium">{t.sub_module_tab || "Sub-Module / Tab"}</th>
+                              <th className="px-4 py-2 font-regular">{t.sub_module_tab || "Sub-Module / Tab"}</th>
                               {privilegeKeys.map((label) => (
-                                <th key={label} className="px-4 py-2 text-center capitalize text-sm font-medium">
+                                <th key={label} className="px-4 py-2 text-center capitalize text-sm font-regular">
                                   {translations.actions?.[label] || label}
                                 </th>
                               ))}
@@ -501,7 +501,7 @@ export default function AssignPrivileges({
                           </thead>
                           <tbody>
                             <tr className="border-b bg-blue-50">
-                              <td className="px-4 py-2 text-text-primary text-sm font-bold">{t.select_all || "Select All"}</td>
+                              <td className="px-4 py-2 text-text-primary text-sm font-medium">{t.select_all || "Select All"}</td>
                               {privilegeKeys.map((perm) => (
                                 <td key={perm} className="px-4 py-2 text-center">
                                   <Checkbox

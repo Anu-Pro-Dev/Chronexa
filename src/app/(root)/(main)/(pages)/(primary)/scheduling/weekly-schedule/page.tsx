@@ -64,7 +64,7 @@ export default function SchedulesRedirectPage() {
 
     const schedulingModule = privilegeMap?.['Scheduling'];
     if (!schedulingModule?.allowed) {
-      router.replace('/dashboard/my-attendance');
+      router.replace('/dashboard/user-insights');
       return;
     }
 
@@ -79,7 +79,7 @@ export default function SchedulesRedirectPage() {
       if (firstAllowedSubmodule) {
         router.replace(`/scheduling/${firstAllowedSubmodule.path}`);
       } else {
-        router.replace('/dashboard/my-attendance');
+        router.replace('/dashboard/user-insights');
       }
       return;
     }
@@ -96,7 +96,7 @@ export default function SchedulesRedirectPage() {
       if (firstAllowedSubmodule) {
         router.replace(`/scheduling/${firstAllowedSubmodule.path}`);
       } else {
-        router.replace('/dashboard/my-attendance');
+        router.replace('/dashboard/user-insights');
       }
     }
   }, [privilegeMap, isLoading, router, getTabPath]);

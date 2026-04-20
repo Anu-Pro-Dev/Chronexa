@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/src/lib/utils";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
@@ -7,7 +7,7 @@ import { Input } from "@/src/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import Required from "@/src/components/ui/required";
 import { ClockIcon } from "@/src/icons/icons";
-import { format } from "date-fns";
+import { differenceInMinutes, format } from "date-fns";
 import { TimePicker } from "@/src/components/ui/time-picker";
 import { useFormContext } from "react-hook-form";
 import { useLanguage } from "@/src/providers/LanguageProvider";
@@ -38,11 +38,10 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
   const t = translations?.modules?.scheduling || {};
   const errT = translations?.formErrors || {};
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [popoverStates, setPopoverStates] = useState({
     ramadanInTime: false,
     ramadanOutTime: false,
-    ramadanPrayerTime: false,
   });
 
   async function onSubmit(values: any) {
@@ -51,11 +50,11 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
 
     try {
       const errors: Record<string, { message: string }> = {};
-      
+
       if (!values.ramadan_in_time || values.ramadan_in_time === "") {
         errors.ramadan_in_time = { message: "ramadan_in_time_required" };
       }
-      
+
       if (!values.ramadan_out_time || values.ramadan_out_time === "") {
         errors.ramadan_out_time = { message: "ramadan_out_time_required" };
       }
@@ -69,6 +68,23 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
         return;
       }
 
+      form.setValue("ramadan_in_time", values.ramadan_in_time);
+      form.setValue("ramadan_out_time", values.ramadan_out_time);
+      form.setValue("ramadan_required_work_hours", values.ramadan_required_work_hours);
+
+      if (values.ramadan_flexible_min !== undefined) {
+        form.setValue("ramadan_flexible_min", values.ramadan_flexible_min);
+      }
+
+      if (values.ramadan_grace_in_min !== undefined) {
+        form.setValue("ramadan_grace_in_min", values.ramadan_grace_in_min);
+      }
+
+      if (values.ramadan_grace_out_min !== undefined) {
+        form.setValue("ramadan_grace_out_min", values.ramadan_grace_out_min);
+      }
+
+      const allValues = form.getValues();
       SetPage("policy-schedule");
       showToast("success", "data_saved");
     } catch (error) {
@@ -79,6 +95,30 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
     }
   }
 
+  useEffect(() => {
+    const inTime = form.watch("ramadan_in_time");
+    const outTime = form.watch("ramadan_out_time");
+
+    if (inTime && outTime) {
+      const inDate = inTime instanceof Date ? inTime : parseTimeString(inTime);
+      const outDate = outTime instanceof Date ? outTime : parseTimeString(outTime);
+
+      if (inDate && outDate) {
+        let diff = differenceInMinutes(outDate, inDate);
+        if (diff < 0) diff += 24 * 60;
+
+        const hours = Math.floor(diff / 60);
+        const minutes = diff % 60;
+        const seconds = 0;
+
+        const formatted = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        form.setValue("ramadan_required_work_hours", formatted);
+      }
+    } else {
+      form.setValue("ramadan_required_work_hours", "");
+    }
+  }, [form.watch("ramadan_in_time"), form.watch("ramadan_out_time")]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -87,22 +127,22 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
             control={form.control}
             name="ramadan_in_time"
             render={({ field }) => {
-              const displayValue = field.value instanceof Date 
-                ? field.value 
-                : typeof field.value === 'string' 
+              const displayValue = field.value instanceof Date
+                ? field.value
+                : typeof field.value === 'string'
                   ? parseTimeString(field.value)
                   : undefined;
-              
+
               return (
                 <FormItem>
-                  <FormLabel className="text-left">{t.ramadan_name || "Ramadan"} {t.in_time || "In Time"} <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.ramadan || "Ramadan"} {t.in_time || "In Time"} <Required /></FormLabel>
                   <Popover open={popoverStates.ramadanInTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, ramadanInTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px]rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                            "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
                             !displayValue && "text-muted-foreground"
                           )}
                         >
@@ -132,22 +172,22 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
             control={form.control}
             name="ramadan_out_time"
             render={({ field }) => {
-              const displayValue = field.value instanceof Date 
-                ? field.value 
-                : typeof field.value === 'string' 
+              const displayValue = field.value instanceof Date
+                ? field.value
+                : typeof field.value === 'string'
                   ? parseTimeString(field.value)
                   : undefined;
-              
+
               return (
                 <FormItem>
-                  <FormLabel className="text-left">{t.ramadan_name || "Ramadan"} {t.out_time || "Out Time"} <Required/></FormLabel>
+                  <FormLabel className="text-left">{t.ramadan || "Ramadan"} {t.out_time || "Out Time"} <Required /></FormLabel>
                   <Popover open={popoverStates.ramadanOutTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, ramadanOutTime: open }))}>
                     <FormControl>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px]rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                            "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
                             !displayValue && "text-muted-foreground"
                           )}
                         >
@@ -175,57 +215,30 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
           />
           <FormField
             control={form.control}
-            name="ramadan_prayer_time"
-            render={({ field }) => {
-              const displayValue = field.value instanceof Date 
-                ? field.value 
-                : typeof field.value === 'string' 
-                  ? parseTimeString(field.value)
-                  : undefined;
-              
-              return (
-                <FormItem>
-                  <FormLabel className="text-left">{t.ramadan_name || "Ramadan"} Prayer Time</FormLabel>
-                  <Popover open={popoverStates.ramadanPrayerTime} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, ramadanPrayerTime: open }))}>
-                    <FormControl>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px]rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                            !displayValue && "text-muted-foreground"
-                          )}
-                        >
-                          {displayValue
-                            ? format(displayValue, "HH:mm:ss")
-                            : <span className="text-text-secondary">{t.Placeholder_time || "Choose time"}</span>
-                          }
-                          <ClockIcon />
-                        </Button>
-                      </PopoverTrigger>
-                    </FormControl>
-                    <PopoverContent className="w-auto p-0">
-                      <TimePicker
-                        setDate={(date) => {
-                          field.onChange(date ? formatTimeToString(date) : undefined);
-                        }}
-                        date={displayValue}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <TranslatedError fieldError={form.formState.errors.ramadan_prayer_time} translations={errT} />
-                </FormItem>
-              );
-            }}
+            name="ramadan_required_work_hours"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-left">{t.required_work_hrs || "Required Work Hours"}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    value={field.value || ""}
+                    readOnly
+                    placeholder={t.auto_cal_duration || "Duration will be auto-calculated"}
+                  />
+                </FormControl>
+                <TranslatedError fieldError={form.formState.errors.ramadan_required_work_hours} translations={errT} />
+              </FormItem>
+            )}
           />
           <FormField
             control={form.control}
             name="ramadan_flexible_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">{t.ramadan_name || "Ramadan"} {t.flexible || "Flexible"}</FormLabel>
+                <FormLabel className="flex gap-1">{t.ramadan || "Ramadan"} {t.flexible || "Flexible"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins || "0"} type="text" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.ramadan_flexible_min} translations={errT} />
               </FormItem>
@@ -236,9 +249,9 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
             name="ramadan_grace_in_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">{t.ramadan_name || "Ramadan"} {t.grace_in || "Grace In"}</FormLabel>
+                <FormLabel className="flex gap-1">{t.ramadan || "Ramadan"} {t.grace_in || "Grace In"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins || "0"} type="text" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.ramadan_grace_in_min} translations={errT} />
               </FormItem>
@@ -249,9 +262,9 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
             name="ramadan_grace_out_min"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex gap-1">{t.ramadan_name || "Ramadan"} {t.grace_out || "Grace Out"}</FormLabel>
+                <FormLabel className="flex gap-1">{t.ramadan || "Ramadan"} {t.grace_out || "Grace Out"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="0" type="text" {...field} value={field.value ?? ""}/>
+                  <Input placeholder={t.placeholder_mins || "0"} type="text" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <TranslatedError fieldError={form.formState.errors.ramadan_grace_out_min} translations={errT} />
               </FormItem>

@@ -12,11 +12,13 @@ import { Input } from "@/src/components/ui/input";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import { format } from "date-fns";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
+  const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
@@ -95,12 +97,13 @@ export default function Page() {
       { field: "email_status_display", headerName: t.status || "Status" },
       { field: "processed_date", headerName: t.sent_at || "Sent At" },
       { field: "cc_email", headerName: t.cc_email || "CC Email" },
-      { field: "bcc_email", headerName: t.bcc_email || "BCC Email" },
     ]);
   }, [language, t]);
 
-  const { data: taEmailData, isLoading, refetch } = useFetchAllEntity("ta-emails", {
-    searchParams: {
+  const { apiEndpoint, searchParams } = useMemo(() => {
+    const userRole = userInfo?.role?.toLowerCase();
+    
+    const commonParams = {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
@@ -108,7 +111,34 @@ export default function Page() {
       ...(debouncedRecipient && { recipient: debouncedRecipient }),
       ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
       ...(toDate && { to_date: formatDateForAPI(toDate) }),
-    },
+    };
+
+    if (userRole === "admin") {
+      return {
+        apiEndpoint: "/ta-emails/all",
+        searchParams: commonParams,
+      };
+    } else {
+      return {
+        apiEndpoint: "/ta-emails/myemails",
+        searchParams: commonParams,
+      };
+    }
+  }, [
+    userInfo?.role,
+    rowsPerPage,
+    offset,
+    debouncedSearchValue,
+    status,
+    debouncedRecipient,
+    fromDate,
+    toDate,
+  ]);
+
+  const { data: taEmailData, isLoading, refetch } = useFetchAllEntity("ta-emails", {
+    searchParams,
+    enabled: isAuthenticated && !isChecking && !!userInfo?.role,
+    endpoint: apiEndpoint,
   });
 
   const getStatusDisplay = useCallback((status: number) => {
@@ -208,6 +238,20 @@ export default function Page() {
     setCurrentPage(1);
   }, []);
 
+  const customColDef = useMemo(() => ({
+    cellStyle: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "start",
+      whiteSpace: "normal",
+      wordBreak: "break-word",
+      lineHeight: "1.5",
+      fontSize: "13px", 
+      borderBottom: "1px solid #EEEEEE",
+      padding: "8px",
+    },
+  }), []);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -215,7 +259,7 @@ export default function Page() {
     on_open_change: setOpen,
     selectedRows,
     setSelectedRows,
-    isLoading,
+    isLoading: isLoading || isChecking,
     SortField: sortField,
     SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
@@ -248,7 +292,7 @@ export default function Page() {
         const { email_status_display, email_status_color, email_status_bg } = params.data;
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${email_status_bg} ${email_status_color}`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-regular ${email_status_bg} ${email_status_color}`}
           >
             {email_status_display}
           </span>
@@ -288,8 +332,9 @@ export default function Page() {
       ...props,
       Data: dataForExport,
       selectedRows: selectedRowsForExport,
+      exportEndpoint: apiEndpoint,
     };
-  }, [props, data, selectedRows]);
+  }, [props, data, selectedRows, apiEndpoint]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -415,11 +460,9 @@ export default function Page() {
         props={props}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
-        isLoading={isLoading}
+        isLoading={isLoading || isChecking}
         overrideCheckbox={true}
-      // customColDef={{
-      //   flex: 0,
-      // }}
+        customColDef={customColDef}
       />
     </div>
   );

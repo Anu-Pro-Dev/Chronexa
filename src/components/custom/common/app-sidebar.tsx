@@ -13,6 +13,7 @@ import {
   CompanyMasterIcon,
   DashboardIcon,
   DevicesIcon,
+  UserManagementIcon,
   EmployeeMasterIcon,
   OrganizationIcon,
   ReportsIcon,
@@ -42,6 +43,7 @@ const getModuleIcon = (moduleKey: string) => {
     "Company Master": CompanyMasterIcon,
     "Organization": OrganizationIcon,
     "Employee Master": EmployeeMasterIcon,
+    "User Management": UserManagementIcon,
     "Scheduling": SchedulingIcon,
     "Self Services": SelfServicesIcon,
     "Manage Approvals": TAMasterIcon,
@@ -154,6 +156,7 @@ export default function AppSidebar() {
               alt="logo" 
               src={getMonoLogo()} 
               className="transition-opacity"
+              priority
             />
           </div>
         )}
@@ -204,7 +207,7 @@ export default function AppSidebar() {
                         )}>
                           {Icon("currentColor")}
                         </span>
-                        {open && <span className="text-sm font-medium">{translatedName}</span>}
+                        {open && <span className="text-sm font-regular">{translatedName}</span>}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

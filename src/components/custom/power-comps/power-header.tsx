@@ -103,6 +103,7 @@ export default function PowerHeader({
       'emailSetting': 'em_id',
       'secRole': 'role_id',
       'secUserRole': 'user_role_id',
+      'employeeManualTransaction': 'employee_manual_transaction_id',
     };
     
     if (specialMappings[entityName]) {

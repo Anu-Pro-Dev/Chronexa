@@ -281,7 +281,7 @@ export default function Page() {
             />
             <div className="bg-accent rounded-2xl">
                 <div className="col-span-2 p-6 pb-6">
-                    <h1 className="font-bold text-xl text-primary">
+                    <h1 className="font-medium text-xl text-primary">
                         {t.organization_schedule || "Organization Schedule"}
                     </h1>
                 </div>

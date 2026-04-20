@@ -73,7 +73,7 @@ export default function PowerTakeAction({
           <ResponsiveModalHeader>
             <div className="flex items-start justify-between px-5">
               <div className="flex flex-col text-start">
-                <span className="text-primary font-bold text-xl pb-2">{modal_title}</span>
+                <span className="text-primary font-medium text-xl pb-2">{modal_title}</span>
                 <ResponsiveModalDescription className="text-secondary">
                   {modal_description}
                 </ResponsiveModalDescription>

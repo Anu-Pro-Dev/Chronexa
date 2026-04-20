@@ -51,7 +51,7 @@ export default function PowerShifterTab({ items }: { items: any }) {
             key={index}
             onClick={() => router.push(item?.path)}
             className={`px-4 py-2 rounded-md text-sm
-              ${isActive ? 'bg-backdrop text-primary font-bold' : 'bg-accent text-text-secondary font-medium'}
+              ${isActive ? 'bg-backdrop text-primary font-medium' : 'bg-accent text-text-secondary font-regular'}
             `}
           >
             {displayLabel}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -65,6 +65,9 @@ export default function EmployeeOnboardingPage({
   const [rolesCache, setRolesCache] = useState<any[]>([]);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
+  const initializedRef = useRef(false);
+  const isEditMode = mode === "edit";
+
   const { form: personalForm, schema: personalSchema } = usePersonalForm();
   const { form: credentialsForm, schema: credentialsSchema } = useCredentialsForm();
   const { form: officialForm, schema: officialSchema } = useOfficialForm();
@@ -73,17 +76,19 @@ export default function EmployeeOnboardingPage({
   const selectedRowData = useEmployeeEditStore((state) => state.selectedRowData);
   const clearSelectedRowData = useEmployeeEditStore((state) => state.clearSelectedRowData);
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const rolesRes = await getAllRoles();
-        setRolesCache(rolesRes?.data || rolesRes || []);
-      } catch (err) {
-        console.error("Failed to preload roles:", err);
-      }
-    };
-    fetchRoles();
-  }, []);
+  const fetchRolesIfNeeded = async () => {
+    if (rolesCache.length > 0) return rolesCache;
+    
+    try {
+      const rolesRes = await getAllRoles();
+      const roles = rolesRes?.data || rolesRes || [];
+      setRolesCache(roles);
+      return roles;
+    } catch (err) {
+      console.error("Failed to fetch roles:", err);
+      return [];
+    }
+  };
 
   const resetAllForms = () => {
     personalForm.reset();
@@ -95,106 +100,109 @@ export default function EmployeeOnboardingPage({
   };
 
   useEffect(() => {
+    if (initializedRef.current) return;
+    
     if (mode === "add") {
       clearSelectedRowData();
-      resetAllForms();
+      initializedRef.current = true;
     } else if (mode === "edit" && !id) {
       clearSelectedRowData();
       resetAllForms();
+      initializedRef.current = true;
     }
   }, [mode, id]);
 
   useEffect(() => {
-    if (mode === "add") return;
+    if (mode !== "edit" || !selectedRowData) return;
 
-    if (selectedRowData) {
-      const convertToDate = (val: string | Date | null | undefined): Date | undefined => {
-        if (!val) return undefined;
-        const date = typeof val === "string" ? new Date(val) : val;
-        return date instanceof Date && !isNaN(date.getTime()) ? date : undefined;
-      };
+    if (initializedRef.current && activeStep !== "personal-form") return;
 
-      const firstName =
-        language === "en"
-          ? selectedRowData.firstname_eng || selectedRowData.firstname_arb || ""
-          : selectedRowData.firstname_arb || selectedRowData.firstname_eng || "";
-      const lastName =
-        language === "en"
-          ? selectedRowData.lastname_eng || selectedRowData.lastname_arb || ""
-          : selectedRowData.lastname_arb || selectedRowData.lastname_eng || "";
+    const convertToDate = (val: string | Date | null | undefined): Date | undefined => {
+      if (!val) return undefined;
+      const date = typeof val === "string" ? new Date(val) : val;
+      return date instanceof Date && !isNaN(date.getTime()) ? date : undefined;
+    };
 
-      personalForm.reset({
-        emp_no: selectedRowData.emp_no ?? "",
-        firstname: firstName,
-        lastname: lastName,
-        mobile: selectedRowData.mobile ?? "",
-        email: selectedRowData.email ?? "",
-        card_number: selectedRowData.card_number ?? "",
-        pin: selectedRowData.pin ?? "",
-        gender: selectedRowData.gender ?? "",
-        passport_number: selectedRowData.passport_number ?? "",
-        passport_issue_country_id: selectedRowData.passport_issue_country_id ?? undefined,
-        national_id: selectedRowData.national_id ?? "",
-        remarks: selectedRowData.remarks ?? "",
-        join_date: convertToDate(selectedRowData.join_date),
-        active_date: convertToDate(selectedRowData.active_date),
-        passport_expiry_date: convertToDate(selectedRowData.passport_expiry_date),
-        national_id_expiry_date: convertToDate(selectedRowData.national_id_expiry_date),
-        inactive_date: convertToDate(selectedRowData.inactive_date),
-      });
+    const firstName =
+      language === "en"
+        ? selectedRowData.firstname_eng || selectedRowData.firstname_arb || ""
+        : selectedRowData.firstname_arb || selectedRowData.firstname_eng || "";
+    const lastName =
+      language === "en"
+        ? selectedRowData.lastname_eng || selectedRowData.lastname_arb || ""
+        : selectedRowData.lastname_arb || selectedRowData.lastname_eng || "";
 
-      officialForm.reset({
-        employee_type_id: selectedRowData.employee_type_id ?? undefined,
-        location_id: selectedRowData.location_id ?? undefined,
-        citizenship_id: selectedRowData.citizenship_id ?? undefined,
-        designation_id: selectedRowData.designation_id ?? undefined,
-        grade_id: selectedRowData.grade_id ?? undefined,
-        organization_id: selectedRowData.organization_id ?? undefined,
-        manager_id: selectedRowData.manager_id ?? undefined,
-        manager_flag: selectedRowData.manager_flag ?? false,
-      });
+    personalForm.reset({
+      emp_no: selectedRowData.emp_no ?? "",
+      firstname: firstName,
+      lastname: lastName,
+      mobile: selectedRowData.mobile ?? "",
+      email: selectedRowData.email ?? "",
+      card_number: selectedRowData.card_number ?? "",
+      pin: selectedRowData.pin ?? "",
+      gender: selectedRowData.gender ?? "",
+      passport_number: selectedRowData.passport_number ?? "",
+      passport_issue_country_id: selectedRowData.passport_issue_country_id ?? undefined,
+      national_id: selectedRowData.national_id ?? "",
+      remarks: selectedRowData.remarks ?? "",
+      join_date: convertToDate(selectedRowData.join_date),
+      active_date: convertToDate(selectedRowData.active_date),
+      passport_expiry_date: convertToDate(selectedRowData.passport_expiry_date),
+      national_id_expiry_date: convertToDate(selectedRowData.national_id_expiry_date),
+      inactive_date: convertToDate(selectedRowData.inactive_date),
+    });
 
-      flagsForm.reset({
-        active_flag: selectedRowData.active_flag ?? true,
-        punch_flag: selectedRowData.punch_flag ?? true,
-        overtime_flag: selectedRowData.overtime_flag ?? false,
-        inpayroll_flag: selectedRowData.inpayroll_flag ?? false,
-        email_notification_flag: selectedRowData.email_notification_flag ?? false,
-        open_shift_flag: selectedRowData.open_shift_flag ?? false,
-        calculate_monthly_missed_hrs_flag:
-          selectedRowData.calculate_monthly_missed_hrs_flag ?? false,
-        exclude_from_integration_flag: selectedRowData.exclude_from_integration_flag ?? false,
-        shift_flag: selectedRowData.shift_flag ?? false,
-        on_reports_flag: selectedRowData.on_reports_flag ?? true,
-        share_roster_flag: selectedRowData.share_roster_flag ?? false,
-        include_email_flag: selectedRowData.include_email_flag ?? false,
-        web_punch_flag: selectedRowData.web_punch_flag ?? false,
-        check_inout_selfie_flag: selectedRowData.check_inout_selfie_flag ?? false,
-        geofence_flag: selectedRowData.geofence_flag ?? false,
-        SAP_user_flag: selectedRowData.SAP_user_flag ?? false,
-        local_user_flag: selectedRowData.local_user_flag ?? false,
-      });
+    officialForm.reset({
+      employee_type_id: selectedRowData.employee_type_id ?? undefined,
+      location_id: selectedRowData.location_id ?? undefined,
+      citizenship_id: selectedRowData.citizenship_id ?? undefined,
+      designation_id: selectedRowData.designation_id ?? undefined,
+      grade_id: selectedRowData.grade_id ?? undefined,
+      organization_id: selectedRowData.organization_id ?? undefined,
+      manager_id: selectedRowData.manager_id ?? undefined,
+      manager_flag: selectedRowData.manager_flag ?? false,
+    });
 
-      setCompletedSteps(["personal-form", "credentials-form", "official-form"]);
+    flagsForm.reset({
+      active_flag: selectedRowData.active_flag ?? true,
+      punch_flag: selectedRowData.punch_flag ?? true,
+      overtime_flag: selectedRowData.overtime_flag ?? false,
+      inpayroll_flag: selectedRowData.inpayroll_flag ?? false,
+      email_notification_flag: selectedRowData.email_notification_flag ?? false,
+      open_shift_flag: selectedRowData.open_shift_flag ?? false,
+      calculate_monthly_missed_hrs_flag:
+        selectedRowData.calculate_monthly_missed_hrs_flag ?? false,
+      exclude_from_integration_flag: selectedRowData.exclude_from_integration_flag ?? false,
+      shift_flag: selectedRowData.shift_flag ?? false,
+      on_reports_flag: selectedRowData.on_reports_flag ?? true,
+      share_roster_flag: selectedRowData.share_roster_flag ?? false,
+      include_email_flag: selectedRowData.include_email_flag ?? false,
+      web_punch_flag: selectedRowData.web_punch_flag ?? false,
+      check_inout_selfie_flag: selectedRowData.check_inout_selfie_flag ?? false,
+      geofence_flag: selectedRowData.geofence_flag ?? false,
+      SAP_user_flag: selectedRowData.SAP_user_flag ?? false,
+      local_user_flag: selectedRowData.local_user_flag ?? false,
+    });
 
-      if (selectedRowData.employee_id) {
-        getSecUserByEmployeeId(selectedRowData.employee_id)
-          .then((res) => {
-            credentialsForm.reset({
-              username: res.data.login || "",
-              password: res.data.password || "p@ssw0rd",
-            });
+    setCompletedSteps(["personal-form", "credentials-form", "official-form"]);
+
+    if (selectedRowData.employee_id) {
+      getSecUserByEmployeeId(selectedRowData.employee_id)
+        .then((res) => {
+          credentialsForm.reset({
+            username: res.data.login || "",
+            password: res.data.password || "p@ssw0rd",
+          });
+        })
+        .catch(() =>
+          credentialsForm.reset({
+            username: "",
+            password: "",
           })
-          .catch(() =>
-            credentialsForm.reset({
-              username: "",
-              password: "",
-            })
-          );
-      }
-    } else {
-      resetAllForms();
+        );
     }
+
+    initializedRef.current = true;
   }, [selectedRowData, language, mode]);
 
   const validateAndNavigate = async (targetStep: string) => {
@@ -257,9 +265,10 @@ export default function EmployeeOnboardingPage({
     const user_id = secUserRes?.data?.user_id;
     if (!user_id) throw new Error("User ID not returned from SecUser creation");
 
+    const roles = await fetchRolesIfNeeded();
     const managerFlag = data.manager_flag;
     const roleName = managerFlag ? "MANAGER" : "EMPLOYEE";
-    const matchedRole = rolesCache.find((r: any) => r.role_name === roleName);
+    const matchedRole = roles.find((r: any) => r.role_name === roleName);
 
     if (!matchedRole?.role_id) throw new Error(`Role '${roleName}' not found`);
 
@@ -275,6 +284,7 @@ export default function EmployeeOnboardingPage({
       showToast("success", "employee_created_success");
       clearSelectedRowData();
       resetAllForms();
+      initializedRef.current = false;
       router.push("/employee-master/employee");
     },
     onError: (error) => {
@@ -291,6 +301,7 @@ export default function EmployeeOnboardingPage({
       showToast("success", "employee_updated_success");
       clearSelectedRowData();
       resetAllForms();
+      initializedRef.current = false;
       router.push("/employee-master/employee");
     },
     onError: (error) => {
@@ -352,6 +363,7 @@ export default function EmployeeOnboardingPage({
         });
       } else {
         showToast("error", "missing_employee_id");
+        setLoading(false);
       }
     } else {
       addMutation.mutate(cleanPayload as EmployeeData);

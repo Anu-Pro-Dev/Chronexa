@@ -10,6 +10,7 @@ export const createTabPathMapper = (translations?: any) => {
     'Manage': 'manage',
     'My Punches': 'my-punches',
     'Team Punches': 'team-punches',
+    'Manual Punches': 'manual-punches',
   };
 
   const translatedTabPathMapping: Record<string, string> = {};
@@ -41,16 +42,16 @@ export const createTabPathMapper = (translations?: any) => {
       translatedTabPathMapping[t.leaves.toLowerCase()] = 'leaves';
     }
 
-    if (t.missing_punches) {
-      translatedTabPathMapping[t.missing_punches] = 'missing-punches';
-      translatedTabPathMapping[t.missing_punches.toLowerCase()] = 'missing-punches';
+    if (t.manual_punches) {
+      translatedTabPathMapping[t.manual_punches] = 'manual-punches';
+      translatedTabPathMapping[t.manual_punches.toLowerCase()] = 'manual-punches';
     }
   }
 
   if (translations?.modules?.selfServices) {
     const t = translations.modules.selfServices;
     
-    if (t.my_requests) {
+    if (t.my_request) {
       translatedTabPathMapping[t.my_request] = 'my-request';
       translatedTabPathMapping[t.my_request.toLowerCase()] = 'my-request';
     }
