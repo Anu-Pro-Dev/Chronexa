@@ -851,7 +851,7 @@ export default function EmployeeReports() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="relative bg-accent p-6 rounded-2xl">
           <div className="col-span-2 py-6">
-            <h1 className="font-bold text-xl text-primary">
+            <h1 className="font-medium text-xl text-primary">
               {t.employee_time_attendance_report || 'Employee Time Attendance Report'}
             </h1>
           </div>
@@ -1255,10 +1255,10 @@ export default function EmployeeReports() {
               <div className="px-8 pb-2">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-blue-900">
+                    <span className="text-sm font-regular text-blue-900">
                       {getProgressMessage()}
                     </span>
-                    <span className="text-sm font-bold text-blue-900">
+                    <span className="text-sm font-medium text-blue-900">
                       {exportProgress}%
                     </span>
                   </div>
@@ -1363,7 +1363,7 @@ export default function EmployeeReports() {
       {showReportView && (
         <div className="mt-6 bg-accent p-6 rounded-2xl">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold text-lg text-primary">
+            <h2 className="font-medium text-lg text-primary">
               {t.report_preview || "Report Preview"} ({totalRecords.toLocaleString()} {t.records || "records"})
             </h2>
             <Button
@@ -1463,7 +1463,7 @@ export default function EmployeeReports() {
                   </table>
                   {summaryTotals && (
                     <div className="mt-8 border-t border-grey pt-6">
-                      <h3 className="font-bold text-md text-primary mb-4">
+                      <h3 className="font-medium text-md text-primary mb-4">
                         {t.summary_totals || "Summary Totals"} ({t.current_page || "Current Page"})
                       </h3>
                       <div className="grid grid-cols-3 gap-4">

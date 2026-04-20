@@ -107,7 +107,7 @@ function LeaveAnalyticsCard() {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex flex-row justify-between p-4">
-        <h5 className="text-lg text-text-primary font-bold">
+        <h5 className="text-lg text-text-primary font-medium">
           {translationDefaults.leave_analytics}
         </h5>
         <Select 

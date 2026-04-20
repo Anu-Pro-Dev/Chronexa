@@ -66,9 +66,9 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
     if (dir === "rtl") {
       return (
         <>
-          <span className="px-1 font-medium text-sm text-text-secondary">m</span>
+          <span className="px-1 font-regular text-sm text-text-secondary">m</span>
           {paddedMinutes}
-          <span className="px-1 font-medium text-sm text-text-secondary">h</span>
+          <span className="px-1 font-regular text-sm text-text-secondary">h</span>
           {hours}
         </>
       );
@@ -76,9 +76,9 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
     return (
       <>
         {hours}
-        <span className="px-1 font-medium text-sm text-text-secondary">h</span>
+        <span className="px-1 font-regular text-sm text-text-secondary">h</span>
         {paddedMinutes}
-        <span className="px-1 font-medium text-sm text-text-secondary">m</span>
+        <span className="px-1 font-regular text-sm text-text-secondary">m</span>
       </>
     );
   };
@@ -105,12 +105,12 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
 
   return (
     <div>
-      <div className="flex items-center mt-5 mb-2 font-bold text-3xl">
+      <div className="flex items-center mt-5 mb-2 font-medium text-3xl">
         {Math.floor(animatedValues.totalHours)}
-        <span className="px-1 font-medium text-sm text-text-secondary">h</span>
+        <span className="px-1 font-regular text-sm text-text-secondary">h</span>
         {Math.round((animatedValues.totalHours - Math.floor(animatedValues.totalHours)) * 60).toString().padStart(2, '0')}
-        <span className="px-1 font-medium text-sm text-text-secondary">m</span>
-        <span className="pl-2 font-medium text-sm text-text-secondary">
+        <span className="px-1 font-regular text-sm text-text-secondary">m</span>
+        <span className="pl-2 font-regular text-sm text-text-secondary">
           {t?.exp_work_hrs || "Expected working hours"}
         </span>
       </div>
@@ -127,7 +127,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         </div>
 
         <div className={`flex ${dir === "rtl" ? "justify-start" : "justify-end"} items-center mt-2 mb-1`}>
-          <span className="font-bold text-lg text-primary">
+          <span className="font-medium text-lg text-primary">
             {Math.round(animatedValues.workCompletionPercent)}%
           </span>
         </div>
@@ -137,7 +137,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         <div className="font-semibold text-xs text-text-secondary">
           {t?.worked || "Worked"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
+            className="font-medium text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,
@@ -154,7 +154,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         <div className="font-semibold text-xs text-text-secondary">
           {t?.overtime || "Overtime"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
+            className="font-medium text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,
@@ -171,7 +171,7 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
         <div className="font-semibold text-xs text-text-secondary">
           {t?.pending || "Pending"}
           <p
-            className="font-bold text-xl text-text-primary pl-2 border-l-2 mt-1"
+            className="font-medium text-xl text-text-primary pl-2 border-l-2 mt-1"
             style={{
               paddingLeft: dir === "rtl" ? 0 : "0.5rem",
               paddingRight: dir === "rtl" ? "0.5rem" : 0,

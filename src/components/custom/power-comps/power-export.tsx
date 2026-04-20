@@ -160,7 +160,7 @@ export default function PowerExport({
 
     tableHeaders.forEach((header) => {
       tableHTML += `
-        <th style="padding: 10px; border: 1px solid black; text-align: center; font-weight: bold; text-transform: capitalize;">
+        <th style="padding: 10px; border: 1px solid black; text-align: center; font-weight: medium; text-transform: capitalize;">
           ${header}
         </th>
       `;

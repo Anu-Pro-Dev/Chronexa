@@ -29,7 +29,7 @@ export const EmployeeCardHeader = () => {
   return (
     <div className="flex flex-row justify-between p-4">
       <div className="flex gap-2">
-        <h5 className="cursor-pointer font-bold text-lg text-text-primary">
+        <h5 className="cursor-pointer font-medium text-lg text-text-primary">
           {t?.emp_overview || "Employee Overview"}
         </h5>
       </div>

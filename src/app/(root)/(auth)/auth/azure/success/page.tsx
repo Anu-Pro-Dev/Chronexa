@@ -134,7 +134,7 @@ function Page() {
     <div className="flex flex-col items-center justify-center w-full min-h-screen bg-background">
       <div className="bg-accent p-8 flex flex-col items-center shadow-card rounded-[10px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-5"></div>
-        <h1 className="text-2xl font-bold text-primary mb-2">
+        <h1 className="text-2xl font-medium text-primary mb-2">
           Azure Authentication Success
         </h1>
         <p className="text-sm text-text-primary mb-1">

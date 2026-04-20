@@ -257,7 +257,7 @@ function WorkTrendsCard() {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4">
       <div className="flex flex-row justify-between p-3">
-        <h5 className="text-lg text-text-primary font-bold">
+        <h5 className="text-lg text-text-primary font-medium">
           {t?.work_hrs_trends}
         </h5>
 
@@ -360,7 +360,7 @@ function WorkTrendsCard() {
 
           {!hasAnyData && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <p className="text-text-secondary font-medium text-center">
+              <p className="text-text-secondary font-regular text-center">
                 {translations?.no_data || "لا توجد بيانات متاحة"}
               </p>
             </div>

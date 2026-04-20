@@ -47,7 +47,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange }) => {
                 className="flex gap-3 justify-between items-center px-2 py-3 hover:bg-backdrop hover:text-primary"
                 onClick={() => handleColorChange(color)} 
               >
-                <span className="uppercase font-medium text-sm">{color}</span>
+                <span className="uppercase font-regular text-sm">{color}</span>
                 <div
                   className="w-4 h-4"
                   style={{ backgroundColor: color }}

@@ -292,7 +292,7 @@ export default function Page() {
         const { email_status_display, email_status_color, email_status_bg } = params.data;
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${email_status_bg} ${email_status_color}`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-regular ${email_status_bg} ${email_status_color}`}
           >
             {email_status_display}
           </span>

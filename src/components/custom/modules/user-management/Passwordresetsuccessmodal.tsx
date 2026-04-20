@@ -60,7 +60,7 @@ export default function PasswordResetSuccessModal({
           <div className="w-full p-4 rounded-lg bg-backdrop">
             <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">
               {t.password_reset_sent_to || "Sent To"} :&ensp;
-              <span className="font-mono text-sm font-medium text-primary lowercase break-words select-all">
+              <span className="font-mono text-sm font-regular text-primary lowercase break-words select-all">
                 {email}
               </span>
             </p>

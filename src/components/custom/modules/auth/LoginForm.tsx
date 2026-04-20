@@ -245,7 +245,7 @@ export default function LoginForm() {
               />
               <button
                 type="button"
-                className="text-sm text-primary font-bold"
+                className="text-sm text-primary font-medium"
                 onClick={handleForgotPasswordClick}
                 suppressHydrationWarning
               >

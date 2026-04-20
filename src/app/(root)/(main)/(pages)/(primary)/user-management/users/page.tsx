@@ -56,7 +56,7 @@ function LicenseToggle({
       title={active ? "Click to disable" : "Click to enable"}
       className={`
         inline-flex items-center justify-center rounded-full px-3 py-0.5
-        text-xs font-medium transition-all duration-150 select-none border
+        text-xs font-regular transition-all duration-150 select-none border
         ${saving ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-75"}
         ${active
           ? "bg-success/10 text-success border-success/30"

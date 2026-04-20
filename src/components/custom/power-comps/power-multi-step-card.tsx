@@ -65,7 +65,7 @@ export default function PowerMultiStepCard({
               if (!isCurrentPage) handleTabChange(page.state_route);
             }}
           >
-            <h1 className="font-bold text-xl text-primary flex items-center justify-between">
+            <h1 className="font-medium text-xl text-primary flex items-center justify-between">
               {page.title}
               {!isCurrentPage && <DropDownIcon width="26px" height="36px" />}
             </h1>

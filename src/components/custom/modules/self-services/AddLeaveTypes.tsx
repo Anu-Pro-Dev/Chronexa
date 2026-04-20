@@ -658,7 +658,7 @@ export default function AddLeaveTypes({
                 name="leave_attributes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel><div className="mb-6 font-bold text-[15px]">{t.leave_attributes || "Leave Attributes:"}</div></FormLabel>
+                    <FormLabel><div className="mb-6 font-medium text-[15px]">{t.leave_attributes || "Leave Attributes:"}</div></FormLabel>
                     <FormControl>
                       <div className="grid grid-cols-3 gap-y-3 text-sm">
                         {[

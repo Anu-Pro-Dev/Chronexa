@@ -87,7 +87,7 @@ export default function Page() {
             </div>
             {hasChildren && (
               <span
-                className={`px-2 py-1 text-sm font-bold rounded ${
+                className={`px-2 py-1 text-sm font-medium rounded ${
                   isExpanded ? "bg-white bg-opacity-20 text-white" : "bg-backdrop text-primary"
                 }`}
               >

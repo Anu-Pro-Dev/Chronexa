@@ -343,7 +343,7 @@ export default function AddEmployeeSchedule({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl">
-        <h1 className="text-primary text-lg font-bold mb-4">
+        <h1 className="text-primary text-lg font-medium mb-4">
           {isEditMode ? t.edit_employee_schedule || "Edit Employee Schedule" : t.employee_schedule || "Employee Schedule"}
         </h1>
         <div className="flex flex-col gap-6 px-5">

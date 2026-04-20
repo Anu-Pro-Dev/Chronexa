@@ -86,7 +86,7 @@ export default function SocketTestPage() {
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="bg-white p-6 rounded-lg shadow">
-          <h1 className="text-3xl font-bold mb-2">Socket.IO Connection Test</h1>
+          <h1 className="text-3xl font-medium mb-2">Socket.IO Connection Test</h1>
           <p className="text-gray-600">Check your browser console (F12) for detailed logs</p>
         </div>
 
@@ -95,7 +95,7 @@ export default function SocketTestPage() {
             <div className="flex items-start gap-3">
               <div className="text-red-600 text-2xl">⚠️</div>
               <div className="flex-1">
-                <h3 className="font-bold text-red-800 mb-1">Authentication Required</h3>
+                <h3 className="font-medium text-red-800 mb-1">Authentication Required</h3>
                 <p className="text-red-700 text-sm mb-3">{authError}</p>
                 <button
                   onClick={handleGoToLogin}
@@ -110,7 +110,7 @@ export default function SocketTestPage() {
 
         {/* Auth Status */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Authentication Status</h2>
+          <h2 className="text-xl font-medium mb-4">Authentication Status</h2>
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2">
               <span className="font-semibold">Token:</span>
@@ -134,17 +134,17 @@ export default function SocketTestPage() {
               <div className="mt-4 p-3 bg-gray-50 rounded border border-gray-200">
                 <div className="font-semibold mb-2">User Details:</div>
                 <div className="space-y-1 text-xs">
-                  <div><span className="font-medium">Name:</span> {userData.employeename?.firsteng} {userData.employeename?.lasteng}</div>
+                  <div><span className="font-regular">Name:</span> {userData.employeename?.firsteng} {userData.employeename?.lasteng}</div>
                   {userData.employeename?.firstarb && (
-                    <div><span className="font-medium">Arabic:</span> {userData.employeename.firstarb}</div>
+                    <div><span className="font-regular">Arabic:</span> {userData.employeename.firstarb}</div>
                   )}
-                  <div><span className="font-medium">Role:</span> {userData.role}</div>
-                  <div><span className="font-medium">Employee #:</span> {userData.employeenumber}</div>
-                  <div><span className="font-medium">Subject ID:</span> {userData.subjectId}</div>
-                  <div><span className="font-medium">Geofence:</span> {userData.isGeofence ? 'Enabled' : 'Disabled'}</div>
-                  <div><span className="font-medium">Radius:</span> {userData.radius}m</div>
+                  <div><span className="font-regular">Role:</span> {userData.role}</div>
+                  <div><span className="font-regular">Employee #:</span> {userData.employeenumber}</div>
+                  <div><span className="font-regular">Subject ID:</span> {userData.subjectId}</div>
+                  <div><span className="font-regular">Geofence:</span> {userData.isGeofence ? 'Enabled' : 'Disabled'}</div>
+                  <div><span className="font-regular">Radius:</span> {userData.radius}m</div>
                   {userData.lastTransaction && (
-                    <div><span className="font-medium">Last Transaction:</span> {userData.lastTransaction.type} at {new Date(userData.lastTransaction.date).toLocaleString()}</div>
+                    <div><span className="font-regular">Last Transaction:</span> {userData.lastTransaction.type} at {new Date(userData.lastTransaction.date).toLocaleString()}</div>
                   )}
                 </div>
               </div>
@@ -154,7 +154,7 @@ export default function SocketTestPage() {
 
         {/* Connection Status */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Connection Status</h2>
+          <h2 className="text-xl font-medium mb-4">Connection Status</h2>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
@@ -191,7 +191,7 @@ export default function SocketTestPage() {
 
         {/* Actions */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Actions</h2>
+          <h2 className="text-xl font-medium mb-4">Actions</h2>
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleSendTest}
@@ -243,7 +243,7 @@ export default function SocketTestPage() {
 
         {/* Events Sent */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Events Sent</h2>
+          <h2 className="text-xl font-medium mb-4">Events Sent</h2>
           <div className="bg-gray-50 p-4 rounded max-h-48 overflow-auto font-mono text-sm">
             {events.length === 0 ? (
               <div className="text-gray-400">No events sent yet...</div>
@@ -257,7 +257,7 @@ export default function SocketTestPage() {
 
         {/* Messages Received */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Messages Received</h2>
+          <h2 className="text-xl font-medium mb-4">Messages Received</h2>
           <div className="bg-gray-50 p-4 rounded max-h-64 overflow-auto font-mono text-sm">
             {messages.length === 0 ? (
               <div className="text-gray-400">No messages received yet...</div>
@@ -271,7 +271,7 @@ export default function SocketTestPage() {
 
         {/* Instructions */}
         <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-          <h3 className="font-bold mb-2">📋 How to Use:</h3>
+          <h3 className="font-medium mb-2">📋 How to Use:</h3>
           <ol className="list-decimal list-inside space-y-1 text-sm">
             <li><strong>Login Required</strong> - You must be logged in to test the Socket connection</li>
             <li>This page automatically loads your authentication from the login session</li>

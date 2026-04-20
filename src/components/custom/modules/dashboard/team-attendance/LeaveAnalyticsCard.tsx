@@ -158,13 +158,13 @@ export default function LeaveAnalyticsCard() {
         <p className="font-semibold mb-2">{data.month}</p>
         <div className="space-y-1 text-sm">
           <p style={{ color: '#3b82f6' }}>
-            Total Leaves: <span className="font-bold">{data.totalLeaves}</span>
+            Total Leaves: <span className="font-medium">{data.totalLeaves}</span>
           </p>
           <p style={{ color: '#8b5cf6' }}>
-            Employees: <span className="font-bold">{data.employeesOnLeave}</span>
+            Employees: <span className="font-medium">{data.employeesOnLeave}</span>
           </p>
           <p className="text-muted-foreground">
-            Avg: <span className="font-bold">{data.avgPerEmployee.toFixed(1)}</span>
+            Avg: <span className="font-medium">{data.avgPerEmployee.toFixed(1)}</span>
           </p>
         </div>
         
@@ -193,7 +193,7 @@ export default function LeaveAnalyticsCard() {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex justify-between p-4">
-        <h5 className="text-lg font-bold text-text-primary">
+        <h5 className="text-lg font-medium text-text-primary">
           {translationDefaults.leave_analytics}
         </h5>
 
@@ -254,13 +254,13 @@ export default function LeaveAnalyticsCard() {
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-4 px-4 pb-4 pt-2">
         <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-2xl font-bold" style={{ color: '#3b82f6' }}>
+          <p className="text-2xl font-medium" style={{ color: '#3b82f6' }}>
             {summaryStats.totalYearLeaves}
           </p>
           <p className="text-xs text-muted-foreground">{translationDefaults.total_leaves}</p>
         </div>
         <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-lg font-bold" style={{ color: '#8b5cf6' }}>
+          <p className="text-lg font-medium" style={{ color: '#8b5cf6' }}>
             {summaryStats.peakMonth}
           </p>
           <p className="text-xs text-muted-foreground">{translationDefaults.peak_month}</p>
@@ -269,7 +269,7 @@ export default function LeaveAnalyticsCard() {
           </p>
         </div>
         <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-2xl font-bold" style={{ color: '#10b981' }}>
+          <p className="text-2xl font-medium" style={{ color: '#10b981' }}>
             {summaryStats.avgPerEmployee.toFixed(1)}
           </p>
           <p className="text-xs text-muted-foreground">{translationDefaults.avg_per_employee}</p>

@@ -62,7 +62,7 @@ export function PunchButton() {
     return (
       <Button
         variant={"gradient"}
-        className="flex items-center px-3 gap-2 rounded-md font-bold text-sm text-white hover:opacity-90"
+        className="flex items-center px-3 gap-2 rounded-md font-medium text-sm text-white hover:opacity-90"
         disabled
       >
         <PunchInIcon/>
@@ -75,7 +75,7 @@ export function PunchButton() {
     <Button
       onClick={handlePunchClick}
       variant={"gradient"}
-      className="flex items-center px-3 gap-2 rounded-md font-bold text-sm text-white hover:opacity-90"
+      className="flex items-center px-3 gap-2 rounded-md font-medium text-sm text-white hover:opacity-90"
       disabled={isLoading || !employeeId}
     >
       {isLoading ? (

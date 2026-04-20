@@ -14,7 +14,7 @@ export default function SocketStatusIndicator() {
               : 'bg-red-500'
           }`} 
         />
-        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+        <span className="text-xs font-regular text-gray-700 dark:text-gray-300">
           {isConnected ? 'Live' : 'Offline'}
         </span>
       </div>

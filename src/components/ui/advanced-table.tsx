@@ -302,7 +302,7 @@ const TableHeader = <T extends Record<string, any>>({
           <th
             key={column.key as string}
             className={cn(
-              "h-11 px-4 text-left text-sm font-medium text-muted-foreground",
+              "h-11 px-4 text-left text-sm font-regular text-muted-foreground",
               "border-r border-border",
               column.sortable && "cursor-pointer select-none",
               isSticky && "sticky bg-background",

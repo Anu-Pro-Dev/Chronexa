@@ -375,7 +375,7 @@ export default function AddWorkflow() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
         <div className="bg-accent p-6 rounded-2xl">
           <div className="pb-5">
-            <h1 className="font-bold text-xl text-primary">
+            <h1 className="font-medium text-xl text-primary">
               {selectedRow ? t.edit_workflow || "Edit Workflow" : t.generate_workflows || "Generate the workflows"}
             </h1>
           </div>

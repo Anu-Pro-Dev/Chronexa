@@ -66,8 +66,8 @@ export default function PowerTabs() {
               href={tab.url}
               className={
                 isActiveTab
-                  ? "text-primary text-base underline underline-offset-[14px] font-bold"
-                  : "text-text-secondary font-medium hover:text-primary transition-colors duration-200"
+                  ? "text-primary text-base underline underline-offset-[14px] font-medium"
+                  : "text-text-secondary font-regular hover:text-primary transition-colors duration-200"
               }
             >
               {tab.label}

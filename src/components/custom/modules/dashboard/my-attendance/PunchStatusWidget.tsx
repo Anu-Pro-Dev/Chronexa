@@ -275,7 +275,7 @@ function PunchStatusWidget({
                   <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                 </svg>
                 <div>
-                  <p className="text-blue-900 dark:text-blue-100 font-medium">
+                  <p className="text-blue-900 dark:text-blue-100 font-regular">
                     {t?.enable_notifications || "Enable notifications"}
                   </p>
                   <p className="text-blue-700 dark:text-blue-300 text-xs mt-1">
@@ -294,10 +294,10 @@ function PunchStatusWidget({
                 <PunchInIcon />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-regular">
                   {t?.punch_in || "Punch In"}
                 </p>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">{punchInTime}</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{punchInTime}</p>
               </div>
             </div>
 
@@ -308,14 +308,14 @@ function PunchStatusWidget({
                 <PunchOutIcon />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-regular">
                   {hasPunchedOut
                     ? (t?.punch_out || "Punch Out")
                     : (t?.expected_punch_out || "Expected Punch Out")
                   }
                 </p>
                 <p
-                  className={`text-lg font-bold ${hasPunchedOut
+                  className={`text-lg font-medium ${hasPunchedOut
                     ? "text-gray-900 dark:text-white"
                     : timeRemaining?.isOvertime
                       ? "text-red-600 dark:text-red-400"
