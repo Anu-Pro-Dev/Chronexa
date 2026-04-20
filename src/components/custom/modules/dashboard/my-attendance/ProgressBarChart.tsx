@@ -83,6 +83,25 @@ const ProgressBarChart: React.FC<ProgressBarChartProps> = ({
     );
   };
 
+  // Helper function for RTL hrs placement
+  const formatHours = (value: number) => {
+    const formatted = value.toFixed(2);
+    if (dir === "rtl") {
+      return (
+        <>
+          <span className="px-1 font-medium text-sm text-text-secondary">hrs</span>
+          {formatted}
+        </>
+      );
+    }
+    return (
+      <>
+        {formatted}
+        <span className="px-1 font-medium text-sm text-text-secondary">hrs</span>
+      </>
+    );
+  };
+
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();

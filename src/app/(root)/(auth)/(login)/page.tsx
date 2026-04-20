@@ -5,7 +5,7 @@ import LoginForm from "@/src/components/custom/modules/auth/LoginForm";
 import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 import PageTransitionProvider from "@/src/components/custom/common/page-transition";
 import IconLanguageSwitcher from "@/src/components/custom/common/icon-language-switcher";
-
+        
 export default function Login() {
   const { language } = useLiteLanguage();
   const [isDarkMode, setIsDarkMode] = useState(false);

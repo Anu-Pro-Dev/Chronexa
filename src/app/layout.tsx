@@ -4,7 +4,7 @@ import { RoleInitializer } from '../providers/RoleInitializer';
 import '@/src/styles/globals.css'
 
 export const metadata = {
-  title: 'Chronexa',
+  title: 'Federal Geographic Information Center',
   description: 'Time & Attendance Management System',
   icons: { icon: '/favicon.ico' }
 };

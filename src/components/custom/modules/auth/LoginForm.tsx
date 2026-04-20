@@ -159,7 +159,6 @@ export default function LoginForm() {
       console.error("Azure AD redirect failed:", error);
     }
   };
-
   return (
     <>
       <Form {...loginForm}>

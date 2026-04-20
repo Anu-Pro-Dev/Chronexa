@@ -186,7 +186,7 @@ export default function Page() {
         <span>Download</span>
       </button>
     );
-  }, [showToast]);
+  }, []);
 
   const columns = useMemo(() => (
     [

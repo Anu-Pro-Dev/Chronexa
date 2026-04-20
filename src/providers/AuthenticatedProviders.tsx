@@ -18,3 +18,4 @@ export default function AuthenticatedProviders({ children }: { children: React.R
     </LanguageProvider>
   );
 }
+
