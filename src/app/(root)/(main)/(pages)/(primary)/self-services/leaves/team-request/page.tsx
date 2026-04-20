@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import PowerTabs from "@/src/components/custom/power-comps/power-tabs";
@@ -27,7 +27,6 @@ export default function Page() {
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
   const showToast = useShowToast();
 
-  const [columns, setColumns] = useState<{ field: string; headerName: string; cellRenderer?: (data: any) => any }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("leave_id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -189,8 +188,8 @@ export default function Page() {
     );
   }, [showToast]);
 
-  useEffect(() => {
-    setColumns([
+  const columns = useMemo(() => (
+    [
       { field: "emp_no", headerName: t.employee_no || "Employee No" },
       { field: "leave_type_name", headerName: t.leave_type || "Leave Type" },
       { field: "firstName", headerName: t.employee_name || "Employee Name" },
@@ -200,11 +199,11 @@ export default function Page() {
       {
         field: "leave_doc_filename_path",
         headerName: t.attachment || "Attachment",
-        cellRenderer: AttachmentCellRenderer
+        cellRenderer: AttachmentCellRenderer,
       },
       { field: "leave_status", headerName: t.status || "Status" },
-    ]);
-  }, [language, t, AttachmentCellRenderer]);
+    ] as { field: string; headerName: string; cellRenderer?: (data: any) => any }[]
+  ), [t, AttachmentCellRenderer]);
 
   // Role-based API routing:
   //   admin   → GET /employeeLeave/all          (full org visibility)

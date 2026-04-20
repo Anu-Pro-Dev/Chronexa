@@ -421,6 +421,8 @@ export const addSecUserRequest = async (data: {
   employee_id: number;
   login: string;
   password: string;
+  access_control_panel?: boolean;
+  app_type?: "ontime" | "fieldtrack";
 }) => {
   return apiRequest("/secuser/add", "POST", data);
 };

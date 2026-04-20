@@ -310,7 +310,7 @@ export default function Page() {
       open,
       on_open_change: setOpen,
       filter_open: false,
-      filter_on_open_change: () => {},
+      filter_on_open_change: () => { },
       selectedRows,
       setSelectedRows,
       isLoading,
@@ -342,7 +342,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.userManagement?.items}
         entityName="secuser/spark"
-        modal_title={t.create_user || "Create User"}
+        modal_title={selectedRowData ? (t.edit_user || "Edit User") : (t.create_user || "Create User")}
         modal_component={modalComponent}
         size="medium"
       />
