@@ -16,18 +16,11 @@ import { Checkbox } from "@/src/components/ui/checkbox";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import { PDFExporter } from './PDFExporter';
 import { ExcelExporter } from './ExcelExporter';
 import { CSVExporter } from './CSVExporter';
 import { CalendarIcon } from "@/src/icons/icons";
 import { Eye, Download, Trash2Icon } from "lucide-react";
-
-const SPARK_ADMIN_PARAMS = {
-  employee_type_ids: '26',
-  parent_orgid: '3',
-  organization_id: '27',
-} as const;
 
 const formSchema = z.object({
   vertical: z.string().optional(),
@@ -45,8 +38,6 @@ export default function EmployeeReports() {
   const t = translations?.modules?.reports || {};
   const showToast = useShowToast();
 
-  const { userRole } = useAuthGuard();
-  const isSparkAdmin = userRole === 'SPARK_ADMIN';
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,17 +49,14 @@ export default function EmployeeReports() {
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
-
   const [verticalSearchTerm, setVerticalSearchTerm] = useState("");
   const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
-
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [selectedEmployeeTypes, setSelectedEmployeeTypes] = useState<string[]>([]);
-
   const [showReportView, setShowReportView] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [loadingReportData, setLoadingReportData] = useState(false);
@@ -77,7 +65,6 @@ export default function EmployeeReports() {
   const [showExportButtons, setShowExportButtons] = useState(false);
   const [showViewButton, setShowViewButton] = useState(true);
   const rowsPerPage = 50;
-
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
     total: 0,
@@ -102,39 +89,27 @@ export default function EmployeeReports() {
       if (!selectedCompany) return null;
       return apiRequest(`/dept-org-mapping/by-organization/${selectedCompany}`, "GET");
     },
-    enabled: !!selectedCompany && !isSparkAdmin,
+    enabled: !!selectedCompany,
   });
 
   const getManagerSearchParams = () => {
     const params: any = { manager_flag: "true", limit: "1000", offset: "1" };
-    if (isSparkAdmin) {
-      params.organization_id = SPARK_ADMIN_PARAMS.organization_id;
-    } else {
-      if (selectedCompany) params.organization_id = selectedCompany;
-      if (selectedDepartment) params.department_id = selectedDepartment;
-    }
+    if (selectedCompany) params.organization_id = selectedCompany;
+    if (selectedDepartment) params.department_id = selectedDepartment;
     return { searchParams: params };
   };
 
-  const { data: managers } = useFetchAllEntity(
-    "employee",
-    getManagerSearchParams(),
-  );
+  const { data: managers } = useFetchAllEntity("employee", getManagerSearchParams());
 
   const getEmployeeSearchParams = () => {
     const params: any = { limit: "1000", offset: "1" };
-    if (isSparkAdmin) {
-      params.organization_id = SPARK_ADMIN_PARAMS.organization_id;
-    } else {
-      if (selectedCompany) params.organization_id = selectedCompany;
-      if (selectedDepartment) params.department_id = selectedDepartment;
-    }
+    if (selectedCompany) params.organization_id = selectedCompany;
+    if (selectedDepartment) params.department_id = selectedDepartment;
     if (selectedManagerId) params.manager_id = selectedManagerId;
     return { searchParams: params };
   };
 
   const { data: employees } = useFetchAllEntity("employee", getEmployeeSearchParams());
-
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
   const debouncedVerticalSearch = useCallback(debounce((v: string) => setVerticalSearchTerm(v), 300), []);
@@ -148,9 +123,8 @@ export default function EmployeeReports() {
     queryKey: ["employeeSearch", employeeSearchTerm, selectedCompany, selectedDepartment, selectedManagerId],
     queryFn: async () => {
       let url = `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`;
-      const orgId = isSparkAdmin ? SPARK_ADMIN_PARAMS.organization_id : selectedCompany;
-      if (orgId) url += `&organization_id=${orgId}`;
-      if (!isSparkAdmin && selectedDepartment) url += `&department_id=${selectedDepartment}`;
+      if (selectedCompany) url += `&organization_id=${selectedCompany}`;
+      if (selectedDepartment) url += `&department_id=${selectedDepartment}`;
       if (selectedManagerId) url += `&manager_id=${selectedManagerId}`;
       return apiRequest(url, "GET");
     },
@@ -161,9 +135,8 @@ export default function EmployeeReports() {
     queryKey: ["managerSearch", managerSearchTerm, selectedCompany, selectedDepartment],
     queryFn: async () => {
       let url = `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`;
-      const orgId = isSparkAdmin ? SPARK_ADMIN_PARAMS.organization_id : selectedCompany;
-      if (orgId) url += `&organization_id=${orgId}`;
-      if (!isSparkAdmin && selectedDepartment) url += `&department_id=${selectedDepartment}`;
+      if (selectedCompany) url += `&organization_id=${selectedCompany}`;
+      if (selectedDepartment) url += `&department_id=${selectedDepartment}`;
       return apiRequest(url, "GET");
     },
     enabled: managerSearchTerm.length > 0,
@@ -173,7 +146,7 @@ export default function EmployeeReports() {
     if (!organizations?.data) return [];
     const parentMap = new Map();
     organizations.data.forEach((item: any) => {
-      if (item.organizations) {
+      if (item.organizations && item.organizations.organization_type_id === 2) {
         parentMap.set(item.organizations.organization_id, {
           organization_id: item.organizations.organization_id,
           organization_eng: item.organizations.organization_eng,
@@ -273,7 +246,6 @@ export default function EmployeeReports() {
     });
   };
 
-  // UPDATED: headerMap to match sp_employee_daily_report column names
   const headerMap: Record<string, string> = {
     EmployeeNo: "Emp No",
     Name: "Employee Name",
@@ -301,7 +273,6 @@ export default function EmployeeReports() {
 
   const isSingleEmployee = selectedEmployees.length === 1;
 
-  // UPDATED: getViewHeaders to use correct column names
   const getViewHeaders = () => {
     if (isSingleEmployee) {
       return [
@@ -319,10 +290,8 @@ export default function EmployeeReports() {
 
   const viewHeaders = getViewHeaders();
 
-  // UPDATED: formatCellValue to handle new column names
   const formatCellValue = (header: string, value: any): string => {
     if (value === null || value === undefined || value === '') return '-';
-
     if (header === 'WorkDate') {
       try {
         const date = new Date(value);
@@ -331,33 +300,19 @@ export default function EmployeeReports() {
         return value;
       }
     }
-
-    // PunchIn and PunchOut are already formatted as HH:mm:ss strings from SP
-    if (header === 'PunchIn' || header === 'PunchOut') {
-      return value || '-';
-    }
-
-    // Time columns are already formatted as HH:mm:ss strings from SP
-    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) {
-      return value || '-';
-    }
-
-    // IsAbsent contains the status string directly (Absent, WeekOff, WFH, leave remarks, or empty)
+    if (header === 'PunchIn' || header === 'PunchOut') return value || '-';
+    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) return value || '-';
     if (header === 'IsAbsent') {
       if (!value || value === '') return 'Present';
       return value;
     }
-
-    // MissedPunch contains the status string directly (Missed IN, Missed OUT, or empty)
     if (header === 'MissedPunch') {
       if (!value || value === '') return '-';
       return value;
     }
-
     return String(value);
   };
 
-  // UPDATED: calculateSummaryTotals to use correct column names
   const calculateSummaryTotals = (dataArray: any[]) => {
     const parseTimeToMinutes = (value: any) => {
       if (!value || value === '-') return 0;
@@ -368,31 +323,27 @@ export default function EmployeeReports() {
       }
       return (parseFloat(strValue) || 0) * 60;
     };
-
     const totals = {
       totalWorkedMinutes: 0,
       totalMissedMinutes: 0,
       totalExtraMinutes: 0,
     };
-
     dataArray.forEach((row: any) => {
       totals.totalWorkedMinutes += parseTimeToMinutes(row.DailyWorkedHrs);
       totals.totalMissedMinutes += parseTimeToMinutes(row.DailyMissedHrs);
       totals.totalExtraMinutes += parseTimeToMinutes(row.DailyExtraWork);
     });
-
     const fmt = (mins: number) => {
       const h = Math.floor(Math.abs(mins) / 60);
       const m = Math.round(Math.abs(mins) % 60);
       return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     };
-
     return {
       totalWorkedHours: fmt(totals.totalWorkedMinutes),
       totalMissedHours: fmt(totals.totalMissedMinutes),
       totalExtraHours: fmt(totals.totalExtraMinutes),
-      totalLateInHours: "00:00",      // Not tracked in current SP
-      totalEarlyOutHours: "00:00",    // Not tracked in current SP
+      totalLateInHours: "00:00",
+      totalEarlyOutHours: "00:00",
       totalAbsents: dataArray.filter(row => row.IsAbsent === 'Absent').length.toString(),
     };
   };
@@ -411,47 +362,32 @@ export default function EmployeeReports() {
   const buildQueryParams = (): Record<string, string> => {
     const params: Record<string, string> = {};
     const values = form.getValues();
-
-    if (isSparkAdmin) {
-      params.parent_orgid = SPARK_ADMIN_PARAMS.parent_orgid;
-      params.organization_id = SPARK_ADMIN_PARAMS.organization_id;
-    } else {
-      if (values.vertical) params.parent_orgid = values.vertical;
-      if (values.company) params.organization_id = values.company;
-      if (values.department) params.department_id = values.department;
-    }
-
+    if (values.vertical) params.parent_orgid = values.vertical;
+    if (values.company) params.organization_id = values.company;
+    if (values.department) params.department_id = values.department;
     if (values.manager_id) params.manager_id = values.manager_id;
     if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
     if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
-
     return params;
   };
 
   const buildUrl = (params: Record<string, string>, page?: number): string => {
     const queryParts: string[] = [];
-
-    if (isSparkAdmin && selectedEmployeeTypes.length === 0) {
-      queryParts.push(`employee_type_ids=${SPARK_ADMIN_PARAMS.employee_type_ids}`);
-    } else if (selectedEmployeeTypes.length > 0) {
+    if (selectedEmployeeTypes.length > 0) {
       queryParts.push(`employee_type_ids=${selectedEmployeeTypes.join(',')}`);
     }
-
     if (selectedEmployees.length > 0) {
       queryParts.push(`employee_ids=${selectedEmployees.join(',')}`);
     }
-
     if (page !== undefined) {
       queryParts.push(`limit=${rowsPerPage}`);
       queryParts.push(`offset=${(page - 1) * rowsPerPage}`);
     }
-
     Object.entries(params)
       .filter(([_, value]) => value !== undefined && value !== null && value !== '')
       .forEach(([key, value]) => {
         queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
       });
-
     const queryString = queryParts.join('&');
     return `/report/attendance${queryString ? `?${queryString}` : ''}`;
   };
@@ -462,11 +398,8 @@ export default function EmployeeReports() {
       const params = buildQueryParams();
       const url = buildUrl(params, page);
       const response = await apiRequest(url, "GET");
-
-      // Handle the actual API response structure
       const data = response?.data || [];
       const total = response?.total || data.length;
-
       setReportData(data);
       setTotalRecords(total);
       setCurrentPage(page);
@@ -480,7 +413,7 @@ export default function EmployeeReports() {
       setLoadingReportData(false);
     }
   };
-  
+
   const handleViewReport = async () => {
     try {
       setShowReportView(true);
@@ -506,11 +439,6 @@ export default function EmployeeReports() {
     ...form.getValues(),
     employee_ids: selectedEmployees,
     employee_type_ids: selectedEmployeeTypes,
-    ...(isSparkAdmin && {
-      vertical: SPARK_ADMIN_PARAMS.parent_orgid,
-      company: SPARK_ADMIN_PARAMS.organization_id,
-      _sparkAdminEmployeeTypeIds: SPARK_ADMIN_PARAMS.employee_type_ids,
-    }),
   });
 
   const handleExportCSV = async () => {
@@ -643,7 +571,6 @@ export default function EmployeeReports() {
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
   const summaryTotals = reportData.length > 0 ? calculateSummaryTotals(reportData) : null;
 
-  // UPDATED: singleEmployeeInfo to use correct column names
   const singleEmployeeInfo = isSingleEmployee && reportData.length > 0
     ? {
       name: reportData[0]?.Name,
@@ -660,13 +587,11 @@ export default function EmployeeReports() {
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="relative bg-accent p-6 rounded-2xl">
-
           <div className="col-span-2 py-6">
             <h1 className="font-medium text-xl text-primary">
               {t.employee_time_attendance_report || 'Employee Time Attendance Report'}
             </h1>
           </div>
-
           <div>
             <p
               className={`text-xs text-primary rounded-md px-2 py-2 font-semibold bg-backdrop absolute -top-[50px] ${language === "ar" ? "left-0" : "right-0"}`}
@@ -675,207 +600,198 @@ export default function EmployeeReports() {
               {t.view_before_export || 'View the report on-screen first, then export to PDF, or CSV as needed.'}
             </p>
           </div>
-
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
 
-                {/* ── VERTICAL (hidden for SPARK_ADMIN) ──────────────────── */}
-                {!isSparkAdmin && (
-                  <FormField
-                    control={form.control}
-                    name="vertical"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex gap-1">{t.vertical || 'Vertical'}</FormLabel>
-                        <Select
-                          onValueChange={(val) => {
-                            field.onChange(val);
-                            form.setValue("company", undefined);
-                            form.setValue("department", undefined);
-                            form.setValue("manager_id", undefined);
-                            form.setValue("employee", undefined);
-                          }}
-                          value={field.value || ""}
+                {/* ── VERTICAL ──────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="vertical"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.vertical || 'Vertical'}</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("company", undefined);
+                          form.setValue("department", undefined);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={t.placeholder_vertical || "Choose vertical"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_verticals || "Search verticals..."}
+                          onSearchChange={debouncedVerticalSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
-                          <FormControl>
-                            <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                              <SelectValue placeholder={t.placeholder_vertical || "Choose vertical"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent
-                            showSearch={true}
-                            searchPlaceholder={t.search_verticals || "Search verticals..."}
-                            onSearchChange={debouncedVerticalSearch}
-                            className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                          >
-                            {getVerticalData().length === 0 && verticalSearchTerm && (
-                              <div className="p-3 text-sm text-text-secondary">
-                                {t.no_verticals_found || "No verticals found"}
-                              </div>
-                            )}
-                            {getVerticalData().map((item: any) => (
-                              <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                                {language === 'ar' ? item.organization_arb : item.organization_eng}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                          {getVerticalData().length === 0 && verticalSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_verticals_found || "No verticals found"}
+                            </div>
+                          )}
+                          {getVerticalData().map((item: any) => (
+                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                              {language === 'ar' ? item.organization_arb : item.organization_eng}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                {/* ── COMPANY (hidden for SPARK_ADMIN) ───────────────────── */}
-                {!isSparkAdmin && (
-                  <FormField
-                    control={form.control}
-                    name="company"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex gap-1">{t.company || 'Company'}</FormLabel>
-                        <Select
-                          onValueChange={(val) => {
-                            field.onChange(val);
-                            form.setValue("department", undefined);
-                            form.setValue("manager_id", undefined);
-                            form.setValue("employee", undefined);
-                          }}
-                          value={field.value || ""}
-                          disabled={!selectedVertical}
+                {/* ── COMPANY ───────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.company || 'Company'}</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("department", undefined);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                        disabled={!selectedVertical}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={t.placeholder_company || "Choose company"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_companies || "Search companies..."}
+                          onSearchChange={debouncedCompanySearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
-                          <FormControl>
-                            <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                              <SelectValue placeholder={t.placeholder_company || "Choose company"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent
-                            showSearch={true}
-                            searchPlaceholder={t.search_companies || "Search companies..."}
-                            onSearchChange={debouncedCompanySearch}
-                            className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                          >
-                            {getCompanyData().length === 0 && companySearchTerm && (
-                              <div className="p-3 text-sm text-text-secondary">
-                                {t.no_companies_found || "No companies found"}
-                              </div>
-                            )}
-                            {getCompanyData().map((item: any) => (
-                              <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                                {language === 'ar' ? item.organization_arb : item.organization_eng}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                          {getCompanyData().length === 0 && companySearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_companies_found || "No companies found"}
+                            </div>
+                          )}
+                          {getCompanyData().map((item: any) => (
+                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
+                              {language === 'ar' ? item.organization_arb : item.organization_eng}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                {/* ── DEPARTMENT (hidden for SPARK_ADMIN) ────────────────── */}
-                {!isSparkAdmin && (
-                  <FormField
-                    control={form.control}
-                    name="department"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
-                        <Select
-                          onValueChange={(val) => {
-                            field.onChange(val);
-                            form.setValue("manager_id", undefined);
-                            form.setValue("employee", undefined);
-                          }}
-                          value={field.value || ""}
-                          disabled={!selectedCompany || isDepartmentsLoading}
+                {/* ── DEPARTMENT ────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="department"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          form.setValue("manager_id", undefined);
+                          form.setValue("employee", undefined);
+                        }}
+                        value={field.value || ""}
+                        disabled={!selectedCompany || isDepartmentsLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={
+                              isDepartmentsLoading
+                                ? (t.loading_departments || "Loading departments...")
+                                : (t.placeholder_department || "Choose department")
+                            } />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_departments || "Search departments..."}
+                          onSearchChange={debouncedDepartmentSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                         >
-                          <FormControl>
-                            <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                              <SelectValue placeholder={
-                                isDepartmentsLoading
-                                  ? (t.loading_departments || "Loading departments...")
-                                  : (t.placeholder_department || "Choose department")
-                              } />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent
-                            showSearch={true}
-                            searchPlaceholder={t.search_departments || "Search departments..."}
-                            onSearchChange={debouncedDepartmentSearch}
-                            className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                          >
-                            {getDepartmentData().length === 0 && departmentSearchTerm && (
-                              <div className="p-3 text-sm text-text-secondary">
-                                {t.no_departments_found || "No departments found"}
-                              </div>
-                            )}
-                            {getDepartmentData().map((item: any) => (
-                              <SelectItem key={item.department_id} value={item.department_id.toString()}>
-                                {language === 'ar'
-                                  ? (item.department_name_arb || item.department_code)
-                                  : (item.department_name_eng || item.department_code)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                          {getDepartmentData().length === 0 && departmentSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_departments_found || "No departments found"}
+                            </div>
+                          )}
+                          {getDepartmentData().map((item: any) => (
+                            <SelectItem key={item.department_id} value={item.department_id.toString()}>
+                              {language === 'ar'
+                                ? (item.department_name_arb || item.department_code)
+                                : (item.department_name_eng || item.department_code)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                {/* ── EMPLOYEE TYPE (hidden for SPARK_ADMIN) ─────────────── */}
-                {!isSparkAdmin && (
-                  <FormField
-                    control={form.control}
-                    name="employee_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
-                        <Select>
-                          <FormControl>
-                            <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                              <SelectValue placeholder={getEmployeeTypePlaceholderText()} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent
-                            showSearch={true}
-                            searchPlaceholder={t.search_employee_types || "Search employee types..."}
-                            onSearchChange={debouncedEmployeeTypeSearch}
-                            className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                          >
-                            {getEmployeeTypesData().length === 0 && employeeTypeSearchTerm && (
-                              <div className="p-3 text-sm text-text-secondary">
-                                {t.no_employee_types_found || "No employee types found"}
+                {/* ── EMPLOYEE TYPE ─────────────── */}
+                <FormField
+                  control={form.control}
+                  name="employee_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
+                      <Select>
+                        <FormControl>
+                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                            <SelectValue placeholder={getEmployeeTypePlaceholderText()} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent
+                          showSearch={true}
+                          searchPlaceholder={t.search_employee_types || "Search employee types..."}
+                          onSearchChange={debouncedEmployeeTypeSearch}
+                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                        >
+                          {getEmployeeTypesData().length === 0 && employeeTypeSearchTerm && (
+                            <div className="p-3 text-sm text-text-secondary">
+                              {t.no_employee_types_found || "No employee types found"}
+                            </div>
+                          )}
+                          {getEmployeeTypesData().map((item: any) => {
+                            const typeValue = item.employee_type_id.toString();
+                            const isChecked = selectedEmployeeTypes.includes(typeValue);
+                            return (
+                              <div
+                                key={item.employee_type_id}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeTypeToggle(typeValue); }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>
+                                  {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
+                                </span>
                               </div>
-                            )}
-                            {getEmployeeTypesData().map((item: any) => {
-                              const typeValue = item.employee_type_id.toString();
-                              const isChecked = selectedEmployeeTypes.includes(typeValue);
-                              return (
-                                <div
-                                  key={item.employee_type_id}
-                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeTypeToggle(typeValue); }}
-                                >
-                                  <Checkbox checked={isChecked} className="mr-2" />
-                                  <span>
-                                    {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                {/* ── MANAGER (visible to all roles) ────────────────────── */}
+                {/* ── MANAGER ───────────────────── */}
                 <FormField
                   control={form.control}
                   name="manager_id"
@@ -924,7 +840,7 @@ export default function EmployeeReports() {
                   )}
                 />
 
-                {/* ── EMPLOYEE (visible to all roles) ───────────────────── */}
+                {/* ── EMPLOYEE ──────────────────── */}
                 <FormField
                   control={form.control}
                   name="employee"
@@ -978,7 +894,7 @@ export default function EmployeeReports() {
                   )}
                 />
 
-                {/* ── FROM DATE (visible to all roles) ──────────────────── */}
+                {/* ── FROM DATE ─────────────────── */}
                 <FormField
                   control={form.control}
                   name="from_date"
@@ -1015,7 +931,7 @@ export default function EmployeeReports() {
                   )}
                 />
 
-                {/* ── TO DATE (visible to all roles) ────────────────────── */}
+                {/* ── TO DATE ───────────────────── */}
                 <FormField
                   control={form.control}
                   name="to_date"
@@ -1052,11 +968,10 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
-
               </div>
             </div>
 
-            {/* ── Progress Bar ──────────────────────────────────────────── */}
+            {/* ── Progress Bar ─────────────────────────────────────────── */}
             {loading && exportProgress >= 0 && (
               <div className="px-8 pb-2">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1075,25 +990,14 @@ export default function EmployeeReports() {
               </div>
             )}
 
-            {/* ── Action Buttons ─────────────────────────────────────────── */}
+            {/* ── Action Buttons ───────────────────────────────────────── */}
             <div className="flex justify-center gap-2 items-center pb-5">
               <div className="flex gap-4 px-5">
-
-                {/* Clear Filters */}
                 <Button
                   type="button" size="sm" variant="outline"
                   className="flex items-center gap-2"
                   onClick={() => {
-                    if (isSparkAdmin) {
-                      form.reset({
-                        manager_id: undefined,
-                        employee: undefined,
-                        from_date: undefined,
-                        to_date: undefined,
-                      });
-                    } else {
-                      form.reset();
-                    }
+                    form.reset();
                     setSelectedEmployees([]);
                     setSelectedEmployeeTypes([]);
                     setShowReportView(false);
@@ -1106,7 +1010,6 @@ export default function EmployeeReports() {
                   {translations?.buttons?.clear || 'Clear Filters'}
                 </Button>
 
-                {/* View Report */}
                 {showViewButton && (
                   <Button
                     type="button" size="sm"
@@ -1119,7 +1022,6 @@ export default function EmployeeReports() {
                   </Button>
                 )}
 
-                {/* Export buttons — shown after viewing report */}
                 {showExportButtons && reportData.length > 0 && (
                   <>
                     <Button
@@ -1131,7 +1033,6 @@ export default function EmployeeReports() {
                       <Download className="w-4 h-4" />
                       {translations?.buttons?.export_csv || 'Export CSV'}
                     </Button>
-
                     <Button
                       type="button" size="sm"
                       className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
@@ -1163,7 +1064,6 @@ export default function EmployeeReports() {
               {translations?.buttons?.close || "Close"}
             </Button>
           </div>
-
           {loadingReportData ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -1175,7 +1075,6 @@ export default function EmployeeReports() {
           ) : (
             <>
               <div className="w-full">
-                {/* Single employee info card */}
                 {isSingleEmployee && singleEmployeeInfo && (
                   <div className="mb-6 p-4 bg-backdrop rounded-lg border border-grey">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -1211,7 +1110,6 @@ export default function EmployeeReports() {
                   </div>
                 )}
 
-                {/* Data table */}
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
@@ -1247,7 +1145,6 @@ export default function EmployeeReports() {
                     </tbody>
                   </table>
 
-                  {/* Summary totals */}
                   {summaryTotals && (
                     <div className="mt-8 border-t border-grey pt-6">
                       <h3 className="font-medium text-md text-primary mb-4">
@@ -1271,7 +1168,6 @@ export default function EmployeeReports() {
                 </div>
               </div>
 
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-4 mt-6">
                   <Button

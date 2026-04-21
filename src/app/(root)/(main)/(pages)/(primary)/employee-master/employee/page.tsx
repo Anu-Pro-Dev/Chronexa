@@ -16,16 +16,11 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { ChevronsUpDown } from "lucide-react";
 import { DeleteIcon } from "@/src/icons/icons";
 
-const SPARK_ADMIN_ORG_ID = "27";
-
 export default function Page() {
   const { modules, language, translations } = useLanguage();
   const { userRole } = useAuthGuard();
   const router = useRouter();
   const queryClient = useQueryClient();
-
-  const isSparkAdmin = userRole === "SPARK_ADMIN";
-
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -35,10 +30,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  // SPARK_ADMIN: always org 27, filters locked
-  const [selectedOrganization, setSelectedOrganization] = useState<string>(
-    isSparkAdmin ? SPARK_ADMIN_ORG_ID : ""
-  );
+  const [selectedOrganization, setSelectedOrganization] = useState<string>("");
   const [selectedEmployeeType, setSelectedEmployeeType] = useState<string>("");
   const [selectedVertical, setSelectedVertical] = useState<string>("");
   const [popoverStates, setPopoverStates] = useState({
@@ -55,10 +47,7 @@ export default function Page() {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
-      // SPARK_ADMIN always sends organization_id=27; others use filter selection
-      ...(isSparkAdmin
-        ? { organization_id: SPARK_ADMIN_ORG_ID }
-        : selectedOrganization && { organization_id: selectedOrganization }),
+      ...(selectedOrganization && { organization_id: selectedOrganization }),
       ...(selectedEmployeeType && { employee_type_id: selectedEmployeeType }),
     },
   });
@@ -141,10 +130,10 @@ export default function Page() {
         organization_name: organizationMap[emp.organization_id] || "-",
         join_date: emp.join_date
           ? new Date(emp.join_date).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })
           : "-",
       }));
     }
@@ -274,102 +263,96 @@ export default function Page() {
         isAddNewPagePath="/employee-master/employee/add"
       />
 
-      {/* Filter Controls — Vertical and Organization hidden for SPARK_ADMIN */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 xl:max-w-[1050px]">
 
-        {/* Vertical filter — hidden for SPARK_ADMIN */}
-        {!isSparkAdmin && (
-          <div>
-            <Popover
-              open={popoverStates.vertical}
-              onOpenChange={(open) =>
-                setPopoverStates((prev) => ({ ...prev, vertical: open }))
-              }
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
-                >
-                  <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
-                    <Label className="font-normal text-secondary">{t.vertical} :</Label>
-                    <span className="px-1 text-sm text-text-primary">
-                      {selectedVertical
-                        ? verticalData.find(
-                            (item: any) => String(item.organization_id) === selectedVertical
-                          )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                        : t.placeholder_vertical}
-                    </span>
-                  </p>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-                <Command>
-                  <CommandInput placeholder={`${translations?.search || "Search"} ${t.vertical}...`} />
-                  <CommandGroup className="max-h-64 overflow-auto">
-                    {verticalData.map((item: any) => (
-                      <CommandItem
-                        key={item.organization_id}
-                        onSelect={() => handleVerticalChange(String(item.organization_id))}
-                      >
-                        {language === "ar" ? item.organization_arb : item.organization_eng}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
+        <div>
+          <Popover
+            open={popoverStates.vertical}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, vertical: open }))
+            }
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
+              >
+                <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
+                  <Label className="font-normal text-secondary">{t.vertical} :</Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {selectedVertical
+                      ? verticalData.find(
+                        (item: any) => String(item.organization_id) === selectedVertical
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                      : t.placeholder_vertical}
+                  </span>
+                </p>
+                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+              <Command>
+                <CommandInput placeholder={`${translations?.search || "Search"} ${t.vertical}...`} />
+                <CommandGroup className="max-h-64 overflow-auto">
+                  {verticalData.map((item: any) => (
+                    <CommandItem
+                      key={item.organization_id}
+                      onSelect={() => handleVerticalChange(String(item.organization_id))}
+                    >
+                      {language === "ar" ? item.organization_arb : item.organization_eng}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
 
-        {/* Organization filter — hidden for SPARK_ADMIN */}
-        {!isSparkAdmin && (
-          <div>
-            <Popover
-              open={popoverStates.organization}
-              onOpenChange={(open) =>
-                setPopoverStates((prev) => ({ ...prev, organization: open }))
-              }
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
-                >
-                  <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
-                    <Label className="font-normal text-secondary">{t.organization} :</Label>
-                    <span className="px-1 text-sm text-text-primary">
-                      {selectedOrganization
-                        ? organizationsData.find(
-                            (item: any) => String(item.organization_id) === selectedOrganization
-                          )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                        : t.placeholder_organization}
-                    </span>
-                  </p>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-                <Command>
-                  <CommandInput placeholder={`${translations?.search || "Search"} ${t.organization}...`} />
-                  <CommandGroup className="max-h-64 overflow-auto">
-                    {organizationsData.map((item: any) => (
-                      <CommandItem
-                        key={item.organization_id}
-                        onSelect={() => handleOrganizationChange(String(item.organization_id))}
-                      >
-                        {language === "ar" ? item.organization_arb : item.organization_eng}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
+
+        <div>
+          <Popover
+            open={popoverStates.organization}
+            onOpenChange={(open) =>
+              setPopoverStates((prev) => ({ ...prev, organization: open }))
+            }
+          >
+            <PopoverTrigger asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
+              >
+                <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
+                  <Label className="font-normal text-secondary">{t.organization} :</Label>
+                  <span className="px-1 text-sm text-text-primary">
+                    {selectedOrganization
+                      ? organizationsData.find(
+                        (item: any) => String(item.organization_id) === selectedOrganization
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                      : t.placeholder_organization}
+                  </span>
+                </p>
+                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+              <Command>
+                <CommandInput placeholder={`${translations?.search || "Search"} ${t.organization}...`} />
+                <CommandGroup className="max-h-64 overflow-auto">
+                  {organizationsData.map((item: any) => (
+                    <CommandItem
+                      key={item.organization_id}
+                      onSelect={() => handleOrganizationChange(String(item.organization_id))}
+                    >
+                      {language === "ar" ? item.organization_arb : item.organization_eng}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
 
         {/* Employee Type filter — always visible */}
         <div>
@@ -390,8 +373,8 @@ export default function Page() {
                   <span className="px-1 text-sm text-text-primary">
                     {selectedEmployeeType
                       ? employeeTypesData.find(
-                          (item: any) => String(item.employee_type_id) === selectedEmployeeType
-                        )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
+                        (item: any) => String(item.employee_type_id) === selectedEmployeeType
+                      )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
                       : t.placeholder_emp_type}
                   </span>
                 </p>
