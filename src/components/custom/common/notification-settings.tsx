@@ -184,7 +184,7 @@ function NotificationSettingsPanel({
               {/* Enable Notifications */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-regular text-gray-900">
                     {t?.enable_notifications || "Enable Notifications"}
                   </p>
                   <p className="text-xs text-gray-500">
@@ -210,7 +210,7 @@ function NotificationSettingsPanel({
                   {/* Browser Notifications */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-regular text-gray-900">
                         {t?.browser_notifications || "Browser Notifications"}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -241,7 +241,7 @@ function NotificationSettingsPanel({
                   {/* Sound Notifications */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-regular text-gray-900">
                         {t?.sound_notifications || "Sound Notifications"}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -264,7 +264,7 @@ function NotificationSettingsPanel({
 
                   {/* Notification Times */}
                   <div className="pt-2 border-t border-gray-200">
-                    <p className="text-sm font-medium text-gray-900 mb-3">
+                    <p className="text-sm font-regular text-gray-900 mb-3">
                       {t?.notify_before || "Notify me before punch-out"}
                     </p>
                     <div className="space-y-2">

@@ -11,7 +11,7 @@ export default function PowerSearch({ props }: { props: any }) {
     <div className="bg-accent min-w-auto md:min-w-[200px] md:max-w-[250px] px-4 py-3 flex items-center shadow-searchbar rounded-full">
       <SearchIcon className="text-secondary"/>
       <Input
-        className="text-xs bg-transparent border-none outline-none font-medium text-text-primary w-full h-full placeholder-text-secondary"
+        className="text-xs bg-transparent border-none outline-none font-regular text-text-primary w-full h-full placeholder-text-secondary"
         type="search"
         placeholder={`${translations?.search}...`}
         value={props?.SearchValue}

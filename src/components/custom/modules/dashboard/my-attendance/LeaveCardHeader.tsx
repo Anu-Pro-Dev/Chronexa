@@ -16,7 +16,7 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
     <div className="flex flex-row justify-between p-4">
       <div className="flex gap-2">
         <h5
-          className={`cursor-pointer font-bold text-lg ${
+          className={`cursor-pointer font-medium text-lg ${
             page === "Leaves"
               ? "border-b-[2px] border-primary text-primary"
               : "text-text-primary"
@@ -25,9 +25,9 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
         >
           {t?.leaves}
         </h5>
-        <h5 className="cursor-pointer font-bold text-lg text-text-primary">/</h5>
+        <h5 className="cursor-pointer font-medium text-lg text-text-primary">/</h5>
         <h5
-          className={`cursor-pointer font-bold text-lg ${
+          className={`cursor-pointer font-medium text-lg ${
             page === "Permissions"
               ? "border-b-[2px] border-primary text-primary"
               : "text-text-primary"
@@ -39,7 +39,7 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
       </div>
       <Link
         href={getApplyLink()}
-        className="text-primary text-sm font-medium flex items-center justify-center gap-1"
+        className="text-primary text-sm font-regular flex items-center justify-center gap-1"
       >
         {translations?.buttons?.apply}
       </Link>

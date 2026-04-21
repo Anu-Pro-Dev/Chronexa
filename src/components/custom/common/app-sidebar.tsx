@@ -207,7 +207,7 @@ export default function AppSidebar() {
                         )}>
                           {Icon("currentColor")}
                         </span>
-                        {open && <span className="text-sm font-medium">{translatedName}</span>}
+                        {open && <span className="text-sm font-regular">{translatedName}</span>}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

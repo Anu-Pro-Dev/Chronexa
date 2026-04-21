@@ -363,7 +363,7 @@ export default function AddUser({
                               setEmpPopoverOpen(false);
                             }}
                           >
-                            <span className="font-medium text-text-secondary mr-2">
+                            <span className="font-regular text-text-secondary mr-2">
                               {emp.emp_no}
                             </span>
                             {language === "ar"
@@ -433,7 +433,7 @@ export default function AddUser({
                         onChange={(val: boolean) => field.onChange(val)}
                       />
                     </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer font-medium">
+                    <FormLabel className="!mt-0 cursor-pointer font-regular">
                       {t.license || "License"}
                     </FormLabel>
                   </div>
@@ -457,7 +457,7 @@ export default function AddUser({
                         onChange={(val: boolean) => field.onChange(val)}
                       />
                     </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer font-medium">
+                    <FormLabel className="!mt-0 cursor-pointer font-regular">
                       {t.web_app || "Web app"}
                     </FormLabel>
                   </div>

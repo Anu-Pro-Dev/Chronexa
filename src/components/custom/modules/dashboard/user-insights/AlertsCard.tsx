@@ -113,7 +113,7 @@ export default function AlertsCard({ date }: AlertsCardProps) {
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h5 className="text-lg text-text-primary font-bold">Active Alerts</h5>
+          <h5 className="text-lg text-text-primary font-medium">Active Alerts</h5>
           {/* {alertsData && (
             <span className="text-xs text-text-secondary bg-background border border-border rounded-full px-2 py-0.5">
               {alertsData.targetDate}
@@ -141,7 +141,7 @@ export default function AlertsCard({ date }: AlertsCardProps) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <p className={`text-xs font-semibold leading-tight ${style.title}`}>{alert.label}</p>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${style.badge}`}>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${style.badge}`}>
                       {alert.value}
                     </span>
                   </div>

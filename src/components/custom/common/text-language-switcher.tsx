@@ -44,7 +44,7 @@ export default function TextLanguageSwitcher() {
   return (
     <button
       onClick={toggleLanguage}
-      className="text-sm font-bold text-text-primary hover:text-primary cursor-pointer px-5"
+      className="text-sm font-medium text-text-primary hover:text-primary cursor-pointer px-5"
       aria-label="Toggle Language"
     >
       {language === 'en' ? 'العربية' : 'English'}

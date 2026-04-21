@@ -65,17 +65,17 @@ export default function WeeklySummaryCard({ date }: WeeklySummaryCardProps) {
 
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4 h-full flex flex-col">
-      <h5 className="text-lg text-text-primary font-bold pb-3">Weekly Summary</h5>
+      <h5 className="text-lg text-text-primary font-medium pb-3">Weekly Summary</h5>
 
       <div className="grid grid-cols-5 gap-3 flex-1">
         <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-2xl font-bold" style={{ color: COLORS.present }}>
+          <p className="text-2xl font-medium" style={{ color: COLORS.present }}>
             {stats.avgPresent}
           </p>
           <p className="text-xs text-text-secondary mt-0.5">Avg Present / Day</p>
         </div>
         <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-lg font-bold" style={{ color: COLORS.onLeave }}>
+          <p className="text-lg font-medium" style={{ color: COLORS.onLeave }}>
             {stats.bestDay.day}
           </p>
           <p className="text-xs text-text-secondary mt-0.5">Best Day</p>
@@ -84,19 +84,19 @@ export default function WeeklySummaryCard({ date }: WeeklySummaryCardProps) {
           </p>
         </div>
         <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-2xl font-bold" style={{ color: COLORS.absent }}>
+          <p className="text-2xl font-medium" style={{ color: COLORS.absent }}>
             {stats.absenceRate}%
           </p>
           <p className="text-xs text-text-secondary mt-0.5">Absence Rate</p>
         </div>
         <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-2xl font-bold" style={{ color: COLORS.onLeave }}>
+          <p className="text-2xl font-medium" style={{ color: COLORS.onLeave }}>
             {stats.totalOnLeave}
           </p>
           <p className="text-xs text-text-secondary mt-0.5">Total On Leave</p>
         </div>
         <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">
-          <p className="text-lg font-bold" style={{ color: COLORS.absent }}>
+          <p className="text-lg font-medium" style={{ color: COLORS.absent }}>
             {stats.peakAbsentDay.day}
           </p>
           <p className="text-xs text-text-secondary mt-0.5">Peak Absent Day</p>

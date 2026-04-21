@@ -32,7 +32,7 @@ export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between px-1 pb-4">
-        <h5 className="text-lg text-text-primary font-bold">Hourly Attendance Trend</h5>
+        <h5 className="text-lg text-text-primary font-medium">Hourly Attendance Trend</h5>
         <div className="flex items-center gap-3 text-xs text-text-secondary">
           {Object.entries(chartConfig).map(([key, cfg]) => (
             <span key={key} className="flex items-center gap-1">

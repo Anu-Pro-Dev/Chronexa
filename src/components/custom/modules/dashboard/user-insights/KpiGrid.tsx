@@ -69,7 +69,7 @@ function KpiCard({ data }: { data: KpiData }) {
           </div>
         )}
       </div>
-      <p className="text-2xl font-bold text-text-primary leading-none">{data.value}</p>
+      <p className="text-2xl font-medium text-text-primary leading-none">{data.value}</p>
       <p className="text-xs text-text-secondary">{data.subLabel}</p>
       <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden mt-1">
         <div

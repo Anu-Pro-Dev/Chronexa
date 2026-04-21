@@ -52,7 +52,7 @@ export default function DeptTable({ date }: DeptTableProps) {
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6 h-full">
-      <h5 className="text-lg text-text-primary font-bold pb-2">Attendance by Department</h5>
+      <h5 className="text-lg text-text-primary font-medium pb-2">Attendance by Department</h5>
       {deptData.length === 0 ? (
         <p className="text-sm text-text-secondary text-center py-6">No department data for this date</p>
       ) : (
@@ -64,9 +64,9 @@ export default function DeptTable({ date }: DeptTableProps) {
           </colgroup>
           <thead>
             <tr className="text-text-secondary border-b border-border">
-              <th className="pb-2 text-left font-medium">Department</th>
-              <th className="pb-2 text-center font-medium">Present</th>
-              <th className="pb-2 pl-3 font-medium">Coverage</th>
+              <th className="pb-2 text-left font-regular">Department</th>
+              <th className="pb-2 text-center font-regular">Present</th>
+              <th className="pb-2 pl-3 font-regular">Coverage</th>
             </tr>
           </thead>
           <tbody>
@@ -75,7 +75,7 @@ export default function DeptTable({ date }: DeptTableProps) {
               const color = getDeptColor(idx);
               return (
                 <tr key={row.name} className="border-b border-border/50 last:border-0">
-                  <td className="py-3 text-text-primary font-medium">
+                  <td className="py-3 text-text-primary font-regular">
                     <div className="flex items-center gap-2">
                       <span className="inline-block h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                       <span className="truncate">{row.name}</span>

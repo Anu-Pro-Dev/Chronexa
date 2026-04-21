@@ -33,7 +33,7 @@ function NoAccessContent() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white text-gray-700">
-      <h1 className="text-4xl font-bold mb-4 text-destructive">Access Denied</h1>
+      <h1 className="text-4xl font-medium mb-4 text-destructive">Access Denied</h1>
       <p className="mb-6 text-center">{message}</p>
       <button
         onClick={handleLogout}

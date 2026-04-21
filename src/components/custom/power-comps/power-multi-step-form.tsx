@@ -36,8 +36,8 @@ export default function PowerMultiStepForm({ Pages, Page, SetPage, validateCurre
           <div
             key={page.state_route}
             className={cn(
-              "cursor-pointer text-text-secondary font-medium text-base py-2",
-              page.state_route === Page && "border-b-[2px] border-primary text-primary font-bold",
+              "cursor-pointer text-text-secondary font-regular text-base py-2",
+              page.state_route === Page && "border-b-[2px] border-primary text-primary font-medium",
               page.disable && "cursor-not-allowed"
             )}
             onClick={async () => {

@@ -635,7 +635,7 @@ export default function AddPermissionTypes({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      <div className="mb-6 font-bold text-[15px]">
+                      <div className="mb-6 font-medium text-[15px]">
                         {t.perm_attributes || "Permission Attributes:"}
                       </div>
                     </FormLabel>
@@ -698,7 +698,7 @@ export default function AddPermissionTypes({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <div className="mb-6 font-bold text-[15px]">
+                        <div className="mb-6 font-medium text-[15px]">
                           {t.perm_types || "Permission Types:"}
                         </div>
                       </FormLabel>

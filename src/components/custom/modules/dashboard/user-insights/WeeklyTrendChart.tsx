@@ -82,8 +82,8 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2 h-full flex flex-col">
       {/* Header */}
-      <div className="flex flex-row justify-between items-center px-4 py-4">
-        <h5 className="text-lg text-text-primary font-bold pb-2">Weekly Attendance Trend</h5>
+      <div className="flex flex-row justify-between items-center px-4 py-4 pb-6">
+        <h5 className="text-lg text-text-primary font-medium">Weekly Attendance Trend</h5>
         <div className="flex items-center gap-3 text-xs text-text-secondary">
           {LEGEND.map((item) => (
             <span key={item.label} className="flex items-center gap-1.5">

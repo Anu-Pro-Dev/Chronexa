@@ -70,7 +70,7 @@ export default function AddAnnoucement() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <div className="flex flex-col gap-6 bg-accent p-6 rounded-2xl">
           <div className="">
-            <h1 className="font-bold text-xl text-primary">Email Settings</h1>
+            <h1 className="font-medium text-xl text-primary">Email Settings</h1>
           </div>
           <div className="px-5 py-3 flex flex-col">
             <div className="flex justify-start items-center gap-10">

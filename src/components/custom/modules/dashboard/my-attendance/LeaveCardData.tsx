@@ -120,7 +120,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-bold pt-2`}>
+              <p className={`text-2xl ${item.color} font-medium pt-2`}>
                 {formatDisplayValue(item.value, item.isHours)}
               </p>
             </div>
@@ -145,7 +145,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-bold pt-2`}>
+              <p className={`text-2xl ${item.color} font-medium pt-2`}>
                 {formatDisplayValue(item.value, item.isHours)}
               </p>
             </div>

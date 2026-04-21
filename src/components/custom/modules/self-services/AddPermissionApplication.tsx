@@ -605,7 +605,7 @@ export default function AddPermissionApplication({
     <div className="flex flex-col gap-6">
       <div className="bg-accent transition-all duration-300 rounded-xl p-6">
         <div className="flex justify-between items-center">
-          <h1 className="font-bold text-xl text-primary flex items-center justify-between">
+          <h1 className="font-medium text-xl text-primary flex items-center justify-between">
             {displayPageTitle}
           </h1>
           <div>

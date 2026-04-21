@@ -96,7 +96,7 @@ function Calendar({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <span className="text-sm font-medium">
+        <span className="text-sm font-regular">
           {displayYears.from} - {displayYears.to}
         </span>
         <Button
@@ -156,7 +156,7 @@ function Calendar({
         weekday: "text-text-secondary w-8 font-normal text-[0.8rem]",
         month: "gap-y-4 overflow-x-hidden w-full",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium truncate",
+        caption_label: "text-sm font-regular truncate",
         button_next: cn(
           buttonVariants({
             variant: "outline",
@@ -194,7 +194,7 @@ function Calendar({
         },
         CaptionLabel: ({ children }) => (
           <Button
-            className="h-7 w-full truncate text-sm font-medium"
+            className="h-7 w-full truncate text-sm font-regular"
             variant="ghost"
             size="sm"
             onClick={() =>

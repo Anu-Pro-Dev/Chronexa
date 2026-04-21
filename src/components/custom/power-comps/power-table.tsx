@@ -164,7 +164,7 @@ export default function PowerTable({
     backgroundColor: "transparent", 
     oddRowBackgroundColor: "transparent", 
     headerFontSize: 15,
-    headerFontWeight: 700,
+    headerFontWeight: 600,
     headerRowBorder: { width: 1, color: "#EEEEEE" }, 
     headerColumnBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false, 
     rowBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false, 
@@ -323,7 +323,7 @@ export default function PowerTable({
               },
               ...customColDef,
             }}
-            rowStyle={{ fontWeight: "bold" }}
+            rowStyle={{ fontWeight: "500" }}
             components={{
               editIconRenderer: (params: any) => <EditIconRenderer {...params} onEditClick={onEditClick} />,
             }}

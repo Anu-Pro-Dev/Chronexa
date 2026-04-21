@@ -68,7 +68,7 @@ export default function ReprocessData() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-accent p-6 rounded-2xl relative">
         <div className="pb-3">
-          <h1 className="font-bold text-xl text-primary">Reprocess</h1>
+          <h1 className="font-medium text-xl text-primary">Reprocess</h1>
         </div>
         <div className="absolute top-6 right-10">
           {!form.watch("employee") && (

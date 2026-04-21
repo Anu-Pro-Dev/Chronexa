@@ -190,7 +190,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
                 />
                 <label
                   htmlFor={`openShift-${index}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-regular leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   Open shift
                 </label>
@@ -205,7 +205,7 @@ export function ScheduleForm({ data, onChange }: ScheduleFormProps) {
                 />
                 <label
                   htmlFor={`nightShift-${index}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-regular leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   Night shift
                 </label>

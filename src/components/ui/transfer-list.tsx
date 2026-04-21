@@ -104,7 +104,7 @@ export function TransferList({
           <div className="bg-accent border border-border-accent px-4 py-3 flex items-center gap-2 shadow-searchbar rounded-full">
             <SearchIcon className="text-secondary"/>
             <input
-              className="text-xs bg-transparent border-none outline-none font-medium text-text-primary w-full h-full placeholder-text-secondary"
+              className="text-xs bg-transparent border-none outline-none font-regular text-text-primary w-full h-full placeholder-text-secondary"
               placeholder={'Search employee, admins, organizations...'}
               type="search"
               value={searchLeft}
@@ -144,7 +144,7 @@ export function TransferList({
           <div className="bg-accent border border-border-accent px-4 py-3 flex items-center gap-2 shadow-searchbar rounded-full">
             <SearchIcon className="text-secondary"/>
             <input
-              className="text-xs bg-transparent border-none outline-none font-medium text-text-primary w-full h-full placeholder-text-secondary"
+              className="text-xs bg-transparent border-none outline-none font-regular text-text-primary w-full h-full placeholder-text-secondary"
               placeholder={'Search employee, admins, organizations...'}
               type="search"
               value={searchRight}

@@ -63,8 +63,8 @@ function ScheduleCard() {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-5">
       <div className="flex items-center justify-between mb-6">
-        <h5 className="text-lg text-text-primary font-bold">{t?.schedule}</h5>
-        <Link href="/scheduling/weekly-schedule/organization-schedule" className="text-primary text-sm font-medium">
+        <h5 className="text-lg text-text-primary font-medium">{t?.schedule}</h5>
+        <Link href="/scheduling/weekly-schedule/organization-schedule" className="text-primary text-sm font-regular">
           {translations?.buttons?.show_all}
         </Link>
       </div>

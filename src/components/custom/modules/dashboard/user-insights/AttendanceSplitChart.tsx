@@ -58,7 +58,7 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 h-full">
-      <h5 className="text-lg text-text-primary font-bold pb-4">Yesterday's Attendance Split</h5>
+      <h5 className="text-lg text-text-primary font-medium pb-4">Yesterday's Attendance Split</h5>
 
       <div className="flex flex-col items-center gap-4">
         {/* Donut */}
@@ -115,7 +115,7 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
 
       <div className="border-t border-border py-2 flex justify-between text-xs">
         <span className="text-text-secondary">Total Users</span>
-        <span className="font-bold text-text-primary">{totalStaff.toLocaleString()}</span>
+        <span className="font-medium text-text-primary">{totalStaff.toLocaleString()}</span>
       </div>
     </div>
   );

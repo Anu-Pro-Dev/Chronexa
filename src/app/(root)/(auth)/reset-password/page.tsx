@@ -124,7 +124,7 @@ export default function ResetPasswordPage() {
         <div className="flex flex-col gap-5">
           <div className="w-10/12 max-w-[400px] sm:w-[400px] z-50 bg-accent p-6 shadow-popup rounded-[20px] flex flex-col gap-5">
             <div className="flex flex-col text-center gap-2">
-              <div className="text-lg font-bold text-text-primary uppercase">
+              <div className="text-lg font-medium text-text-primary uppercase">
                 {t.reset_password || "RESET PASSWORD"}
               </div>
               <div className="text-base font-semibold text-text-secondary">

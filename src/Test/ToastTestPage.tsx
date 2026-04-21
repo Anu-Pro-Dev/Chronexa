@@ -64,7 +64,7 @@ function ToastTestPage() {
 
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-medium text-gray-900 mb-2">
             Toast Notification Tester
           </h1>
           <p className="text-gray-600 mb-8">
@@ -75,17 +75,17 @@ function ToastTestPage() {
           <div className="bg-gray-50 rounded-lg p-4 mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-sm font-regular text-gray-700">
                   Active Notifications
                 </p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-medium text-blue-600">
                   {notifications.length}
                 </p>
               </div>
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-regular"
                 >
                   Clear All
                 </button>
@@ -102,25 +102,25 @@ function ToastTestPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <button
                   onClick={() => addToast("info")}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium shadow-md hover:shadow-lg"
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-regular shadow-md hover:shadow-lg"
                 >
                   Info Toast
                 </button>
                 <button
                   onClick={() => addToast("warning")}
-                  className="px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-medium shadow-md hover:shadow-lg"
+                  className="px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-regular shadow-md hover:shadow-lg"
                 >
                   Warning Toast
                 </button>
                 <button
                   onClick={() => addToast("success")}
-                  className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium shadow-md hover:shadow-lg"
+                  className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-regular shadow-md hover:shadow-lg"
                 >
                   Success Toast
                 </button>
                 <button
                   onClick={() => addToast("error")}
-                  className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium shadow-md hover:shadow-lg"
+                  className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-regular shadow-md hover:shadow-lg"
                 >
                   Error Toast
                 </button>
@@ -134,19 +134,19 @@ function ToastTestPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <button
                   onClick={() => addToast("info", 2000)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-regular"
                 >
                   Quick (2s)
                 </button>
                 <button
                   onClick={() => addToast("warning", 10000)}
-                  className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
+                  className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-regular"
                 >
                   Medium (10s)
                 </button>
                 <button
                   onClick={() => addToast("error", undefined)}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-regular"
                 >
                   No Auto-Dismiss
                 </button>
@@ -160,7 +160,7 @@ function ToastTestPage() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={addMultipleToasts}
-                  className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
+                  className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-regular"
                 >
                   Multiple Toasts
                 </button>
@@ -176,7 +176,7 @@ function ToastTestPage() {
                       }, i * 300);
                     }
                   }}
-                  className="px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium"
+                  className="px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-regular"
                 >
                   Spam Test (5 Toasts)
                 </button>
@@ -249,7 +249,7 @@ function ToastTestPage() {
                         {toast.type === "error" && "🚨"}
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-regular text-gray-900">
                           {toast.title}
                         </p>
                         <p className="text-xs text-gray-500">

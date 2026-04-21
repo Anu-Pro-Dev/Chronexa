@@ -13,7 +13,7 @@ export default function TranslatedError({
   const key = fieldError.message;
   const translated = translations?.[key] || key;
   return (
-    <p className="text-[0.8rem] font-medium text-destructive px-2 cursor-default mt-1">
+    <p className="text-[0.8rem] font-regular text-destructive px-2 cursor-default mt-1">
       {translated}
     </p>
   );

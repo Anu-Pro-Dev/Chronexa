@@ -57,7 +57,7 @@ export default function Login() {
             />
           </div>
           <div className="flex flex-1 justify-center items-center flex-col bg-fullpage">
-            <div className="flex flex-col justify-center items-center">
+            <div className="flex flex-col justify-center items-center gap-3">
               <div className="transition-all flex gap-2 items-center">
                 <Image
                   width={150}
