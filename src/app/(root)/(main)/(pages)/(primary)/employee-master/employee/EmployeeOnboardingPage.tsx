@@ -34,6 +34,29 @@ type EmployeeData = z.infer<typeof personalFormSchema> &
   z.infer<typeof officialFormSchema> &
   z.infer<typeof flagsFormSchema>;
 
+const normalizeRoleKey = (value: unknown) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+
+const getRoleId = (role: any): number | undefined => {
+  const raw = role?.role_id ?? role?.id;
+  if (typeof raw === "number") return raw;
+  if (typeof raw === "string") {
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+};
+
+const getRoleCandidates = (role: any): string[] => {
+  const candidates = [role?.role_name, role?.name, role?.roleName]
+    .map(normalizeRoleKey)
+    .filter(Boolean);
+  return Array.from(new Set(candidates));
+};
+
 const transformDatesForAPI = (data: any, language: string) => {
   const transformed = { ...data };
   if (data.firstname && data.lastname) {
@@ -78,7 +101,7 @@ export default function EmployeeOnboardingPage({
 
   const fetchRolesIfNeeded = async () => {
     if (rolesCache.length > 0) return rolesCache;
-    
+
     try {
       const rolesRes = await getAllRoles();
       const roles = rolesRes?.data || rolesRes || [];
@@ -101,7 +124,7 @@ export default function EmployeeOnboardingPage({
 
   useEffect(() => {
     if (initializedRef.current) return;
-    
+
     if (mode === "add") {
       clearSelectedRowData();
       initializedRef.current = true;
@@ -255,24 +278,45 @@ export default function EmployeeOnboardingPage({
     const transformed = transformDatesForAPI(data, language);
 
     const employeeResponse = await addEmployeeRequest(transformed);
-    const employee_id = employeeResponse?.data?.employee_id;
+    const employee_id =
+      employeeResponse?.data?.employee_id ??
+      employeeResponse?.employee_id ??
+      employeeResponse?.data?.id ??
+      employeeResponse?.id;
     if (!employee_id) throw new Error("Employee ID not returned");
 
     const { username: login, password } = data;
     if (!login || !password) throw new Error("Missing credentials");
 
     const secUserRes = await addSecUserRequest({ employee_id, login, password });
-    const user_id = secUserRes?.data?.user_id;
+    const user_id = secUserRes?.data?.user_id ?? secUserRes?.user_id ?? secUserRes?.data?.id ?? secUserRes?.id;
     if (!user_id) throw new Error("User ID not returned from SecUser creation");
 
     const roles = await fetchRolesIfNeeded();
     const managerFlag = data.manager_flag;
     const roleName = managerFlag ? "MANAGER" : "EMPLOYEE";
-    const matchedRole = roles.find((r: any) => r.role_name === roleName);
 
-    if (!matchedRole?.role_id) throw new Error(`Role '${roleName}' not found`);
+    const desiredKey = normalizeRoleKey(roleName);
+    const matchedRole =
+      roles.find((r: any) => getRoleCandidates(r).some((c) => c === desiredKey)) ||
+      roles.find((r: any) => getRoleCandidates(r).some((c) => c.includes(desiredKey) || desiredKey.includes(c)));
 
-    await addRoletoUser({ user_id, role_id: matchedRole.role_id });
+    const role_id = getRoleId(matchedRole);
+    if (!role_id) {
+      const available = Array.isArray(roles)
+        ? roles
+          .map((r: any) => r?.role_name || r?.name || r?.roleName)
+          .filter(Boolean)
+          .slice(0, 20)
+        : [];
+      console.warn(
+        "Employee created, but role assignment skipped because role was not found.",
+        { desired: roleName, available }
+      );
+      return employeeResponse;
+    }
+
+    await addRoletoUser({ user_id, role_id });
 
     return employeeResponse;
   };
