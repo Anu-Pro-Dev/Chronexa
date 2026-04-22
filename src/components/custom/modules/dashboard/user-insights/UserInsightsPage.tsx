@@ -5,26 +5,24 @@ import KpiGrid from "./KpiGrid";
 import HourlyTrendChart from "./HourlyTrendChart";
 import AttendanceSplitChart from "./AttendanceSplitChart";
 import DeptTable from "./DeptTable";
-import EarlyDespatch from "./EarlyDespatch";
-import AlertsCard from "./AlertsCard";
 import WeeklyTrendChart from "./WeeklyTrendChart";
 import OvertimeCard from "./OvertimeCard";
+import WeeklySummaryCard from "./WeeklySummaryCard";
 import { useSelectedDate } from "@/src/store/useSelectedDate";
 import { toLocalDateStr } from "@/src/lib/userInsightsUtils";
 import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
-import WeeklySummaryCard from "./WeeklySummaryCard";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Loading waves — controls which fetch fires and when.
 //
 // Wave 1 (0 ms delay)   → totals + hourly   — above the fold, user sees first
 // Wave 2 (120 ms delay) → departments       — middle of page
-// Wave 3 (240 ms delay) → overtime + despatch
-// Wave 4 (360 ms delay) → weekly + alerts   — bottom of page, least urgent
+// Wave 3 (240 ms delay) → overtime
+// Wave 4 (360 ms delay) → weekly            — bottom of page, least urgent
 //
-// Each widget still has its own cache-guard so if the store already has data
-// (e.g. org change) it exits immediately — the delay only applies on cold load.
+// Data is reset to 0 immediately when org or date changes so the UI never
+// shows stale values while a new request is in flight.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const WAVE_DELAY_MS = 120;
@@ -40,33 +38,41 @@ export default function UserInsightsPage() {
     fetchHourlyTrendData,
     fetchDeptAttendanceData,
     fetchOvertimeData,
-    fetchEarlyDespatchData,
     fetchWeeklyTrendData,
-    fetchAlertsData,
+    clearData,
   } = useUserInsightsStore();
+
+  // Track the previous org + date so we can detect real changes.
+  const prevKeyRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (!organizationId) return;
 
-    // ── Wave 1: above-the-fold KPIs + hourly chart ─────────────────────
+    const currentKey = `${organizationId}::${selectedDate}`;
+
+    // ── Reset all data to 0 immediately whenever org or date changes ──────
+    if (prevKeyRef.current !== null && prevKeyRef.current !== currentKey) {
+      clearData();
+    }
+    prevKeyRef.current = currentKey;
+
+    // ── Wave 1: above-the-fold KPIs + hourly chart ────────────────────────
     void fetchDailySummary(organizationId, selectedDate);
     void fetchHourlyTrendData(organizationId, selectedDate);
 
-    // ── Wave 2: department table ────────────────────────────────────────
+    // ── Wave 2: department table ──────────────────────────────────────────
     const t2 = setTimeout(() => {
       void fetchDeptAttendanceData(organizationId, selectedDate);
     }, WAVE_DELAY_MS);
 
-    // ── Wave 3: overtime + early despatch ───────────────────────────────
+    // ── Wave 3: overtime ──────────────────────────────────────────────────
     const t3 = setTimeout(() => {
       void fetchOvertimeData(organizationId, selectedDate);
-      void fetchEarlyDespatchData(organizationId, selectedDate);
     }, WAVE_DELAY_MS * 2);
 
-    // ── Wave 4: weekly trend + alerts (bottom of page) ──────────────────
+    // ── Wave 4: weekly trend (bottom of page) ─────────────────────────────
     const t4 = setTimeout(() => {
       void fetchWeeklyTrendData(organizationId, selectedDate);
-      void fetchAlertsData(organizationId, selectedDate);
     }, WAVE_DELAY_MS * 3);
 
     return () => {
@@ -81,9 +87,8 @@ export default function UserInsightsPage() {
     fetchHourlyTrendData,
     fetchDeptAttendanceData,
     fetchOvertimeData,
-    fetchEarlyDespatchData,
     fetchWeeklyTrendData,
-    fetchAlertsData,
+    clearData,
   ]);
 
   return (
@@ -110,12 +115,6 @@ export default function UserInsightsPage() {
           <WeeklySummaryCard date={selectedDate} />
         </div>
       </div>
-
-      {/* <div className="grid grid-cols-1 xl:grid-cols-[55%_45%] gap-4">
-        <EarlyDespatch date={selectedDate} />
-        <AlertsCard date={selectedDate} />
-      </div> */}
-
     </div>
   );
 }

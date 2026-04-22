@@ -99,7 +99,7 @@ export default function OfficialForm({
 
   const getVerticalData = useMemo(() => {
     if (!organizations?.data) return [];
-    
+
     const parentMap = new Map();
     organizations.data.forEach((item: any) => {
       if (item.organizations) {
@@ -111,7 +111,9 @@ export default function OfficialForm({
       }
     });
 
-    const verticals = Array.from(parentMap.values());
+    const verticals = Array.from(parentMap.values()).filter(
+      (item: any) => item.organization_id !== 1
+    );
 
     if (verticalSearchTerm) {
       return verticals.filter((item: any) =>
@@ -241,8 +243,8 @@ export default function OfficialForm({
                   </PopoverTrigger>
                   <PopoverContent className="w-[350px] p-0 border-none shadow-dropdown">
                     <Command>
-                      <CommandInput 
-                        placeholder={t.search || "Search vertical..."} 
+                      <CommandInput
+                        placeholder={t.search || "Search vertical..."}
                         className="border-none"
                         onValueChange={debouncedVerticalSearch}
                       />
@@ -309,7 +311,7 @@ export default function OfficialForm({
                   </PopoverTrigger>
                   <PopoverContent className="max-w-[350px] 3xl:max-w-[450px]  p-0">
                     <Command>
-                      <CommandInput 
+                      <CommandInput
                         placeholder={t.search || "Search organization..."}
                         onValueChange={debouncedOrganizationSearch}
                       />

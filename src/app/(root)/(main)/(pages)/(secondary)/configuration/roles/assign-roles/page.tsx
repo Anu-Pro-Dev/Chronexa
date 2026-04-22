@@ -38,7 +38,7 @@ export default function MembersTable() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  const offset = useMemo(() => currentPage, [currentPage]);
+  const offset = useMemo(() => (currentPage - 1) * rowsPerPage, [currentPage, rowsPerPage]);
 
   const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
 

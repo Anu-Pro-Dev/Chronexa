@@ -246,7 +246,9 @@ export default function EmployeeReports() {
       }
     });
 
-    const verticals = Array.from(parentMap.values());
+    const verticals = Array.from(parentMap.values()).filter(
+      (item: any) => item.organization_id !== 1
+    );
 
     if (verticalSearchTerm) {
       return verticals.filter((item: any) =>

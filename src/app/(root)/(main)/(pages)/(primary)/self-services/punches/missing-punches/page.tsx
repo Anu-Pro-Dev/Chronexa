@@ -16,6 +16,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
+import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import MissingPunchModal from "@/src/components/custom/modules/self-services/MissingPunchModal";
 import GroupPunchModal from "@/src/components/custom/modules/self-services/GroupPunchModal";
@@ -567,8 +568,28 @@ export default function Page() {
     );
   };
 
-  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
-  const isManager = userInfo?.role?.toLowerCase() === "manager";
+  const { privilegeMap } = usePrivileges();
+
+  // Resolve the create privilege for this page the same way PowerHeader does —
+  // find the active module/submodule that matches the current route and check
+  // its `create` flag. This means the Manual Punches button appears for any
+  // role that has the Create privilege enabled, not just admins.
+  const canAdd = React.useMemo(() => {
+    if (!privilegeMap) return false;
+    for (const moduleKey of Object.keys(privilegeMap)) {
+      const mod = privilegeMap[moduleKey];
+      if (!mod?.subModules) continue;
+      for (const sub of mod.subModules) {
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname.includes(sub.path)
+        ) {
+          return sub.privileges?.create === true;
+        }
+      }
+    }
+    return false;
+  }, [privilegeMap]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -577,9 +598,10 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.selfServices?.items}
         entityName="employeeEventTransaction"
+        disableAdd={true}
         customButtons={
           <>
-            {isAdmin && (
+            {canAdd && (
               <Button
                 variant="success"
                 size="sm"

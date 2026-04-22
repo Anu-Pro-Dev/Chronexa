@@ -44,8 +44,8 @@ export default function AddRoleToUser({
   const role = searchParams.get("role");
 
   const offset = useMemo(() => {
-    return currentPage;
-  }, [currentPage]);
+    return (currentPage - 1) * rowsPerPage;
+  }, [currentPage, rowsPerPage]);
 
   const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
 
@@ -97,12 +97,14 @@ export default function AddRoleToUser({
   });
 
   const { data: existingUserRoles, isLoading: isLoadingUserRoles } = useQuery({
-    queryKey: ["secUserRole", "byRole", roleId],
+    queryKey: ["secUserRole", "byRole", roleId, "all"],
     queryFn: async () => {
       if (!roleId) return { data: [] };
       
       try {
-        const response = await apiRequest(`/secUserRole/all?role_id=${roleId}`, "GET");
+        // Fetch all users assigned to this role (no limit) so the filter
+        // works correctly regardless of which page the user is viewing.
+        const response = await apiRequest(`/secUserRole/all?role_id=${roleId}&limit=9999&offset=0`, "GET");
         return response;
       } catch (error) {
         console.error("Error fetching existing user roles:", error);
@@ -133,11 +135,6 @@ export default function AddRoleToUser({
 
   const addMutation = useMutation({
     mutationFn: addOrUpdateUserRole,
-    onSuccess: (data) => {
-      showToast("success", "assign_role_success");
-      onSave(null, data.data);
-      queryClient.invalidateQueries({ queryKey: ["secUserRole"] });
-    },
     onError: (error: any) => {
       showToast("error", "assign_role_error");
     },

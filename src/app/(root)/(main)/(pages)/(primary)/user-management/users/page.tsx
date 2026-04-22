@@ -16,6 +16,7 @@ import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 import PasswordResetSuccessModal from "@/src/components/custom/modules/user-management/Passwordresetsuccessmodal";
+import { DropDownIcon } from "@/src/icons/icons";
 
 type Column = {
   field: string;
@@ -152,7 +153,7 @@ export default function Page() {
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
-  const { data: sparkData, isLoading, refetch } = useFetchAllEntity("secuser/spark", {
+  const { data: userData, isLoading, refetch } = useFetchAllEntity("secuser", {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -160,7 +161,6 @@ export default function Page() {
       ...(selectedLicense && selectedLicense !== "all" && { user_license: selectedLicense }),
       ...(empNoFilter && { emp_no: empNoFilter }),
     },
-    removeAll: true,
   });
 
   const handleFilterChange = useCallback(() => {
@@ -180,7 +180,7 @@ export default function Page() {
   }, [handleFilterChange, closePopover]);
 
   const handleSave = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["secuser/spark"] });
+    queryClient.invalidateQueries({ queryKey: ["secuser"] });
   }, [queryClient]);
 
   const handleResetSuccess = useCallback((email: string) => {
@@ -245,8 +245,8 @@ export default function Page() {
   );
 
   const data = useMemo(() => {
-    if (!Array.isArray(sparkData?.data)) return [];
-    return sparkData.data.map((emp: any) => {
+    if (!Array.isArray(userData?.data)) return [];
+    return userData.data.map((emp: any) => {
       const override = emp.user_id != null ? licenseOverrides[emp.user_id] : undefined;
       return {
         ...emp,
@@ -254,7 +254,7 @@ export default function Page() {
         user_license: override !== undefined ? (override ? "Enabled" : "Disabled") : emp.user_license,
       };
     });
-  }, [sparkData, licenseOverrides]);
+  }, [userData, licenseOverrides]);
 
   useEffect(() => {
     if (!open) setSelectedRowData(null);
@@ -322,14 +322,14 @@ export default function Page() {
       SetSortDirection: setSortDirection,
       SearchValue: searchValue,
       SetSearchValue: handleSearchChange,
-      total: sparkData?.total || 0,
-      hasNext: sparkData?.hasNext,
+      total: userData?.total || 0,
+      hasNext: userData?.hasNext,
       rowsPerPage,
       setRowsPerPage: handleRowsPerPageChange,
     }),
     [
       data, columns, open, selectedRows, isLoading, sortField, currentPage,
-      sortDirection, searchValue, sparkData, rowsPerPage,
+      sortDirection, searchValue, userData, rowsPerPage,
       handlePageChange, handleRowsPerPageChange, handleSearchChange,
       licenseOverrides,
     ]
@@ -341,7 +341,7 @@ export default function Page() {
         props={props}
         selectedRows={selectedRows}
         items={modules?.userManagement?.items}
-        entityName="secuser/spark"
+        entityName="secuser"
         modal_title={selectedRowData ? (t.edit_user || "Edit User") : (t.create_user || "Create User")}
         modal_component={modalComponent}
         size="medium"
@@ -354,10 +354,14 @@ export default function Page() {
         <div>
           <Select onValueChange={handleLicenseFilterChange} value={selectedLicense}>
             <SelectTrigger className="bg-accent border-grey">
-              <Label className="font-normal text-secondary">
-                {t.filter_license || "License"} :
-              </Label>
-              <SelectValue placeholder={t.choose_license || "Choose license"} />
+              <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
+                <Label className="font-normal text-secondary">
+                  {t.filter_license || "License"} :
+                </Label>
+                <span className="px-1 text-sm text-text-primary">
+                  <SelectValue placeholder={t.choose_license || "Choose license"} />
+                </span>
+              </p>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t.all || "All"}</SelectItem>
@@ -387,7 +391,7 @@ export default function Page() {
                     {empNoFilter || t.choose_emp_no || "Choose emp no"}
                   </span>
                 </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                <DropDownIcon width="38" height="38" color='#ea0000' />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
@@ -395,8 +399,8 @@ export default function Page() {
                 <CommandInput placeholder={t.choose_emp_no || "Search emp no..."} />
                 <CommandEmpty>No employee found.</CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {Array.isArray(sparkData?.data) &&
-                    sparkData.data
+                  {Array.isArray(userData?.data) &&
+                    userData.data
                       .filter((emp: any) => emp.emp_no)
                       .map((emp: any) => (
                         <CommandItem

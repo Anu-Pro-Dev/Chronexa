@@ -1214,7 +1214,7 @@ export const exportMonthlyScheduleRequest = async (
   }
 
   const token = getAuthToken();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://wfm.khidmah.com:5000';
 
   const response = await fetch(`${API_URL}/employeeMonthlyRoster/export`, {
     method: 'POST',

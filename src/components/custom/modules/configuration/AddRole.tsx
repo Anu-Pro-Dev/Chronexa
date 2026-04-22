@@ -117,7 +117,6 @@ export default function AddRole({
   }, [debouncedVerticalSearch, debouncedCompanySearch]);
 
   // Build the verticals list: parents found inside the org tree
-  // (same logic used in the reports page)
   const getVerticalData = () => {
     if (!organizations?.data) return [];
     const parentMap = new Map();
@@ -130,7 +129,9 @@ export default function AddRole({
         });
       }
     });
-    const verticals = Array.from(parentMap.values());
+    const verticals = Array.from(parentMap.values()).filter(
+      (item: any) => item.organization_id !== 1
+    );
     if (!verticalSearchTerm) return verticals;
     return verticals.filter((item: any) =>
       item.organization_eng?.toLowerCase().includes(verticalSearchTerm.toLowerCase()) ||
@@ -445,8 +446,8 @@ export default function AddRole({
                   ? translations.buttons.updating || "Updating..."
                   : translations.buttons.saving || "Saving..."
                 : selectedRowData
-                ? translations.buttons.update || "Update"
-                : translations.buttons.save || "Save"}
+                  ? translations.buttons.update || "Update"
+                  : translations.buttons.save || "Save"}
             </Button>
           </div>
         </div>

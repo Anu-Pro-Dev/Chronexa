@@ -17,7 +17,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
@@ -25,7 +25,7 @@ export default function Page() {
   const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
-  
+
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("transaction_id");
@@ -49,7 +49,7 @@ export default function Page() {
     organization: false,
     employeeType: false,
   });
-  
+
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
   const t = translations?.modules?.selfServices || {};
@@ -69,27 +69,27 @@ export default function Page() {
 
   const getEmployeeName = useCallback((transaction: any) => {
     if (userInfo && transaction.employee_id === employeeId) {
-      const name = language === "ar" 
+      const name = language === "ar"
         ? `${userInfo.employeename?.firstarb || ""}`.trim()
         : `${userInfo.employeename?.firsteng || ""}`.trim();
-      
+
       if (name) return name;
     }
-    
+
     const employee = transaction.employee_master;
-    
+
     if (!employee) {
       return `Emp ${transaction.employee_id}`;
     }
-    
+
     const fullName = language === "ar"
       ? `${employee.firstname_arb || ""}`.trim()
       : `${employee.firstname_eng || ""}`.trim();
-    
+
     return fullName || `Emp ${transaction.employee_id}`;
   }, [language, userInfo, employeeId]);
 
-  const isAdmin   = userInfo?.role?.toLowerCase() === "admin";
+  const isAdmin = userInfo?.role?.toLowerCase() === "admin";
   const isManager = userInfo?.role?.toLowerCase() === "manager";
 
   const { data: organizationData } = useFetchAllEntity("organization", {
@@ -117,7 +117,9 @@ export default function Page() {
       }
     });
 
-    return Array.from(parentMap.values());
+    return Array.from(parentMap.values()).filter(
+      (item: any) => item.organization_id !== 1
+    );
   }, [organizationData]);
 
   const getOrganizationsData = useCallback(() => {
@@ -128,31 +130,31 @@ export default function Page() {
     );
   }, [organizationData, selectedVertical]);
 
-  const getEmployeeTypesData = useCallback(() => 
+  const getEmployeeTypesData = useCallback(() =>
     (employeeTypeData?.data || []).filter(
       (item: any) => item.employee_type_id
     ), [employeeTypeData]);
 
   useEffect(() => {
     setColumns([
-      { 
-        field: "emp_no", 
+      {
+        field: "emp_no",
         headerName: t.employee_no || "Employee No",
       },
-      { 
-        field: "employee_name", 
+      {
+        field: "employee_name",
         headerName: t.employee_name || "Employee Name",
       },
       {
         field: "reason",
         headerName: t.trans_type || "Transaction Type",
       },
-      { 
-        field: "transaction_date", 
+      {
+        field: "transaction_date",
         headerName: t.trans_date || "Transaction Date"
       },
-      { 
-        field: "transaction_time", 
+      {
+        field: "transaction_time",
         headerName: t.trans_time || "Transaction Time"
       },
       {
@@ -167,16 +169,16 @@ export default function Page() {
     const commonParams = {
       limit: String(rowsPerPage),
       offset: String(offset),
-      ...(debouncedSearchValue      && { search:           debouncedSearchValue }),
-      ...(fromDate                  && { from_date:         formatDateForAPI(fromDate) }),
-      ...(toDate                    && { to_date:           formatDateForAPI(toDate) }),
-      ...(debouncedEmployeeFilter   && { employeeId:        debouncedEmployeeFilter }),
-      ...(selectedOrganization      && { organization_id:   selectedOrganization }),
-      ...(selectedVertical          && { vertical_id:       selectedVertical }),
-      ...(selectedEmployeeType      && { employee_type_id:  selectedEmployeeType }),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+      ...(selectedOrganization && { organization_id: selectedOrganization }),
+      ...(selectedVertical && { vertical_id: selectedVertical }),
+      ...(selectedEmployeeType && { employee_type_id: selectedEmployeeType }),
     };
     if (userRole === "admin") {
-      return { endpoint: "/employeeEventTransaction/all",      searchParams: commonParams };
+      return { endpoint: "/employeeEventTransaction/all", searchParams: commonParams };
     } else if (userRole === "manager") {
       return { endpoint: "/employeeEventTransaction/team/all", searchParams: commonParams };
     } else {
@@ -195,16 +197,16 @@ export default function Page() {
   const exportApiConfig = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
     const commonParams = {
-      ...(debouncedSearchValue      && { search:           debouncedSearchValue }),
-      ...(fromDate                  && { from_date:         formatDateForAPI(fromDate) }),
-      ...(toDate                    && { to_date:           formatDateForAPI(toDate) }),
-      ...(debouncedEmployeeFilter   && { employeeId:        debouncedEmployeeFilter }),
-      ...(selectedOrganization      && { organization_id:   selectedOrganization }),
-      ...(selectedVertical          && { vertical_id:       selectedVertical }),
-      ...(selectedEmployeeType      && { employee_type_id:  selectedEmployeeType }),
+      ...(debouncedSearchValue && { search: debouncedSearchValue }),
+      ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+      ...(toDate && { to_date: formatDateForAPI(toDate) }),
+      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+      ...(selectedOrganization && { organization_id: selectedOrganization }),
+      ...(selectedVertical && { vertical_id: selectedVertical }),
+      ...(selectedEmployeeType && { employee_type_id: selectedEmployeeType }),
     };
     if (userRole === "admin") {
-      return { endpoint: "/employeeEventTransaction",      searchParams: commonParams };
+      return { endpoint: "/employeeEventTransaction", searchParams: commonParams };
     } else {
       return { endpoint: "/employeeEventTransaction/team", searchParams: commonParams };
     }
@@ -240,10 +242,10 @@ export default function Page() {
 
     return punchesData.data.map((transaction: any) => {
       const transactionTimeStr = transaction.transaction_time;
-      
+
       let formattedTime = '';
       let formattedDate = '';
-      
+
       if (transactionTimeStr) {
         const date = new Date(transactionTimeStr);
         formattedTime = date.toISOString().substr(11, 8);
@@ -350,9 +352,9 @@ export default function Page() {
     isManager && !isAdmin && employeeId
       ? { endpoint: `/employee/all?manager_id=${employeeId}` }
       : {
-          searchParams: { limit: "1000" },
-          enabled: !!userInfo && isAdmin,
-        }
+        searchParams: { limit: "1000" },
+        enabled: !!userInfo && isAdmin,
+      }
   );
 
   const getEmployeesData = useCallback(() => {
@@ -369,7 +371,7 @@ export default function Page() {
       const editData = {
         ...rowData,
       };
-      
+
       sessionStorage.setItem('editTransactionsData', JSON.stringify(editData));
     } catch (error) {
       console.error("Error setting edit data:", error);
@@ -404,18 +406,18 @@ export default function Page() {
     filter_open,
     filter_on_open_change,
   }), [
-    data, 
-    columns, 
-    open, 
-    selectedRows, 
-    isLoadingTransactions, 
-    isChecking, 
-    sortField, 
-    currentPage, 
-    sortDirection, 
-    searchValue, 
-    punchesData, 
-    rowsPerPage, 
+    data,
+    columns,
+    open,
+    selectedRows,
+    isLoadingTransactions,
+    isChecking,
+    sortField,
+    currentPage,
+    sortDirection,
+    searchValue,
+    punchesData,
+    rowsPerPage,
     filter_open,
     handlePageChange,
     handleSearchChange,
@@ -441,43 +443,43 @@ export default function Page() {
       };
     }
 
-    const allData = Array.isArray(allPunchesData?.data) 
+    const allData = Array.isArray(allPunchesData?.data)
       ? allPunchesData.data.map((transaction: any) => {
-          const transactionTimeStr = transaction.transaction_time;
-          
-          let formattedTime = '';
-          let formattedDate = '';
-          
-          if (transactionTimeStr) {
-            const date = new Date(transactionTimeStr);
-            formattedTime = date.toISOString().substr(11, 8);
-            formattedDate = date.toISOString().substr(0, 10);
-          }
+        const transactionTimeStr = transaction.transaction_time;
 
-          let geolocationDisplay = '';
-          if (transaction.latitude && transaction.longitude) {
-            geolocationDisplay = `${transaction.latitude}, ${transaction.longitude}`;
-          } else if (transaction.geolocation) {
-            geolocationDisplay = transaction.geolocation;
-          }
+        let formattedTime = '';
+        let formattedDate = '';
 
-          const employee = transaction.employee_master;
-          const employeeName = employee 
-            ? (language === "ar"
-                ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
-                : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim())
-            : `Emp ${transaction.employee_id}`;
+        if (transactionTimeStr) {
+          const date = new Date(transactionTimeStr);
+          formattedTime = date.toISOString().substr(11, 8);
+          formattedDate = date.toISOString().substr(0, 10);
+        }
 
-          return {
-            emp_no: employee?.emp_no || `EMP${transaction.employee_id}`,
-            employee_name: employeeName || `Emp ${transaction.employee_id}`,
-            reason: transaction.reason,
-            transaction_date: formattedDate,
-            transaction_time: formattedTime,
-            geolocation: geolocationDisplay,
-            remarks: transaction.remarks,
-          };
-        })
+        let geolocationDisplay = '';
+        if (transaction.latitude && transaction.longitude) {
+          geolocationDisplay = `${transaction.latitude}, ${transaction.longitude}`;
+        } else if (transaction.geolocation) {
+          geolocationDisplay = transaction.geolocation;
+        }
+
+        const employee = transaction.employee_master;
+        const employeeName = employee
+          ? (language === "ar"
+            ? `${employee.firstname_arb || ""} ${employee.lastname_arb || ""}`.trim()
+            : `${employee.firstname_eng || ""} ${employee.lastname_eng || ""}`.trim())
+          : `Emp ${transaction.employee_id}`;
+
+        return {
+          emp_no: employee?.emp_no || `EMP${transaction.employee_id}`,
+          employee_name: employeeName || `Emp ${transaction.employee_id}`,
+          reason: transaction.reason,
+          transaction_date: formattedDate,
+          transaction_time: formattedTime,
+          geolocation: geolocationDisplay,
+          remarks: transaction.remarks,
+        };
+      })
       : [];
 
     return {
@@ -529,7 +531,7 @@ export default function Page() {
         isExport
         enableExcel
       />
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* bg-accent rounded-[15px] items-center px-5 py-6 */}
         <div>
@@ -538,9 +540,9 @@ export default function Page() {
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, vertical: open }))}
           >
             <PopoverTrigger asChild>
-              <Button 
-                size="lg" 
-                variant="outline" 
+              <Button
+                size="lg"
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
                 <span className="flex items-center gap-1 min-w-0 overflow-hidden">
@@ -550,8 +552,8 @@ export default function Page() {
                   <span className="px-1 text-sm text-text-primary truncate">
                     {selectedVertical
                       ? getVerticalData().find((item: any) =>
-                          String(item.organization_id) === selectedVertical
-                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                        String(item.organization_id) === selectedVertical
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : (t.placeholder_vertical || "Choose Vertical")}
                   </span>
                 </span>
@@ -583,9 +585,9 @@ export default function Page() {
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, organization: open }))}
           >
             <PopoverTrigger asChild>
-              <Button 
-                size="lg" 
-                variant="outline" 
+              <Button
+                size="lg"
+                variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
                 <span className="flex items-center gap-1 min-w-0 overflow-hidden">
@@ -595,8 +597,8 @@ export default function Page() {
                   <span className="px-1 text-sm text-text-primary truncate">
                     {selectedOrganization
                       ? getOrganizationsData().find((item: any) =>
-                          String(item.organization_id) === selectedOrganization
-                        )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                        String(item.organization_id) === selectedOrganization
+                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
                       : (t.placeholder_org || "Choose Organization")}
                   </span>
                 </span>
@@ -623,13 +625,13 @@ export default function Page() {
         </div>
 
         <div>
-          <Popover 
-            open={popoverStates.employeeType} 
+          <Popover
+            open={popoverStates.employeeType}
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeType: open }))}
           >
             <PopoverTrigger asChild>
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
                 className="w-full bg-accent px-4 flex justify-between border-grey overflow-hidden"
               >
@@ -639,9 +641,9 @@ export default function Page() {
                   </Label>
                   <span className="px-1 text-sm text-text-primary truncate">
                     {selectedEmployeeType
-                      ? getEmployeeTypesData().find((item: any) => 
-                          String(item.employee_type_id) === selectedEmployeeType
-                        )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
+                      ? getEmployeeTypesData().find((item: any) =>
+                        String(item.employee_type_id) === selectedEmployeeType
+                      )?.[language === "ar" ? "employee_type_arb" : "employee_type_eng"]
                       : (t.placeholder_employee_type || "Choose type")}
                   </span>
                 </span>
@@ -759,13 +761,13 @@ export default function Page() {
                         ? (t.loading || "Loading...")
                         : employeeFilter
                           ? (() => {
-                              const emp = getEmployeesData().find(
-                                (item: any) => String(item.employee_id) === employeeFilter
-                              );
-                              return emp?.emp_no || (language === "ar"
-                                ? `${emp?.firstname_arb || ""} ${emp?.lastname_arb || ""}`.trim()
-                                : `${emp?.firstname_eng || ""} ${emp?.lastname_eng || ""}`.trim());
-                            })()
+                            const emp = getEmployeesData().find(
+                              (item: any) => String(item.employee_id) === employeeFilter
+                            );
+                            return emp?.emp_no || (language === "ar"
+                              ? `${emp?.firstname_arb || ""} ${emp?.lastname_arb || ""}`.trim()
+                              : `${emp?.firstname_eng || ""} ${emp?.lastname_eng || ""}`.trim());
+                          })()
                           : (t.placeholder_employee_filter || "Choose employee")}
                     </span>
                   </span>

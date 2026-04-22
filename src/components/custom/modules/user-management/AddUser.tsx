@@ -187,7 +187,7 @@ export default function AddUser({
     mutationFn: addSecUserRequest,
     onSuccess: () => {
       showToast("success", "addsecuser_success");
-      queryClient.invalidateQueries({ queryKey: ["secuser/spark"] });
+      queryClient.invalidateQueries({ queryKey: ["secuser"] });
       onSave?.();
       on_open_change(false);
     },
@@ -204,7 +204,7 @@ export default function AddUser({
     mutationFn: editSecUserRequest,
     onSuccess: () => {
       showToast("success", "datasave_success");
-      queryClient.invalidateQueries({ queryKey: ["secuser/spark"] });
+      queryClient.invalidateQueries({ queryKey: ["secuser"] });
       onSave?.();
       on_open_change(false);
     },

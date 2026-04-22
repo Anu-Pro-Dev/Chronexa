@@ -146,7 +146,7 @@ export default function EmployeeReports() {
     if (!organizations?.data) return [];
     const parentMap = new Map();
     organizations.data.forEach((item: any) => {
-      if (item.organizations && item.organizations.organization_type_id === 2) {
+      if (item.organizations) {
         parentMap.set(item.organizations.organization_id, {
           organization_id: item.organizations.organization_id,
           organization_eng: item.organizations.organization_eng,
@@ -154,12 +154,19 @@ export default function EmployeeReports() {
         });
       }
     });
-    const verticals = Array.from(parentMap.values());
-    if (!verticalSearchTerm) return verticals;
-    return verticals.filter((item: any) =>
-      item.organization_eng?.toLowerCase().includes(verticalSearchTerm.toLowerCase()) ||
-      item.organization_arb?.toLowerCase().includes(verticalSearchTerm.toLowerCase())
+
+    const verticals = Array.from(parentMap.values()).filter(
+      (item: any) => item.organization_id !== 1
     );
+
+    if (verticalSearchTerm) {
+      return verticals.filter((item: any) =>
+        item.organization_eng?.toLowerCase().includes(verticalSearchTerm.toLowerCase()) ||
+        item.organization_arb?.toLowerCase().includes(verticalSearchTerm.toLowerCase())
+      );
+    }
+
+    return verticals;
   };
 
   const getCompanyData = () => {
@@ -994,7 +1001,7 @@ export default function EmployeeReports() {
             <div className="flex justify-center gap-2 items-center pb-5">
               <div className="flex gap-4 px-5">
                 <Button
-                  type="button" size="sm" variant="outline"
+                  type="button" size="sm" variant="secondary"
                   className="flex items-center gap-2"
                   onClick={() => {
                     form.reset();

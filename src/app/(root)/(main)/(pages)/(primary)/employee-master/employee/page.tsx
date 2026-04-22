@@ -82,17 +82,9 @@ export default function Page() {
 
   const verticalData = useMemo(() => {
     if (!organizationData?.data) return [];
-    const parentMap = new Map();
-    organizationData.data.forEach((item: any) => {
-      if (item.organizations) {
-        parentMap.set(item.organizations.organization_id, {
-          organization_id: item.organizations.organization_id,
-          organization_eng: item.organizations.organization_eng,
-          organization_arb: item.organizations.organization_arb,
-        });
-      }
-    });
-    return Array.from(parentMap.values());
+    return organizationData.data.filter(
+      (item: any) => item.organization_type_id === 2
+    );
   }, [organizationData]);
 
   const organizationsData = useMemo(() => {
