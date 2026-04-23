@@ -14,9 +14,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/pop
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import PasswordResetSuccessModal from "@/src/components/custom/modules/user-management/Passwordresetsuccessmodal";
-import { DropDownIcon } from "@/src/icons/icons";
 
 type Column = {
   field: string;
@@ -139,6 +138,7 @@ export default function Page() {
   }, []);
 
   const [selectedLicense, setSelectedLicense] = useState<string>("all");
+  const [selectedAppType, setSelectedAppType] = useState<string>("all");
   const [empNoFilter, setEmpNoFilter] = useState<string>("");
   const [popoverStates, setPopoverStates] = useState({ empNo: false });
 
@@ -154,11 +154,13 @@ export default function Page() {
   const offset = useMemo(() => currentPage, [currentPage]);
 
   const { data: userData, isLoading, refetch } = useFetchAllEntity("secuser", {
+    endpoint: "/secuser/list",
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
       ...(selectedLicense && selectedLicense !== "all" && { user_license: selectedLicense }),
+      ...(selectedAppType && selectedAppType !== "all" && { app_type: selectedAppType }),
       ...(empNoFilter && { emp_no: empNoFilter }),
     },
   });
@@ -173,6 +175,11 @@ export default function Page() {
     handleFilterChange();
   }, [handleFilterChange]);
 
+  const handleAppTypeFilterChange = useCallback((value: string) => {
+    setSelectedAppType(value);
+    handleFilterChange();
+  }, [handleFilterChange]);
+
   const handleEmpNoChange = useCallback((value: string) => {
     setEmpNoFilter(value);
     closePopover("empNo");
@@ -180,7 +187,7 @@ export default function Page() {
   }, [handleFilterChange, closePopover]);
 
   const handleSave = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["secuser"] });
+    queryClient.invalidateQueries({ queryKey: ["/secuser/list"] });
   }, [queryClient]);
 
   const handleResetSuccess = useCallback((email: string) => {
@@ -348,13 +355,13 @@ export default function Page() {
       />
 
       {/* ─── Filters ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:max-w-[1050px]">
 
         {/* License filter */}
         <div>
           <Select onValueChange={handleLicenseFilterChange} value={selectedLicense}>
             <SelectTrigger className="bg-accent border-grey">
-              <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
+              <p className={`truncate w-full ${language === "ar" ? "text-right" : "text-left"}`}>
                 <Label className="font-normal text-secondary">
                   {t.filter_license || "License"} :
                 </Label>
@@ -371,7 +378,28 @@ export default function Page() {
           </Select>
         </div>
 
-        {/* Emp No filter */}
+        {/* App Type filter */}
+        <div>
+          <Select onValueChange={handleAppTypeFilterChange} value={selectedAppType}>
+            <SelectTrigger className="bg-accent border-grey">
+              <p className={`truncate w-full ${language === "ar" ? "text-right" : "text-left"}`}>
+                <Label className="font-normal text-secondary">
+                  {t.app_type || "App Type"} :
+                </Label>
+                <span className="px-1 text-sm text-text-primary">
+                  <SelectValue placeholder={t.choose_app_type || "Choose app type"} />
+                </span>
+              </p>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.all || "All"}</SelectItem>
+              <SelectItem value="ontime">{t.ontime || "Ontime"}</SelectItem>
+              <SelectItem value="fieldtrack">{t.fieldtrack || "Field Track"}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* SAP ID filter */}
         <div>
           <Popover
             open={popoverStates.empNo}
@@ -385,18 +413,18 @@ export default function Page() {
               >
                 <p>
                   <Label className="font-normal text-secondary">
-                    {t.filter_emp_no || "Emp No"} :
+                    {"SAP ID"} :
                   </Label>
                   <span className="px-1 text-sm text-text-primary">
-                    {empNoFilter || t.choose_emp_no || "Choose emp no"}
+                    {empNoFilter || "Choose SAP ID"}
                   </span>
                 </p>
-                <DropDownIcon width="38" height="38" color='#ea0000' />
+                <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
               <Command>
-                <CommandInput placeholder={t.choose_emp_no || "Search emp no..."} />
+                <CommandInput placeholder={t.choose_sap_id || "Search SAP ID..."} />
                 <CommandEmpty>No employee found.</CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
                   {Array.isArray(userData?.data) &&

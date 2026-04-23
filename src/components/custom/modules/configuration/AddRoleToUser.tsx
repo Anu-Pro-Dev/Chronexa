@@ -28,7 +28,7 @@ export default function AddRoleToUser({
   const router = useRouter();
   const showToast = useShowToast();
   const t = translations?.modules?.configurations || {};
-  
+
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
@@ -43,68 +43,62 @@ export default function AddRoleToUser({
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
 
-  const offset = useMemo(() => {
-    return (currentPage - 1) * rowsPerPage;
-  }, [currentPage, rowsPerPage]);
+  const offset = useMemo(() => currentPage, [currentPage]);
 
-  const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
+  const isAdminRole = useMemo(() => role?.toUpperCase() === "ADMIN", [role]);
+
+  // ── Fetch ALL roles (high limit) so roleId resolves correctly even when the
+  // role lives on page 2+ of the main roles table.
+  const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole", {
+    searchParams: { limit: "1000", offset: "1" },
+  });
 
   const roleId = useMemo(() => {
     if (!role || !rolesData?.data) return null;
-    
-    const foundRole = rolesData.data.find((r: any) => 
-      r.role_name === role || r.name === role || r.roleName === role
+    const foundRole = rolesData.data.find(
+      (r: any) => r.role_name === role || r.name === role || r.roleName === role
     );
-    
     return foundRole?.id || foundRole?.role_id || null;
   }, [role, rolesData]);
 
-  const isAdminRole = useMemo(() => {
-    return role?.toUpperCase() === 'ADMIN';
-  }, [role]);
+  // Admin role id — used to detect if a user is losing admin when reassigned
+  const adminRoleId = useMemo(() => {
+    if (!rolesData?.data) return null;
+    const adminRole = rolesData.data.find(
+      (r: any) => (r.role_name || r.name || r.roleName || "").toUpperCase() === "ADMIN"
+    );
+    return adminRole?.id || adminRole?.role_id || null;
+  }, [rolesData]);
 
+  // ── Paginated users list ──────────────────────────────────────────────────
   const userSearchParams = useMemo(() => {
     const params: Record<string, string> = {
       limit: String(rowsPerPage),
       offset: String(offset),
     };
-    
-    if (debouncedSearchValue) {
-      params.search = debouncedSearchValue;
-    }
-    
+    if (debouncedSearchValue) params.search = debouncedSearchValue;
     if (sortField) params.sort_by = sortField;
     if (sortDirection) params.sort_order = sortDirection;
-    
     return params;
   }, [rowsPerPage, offset, debouncedSearchValue, sortField, sortDirection]);
 
-  const { data: userData, isLoading: isLoadingUsers, refetch: refetchUsers } = useFetchAllEntity("secUser", {
-    searchParams: userSearchParams,
-  });
+  const {
+    data: userData,
+    isLoading: isLoadingUsers,
+    refetch: refetchUsers,
+  } = useFetchAllEntity("secUser", { searchParams: userSearchParams });
 
-  const { data: allUserRoles, isLoading: isLoadingAllUserRoles } = useQuery({
-    queryKey: ["secUserRole", "all"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest(`/secUserRole/all`, "GET");
-        return response;
-      } catch (error) {
-        console.error("Error fetching all user roles:", error);
-        return { data: [] };
-      }
-    },
-  });
-
+  // ── Users already assigned to THIS role ───────────────────────────────────
+  // Fetches with a generous limit so the "already assigned" filter is complete.
   const { data: existingUserRoles, isLoading: isLoadingUserRoles } = useQuery({
-    queryKey: ["secUserRole", "byRole", roleId, "all"],
+    queryKey: ["secUserRole", "byRole", roleId, "assigned"],
     queryFn: async () => {
       if (!roleId) return { data: [] };
-      
       try {
-        // Fetch all users assigned to this role (no limit) so the filter
-        // works correctly regardless of which page the user is viewing.
-        const response = await apiRequest(`/secUserRole/all?role_id=${roleId}&limit=9999&offset=0`, "GET");
+        const response = await apiRequest(
+          `/secUserRole/all?role_id=${roleId}&limit=500&offset=1`,
+          "GET"
+        );
         return response;
       } catch (error) {
         console.error("Error fetching existing user roles:", error);
@@ -112,8 +106,10 @@ export default function AddRoleToUser({
       }
     },
     enabled: !!roleId,
+    staleTime: 30_000,
   });
 
+  // Set of user_ids already in this role — used to filter available list
   const assignedUserIds = useMemo(() => {
     if (!existingUserRoles?.data || !Array.isArray(existingUserRoles.data)) {
       return new Set<number>();
@@ -121,32 +117,29 @@ export default function AddRoleToUser({
     return new Set(existingUserRoles.data.map((ur: any) => ur.user_id).filter(Boolean));
   }, [existingUserRoles]);
 
+  // Map of user_id → user_role_id for upsert payloads
   const userRoleMap = useMemo(() => {
     const map = new Map<number, number>();
-    if (allUserRoles?.data && Array.isArray(allUserRoles.data)) {
-      allUserRoles.data.forEach((ur: any) => {
+    if (existingUserRoles?.data && Array.isArray(existingUserRoles.data)) {
+      existingUserRoles.data.forEach((ur: any) => {
         if (ur.user_id && ur.user_role_id) {
-          map.set(ur.user_id, ur.user_role_id);
+          map.set(Number(ur.user_id), Number(ur.user_role_id));
         }
       });
     }
     return map;
-  }, [allUserRoles]);
+  }, [existingUserRoles]);
 
   const addMutation = useMutation({
     mutationFn: addOrUpdateUserRole,
-    onError: (error: any) => {
+    onError: () => {
       showToast("error", "assign_role_error");
     },
   });
 
   const updateWebPunchFlag = async (employeeId: number, webPunchFlag: boolean) => {
     try {
-      const payload = {
-        web_punch_flag: webPunchFlag,
-      };
-      
-      await apiRequest(`/employee/edit/${employeeId}`, "PUT", payload);
+      await apiRequest(`/employee/edit/${employeeId}`, "PUT", { web_punch_flag: webPunchFlag });
     } catch (error) {
       console.error(`Failed to update web_punch_flag for employee ${employeeId}:`, error);
       throw error;
@@ -154,90 +147,42 @@ export default function AddRoleToUser({
   };
 
   const handleAdd = async () => {
-    if (!roleId) {
-      showToast("error", "role_not_found");
-      return;
-    }
-
-    if (selectedRows.length === 0) {
-      showToast("error", "select_at_least_one_user");
-      return;
-    }
+    if (!roleId) { showToast("error", "role_not_found"); return; }
+    if (selectedRows.length === 0) { showToast("error", "select_at_least_one_user"); return; }
 
     setIsSubmitting(true);
-
     try {
       for (const row of selectedRows) {
         const existingUserRoleId = userRoleMap.get(row.user_id);
-        
-        let hadAdminRole = false;
-        
-        if (row.user_id) {
-          try {
-            const currentUserRoles = await apiRequest(`/secUserRole/all?user_id=${row.user_id}`, "GET");            
-            if (currentUserRoles?.data && Array.isArray(currentUserRoles.data)) {
-              for (const ur of currentUserRoles.data) {
-                const userRoleId = ur.role_id;
-                
-                if (rolesData?.data && Array.isArray(rolesData.data)) {
-                  const roleInfo = rolesData.data.find((r: any) => 
-                    (r.id === userRoleId || r.role_id === userRoleId)
-                  );
-                  
-                  if (roleInfo) {
-                    const roleName = roleInfo.role_name || roleInfo.name || roleInfo.roleName || '';                    
-                    if (roleName.toUpperCase() === 'ADMIN') {
-                      hadAdminRole = true;
-                      break;
-                    }
-                  }
-                }
-                
-                if (ur.role_name || ur.roleName || ur.name) {
-                  const roleName = ur.role_name || ur.roleName || ur.name || '';
-                  
-                  if (roleName.toUpperCase() === 'ADMIN') {
-                    hadAdminRole = true;
-                    break;
-                  }
-                }
-              }
-            }
-          } catch (error) {
-            console.error("Error checking current roles:", error);
-          }
-        }
-                
-        const payload: {
-          user_role_id?: number;
-          user_id: number[];
-          role_id: number;
-        } = {
+
+        // Check if user is losing admin role — derived from loaded data, no extra API call
+        const hadAdminRole =
+          !isAdminRole &&
+          adminRoleId !== null &&
+          existingUserRoles?.data?.some(
+            (ur: any) => ur.user_id === row.user_id && ur.role_id === adminRoleId
+          );
+
+        const payload: { user_role_id?: number; user_id: number[]; role_id: number } = {
           user_id: [row.user_id],
           role_id: roleId,
         };
-
-        if (existingUserRoleId) {
-          payload.user_role_id = existingUserRoleId;
-        }
+        if (existingUserRoleId) payload.user_role_id = existingUserRoleId;
 
         await addMutation.mutateAsync(payload);
 
         if (row.employee_id) {
           if (isAdminRole) {
             await updateWebPunchFlag(row.employee_id, true);
-          } 
-          else if (hadAdminRole && !isAdminRole) {
+          } else if (hadAdminRole) {
             await updateWebPunchFlag(row.employee_id, false);
           }
         }
       }
 
       showToast("success", "assign_users_to_role_success");
-      
       queryClient.invalidateQueries({ queryKey: ["employee"] });
       queryClient.invalidateQueries({ queryKey: ["secUserRole"] });
-      
       onSave(null, null);
       on_open_change(false);
     } catch (error) {
@@ -248,39 +193,42 @@ export default function AddRoleToUser({
     }
   };
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
-    if (refetchUsers) {
-      setTimeout(() => refetchUsers(), 100);
-    }
-  }, [refetchUsers]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setCurrentPage(newPage);
+      if (refetchUsers) setTimeout(() => refetchUsers(), 100);
+    },
+    [refetchUsers]
+  );
 
-  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1);
-    if (refetchUsers) {
-      setTimeout(() => refetchUsers(), 100);
-    }
-  }, [refetchUsers]);
+  const handleRowsPerPageChange = useCallback(
+    (newRowsPerPage: number) => {
+      setRowsPerPage(newRowsPerPage);
+      setCurrentPage(1);
+      if (refetchUsers) setTimeout(() => refetchUsers(), 100);
+    },
+    [refetchUsers]
+  );
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
     setCurrentPage(1);
   }, []);
 
-  const handleSortChange = useCallback((field: string, direction: "asc" | "desc") => {
-    setSortField(field);
-    setSortDirection(direction);
-    setCurrentPage(1);
-    if (refetchUsers) {
-      setTimeout(() => refetchUsers(), 100);
-    }
-  }, [refetchUsers]);
+  const handleSortChange = useCallback(
+    (field: string, direction: "asc" | "desc") => {
+      setSortField(field);
+      setSortDirection(direction);
+      setCurrentPage(1);
+      if (refetchUsers) setTimeout(() => refetchUsers(), 100);
+    },
+    [refetchUsers]
+  );
 
   useEffect(() => {
     setColumns([
       { field: "user_id", headerName: t.user_id || "User ID" },
-      { field: "sap_id", headerName:  "SAP ID" },
+      { field: "sap_id", headerName: "SAP ID" },
       { field: "name", headerName: t.name || "Name" },
       { field: "login", headerName: t.username || "Username" },
     ]);
@@ -291,15 +239,9 @@ export default function AddRoleToUser({
   }, []);
 
   const availableUsers = useMemo(() => {
-    if (!Array.isArray(userData?.data)) {
-      return [];
-    }
-
+    if (!Array.isArray(userData?.data)) return [];
     return userData.data
-      .filter((user: any) => {
-        const userId = user.user_id;
-        return userId && !assignedUserIds.has(userId);
-      })
+      .filter((user: any) => user.user_id && !assignedUserIds.has(user.user_id))
       .map((user: any) => ({
         ...user,
         id: user.user_id,
@@ -310,7 +252,7 @@ export default function AddRoleToUser({
       }));
   }, [userData, assignedUserIds]);
 
-  const isLoading = isLoadingRoles || isLoadingUsers || isLoadingUserRoles || isLoadingAllUserRoles;
+  const isLoading = isLoadingRoles || isLoadingUsers || isLoadingUserRoles;
 
   const tableProps = {
     Data: availableUsers,
@@ -340,23 +282,23 @@ export default function AddRoleToUser({
         <div className="flex flex-col gap-3">
           <div className="flex gap-2 items-center justify-between">
             <div className="flex">
-              <PowerSearch 
+              <PowerSearch
                 props={{
                   SearchValue: searchValue,
                   SetSearchValue: handleSearchChange,
-                }} 
+                }}
               />
             </div>
             <div className="flex gap-4">
-              <Button 
-                type="button" 
-                variant={"success"} 
+              <Button
+                type="button"
+                variant={"success"}
                 size={"sm"}
                 disabled={isSubmitting || !roleId || selectedRows.length === 0}
                 onClick={handleAdd}
                 className="flex items-center space-y-0.5 border border-success"
               >
-                <AddIcon/> {t.assign_role || "Assign Role"}
+                <AddIcon /> {t.assign_role || "Assign Role"}
               </Button>
               <Button
                 variant={"outlineGrey"}
@@ -373,13 +315,13 @@ export default function AddRoleToUser({
       </form>
 
       <div className="border border-[#E5E7EB] mt-6">
-        <PowerTable 
-          props={tableProps} 
-          ispageValue5={true} 
+        <PowerTable
+          props={tableProps}
+          ispageValue5={true}
           onRowSelection={handleRowSelection}
           overrideEditIcon={false}
         />
       </div>
-    </> 
+    </>
   );
 }

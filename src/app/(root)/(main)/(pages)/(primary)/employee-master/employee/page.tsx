@@ -13,7 +13,7 @@ import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { DeleteIcon } from "@/src/icons/icons";
 
 export default function Page() {
@@ -280,7 +280,7 @@ export default function Page() {
                       : t.placeholder_vertical}
                   </span>
                 </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
@@ -325,7 +325,7 @@ export default function Page() {
                       : t.placeholder_organization}
                   </span>
                 </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
@@ -370,7 +370,7 @@ export default function Page() {
                       : t.placeholder_emp_type}
                   </span>
                 </p>
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">

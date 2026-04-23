@@ -6,7 +6,7 @@ import * as z from "zod";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
@@ -206,7 +206,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                             ? getOrganizationsData().find((item: any) => String(item.organization_id) === field.value)?.organization_eng
                             : t.placeholder_organization || "Choose organization"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -258,7 +258,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         <span className="truncate">
                           {field.value ? monthOptions.find((item) => item.value === field.value)?.label : t.placeholder_month || "Choose month"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -312,7 +312,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         <span className="truncate">
                           {field.value || t.placeholder_year || "Choose year"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -366,7 +366,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                         <span className="truncate">
                           {field.value || t.placeholder_day || "Choose day"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -423,7 +423,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                             ? getEmployeesData().find((item: any) => String(item.employee_id) === field.value)?.firstname_eng
                             : selectedManager ? "Manager selected" : t.placeholder_emp || "Choose employee"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -478,7 +478,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                             ? getGroupsData().find((item: any) => String(item.employee_group_id) === field.value)?.group_name_eng
                             : t.placeholder_group || "Choose group"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -533,7 +533,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                             ? getManagersData().find((emp: any) => String(emp.employee_id) === field.value)?.firstname_eng
                             : selectedEmployee ? "Employee selected" : t.placeholder_manager || "Choose manager"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -590,7 +590,7 @@ export default function FilterForm({ onFilterSubmit, onFilterParamsChange }: Fil
                               ? t.placeholder_schedule || "Choose schedule"
                               : t.placeholder_organization_first || "Choose organization first"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>

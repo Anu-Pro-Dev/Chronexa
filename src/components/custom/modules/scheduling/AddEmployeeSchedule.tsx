@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/pop
 import { CalendarIcon } from "@/src/icons/icons";
 import { Calendar } from "@/src/components/ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQuery } from "@tanstack/react-query";
@@ -470,7 +470,7 @@ export default function AddEmployeeSchedule({
                               ? getEmployeeName(field.value)
                               : t.placeholder_employee || "Choose employee"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -548,7 +548,7 @@ export default function AddEmployeeSchedule({
                                 ? getScheduleCode(field.value)
                                 : t.placeholder_schedule || "Choose schedule"}
                             </span>
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -620,7 +620,7 @@ export default function AddEmployeeSchedule({
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -699,7 +699,7 @@ export default function AddEmployeeSchedule({
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -778,7 +778,7 @@ export default function AddEmployeeSchedule({
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -856,7 +856,7 @@ export default function AddEmployeeSchedule({
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -935,7 +935,7 @@ export default function AddEmployeeSchedule({
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -1014,7 +1014,7 @@ export default function AddEmployeeSchedule({
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -1093,7 +1093,7 @@ export default function AddEmployeeSchedule({
                               ? getScheduleCode(field.value)
                               : t.placeholder_schedule || "Choose schedule"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>

@@ -27,7 +27,7 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { useRouter } from "next/navigation";
 
@@ -266,7 +266,7 @@ export default function AddMonthlySchedule({
                               ? getOrganizationName(field.value)
                               : t.placeholder_organization || "Choose Organization"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -348,7 +348,7 @@ export default function AddMonthlySchedule({
                                 ? t.placeholder_organization_first || "Choose organization first"
                                 : t.placeholder_emp || "Choose Employee"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -554,7 +554,7 @@ export default function AddMonthlySchedule({
                               ? getManagerName(field.value)
                               : t.placeholder_manager || "Choose manager"}
                           </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>

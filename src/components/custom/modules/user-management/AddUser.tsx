@@ -43,7 +43,7 @@ import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 const formSchema = z.object({
   login: z.string().min(1, { message: "username_required" }),
@@ -342,7 +342,7 @@ export default function AddUser({
                           </span>
                         )}
                       </span>
-                      <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                      <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                     </Button>
                   </PopoverTrigger>
 

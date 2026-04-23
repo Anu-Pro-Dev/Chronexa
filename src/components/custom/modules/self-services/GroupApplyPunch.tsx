@@ -13,7 +13,7 @@ import { Calendar } from "@/src/components/ui/calendar";
 import { CalendarIcon, ClockIcon, ExclamationIcon } from "@/src/icons/icons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { format, subDays, startOfDay } from "date-fns";
 import { TimePicker } from "@/src/components/ui/time-picker";
@@ -106,7 +106,7 @@ export default function GroupApplyPunch({
 
   const today = startOfDay(new Date());
 
-  const allowedDays = orgId === 25 ? 4 : 7;
+  const allowedDays = orgId === 25 ? 20 : 30;
 
   const allowedDaysAgo = startOfDay(subDays(today, allowedDays));
 
@@ -515,7 +515,7 @@ export default function GroupApplyPunch({
                           t.placeholder_department || "Choose department"
                           : t.placeholder_department || "Choose department"}
                       </span>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="max-w-[350px] 3xl:max-w-[450px] p-0">
@@ -566,7 +566,7 @@ export default function GroupApplyPunch({
                       <span className="truncate">
                         {selectedCostCenter || t.placeholder_cost_center || "Choose cost center"}
                       </span>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="max-w-[350px] 3xl:max-w-[450px] p-0">

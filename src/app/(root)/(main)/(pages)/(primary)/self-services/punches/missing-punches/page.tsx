@@ -28,7 +28,7 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/src/components/ui/command";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 export default function Page() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function Page() {
   const today = new Date();
   const yesterday = subDays(today, 1);
 
-  const allowedDays = orgId === 25 ? 4 : 7;
+  const allowedDays = orgId === 25 ? 20 : 30;
 
   const defaultFromDate = startOfDay(subDays(yesterday, allowedDays));
 
@@ -183,14 +183,6 @@ export default function Page() {
     if (!departmentsData?.data) return [];
     return departmentsData.data.filter((item: any) => item.department_id);
   }, [departmentsData]);
-
-
-  useEffect(() => {
-    if (!orgId || fromDate || toDate) return;
-
-    setFromDate(defaultFromDate);
-    setToDate(startOfDay(today));
-  }, [orgId]);
 
   const { apiEndpoint, searchParams } = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
@@ -615,7 +607,7 @@ export default function Page() {
         }
       />
 
-      <div className="grid grid-cols-1  md:grid-cols-4 gap-4 ">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Popover
             open={popoverStates.fromDate}
@@ -735,7 +727,7 @@ export default function Page() {
                         : (t.placeholder_department || "Choose department")}
                   </span>
                 </span>
-                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
               </Button>
             </PopoverTrigger>
 
@@ -876,7 +868,7 @@ export default function Page() {
                         : (t.placeholder_employee_filter || "Choose employee")}
                     </span>
                   </p>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                  <ChevroDown className="h-4 w-4 opacity-50" />
                 </Button>
               </PopoverTrigger>
 

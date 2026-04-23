@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import * as z from "zod";
 import { debounce } from "lodash";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/src/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
@@ -237,7 +237,7 @@ export default function OfficialForm({
                             )?.[language === 'ar' ? 'organization_arb' : 'organization_eng']
                             : t.placeholder_vertical || "Choose vertical"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -305,7 +305,7 @@ export default function OfficialForm({
                             )?.[language === 'ar' ? 'organization_arb' : 'organization_eng']
                             : t.placeholder_organization || "Choose organization"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -370,7 +370,7 @@ export default function OfficialForm({
                             )?.employee_type_eng
                             : t.placeholder_emp_type || "Choose employee type"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -432,7 +432,7 @@ export default function OfficialForm({
                             )?.location_eng
                             : t.placeholder_location || "Choose location"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -494,7 +494,7 @@ export default function OfficialForm({
                             )?.citizenship_eng
                             : t.placeholder_citizenship || "Choose citizenship"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -556,7 +556,7 @@ export default function OfficialForm({
                             )?.designation_eng
                             : t.placeholder_designation || "Choose designation"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -620,7 +620,7 @@ export default function OfficialForm({
                             )?.grade_name)
                             : t.placeholder_grade || "Choose grade"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -682,7 +682,7 @@ export default function OfficialForm({
                             )?.firstname_eng
                             : t.placeholder_manager || "Choose manager"}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>

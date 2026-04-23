@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { CalendarIcon } from "@/src/icons/icons";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { ChevronsUpDown, Download } from "lucide-react";
+import { ChevronDown, Download } from "lucide-react";
 import { Calendar } from "@/src/components/ui/calendar";
 import { format } from "date-fns";
 import { Label } from "@/src/components/ui/label";
@@ -485,7 +485,7 @@ export default function Page() {
                           : (t.placeholder_employee_filter || "Choose employee")}
                     </span>
                   </p>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                  <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">

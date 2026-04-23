@@ -24,7 +24,7 @@ import { addEmployeeGroupRequest, editEmployeeGroupRequest, getManagerEmployees 
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
 const formSchema = z.object({
@@ -437,7 +437,7 @@ export default function AddEmployeeGroups({
                                       )?.firstname_eng
                                     : t.placeholder_manager || "Choose reporting person"}
                                 </span>
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>

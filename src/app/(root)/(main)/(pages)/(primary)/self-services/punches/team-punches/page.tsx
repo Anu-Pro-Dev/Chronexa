@@ -1,6 +1,6 @@
 "use client";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/src/components/ui/command";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
@@ -557,7 +557,7 @@ export default function Page() {
                       : (t.placeholder_vertical || "Choose Vertical")}
                   </span>
                 </span>
-                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
               </Button>
             </PopoverTrigger>
 
@@ -602,7 +602,7 @@ export default function Page() {
                       : (t.placeholder_org || "Choose Organization")}
                   </span>
                 </span>
-                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
               </Button>
             </PopoverTrigger>
 
@@ -647,7 +647,7 @@ export default function Page() {
                       : (t.placeholder_employee_type || "Choose type")}
                   </span>
                 </span>
-                <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+                <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
               </Button>
             </PopoverTrigger>
 
@@ -771,7 +771,7 @@ export default function Page() {
                           : (t.placeholder_employee_filter || "Choose employee")}
                     </span>
                   </span>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />
+                  <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">

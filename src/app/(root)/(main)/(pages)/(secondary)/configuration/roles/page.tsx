@@ -36,8 +36,8 @@ export default function Page() {
   const t = translations?.modules?.configurations || {};
 
   const offset = useMemo(() => {
-    return (currentPage - 1) * rowsPerPage;
-  }, [currentPage, rowsPerPage]);
+    return currentPage;
+  }, [currentPage]);
 
   const { data: rolesData, isLoading, refetch } = useFetchAllEntity("secRole", {
     searchParams: {

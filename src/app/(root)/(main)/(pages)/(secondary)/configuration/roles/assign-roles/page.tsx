@@ -38,9 +38,13 @@ export default function MembersTable() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  const offset = useMemo(() => (currentPage - 1) * rowsPerPage, [currentPage, rowsPerPage]);
+  const offset = useMemo(() => currentPage, [currentPage]);
 
-  const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole");
+  // Fetch all roles with a high limit so roleId lookup works regardless of
+  // which page the role appears on in the main roles table.
+  const { data: rolesData, isLoading: isLoadingRoles } = useFetchAllEntity("secRole", {
+    searchParams: { limit: "1000", offset: "1" },
+  });
 
   const roleId = useMemo(() => {
     if (!role || !rolesData?.data) return null;

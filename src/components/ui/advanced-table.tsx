@@ -325,7 +325,7 @@ const TableHeader = <T extends Record<string, any>>({
                     sortDirection === "asc" ? (
                       <ChevronUp className="h-4 w-4" />
                     ) : (
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
                     )
                   ) : (
                     <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
