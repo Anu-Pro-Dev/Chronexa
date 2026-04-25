@@ -263,14 +263,18 @@ export default function Page() {
     });
   }, [userData, licenseOverrides]);
 
-  useEffect(() => {
-    if (!open) setSelectedRowData(null);
-  }, [open]);
+  // When the modal opens via the Add button (open=true, no row selected),
+  // ensure selectedRowData is null so AddUser starts with a blank form.
+  // When it closes, also clear it.
+  const handleOpenChange = useCallback((isOpen: boolean) => {
+    if (!isOpen) setSelectedRowData(null);
+    setOpen(isOpen);
+  }, []);
 
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
-    setOpen(true);
-  }, []);
+    handleOpenChange(true);
+  }, [handleOpenChange]);
 
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
@@ -301,7 +305,7 @@ export default function Page() {
   const modalComponent = useMemo(
     () => (
       <AddUser
-        on_open_change={setOpen}
+        on_open_change={handleOpenChange}
         selectedRowData={selectedRowData}
         onSave={handleSave}
       />
@@ -315,7 +319,7 @@ export default function Page() {
       Data: data,
       Columns: columns,
       open,
-      on_open_change: setOpen,
+      on_open_change: handleOpenChange,
       filter_open: false,
       filter_on_open_change: () => { },
       selectedRows,
@@ -338,7 +342,7 @@ export default function Page() {
       data, columns, open, selectedRows, isLoading, sortField, currentPage,
       sortDirection, searchValue, userData, rowsPerPage,
       handlePageChange, handleRowsPerPageChange, handleSearchChange,
-      licenseOverrides,
+      handleOpenChange, licenseOverrides,
     ]
   );
 
@@ -400,7 +404,7 @@ export default function Page() {
         </div>
 
         {/* SAP ID filter */}
-        <div>
+        {/* <div>
           <Popover
             open={popoverStates.empNo}
             onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, empNo: open }))}
@@ -419,7 +423,7 @@ export default function Page() {
                     {empNoFilter || "Choose SAP ID"}
                   </span>
                 </p>
-                <ChevronDown className="ml-2 h-4 w-4" />
+                <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
@@ -443,7 +447,7 @@ export default function Page() {
               </Command>
             </PopoverContent>
           </Popover>
-        </div>
+        </div> */}
 
       </div>
 

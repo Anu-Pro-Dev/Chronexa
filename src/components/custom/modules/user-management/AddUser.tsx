@@ -42,57 +42,66 @@ import { addSecUserRequest, editSecUserRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { ChevronsUpDown } from "lucide-react";
 
-import { ChevronDown } from "lucide-react";
+// ── Schemas — separate for add vs edit ───────────────────────────────────────
 
-const formSchema = z.object({
-  login: z.string().min(1, { message: "username_required" }),
-  password: z.string().min(1, { message: "password_required" }),
-  employee_id: z.preprocess(
-    (v) => {
-      if (v === undefined || v === null || v === "") return undefined;
-      const n = Number(v);
-      return Number.isFinite(n) ? n : undefined;
-    },
-    z
-      .number({ invalid_type_error: "employee_required" })
-      .min(1, { message: "employee_required" })
+const addSchema = z.object({
+  login:                z.string().min(1, { message: "username_required" }),
+  password:             z.string().min(1, { message: "password_required" }),
+  employee_id:          z.preprocess(
+    (v) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : undefined; },
+    z.number({ invalid_type_error: "employee_required" }).min(1, { message: "employee_required" })
   ),
-  access_mobile_app: z.boolean(),
+  access_mobile_app:    z.boolean(),
   access_control_panel: z.boolean(),
-  app_type: z.preprocess(
-    (v) => {
-      if (v === undefined || v === null || v === "") return undefined;
-      return v;
-    },
+  app_type:             z.preprocess(
+    (v) => (v === undefined || v === null || v === "" ? undefined : v),
     z.enum(["ontime", "fieldtrack"], {
       invalid_type_error: "app_type_required",
-      required_error: "app_type_required",
+      required_error:     "app_type_required",
     })
   ),
 });
 
+const editSchema = z.object({
+  login:                z.string().optional(),
+  password:             z.string().optional(),
+  employee_id:          z.preprocess(
+    (v) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : undefined; },
+    z.number({ invalid_type_error: "employee_required" }).min(1, { message: "employee_required" }).optional()
+  ),
+  access_mobile_app:    z.boolean(),
+  access_control_panel: z.boolean(),
+  app_type:             z.preprocess(
+    (v) => (v === undefined || v === null || v === "" ? undefined : v),
+    z.enum(["ontime", "fieldtrack"]).optional()
+  ),
+});
+
 type FormValues = {
-  login: string;
-  password: string;
-  employee_id?: number;
-  access_mobile_app: boolean;
+  login:                string;
+  password:             string;
+  employee_id?:         number;
+  access_mobile_app:    boolean;
   access_control_panel: boolean;
-  app_type?: "ontime" | "fieldtrack" | "";
+  app_type?:            "ontime" | "fieldtrack" | "";
 };
 
 const DEFAULT_FORM_VALUES: FormValues = {
-  login: "",
-  password: "",
-  employee_id: undefined,
-  access_mobile_app: false,
+  login:                "",
+  password:             "",
+  employee_id:          undefined,
+  access_mobile_app:    false,
   access_control_panel: false,
-  app_type: "",
+  app_type:             "",
 };
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function toBooleanFlag(value: any): boolean {
-  const normalized = String(value ?? "").trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "enabled";
+  const s = String(value ?? "").trim().toLowerCase();
+  return s === "1" || s === "true" || s === "enabled";
 }
 
 function toNumberOrUndefined(value: any): number | undefined {
@@ -101,13 +110,14 @@ function toNumberOrUndefined(value: any): number | undefined {
 }
 
 type AppType = "ontime" | "fieldtrack";
-
 function toAppTypeOrEmpty(value: any): AppType | "" {
-  const normalized = String(value ?? "").trim().toLowerCase();
-  if (normalized === "ontime") return "ontime";
-  if (normalized === "fieldtrack") return "fieldtrack";
+  const s = String(value ?? "").trim().toLowerCase();
+  if (s === "ontime") return "ontime";
+  if (s === "fieldtrack") return "fieldtrack";
   return "";
 }
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AddUser({
   on_open_change,
@@ -123,9 +133,9 @@ export default function AddUser({
   const [empPopoverOpen, setEmpPopoverOpen] = useState(false);
 
   const queryClient = useQueryClient();
-  const showToast = useShowToast();
+  const showToast   = useShowToast();
 
-  const t = translations?.modules?.userManagement || {};
+  const t    = translations?.modules?.userManagement || {};
   const btnT = translations?.buttons || {};
   const errT = translations?.formErrors || {};
 
@@ -133,61 +143,61 @@ export default function AddUser({
 
   const { data: employeeData, isLoading: empLoading } = useFetchAllEntity(
     "employee",
-    {
-      searchParams: {
-        organization_id: "27",
-        withCredentials: "false",
-      },
-    }
+    { searchParams: { limit: "1000", offset: "1" } }
   );
-
   const employees = useMemo(() => employeeData?.data ?? [], [employeeData]);
+
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(isEditMode ? editSchema : addSchema) as any,
     defaultValues: DEFAULT_FORM_VALUES,
   });
 
+  // ── Prefill on edit / clear on add ─────────────────────────────────────────
   useEffect(() => {
     if (!selectedRowData) {
       form.reset(DEFAULT_FORM_VALUES);
       return;
     }
 
-    const appType = toAppTypeOrEmpty(selectedRowData?.app_type);
+    const mobileApp    = toBooleanFlag(selectedRowData?.access_mobile_app);
+    const controlPanel = toBooleanFlag(selectedRowData?.access_control_panel);
+    const appType      = toAppTypeOrEmpty(selectedRowData?.app_type);
+    const empId        = toNumberOrUndefined(selectedRowData?.employee_id);
 
     form.reset({
       ...DEFAULT_FORM_VALUES,
-      login: selectedRowData?.login ?? "",
-      // Never reveal the real password in edit; keep it masked but valid for schema
-      password: "********",
-      employee_id: toNumberOrUndefined(selectedRowData?.employee_id),
-      access_mobile_app: toBooleanFlag(selectedRowData?.access_mobile_app ?? selectedRowData?.user_license),
-      access_control_panel: toBooleanFlag(selectedRowData?.access_control_panel),
-      app_type: appType,
+      login:                selectedRowData?.login ?? "",
+      password:             "********",
+      employee_id:          empId,
+      access_mobile_app:    mobileApp,
+      access_control_panel: controlPanel,
+      app_type:             appType,
     });
 
-    // Some non-native inputs (Radix Select) can fail to visually update on `reset()`.
-    // Re-apply the value on the next tick to ensure the trigger reflects it.
-    setTimeout(() => {
-      form.setValue("app_type", appType as any, {
-        shouldDirty: false,
-        shouldTouch: false,
-        shouldValidate: false,
-      });
+    // Force Radix/custom inputs to reflect the reset value
+    const timer = setTimeout(() => {
+      form.setValue("app_type",             appType    as any, { shouldDirty: false, shouldTouch: false, shouldValidate: false });
+      form.setValue("access_mobile_app",    mobileApp,         { shouldDirty: false, shouldTouch: false, shouldValidate: false });
+      form.setValue("access_control_panel", controlPanel,      { shouldDirty: false, shouldTouch: false, shouldValidate: false });
     }, 0);
+
+    return () => clearTimeout(timer);
   }, [selectedRowData, form]);
 
-  const selectedEmpId = form.watch("employee_id");
-
+  // Watch employee_id only in add mode (edit mode shows from selectedRowData directly)
+  const watchedEmpId   = form.watch("employee_id");
   const selectedEmployee = useMemo(
-    () => employees.find((e: any) => e.employee_id === selectedEmpId),
-    [employees, selectedEmpId]
+    () => !isEditMode ? employees.find((e: any) => e.employee_id === watchedEmpId) : null,
+    [employees, watchedEmpId, isEditMode]
   );
+
+  // ── Mutations ───────────────────────────────────────────────────────────────
+
   const addMutation = useMutation({
     mutationFn: addSecUserRequest,
     onSuccess: () => {
       showToast("success", "addsecuser_success");
-      queryClient.invalidateQueries({ queryKey: ["secuser"] });
+      queryClient.invalidateQueries({ queryKey: ["/secuser/list"] });
       onSave?.();
       on_open_change(false);
     },
@@ -204,7 +214,7 @@ export default function AddUser({
     mutationFn: editSecUserRequest,
     onSuccess: () => {
       showToast("success", "datasave_success");
-      queryClient.invalidateQueries({ queryKey: ["secuser"] });
+      queryClient.invalidateQueries({ queryKey: ["/secuser/list"] });
       onSave?.();
       on_open_change(false);
     },
@@ -213,91 +223,88 @@ export default function AddUser({
     },
   });
 
+  // ── Submit ──────────────────────────────────────────────────────────────────
+
   async function onSubmit(values: FormValues) {
     if (isSubmitting) return;
-
-    const parsed = formSchema.parse(values);
-
     setIsSubmitting(true);
     try {
       if (isEditMode) {
         editMutation.mutate({
-          user_id: Number(selectedRowData.user_id),
-          access_mobile_app: parsed.access_mobile_app,
-          access_control_panel: parsed.access_control_panel,
-          app_type: parsed.app_type,
+          user_id:              Number(selectedRowData.user_id),
+          // Only send employee_id if it changed; send null to clear
+          employee_id:          values.employee_id ?? null,
+          access_mobile_app:    values.access_mobile_app,
+          access_control_panel: values.access_control_panel,
+          app_type:             values.app_type || null,
         } as any);
       } else {
+        const parsed = addSchema.parse(values);
         addMutation.mutate({
-          login: parsed.login,
-          password: parsed.password,
-          employee_id: parsed.employee_id,
+          login:                parsed.login,
+          password:             parsed.password,
+          employee_id:          parsed.employee_id,
           access_control_panel: parsed.access_control_panel,
-          is_aduser: false,
-          access_mobile_app: parsed.access_mobile_app,
-          app_type: parsed.app_type,
+          is_aduser:            false,
+          access_mobile_app:    parsed.access_mobile_app,
+          app_type:             parsed.app_type,
         } as any);
       }
     } finally {
       setIsSubmitting(false);
     }
   }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
 
-          {/* Username */}
-          <FormField
-            control={form.control}
-            name="login"
-            render={({ field }) => (
-              <FormItem className="min-w-0">
-                <FormLabel>
-                  {t.username || "Username"} <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder={t.placeholder_username || "Enter username"}
-                    {...field}
-                    readOnly={isEditMode}
-                    className={language === "ar" ? "text-right" : "text-left"}
-                  />
-                </FormControl>
-                <TranslatedError
-                  fieldError={form.formState.errors.login}
-                  translations={errT}
-                />
-              </FormItem>
-            )}
-          />
+          {/* Username — only shown/required in add mode */}
+          {!isEditMode && (
+            <FormField
+              control={form.control}
+              name="login"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>{t.username || "Username"} <Required /></FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_username || "Enter username"}
+                      {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
+                    />
+                  </FormControl>
+                  <TranslatedError fieldError={form.formState.errors.login} translations={errT} />
+                </FormItem>
+              )}
+            />
+          )}
 
-          {/* Password */}
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="min-w-0">
-                <FormLabel>
-                  {t.password || "Password"} <Required />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder={t.placeholder_password || "Enter password"}
-                    {...field}
-                    readOnly={isEditMode}
-                    className={language === "ar" ? "text-right" : "text-left"}
-                  />
-                </FormControl>
-                <TranslatedError
-                  fieldError={form.formState.errors.password}
-                  translations={errT}
-                />
-              </FormItem>
-            )}
-          />
+          {/* Password — only shown/required in add mode */}
+          {!isEditMode && (
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>{t.password || "Password"} <Required /></FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder={t.placeholder_password || "Enter password"}
+                      {...field}
+                      className={language === "ar" ? "text-right" : "text-left"}
+                    />
+                  </FormControl>
+                  <TranslatedError fieldError={form.formState.errors.password} translations={errT} />
+                </FormItem>
+              )}
+            />
+          )}
 
           {/* Employee Dropdown */}
           <FormField
@@ -305,16 +312,11 @@ export default function AddUser({
             name="employee_id"
             render={({ field }) => (
               <FormItem className="min-w-0">
-                <FormLabel>
-                  {t.employee || "Employee"} <Required />
-                </FormLabel>
+                <FormLabel>{t.employee || "Employee"} <Required /></FormLabel>
 
                 <Popover
                   open={isEditMode ? false : empPopoverOpen}
-                  onOpenChange={(open) => {
-                    if (isEditMode) return;
-                    setEmpPopoverOpen(open);
-                  }}
+                  onOpenChange={(o) => { if (!isEditMode) setEmpPopoverOpen(o); }}
                 >
                   <PopoverTrigger asChild>
                     <Button
@@ -325,24 +327,27 @@ export default function AddUser({
                       className="w-full bg-accent px-4 flex justify-between border-grey"
                     >
                       <span className="text-sm truncate">
-                        {selectedEmployee ? (
+                        {isEditMode && selectedRowData ? (
+                          <span className="text-text-primary">
+                            {selectedRowData.emp_no ?? ""} —{" "}
+                            {language === "ar"
+                              ? selectedRowData.firstname_arb || selectedRowData.name
+                              : selectedRowData.name || selectedRowData.firstname_eng}
+                          </span>
+                        ) : selectedEmployee ? (
                           <span className="text-text-primary">
                             {selectedEmployee.emp_no ?? ""} —{" "}
                             {language === "ar"
-                              ? selectedEmployee.firstname_arb ||
-                              selectedEmployee.name
-                              : selectedEmployee.name ||
-                              selectedEmployee.firstname_eng}
+                              ? selectedEmployee.firstname_arb || selectedEmployee.name
+                              : selectedEmployee.name || selectedEmployee.firstname_eng}
                           </span>
                         ) : (
                           <span className="text-text-secondary">
-                            {empLoading
-                              ? "Loading employees..."
-                              : t.placeholder_employee || "Choose employee"}
+                            {empLoading ? "Loading employees..." : t.placeholder_employee || "Choose employee"}
                           </span>
                         )}
                       </span>
-                      <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
+                      <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
                     </Button>
                   </PopoverTrigger>
 
@@ -356,19 +361,14 @@ export default function AddUser({
                             key={emp.employee_id}
                             value={`${emp.emp_no ?? ""} ${language === "ar"
                               ? emp.firstname_arb || emp.name || ""
-                              : emp.name || emp.firstname_eng || ""
-                              }`}
+                              : emp.name || emp.firstname_eng || ""}`}
                             onSelect={() => {
                               field.onChange(emp.employee_id);
                               setEmpPopoverOpen(false);
                             }}
                           >
-                            <span className="font-regular text-text-secondary mr-2">
-                              {emp.emp_no}
-                            </span>
-                            {language === "ar"
-                              ? emp.firstname_arb || emp.name
-                              : emp.name || emp.firstname_eng}
+                            <span className="font-regular text-text-secondary mr-2">{emp.emp_no}</span>
+                            {language === "ar" ? emp.firstname_arb || emp.name : emp.name || emp.firstname_eng}
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -376,14 +376,10 @@ export default function AddUser({
                   </PopoverContent>
                 </Popover>
 
-                <TranslatedError
-                  fieldError={form.formState.errors.employee_id}
-                  translations={errT}
-                />
+                <TranslatedError fieldError={form.formState.errors.employee_id} translations={errT} />
               </FormItem>
             )}
           />
-
 
           {/* App Type */}
           <FormField
@@ -392,7 +388,7 @@ export default function AddUser({
             render={({ field }) => (
               <FormItem className="min-w-0">
                 <FormLabel>
-                  {t.app_type || "App type"} <Required />
+                  {t.app_type || "App type"} {!isEditMode && <Required />}
                 </FormLabel>
                 <Select
                   value={((field.value as any) ?? "") as any}
@@ -408,72 +404,46 @@ export default function AddUser({
                     <SelectItem value="fieldtrack">Field Track</SelectItem>
                   </SelectContent>
                 </Select>
-                <TranslatedError
-                  fieldError={form.formState.errors.app_type}
-                  translations={errT}
-                />
+                <TranslatedError fieldError={form.formState.errors.app_type} translations={errT} />
               </FormItem>
             )}
           />
 
-          {/* Mobile License Toggle */}
+          {/* Toggles */}
           <div className="w-full flex gap-2 items-center pt-2 pb-2">
             <FormField
               control={form.control}
               name="access_mobile_app"
               render={({ field }) => (
                 <FormItem>
-                  <div
-                    className={`flex items-center gap-1 mt-2 ${language === "ar" ? "flex-row-reverse justify-end" : ""
-                      }`}
-                  >
+                  <div className={`flex items-center gap-1 mt-2 ${language === "ar" ? "flex-row-reverse justify-end" : ""}`}>
                     <FormControl>
-                      <Switch
-                        checked={!!field.value}
-                        onChange={(val: boolean) => field.onChange(val)}
-                      />
+                      <Switch checked={!!field.value} onChange={(val: boolean) => field.onChange(val)} />
                     </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer font-regular">
-                      {t.license || "License"}
-                    </FormLabel>
+                    <FormLabel className="!mt-0 cursor-pointer font-regular">{t.license || "License"}</FormLabel>
                   </div>
                 </FormItem>
               )}
             />
-
-            {/* Web App Toggle */}
             <FormField
               control={form.control}
               name="access_control_panel"
               render={({ field }) => (
                 <FormItem>
-                  <div
-                    className={`flex items-center gap-1 mt-2 ${language === "ar" ? "flex-row-reverse justify-end" : ""
-                      }`}
-                  >
+                  <div className={`flex items-center gap-1 mt-2 ${language === "ar" ? "flex-row-reverse justify-end" : ""}`}>
                     <FormControl>
-                      <Switch
-                        checked={!!field.value}
-                        onChange={(val: boolean) => field.onChange(val)}
-                      />
+                      <Switch checked={!!field.value} onChange={(val: boolean) => field.onChange(val)} />
                     </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer font-regular">
-                      {t.web_app || "Web app"}
-                    </FormLabel>
+                    <FormLabel className="!mt-0 cursor-pointer font-regular">{t.web_app || "Web app"}</FormLabel>
                   </div>
                 </FormItem>
               )}
             />
           </div>
+
           {/* Actions */}
           <div className="w-full flex gap-2 items-center pt-2 pb-2">
-            <Button
-              variant="outline"
-              type="button"
-              size="lg"
-              className="w-full"
-              onClick={() => on_open_change(false)}
-            >
+            <Button variant="outline" type="button" size="lg" className="w-full" onClick={() => on_open_change(false)}>
               {btnT?.cancel || "Cancel"}
             </Button>
             <Button
