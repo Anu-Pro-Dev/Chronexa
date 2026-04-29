@@ -57,7 +57,6 @@ export default function Page() {
     return currentPage;
   }, [currentPage]);
 
-  // ─── Admin / Manager logic (same as manual punches page) ───────────────────
   const isAdmin = useMemo(() => {
     const role = (userInfo?.role ?? "").toUpperCase();
     if (role) {

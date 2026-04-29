@@ -72,6 +72,46 @@ export default function Page() {
       : `/employeeManualTransaction/team/all`;
   }, [isAdmin]);
 
+  const getEmployeeDisplayInfo = useCallback((transaction: any) => {
+    const employeeMaster =
+      transaction.employee ||
+      transaction.employee_master ||
+      transaction.employee_master_employee_manual_transactions_employee_idToemployee_master;
+
+    if (!employeeMaster) {
+      return {
+        emp_no: `${transaction.employee_id}`,
+        employee_name: `Employee ${transaction.employee_id}`,
+        firstName: '',
+        lastName: '',
+        fullName: `Employee ${transaction.employee_id}`,
+        employee_id: transaction.employee_id,
+      };
+    }
+
+    const firstNameEn = employeeMaster.firstname_eng || '';
+    const lastNameEn = employeeMaster.lastname_eng || '';
+    const firstNameAr = employeeMaster.firstname_arb || '';
+    const lastNameAr = employeeMaster.lastname_arb || '';
+
+    const firstName = language === 'ar' ? firstNameAr : firstNameEn;
+    const lastName = language === 'ar' ? lastNameAr : lastNameEn;
+
+    const fullName =
+      language === 'ar'
+        ? `${firstNameAr} ${lastNameAr}`.trim()
+        : `${firstNameEn} ${lastNameEn}`.trim();
+
+    return {
+      emp_no: employeeMaster.emp_no || `EMP${transaction.employee_id}`,
+      employee_name: fullName || firstName || `Employee ${transaction.employee_id}`,
+      firstName,
+      lastName,
+      fullName: fullName || firstName || `Employee ${transaction.employee_id}`,
+      employee_id: transaction.employee_id,
+    };
+  }, [language]);
+
   const AttachmentCellRenderer = useCallback((data: any) => {
     const filePath = data.attachment_path;
 
@@ -151,8 +191,7 @@ export default function Page() {
     }
 
     const processedData = manualTransactionsData.data.map((transaction: any) => {
-      const employeeMaster =
-        transaction.employee ||
+      const employeeMaster = transaction.employee ||
         transaction.employee_master ||
         transaction.employee_master_employee_manual_transactions_employee_idToemployee_master;
       const firstNameEn = employeeMaster?.firstname_eng || '';
@@ -211,6 +250,11 @@ export default function Page() {
     }
   }, [refetch]);
 
+  const handleStatusChange = (value: string) => {
+    setSelectedOption(value);
+    handleFilterChange();
+  };
+
   const handleFromDateChange = (date: Date | undefined) => {
     setFromDate(date);
     handleFilterChange();
@@ -219,6 +263,11 @@ export default function Page() {
   const handleToDateChange = (date: Date | undefined) => {
     setToDate(date);
     handleFilterChange();
+  };
+
+  const handleEmployeeFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmployeeFilter(event.target.value);
+    setCurrentPage(1);
   };
 
   const handleRowSelection = useCallback((rows: any[]) => {
@@ -333,10 +382,10 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.manageApprovals.items}
         entityName="employeeManualTransaction"
-        approve_modal_title={t.approve_manual_transaction || "Approve Manual Punches"}
-        approve_modal_description={t.approve_manual_punch_desc || "Are you sure you want to approve the selected manual punche(s)?"}
-        reject_modal_title={t.reject_manual_transaction || "Reject Manual Punches"}
-        reject_modal_description={t.reject_manual_punch_desc || "Are you sure you want to reject the selected manual punche(s)?"}
+        approve_modal_title={t.approve_manual_transaction || "Approve Manual Transaction"}
+        approve_modal_description={t.approve_leave_desc || "Are you sure you want to approve the selected manual transaction(s)?"}
+        reject_modal_title={t.reject_leave || "Reject Manual Transaction"}
+        reject_modal_description={t.reject_leave_desc || "Are you sure you want to reject the selected manual transaction(s)?"}
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-[700px]">
         <div>
@@ -395,10 +444,13 @@ export default function Page() {
                 }}
                 disabled={(date) => {
                   if (!fromDate) return false;
+
                   const from = new Date(fromDate);
                   from.setHours(0, 0, 0, 0);
+
                   const current = new Date(date);
                   current.setHours(0, 0, 0, 0);
+
                   return current < from;
                 }}
               />
@@ -409,7 +461,7 @@ export default function Page() {
       <div className="bg-accent rounded-2xl">
         <div className="col-span-2 p-6 pb-6">
           <h1 className="font-medium text-xl text-primary">
-            {t.manual_punches_approval || "Punches Approval"}
+            {t.missing_punches_approval || "Missing Punches Approval"}
           </h1>
         </div>
         <div className="px-6">

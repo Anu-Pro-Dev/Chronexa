@@ -1021,7 +1021,7 @@
         "col_password": "Password",
         "col_license": "License",
         "password_reset_success_title": "Password Reset Successful",
-        "password_reset_success_desc": "A new password has been generated and sent to the user's email.",
+        "password_reset_success_desc": "A new password has been generated.",
         "password_reset_sent_to": "Sent To",
         "password_reset_footer": "The new password has been sent to the registered email address."
       }

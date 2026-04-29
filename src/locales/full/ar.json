@@ -1020,7 +1020,7 @@
         "col_password": "كلمة المرور",
         "col_license": "الترخيص",
         "password_reset_success_title": "تمت إعادة تعيين كلمة المرور بنجاح",
-        "password_reset_success_desc": "تم إنشاء كلمة مرور جديدة وإرسالها إلى بريد المستخدم الإلكتروني.",
+        "password_reset_success_desc": "تم إنشاء كلمة مرور جديدة.",
         "password_reset_sent_to": "أُرسل إلى",
         "password_reset_footer": "تم إرسال كلمة المرور الجديدة إلى عنوان البريد الإلكتروني المسجل."
       }

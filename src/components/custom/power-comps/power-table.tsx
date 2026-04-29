@@ -1,5 +1,4 @@
 "use client";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { AgGridReact } from "ag-grid-react";
 import React, { useEffect, useState, useRef, useMemo } from "react";
@@ -13,14 +12,14 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 import { InlineLoading } from "@/src/app/loading";
 
-const EditIconRenderer = ({ data, onEditClick }: { data: any, onEditClick: (data: any) => void }) => {
+const EditIconRenderer = ({ data, onEditClick }: { data: any; onEditClick: (data: any) => void }) => {
   const handleClick = () => {
     onEditClick(data);
   };
 
   return (
     <button onClick={handleClick}>
-      <FaPen size={10}/>
+      <FaPen size={10} />
     </button>
   );
 };
@@ -33,7 +32,7 @@ export default function PowerTable({
   ispageValue5,
   onRowSelection,
   isLoading = false,
-  overrideEditIcon, 
+  overrideEditIcon,
   overrideCheckbox,
 }: {
   props: any;
@@ -51,13 +50,24 @@ export default function PowerTable({
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [tableData, setTableData] = useState<any[]>([]);
 
+  // ─── Mobile detection ────────────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const currentPage = props.CurrentPage || 1;
-  const setCurrentPage = props.SetCurrentPage || (() => {});
+  const setCurrentPage = props.SetCurrentPage || (() => { });
   const pageSize = props.rowsPerPage || 10;
-  const setRowsPerPage = props.setRowsPerPage || (() => {});
+  const setRowsPerPage = props.setRowsPerPage || (() => { });
   const totalRecords = props.total || 0;
   const hasNext = props.hasNext || false;
-  
+
   const totalPages = Math.ceil(totalRecords / pageSize);
   const { privilegeMap } = usePrivileges();
   const pathname = window?.location?.pathname || "";
@@ -70,29 +80,29 @@ export default function PowerTable({
   const activeSubmodules = activeModuleKey
     ? privilegeMap[activeModuleKey]?.subModules || []
     : [];
-  
-  const activeSubmodule = activeSubmodules.find(sm => pathname.includes(sm.path));
+
+  const activeSubmodule = activeSubmodules.find((sm: any) => pathname.includes(sm.path));
 
   const pathSegments = pathname.split("/").filter(Boolean);
-  const submodulePathIndex = pathSegments.findIndex(seg => seg === activeSubmodule?.path);
+  const submodulePathIndex = pathSegments.findIndex((seg: string) => seg === activeSubmodule?.path);
 
   const currentTabSlug = pathSegments[submodulePathIndex + 1];
 
-  const currentTab = activeSubmodule?.tabs?.find(tab =>
-    tab.tab_name.replace(/\s+/g, "-").toLowerCase() === currentTabSlug
+  const currentTab = activeSubmodule?.tabs?.find(
+    (tab: any) => tab.tab_name.replace(/\s+/g, "-").toLowerCase() === currentTabSlug
   );
-  
+
   const effectivePrivileges = {
     create: currentTab?.privileges?.create ?? activeSubmodule?.privileges?.create ?? false,
     edit: currentTab?.privileges?.edit ?? activeSubmodule?.privileges?.edit ?? false,
     delete: currentTab?.privileges?.delete ?? activeSubmodule?.privileges?.delete ?? false,
     view: currentTab?.privileges?.view ?? activeSubmodule?.privileges?.view ?? false,
   };
-  
+
   const onSelectionChanged = (event: any) => {
     const selectedNodes = event.api.getSelectedNodes();
     const newSelectedRows = selectedNodes.map((node: any) => node.data);
-  
+
     if (JSON.stringify(selectedRows) !== JSON.stringify(newSelectedRows)) {
       setSelectedRows(newSelectedRows);
       if (onRowSelection) {
@@ -102,11 +112,11 @@ export default function PowerTable({
         props.setSelectedRows(newSelectedRows);
       }
     }
-  };  
+  };
 
   const FetchData = async () => {
     if (!api) return;
-    
+
     try {
       const response: any = await DynamicApi(api, {
         page: currentPage,
@@ -115,9 +125,8 @@ export default function PowerTable({
         sortType: props?.SortDirection,
         search: props?.SearchValue,
       });
-      
+
       setTableData(response.data.data || response.data.items || []);
-      
     } catch (error) {
       console.error("Error fetching data:", error);
       setTableData([]);
@@ -150,47 +159,61 @@ export default function PowerTable({
   const onGridReady = (params: any) => {
     gridRef.current = params;
   };
-  
+
   const { theme } = useTheme();
-  const cellTextColor = theme === 'dark' ? '#b5b6b7' : '#2B3674';
+  const cellTextColor = theme === "dark" ? "#b5b6b7" : "#2B3674";
 
-  const myTheme = useMemo(() => themeQuartz.withParams({
-    fontFamily: "inherit",
-    borderColor: "#EEEEEE",
-    borderRadius: "0px",
-    browserColorScheme: "light",
-    headerTextColor: "#0078D4",
-    headerBackgroundColor: "transparent",
-    backgroundColor: "transparent", 
-    oddRowBackgroundColor: "transparent", 
-    headerFontSize: 15,
-    headerFontWeight: 600,
-    headerRowBorder: { width: 1, color: "#EEEEEE" }, 
-    headerColumnBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false, 
-    rowBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false, 
-    columnBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false, 
-    sidePanelBorder: false,
-    wrapperBorder: false,
-    cellTextColor: cellTextColor,
-    wrapperBorderRadius: "0px",
-    checkboxBorderRadius: "3px",
-    checkboxBorderWidth: "2px",
-    checkboxUncheckedBorderColor: "#E5E7EB",
-    checkboxCheckedBackgroundColor: "#076bb7",
-    checkboxCheckedBorderColor: "transparent",
-    checkboxIndeterminateBackgroundColor: "#E5E7EB",
-    checkboxIndeterminateBorderColor: "transparent",
-  }), [cellTextColor, props?.EnableBorders]);
+  const myTheme = useMemo(
+    () =>
+      themeQuartz.withParams({
+        fontFamily: "inherit",
+        borderColor: "#EEEEEE",
+        borderRadius: "0px",
+        browserColorScheme: "light",
+        headerTextColor: "#0078D4",
+        headerBackgroundColor: "transparent",
+        backgroundColor: "transparent",
+        oddRowBackgroundColor: "transparent",
+        headerFontSize: isMobile ? 12 : 14,
+        headerFontWeight: 600,
+        fontSize: isMobile ? 10 : 12,
+        headerRowBorder: { width: 1, color: "#EEEEEE" },
+        headerColumnBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false,
+        rowBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false,
+        columnBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false,
+        sidePanelBorder: false,
+        wrapperBorder: false,
+        cellTextColor: cellTextColor,
+        wrapperBorderRadius: "0px",
+        checkboxBorderRadius: "3px",
+        checkboxBorderWidth: "2px",
+        checkboxUncheckedBorderColor: "#E5E7EB",
+        checkboxCheckedBackgroundColor: "#076bb7",
+        checkboxCheckedBorderColor: "transparent",
+        checkboxIndeterminateBackgroundColor: "#E5E7EB",
+        checkboxIndeterminateBorderColor: "transparent",
+        cellHorizontalPadding: 12
+      }),
+    [cellTextColor, props?.EnableBorders, isMobile]
+  );
 
-  const ClickableCellRenderer = ({ value, data, onCellClick }: { value: any, data: any, onCellClick: (data: any) => void }) => {
+  const ClickableCellRenderer = ({
+    value,
+    data,
+    onCellClick,
+  }: {
+    value: any;
+    data: any;
+    onCellClick: (data: any) => void;
+  }) => {
     const handleClick = (event: React.MouseEvent) => {
       event.stopPropagation();
       if (onCellClick) onCellClick(data);
     };
-  
+
     return (
-      <div 
-        onClick={handleClick} 
+      <div
+        onClick={handleClick}
         className="w-full h-full flex items-center justify-start cursor-pointer text-primary underline"
         style={{ padding: "8px" }}
       >
@@ -199,37 +222,40 @@ export default function PowerTable({
     );
   };
 
-  const showEdit = overrideEditIcon !== undefined 
-    ? overrideEditIcon 
-    : effectivePrivileges.edit;
-    
-  const showCheckbox = overrideCheckbox !== undefined 
-    ? overrideCheckbox 
-    : effectivePrivileges.delete;
+  const showEdit =
+    overrideEditIcon !== undefined ? overrideEditIcon : effectivePrivileges.edit;
 
-  const displayData = api ? tableData : (props?.Data || []);
+  const showCheckbox =
+    overrideCheckbox !== undefined ? overrideCheckbox : effectivePrivileges.delete;
+
+  const displayData = api ? tableData : props?.Data || [];
 
   const columnDefs = [
-    ...(showCheckbox && displayData.length > 0 
+    ...(showCheckbox && displayData.length > 0
       ? [
-          {
-            field: "checkbox",
-            headerName: "",
-            headerCheckboxSelection: true,
-            checkboxSelection: true,
-            width: 50,
-            sortable: false,
-            filter: false,
-            pinned: language === "ar" ? "right" : "left",
-            cellStyle: { border: "none" },
+        {
+          field: "checkbox",
+          headerName: "",
+          headerCheckboxSelection: true,
+          checkboxSelection: true,
+          width: 50,
+          flex: 0,
+          sortable: false,
+          filter: false,
+          pinned: language === "ar" ? "right" : "left",
+          cellStyle: {
+            border: "none",
+            padding: "0",          
+            justifyContent: "center", 
           },
-        ]
+        },
+      ]
       : []),
     ...props.Columns.map((col: any) => ({
       ...col,
       cellRenderer:
-      typeof col.field === "string"
-        ? (params: any) => {
+        typeof col.field === "string"
+          ? (params: any) => {
             const value = params.value;
 
             if (typeof value === "boolean") {
@@ -242,10 +268,7 @@ export default function PowerTable({
 
             if (col.clickable) {
               return (
-                <ClickableCellRenderer
-                  {...params}
-                  onCellClick={col.onCellClick}
-                />
+                <ClickableCellRenderer {...params} onCellClick={col.onCellClick} />
               );
             }
 
@@ -255,102 +278,115 @@ export default function PowerTable({
 
             return value;
           }
-        : undefined,
+          : undefined,
     })),
     ...(showEdit
       ? [
-          {
-            field: "actions",
-            headerName: "",
-            cellRenderer: "editIconRenderer",
-            width: 50,
-            sortable: false,
-            filter: false,
-            pinned: language === "ar" ? "left" : "right",
-            cellStyle: {
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "end",
-            },
+        {
+          field: "actions",
+          headerName: "",
+          cellRenderer: "editIconRenderer",
+          width: 50,
+          flex: 0,
+          sortable: false,
+          filter: false,
+          pinned: language === "ar" ? "left" : "right",
+          cellStyle: {
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "end",
           },
-        ]
+        },
+      ]
       : []),
   ];
 
   return (
-    <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6 overflow-auto scrollbar-hide mb-4">
-      
-      <div style={{ width: "100%" }}>
+    <div className="flex flex-col gap-4 bg-accent p-3 rounded-2xl pb-6 mb-4">
+
+      {/* ─── Table wrapper: horizontally scrollable on mobile ─────────────── */}
+      <div
+        style={{
+          width: "100%",
+          overflowX: isMobile ? "auto" : "hidden",
+          WebkitOverflowScrolling: "touch", // smooth scroll on iOS
+        }}
+      >
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
             <InlineLoading />
           </div>
         ) : (
-          <AgGridReact
-            key={dir}
-            ref={gridRef}
-            enableRtl={dir === "rtl"}
-            theme={myTheme}
-            onGridReady={onGridReady}
-            onSortChanged={onSortChanged}
-            rowData={displayData}
-            columnDefs={columnDefs}
-            domLayout="autoHeight"
-            onSelectionChanged={onSelectionChanged}
-            gridOptions={{
-              rowSelection: showCheckbox ? "multiple" : undefined,
-              suppressCellFocus: true,
-              suppressMovableColumns: true,
-              suppressRowClickSelection: true,
-              overlayNoRowsTemplate: `<span class="text-secondary">${translations?.no_data || 'No data available'}</span>`,
-            }}
-            defaultColDef={{
-              autoHeight: true,
-              wrapHeaderText: true,
-              autoHeaderHeight: true,
-              flex: 1,
-              wrapText: true,
-              resizable: false,
-              headerClass: 'custom-header',
-              cellStyle: {
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "start",
-                whiteSpace: "normal",
-                wordBreak: "break-word",
-                lineHeight: "1.5",
-              },
-              ...customColDef,
-            }}
-            rowStyle={{ fontWeight: "500" }}
-            components={{
-              editIconRenderer: (params: any) => <EditIconRenderer {...params} onEditClick={onEditClick} />,
-            }}
-          />
+          <div style={isMobile ? { minWidth: "650px" } : undefined}>
+            <AgGridReact
+              key={dir}
+              ref={gridRef}
+              enableRtl={dir === "rtl"}
+              theme={myTheme}
+              onGridReady={onGridReady}
+              onSortChanged={onSortChanged}
+              rowData={displayData}
+              columnDefs={columnDefs}
+              domLayout="autoHeight"
+              onSelectionChanged={onSelectionChanged}
+              gridOptions={{
+                rowSelection: showCheckbox ? "multiple" : undefined,
+                suppressCellFocus: true,
+                suppressMovableColumns: true,
+                suppressRowClickSelection: true,
+                overlayNoRowsTemplate: `<span class="text-secondary">${translations?.no_data || "No data available"
+                  }</span>`,
+              }}
+              defaultColDef={{
+                autoHeight: true,
+                wrapHeaderText: true,
+                autoHeaderHeight: true,
+                // On mobile: don't use flex so columns keep a natural min width
+                flex: isMobile ? undefined : 1,
+                minWidth: isMobile ? 110 : undefined,
+                wrapText: true,
+                resizable: false,
+                headerClass: "custom-header",
+                cellStyle: {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "start",
+                  whiteSpace: "normal",
+                  wordBreak: "break-word",
+                  lineHeight: "1.5",
+                  fontSize: isMobile ? "10px" : "12px",
+                  padding: isMobile ? "8px" : "8px",
+                },
+                ...customColDef,
+              }}
+              rowStyle={{ fontWeight: "500" }}
+              components={{
+                editIconRenderer: (params: any) => (
+                  <EditIconRenderer {...params} onEditClick={onEditClick} />
+                ),
+              }}
+            />
+          </div>
         )}
       </div>
 
+      {/* ─── Pagination ───────────────────────────────────────────────────── */}
       <div className="flex justify-between items-center mt-4 px-4">
         <div className="flex items-center gap-2">
-          <Select
-            value={String(pageSize)}
-            onValueChange={handleRowsPerPageChange}
-          >
+          <Select value={String(pageSize)} onValueChange={handleRowsPerPageChange}>
             <SelectTrigger className="w-20 text-sm font-normal text-secondary border-none shadow-lg bg-accent rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {[10, 20, 30, 40, 50].map(size => (
+              {[10, 20, 30, 40, 50].map((size) => (
                 <SelectItem key={size} value={String(size)}>
                   {size}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <span className="text-sm text-secondary">
-            {translations?.records_per_page }
-          </span>
+          <span className="text-sm text-secondary">{translations?.records_per_page}</span>
         </div>
         <PowerTablePagination
           totalPages={totalPages}
@@ -361,11 +397,10 @@ export default function PowerTable({
           {totalRecords === 0
             ? translations?.no_records
             : `${translations?.showing} ${(currentPage - 1) * pageSize + 1}-${Math.min(
-                currentPage * pageSize,
-                totalRecords
-              )} ${translations?.of || "of"} ${totalRecords}`}
+              currentPage * pageSize,
+              totalRecords
+            )} ${translations?.of || "of"} ${totalRecords}`}
         </span>
-        
       </div>
     </div>
   );

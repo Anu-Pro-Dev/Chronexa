@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,12 +24,19 @@ import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import {
   groupApproveByEmployeeIdsRequest,
   apiRequest,
-  getAllCostCenters,
+  getAllCostCodes,
 } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalDescription,
+} from "@/src/components/ui/responsive-modal";
 
 const ALLOWED_ATTACHMENT_TYPES = [
   "application/pdf",
@@ -39,15 +46,24 @@ const ALLOWED_ATTACHMENT_TYPES = [
 ];
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 
+/* ── schema ────────────────────────────────────────────────────────────
+   Changes:
+   1. remarks is now required (min 1)
+   2. time split into timeIn / timeOut — both optional at schema level,
+      validated conditionally in onSubmit based on reason
+──────────────────────────────────────────────────────────────────────── */
 const formSchema = z.object({
   reason: z
     .string()
     .min(1, { message: "reason_required" })
     .max(100, { message: "reason_max_length" }),
   date: z.date({ required_error: "date_required" }),
-  time: z.date({ required_error: "time_required" }),
-  remarks: z.string().max(500, { message: "remarks_max_length" }).optional(),
-
+  timeIn: z.date().optional(),   // used for IN and BOTH
+  timeOut: z.date().optional(),   // used for OUT and BOTH
+  remarks: z
+    .string()
+    .min(1, { message: "remarks_required" })       // ← now mandatory
+    .max(500, { message: "remarks_max_length" }),
   attachment: z.custom<File>(
     (value) => {
       if (!value || !(value instanceof File)) return false;
@@ -59,6 +75,8 @@ const formSchema = z.object({
   ),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 export default function GroupApplyPunch({
   on_open_change,
   rowData,
@@ -68,7 +86,7 @@ export default function GroupApplyPunch({
   rowData?: any;
   punchType?: string;
 }) {
-  const { employeeId, userInfo } = useAuthGuard();
+  const { userInfo } = useAuthGuard();
   const { language, translations } = useLanguage();
   const showToast = useShowToast();
 
@@ -79,9 +97,14 @@ export default function GroupApplyPunch({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
+  /* confirmation modal */
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
-    fromTime: false,
+    timeIn: false,
+    timeOut: false,
   });
 
   const [selectedEmployeeTypes, setSelectedEmployeeTypes] = useState<string[]>([]);
@@ -95,65 +118,48 @@ export default function GroupApplyPunch({
   const [selectedDepartment, setSelectedDepartment] = useState<number | undefined>(undefined);
   const [openDepartment, setOpenDepartment] = useState(false);
 
-  const [selectedCostCenter, setSelectedCostCenter] = useState<string | undefined>(undefined);
-  const [openCostCenter, setOpenCostCenter] = useState(false);
-  const [costCenterSearch, setCostCenterSearch] = useState("");
+  const [selectedCostCode, setSelectedCostCode] = useState<string | undefined>(undefined);
+  const [openCostCode, setOpenCostCode] = useState(false);
+  const [costCodeSearch, setCostCodeSearch] = useState("");
 
   const closePopover = (key: string) =>
     setPopoverStates((prev) => ({ ...prev, [key]: false }));
 
   const orgId = userInfo?.organization_id ?? userInfo?.organization?.id;
-
   const today = startOfDay(new Date());
-
-  const allowedDays = orgId === 25 ? 20 : 30;
-
+  const allowedDays = orgId === 25 ? 30 : 60;
   const allowedDaysAgo = startOfDay(subDays(today, allowedDays));
-
   const isDateDisabled = (date: Date) => {
     const d = startOfDay(date);
     return d < allowedDaysAgo || d > today;
   };
 
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
-
   const { data: departmentsData, isLoading: loadingDepartments } = useFetchAllEntity(
     "department",
     { searchParams: { offset: "1", limit: "1000" } }
   );
-
-  const { data: costCentersData, isLoading: loadingCostCenters } = useQuery({
-    queryKey: ["costCenters"],
-    queryFn: getAllCostCenters,
+  const { data: costCodesData, isLoading: loadingCostCodes } = useQuery({
+    queryKey: ["costCodes"],
+    queryFn: getAllCostCodes,
   });
 
-  const employeeTypeKey = selectedEmployeeTypes.slice().sort().join(",");
-
-  const employeeSearchParams = useMemo(
-    () => ({
-      limit: "1000",
-      offset: "1",
-      ...(employeeTypeKey && { employeeTypeids: employeeTypeKey }),
-    }),
-    [employeeTypeKey]
-  );
-
-  const { data: employees } = useFetchAllEntity("employee", {
-    searchParams: employeeSearchParams,
+  /* fetch ALL employees without pagination */
+  const { data: allEmployees } = useQuery({
+    queryKey: ["allEmployeesNoPagination"],
+    queryFn: () => apiRequest("/employee/", "GET"),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
-    queryKey: ["employeeSearch", debouncedEmployeeSearch, selectedEmployeeTypes],
-    queryFn: async () => {
-      let url = `/employee/search?search=${encodeURIComponent(debouncedEmployeeSearch)}`;
-      if (selectedEmployeeTypes.length > 0) {
-        url += `&employeeTypeids=${selectedEmployeeTypes.join(",")}`;
-      }
-      return apiRequest(url, "GET");
-    },
+    queryKey: ["employeeSearch", debouncedEmployeeSearch],
+    queryFn: () =>
+      apiRequest(`/employee/search?search=${encodeURIComponent(debouncedEmployeeSearch)}`, "GET"),
     enabled: debouncedEmployeeSearch.length > 0,
   });
 
+  /* ── data helpers ─────────────────────────────────────────────────── */
   const getEmployeeTypesData = () => {
     if (!employeeTypes?.data) return [];
     const types = employeeTypes.data.filter((item: any) => item.employee_type_id);
@@ -170,40 +176,50 @@ export default function GroupApplyPunch({
       (item: any) => item.department_id && item.department_id.toString().trim() !== ""
     );
 
-  const getCostCentersData = (): string[] => {
-    const raw = costCentersData?.data ?? costCentersData ?? [];
+  const getCostCodesData = (): string[] => {
+    const raw = costCodesData?.data ?? costCodesData ?? [];
     const list: string[] = Array.isArray(raw)
       ? raw.filter((item: any) => typeof item === "string" && item.trim() !== "")
       : [];
-    if (!costCenterSearch) return list;
-    return list.filter((item) =>
-      item.toLowerCase().includes(costCenterSearch.toLowerCase())
-    );
+    if (!costCodeSearch) return list;
+    return list.filter((item) => item.toLowerCase().includes(costCodeSearch.toLowerCase()));
   };
 
-  const getFilteredEmployees = () => {
-    const baseData =
+  const getFilteredEmployees = useCallback(() => {
+    const base: any[] =
       debouncedEmployeeSearch.length > 0
-        ? searchedEmployees?.data || []
-        : employees?.data || [];
-    return baseData.filter(
-      (item: any) => item.employee_id && item.employee_id.toString().trim() !== ""
-    );
-  };
+        ? searchedEmployees?.data ?? []
+        : allEmployees?.data ?? [];
 
-  const handleEmployeeTypeToggle = (typeId: string) => {
+    return base.filter((item: any) => {
+      if (!item.employee_id || item.employee_id.toString().trim() === "") return false;
+      if (selectedEmployeeTypes.length > 0) {
+        if (!selectedEmployeeTypes.includes(String(item.employee_type_id ?? ""))) return false;
+      }
+      if (selectedDepartment !== undefined) {
+        if (Number(item.department_id) !== Number(selectedDepartment)) return false;
+      }
+      if (selectedCostCode !== undefined) {
+        if (String(item.cost_code ?? "") !== String(selectedCostCode)) return false;
+      }
+      return true;
+    });
+  }, [debouncedEmployeeSearch, searchedEmployees, allEmployees, selectedEmployeeTypes, selectedDepartment, selectedCostCode]);
+
+  useEffect(() => {
+    const validIds = new Set(getFilteredEmployees().map((e: any) => e.employee_id?.toString()));
+    setSelectedEmployees((prev) => prev.filter((id) => validIds.has(id)));
+  }, [selectedEmployeeTypes, selectedDepartment, selectedCostCode]);
+
+  const handleEmployeeTypeToggle = (typeId: string) =>
     setSelectedEmployeeTypes((prev) =>
       prev.includes(typeId) ? prev.filter((t) => t !== typeId) : [...prev, typeId]
     );
-    setSelectedEmployees([]);
-    setEmployeeSearchTerm("");
-  };
 
-  const handleEmployeeToggle = (empId: string) => {
+  const handleEmployeeToggle = (empId: string) =>
     setSelectedEmployees((prev) =>
       prev.includes(empId) ? prev.filter((id) => id !== empId) : [...prev, empId]
     );
-  };
 
   const getEmployeeTypePlaceholder = () => {
     if (selectedEmployeeTypes.length === 0) return t.placeholder_employee_type || "Choose type";
@@ -215,16 +231,25 @@ export default function GroupApplyPunch({
     return `${selectedEmployees.length} ${t.employee || "employee"}${selectedEmployees.length > 1 ? "s" : ""} ${t.selected || "selected"}`;
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const affectedCount =
+    selectedEmployees.length > 0 ? selectedEmployees.length : getFilteredEmployees().length;
+
+  /* ── form ─────────────────────────────────────────────────────────── */
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { reason: "", remarks: "" },
   });
+
+  const watchedReason = form.watch("reason");
+  const isBoth = watchedReason === "BOTH";
+  const isIn = watchedReason === "IN";
+  const isOut = watchedReason === "OUT";
 
   const GroupApplyPunchMutation = useMutation({
     mutationFn: groupApproveByEmployeeIdsRequest,
     onSuccess: () => {
       showToast("success", "group_apply_punch_success");
-      queryClient.invalidateQueries({ queryKey: ["missingMovement"],exact: false });
+      queryClient.invalidateQueries({ queryKey: ["missingMovement"], exact: false });
       setIsSubmitting(false);
       if (on_open_change) on_open_change(false);
     },
@@ -233,9 +258,7 @@ export default function GroupApplyPunch({
       showToast("error", "group_apply_punch_error");
       setIsSubmitting(false);
     },
-    onSettled: () => {
-      setIsSubmitting(false);
-    },
+    onSettled: () => { setIsSubmitting(false); },
   });
 
   const parseTransDate = useCallback((dateString: string) => {
@@ -253,46 +276,77 @@ export default function GroupApplyPunch({
   useEffect(() => {
     if (rowData && punchType) {
       form.setValue("reason", punchType);
-      if (rowData.TransDate) {
-        form.setValue("date", parseTransDate(rowData.TransDate));
-      }
+      if (rowData.TransDate) form.setValue("date", parseTransDate(rowData.TransDate));
     }
   }, [rowData, punchType, form, parseTransDate]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  /* helper: build ISO datetime string from a date + time object */
+  const buildISO = (date: Date, time: Date): string => {
+    const d = new Date(date);
+    d.setHours(time.getHours(), time.getMinutes(), time.getSeconds(), 0);
+    const Y = d.getFullYear();
+    const M = String(d.getMonth() + 1).padStart(2, "0");
+    const D = String(d.getDate()).padStart(2, "0");
+    const h = String(d.getHours()).padStart(2, "0");
+    const m = String(d.getMinutes()).padStart(2, "0");
+    const s = String(d.getSeconds()).padStart(2, "0");
+    return `${Y}-${M}-${D}T${h}:${m}:${s}.000Z`;
+  };
+
+  /* step 1: validate + extra conditional checks → open confirm modal */
+  function onSubmit(values: FormValues) {
     if (isSubmitting) return;
+
+    /* conditional time validation based on reason */
+    if ((values.reason === "IN" || values.reason === "BOTH") && !values.timeIn) {
+      form.setError("timeIn", { message: "time_required" });
+      return;
+    }
+    if ((values.reason === "OUT" || values.reason === "BOTH") && !values.timeOut) {
+      form.setError("timeOut", { message: "time_required" });
+      return;
+    }
+
+    setPendingValues(values);
+    setShowConfirm(true);
+  }
+
+  /* step 2: user confirms → call API with correct FormData fields */
+  function handleConfirm() {
+    if (!pendingValues || isSubmitting) return;
+    setShowConfirm(false);
     setIsSubmitting(true);
 
     try {
-      const combinedDateTime = new Date(values.date);
-      combinedDateTime.setHours(values.time.getHours());
-      combinedDateTime.setMinutes(values.time.getMinutes());
-      combinedDateTime.setSeconds(values.time.getSeconds());
-      combinedDateTime.setMilliseconds(0);
+      const { reason, date, timeIn, timeOut, remarks, attachment } = pendingValues;
 
-      const year = combinedDateTime.getFullYear();
-      const month = String(combinedDateTime.getMonth() + 1).padStart(2, "0");
-      const day = String(combinedDateTime.getDate()).padStart(2, "0");
-      const hours = String(combinedDateTime.getHours()).padStart(2, "0");
-      const minutes = String(combinedDateTime.getMinutes()).padStart(2, "0");
-      const seconds = String(combinedDateTime.getSeconds()).padStart(2, "0");
-
-      const transaction_time = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
-
-      GroupApplyPunchMutation.mutate({
-        transaction_time,
-        reason: values.reason,
-        remarks: values.remarks || "",
-        attachment: values.attachment,
-        ...(selectedEmployees.length > 0 && {
-          employeeIds: selectedEmployees.map(Number),
-        }),
-        ...(selectedEmployeeTypes.length > 0 && {
-          employeeTypeIds: selectedEmployeeTypes.map(Number),
-        }),
+      /* ── Build payload per reason ────────────────────────────────────
+         IN   → transaction_time_in  only
+         OUT  → transaction_time_out only
+         BOTH → transaction_time_in + transaction_time_out
+         reason is always sent as-is ("IN" | "OUT" | "BOTH")
+      ─────────────────────────────────────────────────────────────────── */
+      const payload: Parameters<typeof groupApproveByEmployeeIdsRequest>[0] = {
+        reason,
+        remarks: remarks || "",
+        attachment,
+        ...(selectedEmployees.length > 0 && { employeeIds: selectedEmployees.map(Number) }),
+        ...(selectedEmployeeTypes.length > 0 && { employeeTypeIds: selectedEmployeeTypes.map(Number) }),
         ...(selectedDepartment && { department_id: selectedDepartment }),
-        ...(selectedCostCenter && { cost_center: selectedCostCenter }),
-      });
+        ...(selectedCostCode && { cost_code: selectedCostCode }),
+      };
+
+      if (reason === "BOTH") {
+        // BOTH → two separate time fields
+        payload.transaction_time_in = buildISO(date, timeIn!);
+        payload.transaction_time_out = buildISO(date, timeOut!);
+      } else {
+        // IN or OUT → single transaction_time (original format)
+        const time = reason === "IN" ? timeIn! : timeOut!;
+        payload.transaction_time = buildISO(date, time);
+      }
+
+      GroupApplyPunchMutation.mutate(payload);
     } catch (error) {
       console.error("Form submission error", error);
       showToast("error", "formsubmission_error");
@@ -305,310 +359,355 @@ export default function GroupApplyPunch({
     setSelectedEmployees([]);
     setSelectedEmployeeTypes([]);
     setSelectedDepartment(undefined);
-    setSelectedCostCenter(undefined);
+    setSelectedCostCode(undefined);
     setEmployeeSearchTerm("");
     setEmployeeTypeSearchTerm("");
-    setCostCenterSearch("");
+    setCostCodeSearch("");
     if (on_open_change) on_open_change(false);
   };
 
+  /* ── render ───────────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col gap-6">
-      <div className="bg-accent transition-all duration-300 rounded-xl">
+    <>
+      <div className="flex flex-col gap-6">
+        <div className="bg-accent transition-all duration-300 rounded-xl">
 
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            {remarksLength > 500 && (
-              <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center">
-                <ExclamationIcon className="mr-2" width="14" height="14" />
-                {formErrors.remarks_max_length || "Maximum 500 characters only allowed."}
-              </p>
-            )}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              {remarksLength > 500 && (
+                <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center">
+                  <ExclamationIcon className="mr-2" width="14" height="14" />
+                  {formErrors.remarks_max_length || "Maximum 500 characters only allowed."}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-2 gap-y-5 gap-10 pt-8">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <div className="grid grid-cols-2 gap-y-5 gap-10 pt-8">
 
-              <FormField
-                control={form.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t.reason || "Reason"} <Required />
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t.placeholder_punch_type || "Select punch type"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="IN">IN</SelectItem>
-                        <SelectItem value="OUT">OUT</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <TranslatedError fieldError={form.formState.errors.reason} translations={formErrors} />
-                  </FormItem>
-                )}
-              />
+                {/* ── Reason — 3 options: IN / OUT / BOTH ────────────── */}
+                <FormField
+                  control={form.control}
+                  name="reason"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t.reason || "Reason"} <Required /></FormLabel>
+                      <Select
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          // clear time errors on reason change
+                          form.clearErrors(["timeIn", "timeOut"]);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t.placeholder_punch_type || "Select punch type"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="IN">IN</SelectItem>
+                          <SelectItem value="OUT">OUT</SelectItem>
+                          <SelectItem value="BOTH">BOTH</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <TranslatedError fieldError={form.formState.errors.reason} translations={formErrors} />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t.date || "Date"} <Required />
-                    </FormLabel>
-                    <Popover
-                      open={popoverStates.fromDate}
-                      onOpenChange={(open) =>
-                        setPopoverStates((prev) => ({ ...prev, fromDate: open }))
-                      }
-                    >
-                      <FormControl>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yy")
-                            ) : (
-                              <span className="text-text-secondary">
-                                {t.placeholder_date || "Choose date"}
-                              </span>
-                            )}
-                            <CalendarIcon />
-                          </Button>
-                        </PopoverTrigger>
-                      </FormControl>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            closePopover("fromDate");
-                          }}
-                          disabled={isDateDisabled}
-                          defaultMonth={today}
-                          fromDate={allowedDaysAgo}
-                          toDate={today}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <TranslatedError fieldError={form.formState.errors.date} translations={formErrors} />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t.trans_time || "Time"} <Required />
-                    </FormLabel>
-                    <Popover
-                      open={popoverStates.fromTime}
-                      onOpenChange={(open) =>
-                        setPopoverStates((prev) => ({ ...prev, fromTime: open }))
-                      }
-                    >
-                      <FormControl>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "HH:mm")
-                            ) : (
-                              <span className="text-text-secondary">
-                                {t.placeholder_time || "Choose time"}
-                              </span>
-                            )}
-                            <ClockIcon />
-                          </Button>
-                        </PopoverTrigger>
-                      </FormControl>
-                      <PopoverContent className="w-auto p-0">
-                        <TimePicker setDate={field.onChange} date={field.value} />
-                      </PopoverContent>
-                    </Popover>
-                    <TranslatedError fieldError={form.formState.errors.time} translations={formErrors} />
-                  </FormItem>
-                )}
-              />
-
-              <FormItem>
-                <FormLabel>{t.employee_type || "Employee Type"}</FormLabel>
-                <Select>
-                  <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                    <SelectValue placeholder={getEmployeeTypePlaceholder()} />
-                  </SelectTrigger>
-                  <SelectContent
-                    showSearch={true}
-                    searchPlaceholder={t.search_employee_types || "Search employee types..."}
-                    onSearchChange={setEmployeeTypeSearchTerm}
-                    className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                  >
-                    {getEmployeeTypesData().length === 0 && debouncedEmployeeTypeSearch && (
-                      <div className="p-3 text-sm text-text-secondary">
-                        {t.no_employee_types_found || "No employee types found"}
-                      </div>
-                    )}
-                    {getEmployeeTypesData().map((item: any) => {
-                      const typeValue = item.employee_type_id.toString();
-                      const isChecked = selectedEmployeeTypes.includes(typeValue);
-                      return (
-                        <div
-                          key={item.employee_type_id}
-                          className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEmployeeTypeToggle(typeValue);
-                          }}
-                        >
-                          <Checkbox checked={isChecked} className="mr-2" />
-                          <span>
-                            {language === "ar" ? item.employee_type_arb : item.employee_type_eng}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-
-              <FormItem className="flex flex-col">
-                <FormLabel>{t.department || "Department"}</FormLabel>
-                <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openDepartment}
-                      disabled={loadingDepartments}
-                      className={cn(
-                        "flex h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm justify-between",
-                        !selectedDepartment && "text-text-secondary"
-                      )}
-                    >
-                      <span className="truncate">
-                        {selectedDepartment
-                          ? getDepartmentsData().find(
-                            (item: any) => item.department_id === selectedDepartment
-                          )?.[language === "ar" ? "department_name_arb" : "department_name_eng"] ||
-                          t.placeholder_department || "Choose department"
-                          : t.placeholder_department || "Choose department"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px] p-0">
-                    <Command>
-                      <CommandInput placeholder={t.search_department || "Search department..."} />
-                      <CommandEmpty>{t.no_results || "No department found"}</CommandEmpty>
-                      <CommandGroup className="max-h-64 overflow-auto">
-                        {getDepartmentsData().map((item: any) => (
-                          <CommandItem
-                            key={item.department_id}
-                            value={language === "ar" ? item.department_name_arb : item.department_name_eng}
-                            onSelect={() => {
-                              setSelectedDepartment(
-                                selectedDepartment === item.department_id ? undefined : item.department_id
-                              );
-                              setOpenDepartment(false);
-                            }}
-                          >
-                            <Check
+                {/* ── Date ───────────────────────────────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t.date || "Date"} <Required /></FormLabel>
+                      <Popover
+                        open={popoverStates.fromDate}
+                        onOpenChange={(open) => setPopoverStates((prev) => ({ ...prev, fromDate: open }))}
+                      >
+                        <FormControl>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
                               className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedDepartment === item.department_id ? "opacity-100" : "opacity-0"
+                                "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                                !field.value && "text-muted-foreground"
                               )}
-                            />
-                            {language === "ar" ? item.department_name_arb : item.department_name_eng}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </FormItem>
+                            >
+                              {field.value
+                                ? format(field.value, "dd/MM/yy")
+                                : <span className="text-text-secondary">{t.placeholder_date || "Choose date"}</span>}
+                              <CalendarIcon />
+                            </Button>
+                          </PopoverTrigger>
+                        </FormControl>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => { field.onChange(date); closePopover("fromDate"); }}
+                            disabled={isDateDisabled}
+                            defaultMonth={today}
+                            fromDate={allowedDaysAgo}
+                            toDate={today}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <TranslatedError fieldError={form.formState.errors.date} translations={formErrors} />
+                    </FormItem>
+                  )}
+                />
 
-              <FormItem className="flex flex-col">
-                <FormLabel>{t.cost_center || "Cost Center"}</FormLabel>
-                <Popover open={openCostCenter} onOpenChange={setOpenCostCenter}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openCostCenter}
-                      disabled={loadingCostCenters}
-                      className={cn(
-                        "flex h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm justify-between",
-                        !selectedCostCenter && "text-text-secondary"
-                      )}
+                {/* ── Time IN — shown for IN and BOTH ────────────────── */}
+                {(isIn || isBoth) && (
+                  <FormField
+                    control={form.control}
+                    name="timeIn"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {isBoth ? (t.time_in || "Time In") : (t.trans_time || "Time")} <Required />
+                        </FormLabel>
+                        <Popover
+                          open={popoverStates.timeIn}
+                          onOpenChange={(open) => setPopoverStates((prev) => ({ ...prev, timeIn: open }))}
+                        >
+                          <FormControl>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value
+                                  ? format(field.value, "HH:mm")
+                                  : <span className="text-text-secondary">{t.placeholder_time_in || "Choose in time"}</span>}
+                                <ClockIcon />
+                              </Button>
+                            </PopoverTrigger>
+                          </FormControl>
+                          <PopoverContent className="w-auto p-0">
+                            <TimePicker setDate={field.onChange} date={field.value} />
+                          </PopoverContent>
+                        </Popover>
+                        <TranslatedError fieldError={form.formState.errors.timeIn} translations={formErrors} />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* ── Time OUT — shown for OUT and BOTH ──────────────── */}
+                {(isOut || isBoth) && (
+                  <FormField
+                    control={form.control}
+                    name="timeOut"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {isBoth ? (t.time_out || "Time Out") : (t.trans_time || "Time")} <Required />
+                        </FormLabel>
+                        <Popover
+                          open={popoverStates.timeOut}
+                          onOpenChange={(open) => setPopoverStates((prev) => ({ ...prev, timeOut: open }))}
+                        >
+                          <FormControl>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "flex justify-between h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value
+                                  ? format(field.value, "HH:mm")
+                                  : <span className="text-text-secondary">{t.placeholder_time_out || "Choose out time"}</span>}
+                                <ClockIcon />
+                              </Button>
+                            </PopoverTrigger>
+                          </FormControl>
+                          <PopoverContent className="w-auto p-0">
+                            <TimePicker setDate={field.onChange} date={field.value} />
+                          </PopoverContent>
+                        </Popover>
+                        <TranslatedError fieldError={form.formState.errors.timeOut} translations={formErrors} />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* ── Employee Type ───────────────────────────────────── */}
+                <FormItem>
+                  <FormLabel>{t.employee_type || "Employee Type"}</FormLabel>
+                  <Select>
+                    <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                      <SelectValue placeholder={getEmployeeTypePlaceholder()} />
+                    </SelectTrigger>
+                    <SelectContent
+                      showSearch={true}
+                      searchPlaceholder={t.search_employee_types || "Search employee types..."}
+                      onSearchChange={setEmployeeTypeSearchTerm}
+                      className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                     >
-                      <span className="truncate">
-                        {selectedCostCenter || t.placeholder_cost_center || "Choose cost center"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="max-w-[350px] 3xl:max-w-[450px] p-0">
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder={t.search_cost_center || "Search cost center..."}
-                        onValueChange={setCostCenterSearch}
-                      />
-                      <CommandGroup className="max-h-64 overflow-auto">
-                        {getCostCentersData().length === 0 ? (
-                          <CommandEmpty>{t.no_results || "No cost center found"}</CommandEmpty>
-                        ) : (
-                          getCostCentersData().map((item: string, index: number) => (
+                      {getEmployeeTypesData().length === 0 && debouncedEmployeeTypeSearch && (
+                        <div className="p-3 text-sm text-text-secondary">
+                          {t.no_employee_types_found || "No employee types found"}
+                        </div>
+                      )}
+                      {getEmployeeTypesData().map((item: any) => {
+                        const typeValue = item.employee_type_id.toString();
+                        const isChecked = selectedEmployeeTypes.includes(typeValue);
+                        return (
+                          <div
+                            key={item.employee_type_id}
+                            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeTypeToggle(typeValue); }}
+                          >
+                            <Checkbox checked={isChecked} className="mr-2" />
+                            <span>{language === "ar" ? item.employee_type_arb : item.employee_type_eng}</span>
+                          </div>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+
+                {/* ── Department ─────────────────────────────────────── */}
+                <FormItem className="flex flex-col">
+                  <FormLabel>{t.department || "Department"}</FormLabel>
+                  <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        disabled={loadingDepartments}
+                        className={cn(
+                          "flex h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm justify-between",
+                          !selectedDepartment && "text-text-secondary"
+                        )}
+                      >
+                        <span className="truncate">
+                          {selectedDepartment
+                            ? getDepartmentsData().find((item: any) => item.department_id === selectedDepartment)
+                            ?.[language === "ar" ? "department_name_arb" : "department_name_eng"] ||
+                            t.placeholder_department || "Choose department"
+                            : t.placeholder_department || "Choose department"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="max-w-[350px] 3xl:max-w-[450px] p-0">
+                      <Command>
+                        <CommandInput placeholder={t.search_department || "Search department..."} />
+                        <CommandEmpty>{t.no_results || "No department found"}</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {selectedDepartment !== undefined && (
                             <CommandItem
-                              key={`${item}-${index}`}
-                              value={item}
+                              value="__clear_dept__"
+                              onSelect={() => { setSelectedDepartment(undefined); setOpenDepartment(false); }}
+                              className="text-text-secondary italic"
+                            >
+                              {t.all_departments || "All departments"}
+                            </CommandItem>
+                          )}
+                          {getDepartmentsData().map((item: any) => (
+                            <CommandItem
+                              key={item.department_id}
+                              value={language === "ar" ? item.department_name_arb : item.department_name_eng}
                               onSelect={() => {
-                                setSelectedCostCenter(
-                                  selectedCostCenter === item ? undefined : item
+                                setSelectedDepartment(
+                                  selectedDepartment === item.department_id ? undefined : item.department_id
                                 );
-                                setCostCenterSearch("");
-                                setOpenCostCenter(false);
+                                setOpenDepartment(false);
                               }}
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  selectedCostCenter === item ? "opacity-100" : "opacity-0"
+                                  selectedDepartment === item.department_id ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              {item}
+                              {language === "ar" ? item.department_name_arb : item.department_name_eng}
                             </CommandItem>
-                          ))
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+
+                {/* ── Cost Code ──────────────────────────────────────── */}
+                <FormItem className="flex flex-col">
+                  <FormLabel>{t.cost_code || "Cost Code"}</FormLabel>
+                  <Popover open={openCostCode} onOpenChange={setOpenCostCode}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        disabled={loadingCostCodes}
+                        className={cn(
+                          "flex h-10 w-full max-w-[350px] 3xl:max-w-[450px] rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm justify-between",
+                          !selectedCostCode && "text-text-secondary"
                         )}
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </FormItem>
+                      >
+                        <span className="truncate">
+                          {selectedCostCode || t.placeholder_cost_code || "Choose cost code"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="max-w-[350px] 3xl:max-w-[450px] p-0">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder={t.search_cost_code || "Search cost code..."}
+                          onValueChange={setCostCodeSearch}
+                        />
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {selectedCostCode !== undefined && (
+                            <CommandItem
+                              value="__clear_cc__"
+                              onSelect={() => { setSelectedCostCode(undefined); setCostCodeSearch(""); setOpenCostCode(false); }}
+                              className="text-text-secondary italic"
+                            >
+                              {t.all_cost_codes || "All cost codes"}
+                            </CommandItem>
+                          )}
+                          {getCostCodesData().length === 0 ? (
+                            <CommandEmpty>{t.no_results || "No cost code found"}</CommandEmpty>
+                          ) : (
+                            getCostCodesData().map((item: string, index: number) => (
+                              <CommandItem
+                                key={`${item}-${index}`}
+                                value={item}
+                                onSelect={() => {
+                                  setSelectedCostCode(selectedCostCode === item ? undefined : item);
+                                  setCostCodeSearch("");
+                                  setOpenCostCode(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedCostCode === item ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {item}
+                              </CommandItem>
+                            ))
+                          )}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
 
-              <div className="grid gap-3">
-
+                {/* ── Employee ──────────────────────────────────────── */}
                 <FormItem>
                   <FormLabel>{t.employee || "Employee"}</FormLabel>
                   <Select>
@@ -622,15 +721,15 @@ export default function GroupApplyPunch({
                       className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                     >
                       {isSearchingEmployees && debouncedEmployeeSearch.length > 0 && (
-                        <div className="p-3 text-sm text-text-secondary">
-                          {t.searching || "Searching..."}
-                        </div>
+                        <div className="p-3 text-sm text-text-secondary">{t.searching || "Searching..."}</div>
                       )}
                       {getFilteredEmployees().length === 0 && !isSearchingEmployees && (
                         <div className="p-3 text-sm text-text-secondary">
                           {debouncedEmployeeSearch.length > 0
                             ? t.no_employees_found || "No employees found"
-                            : t.no_employees || "No employees available"}
+                            : (selectedEmployeeTypes.length > 0 || selectedDepartment !== undefined || selectedCostCode !== undefined)
+                              ? t.no_employees_match_filter || "No employees match the selected filters"
+                              : t.no_employees || "No employees available"}
                         </div>
                       )}
                       {getFilteredEmployees().map((item: any) => {
@@ -640,11 +739,7 @@ export default function GroupApplyPunch({
                           <div
                             key={empId}
                             className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleEmployeeToggle(empId);
-                            }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeToggle(empId); }}
                           >
                             <Checkbox checked={isChecked} className="mr-2" />
                             <span>
@@ -659,87 +754,137 @@ export default function GroupApplyPunch({
                   </Select>
                 </FormItem>
 
+                {/* ── Remarks — now mandatory ────────────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="remarks"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t.remarks || "Remarks"} <Required /></FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t.placeholder_remarks || "Add your remarks here"}
+                          {...field}
+                          rows={5}
+                          onChange={(e) => { field.onChange(e); setRemarksLength(e.target.value.length); }}
+                        />
+                      </FormControl>
+                      <TranslatedError fieldError={form.formState.errors.remarks} translations={formErrors} />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="attachment"
                   render={({ field: { value, onChange, ...fieldProps } }) => (
                     <FormItem>
-                      <FormLabel>
-                        {t.attachment || "Attachment"} <Required />
-                      </FormLabel>
+                      <FormLabel>{t.attachment || "Attachment"} <Required /></FormLabel>
                       <FormControl>
                         <Input
                           {...fieldProps}
                           className="border-0 p-0 rounded-none h-auto text-text-secondary"
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/jpg,image/png"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            onChange(file ?? undefined);
-                          }}
+                          onChange={(e) => { const file = e.target.files?.[0]; onChange(file ?? undefined); }}
                         />
                       </FormControl>
                       <p className="text-xs text-text-secondary">
                         {t.group_apply_attachment_note || "PDF, JPG, PNG — max 5 MB"}
                       </p>
-                      <TranslatedError
-                        fieldError={form.formState.errors.attachment}
-                        translations={formErrors}
-                      />
+                      <TranslatedError fieldError={form.formState.errors.attachment} translations={formErrors} />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="remarks"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t.remarks || "Remarks"}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder={t.placeholder_remarks || "Add your remarks here"}
-                        {...field}
-                        rows={5}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          setRemarksLength(e.target.value.length);
-                        }}
-                      />
-                    </FormControl>
-                    <TranslatedError fieldError={form.formState.errors.remarks} translations={formErrors} />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 items-center py-3 pt-8">
-              <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  type="button"
-                  size="lg"
-                  className="w-full"
-                  onClick={handleCancel}
-                >
-                  {translations.buttons?.cancel || "Cancel"}
-                </Button>
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting
-                    ? translations.buttons?.applying || "Applying..."
-                    : translations.buttons?.apply || "Apply"}
-                </Button>
+              <div className="flex justify-end gap-2 items-center py-3 pt-8">
+                <div className="flex gap-4">
+                  <Button variant="outline" type="button" size="lg" className="w-full" onClick={handleCancel}>
+                    {translations.buttons?.cancel || "Cancel"}
+                  </Button>
+                  <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting
+                      ? translations.buttons?.applying || "Applying..."
+                      : translations.buttons?.apply || "Apply"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
       </div>
-    </div>
+
+      {/* ── Confirmation modal — matches ApprovalModal structure ─────── */}
+      <ResponsiveModal
+        open={showConfirm}
+        onOpenChange={(open) => { if (!open) setShowConfirm(false); }}
+      >
+        <ResponsiveModalContent>
+          <ResponsiveModalHeader>
+            <ResponsiveModalTitle>
+              {t.confirm_group_apply_title || "Confirm Manual Adjustment"}
+            </ResponsiveModalTitle>
+            <ResponsiveModalDescription>
+              {t.confirm_group_apply_desc
+                ? t.confirm_group_apply_desc.replace("{count}", String(affectedCount))
+                : `You have selected ${affectedCount} employee${affectedCount !== 1 ? "s" : ""} for manual punch adjustment. This action will create a pending transaction for each employee. Do you want to proceed?`}
+            </ResponsiveModalDescription>
+          </ResponsiveModalHeader>
+
+          {/* summary chips */}
+          <div className="flex flex-wrap gap-2 py-3 pt-6 justify-center">
+            {pendingValues?.reason && (
+              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+                {pendingValues.reason}
+              </span>
+            )}
+            {pendingValues?.date && (
+              <span className="text-xs bg-background border border-border-accent px-2 py-1 rounded-full">
+                {format(pendingValues.date, "dd MMM yyyy")}
+              </span>
+            )}
+            {pendingValues?.timeIn && (
+              <span className="text-xs bg-background border border-border-accent px-2 py-1 rounded-full">
+                {isBoth ? "In: " : ""}{format(pendingValues.timeIn, "HH:mm")}
+              </span>
+            )}
+            {pendingValues?.timeOut && (
+              <span className="text-xs bg-background border border-border-accent px-2 py-1 rounded-full">
+                {isBoth ? "Out: " : ""}{format(pendingValues.timeOut, "HH:mm")}
+              </span>
+            )}
+            <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded-full font-medium">
+              {affectedCount} {affectedCount !== 1 ? (t.employees || "employees") : (t.employee || "employee")}
+            </span>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              type="button"
+              size="lg"
+              className="flex-1"
+              onClick={() => setShowConfirm(false)}
+              disabled={isSubmitting}
+            >
+              {translations.buttons?.cancel || "Cancel"}
+            </Button>
+            <Button
+              variant="success"
+              type="button"
+              size="lg"
+              className="flex-1"
+              onClick={handleConfirm}
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? translations.buttons?.applying || "Applying..."
+                : translations.buttons?.confirm || "Confirm"}
+            </Button>
+          </div>
+        </ResponsiveModalContent>
+      </ResponsiveModal>
+    </>
   );
 }

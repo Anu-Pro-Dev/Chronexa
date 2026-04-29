@@ -7,7 +7,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
-import { editSecUserRequest, sparkForgotPasswordRequest } from "@/src/lib/apiHandler";
+import { editSecUserRequest, adminResetPasswordRequest } from "@/src/lib/apiHandler";
 import CustomButton from "@/src/components/ui/CustomButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
@@ -74,26 +74,38 @@ function PasswordCell({
   userId,
   password,
   onResetSuccess,
+  onListRefresh,
 }: {
   login: string | null;
   userId: number | null;
   password: string | null;
-  onResetSuccess: (email: string) => void;
+  onResetSuccess: (login: string, newPassword: string) => void;
+  onListRefresh: () => void;
 }) {
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleUpdate = async () => {
     if (!login) return;
     setLoading(true);
     try {
-      const res = await sparkForgotPasswordRequest(login);
-      const displayEmail = res?.email ?? res?.newPassword ?? res?.message ?? login;
-      onResetSuccess(displayEmail);
+      const res = await adminResetPasswordRequest(login);
+      // refresh list so new password shows immediately
+      onListRefresh();
+      onResetSuccess(res?.login ?? login, res?.newPassword ?? "");
     } catch {
       // handle silently
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopy = () => {
+    if (!password) return;
+    navigator.clipboard.writeText(password).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
   };
 
   if (!userId || password === null) {
@@ -102,8 +114,16 @@ function PasswordCell({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-xs tracking-widest text-text-secondary">
-        ****
+      <span
+        className="font-mono text-xs text-text-primary cursor-copy select-all"
+        title={copied ? "Copied!" : "Click to copy"}
+        onClick={handleCopy}
+      >
+        {copied ? (
+          <span className="text-success text-[11px] font-sans">Copied!</span>
+        ) : (
+          password
+        )}
       </span>
       <CustomButton
         variant="primaryoutline"
@@ -131,7 +151,8 @@ export default function Page() {
   const [licenseOverrides, setLicenseOverrides] = useState<Record<number, boolean>>({});
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [successModalEmail, setSuccessModalEmail] = useState("");
+  const [successModalLogin, setSuccessModalLogin] = useState("");
+  const [successModalPassword, setSuccessModalPassword] = useState("");
 
   const handleLicenseToggle = useCallback((rowId: number, newVal: boolean) => {
     setLicenseOverrides(prev => ({ ...prev, [rowId]: newVal }));
@@ -190,10 +211,15 @@ export default function Page() {
     queryClient.invalidateQueries({ queryKey: ["/secuser/list"] });
   }, [queryClient]);
 
-  const handleResetSuccess = useCallback((email: string) => {
-    setSuccessModalEmail(email);
+  const handleResetSuccess = useCallback((login: string, newPassword: string) => {
+    setSuccessModalLogin(login);
+    setSuccessModalPassword(newPassword);
     setSuccessModalOpen(true);
   }, []);
+
+  const handleListRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["/secuser/list"] });
+  }, [queryClient]);
 
   const columns: Column[] = useMemo(
     () => [
@@ -233,6 +259,7 @@ export default function Page() {
             userId={row.user_id}
             password={row.password}
             onResetSuccess={handleResetSuccess}
+            onListRefresh={handleListRefresh}
           />
         ),
       },
@@ -403,52 +430,6 @@ export default function Page() {
           </Select>
         </div>
 
-        {/* SAP ID filter */}
-        {/* <div>
-          <Popover
-            open={popoverStates.empNo}
-            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, empNo: open }))}
-          >
-            <PopoverTrigger asChild>
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    {"SAP ID"} :
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {empNoFilter || "Choose SAP ID"}
-                  </span>
-                </p>
-                <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-              <Command>
-                <CommandInput placeholder={t.choose_sap_id || "Search SAP ID..."} />
-                <CommandEmpty>No employee found.</CommandEmpty>
-                <CommandGroup className="max-h-64 overflow-auto">
-                  {Array.isArray(userData?.data) &&
-                    userData.data
-                      .filter((emp: any) => emp.emp_no)
-                      .map((emp: any) => (
-                        <CommandItem
-                          key={emp.employee_id}
-                          value={String(emp.emp_no)}
-                          onSelect={() => handleEmpNoChange(String(emp.emp_no))}
-                        >
-                          {emp.emp_no} — {emp.name || ""}
-                        </CommandItem>
-                      ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div> */}
-
       </div>
 
       <PowerTable
@@ -461,7 +442,8 @@ export default function Page() {
       <PasswordResetSuccessModal
         open={successModalOpen}
         onOpenChange={setSuccessModalOpen}
-        email={successModalEmail}
+        login={successModalLogin}
+        newPassword={successModalPassword}
         size="medium"
       />
     </div>

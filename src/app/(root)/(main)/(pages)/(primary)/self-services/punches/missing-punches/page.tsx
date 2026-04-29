@@ -40,7 +40,7 @@ export default function Page() {
   const today = new Date();
   const yesterday = subDays(today, 1);
 
-  const allowedDays = orgId === 25 ? 20 : 30;
+  const allowedDays = orgId === 25 ? 30 : 60;
 
   const defaultFromDate = startOfDay(subDays(yesterday, allowedDays));
 

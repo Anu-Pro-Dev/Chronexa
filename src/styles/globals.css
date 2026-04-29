@@ -21,12 +21,21 @@ body {
   font-weight: "bold" !important;
 }
 
+.ag-header-cell-label {
+  padding-left: 0 !important;
+}
+
 .ag-pinned-left-header {
   border: none !important;
 }
 
 .ag-pinned-right-header {
   border: none !important;
+}
+
+.ag-header-select-all {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
 }
 
 .table-wrapper {

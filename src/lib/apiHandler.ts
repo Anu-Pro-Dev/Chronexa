@@ -442,6 +442,10 @@ export const sparkForgotPasswordRequest = async (login: string) => {
   return apiRequest("/auth/spark/forgot-password", "POST", { login });
 };
 
+export const adminResetPasswordRequest = async (login: string) => {
+  return apiRequest("/auth/admin/reset-password", "POST", { login });
+};
+
 // Function to fetch secuser by Id
 export const getSecUserByUserId = async (user_id: number) => {
   return apiRequest(`/secuser/get/${user_id}`, "GET");
@@ -1319,29 +1323,33 @@ export const groupApproveTransactionsRequest = async (data: {
 
 // Function for group approve transactions by employee IDs (with attachment)
 export const groupApproveByEmployeeIdsRequest = async (data: {
-  transaction_time: string;
-  reason: string;
-  remarks?: string;
+  reason: string;                // "IN" | "OUT" | "BOTH"
+  transaction_time?: string;     // ISO — for IN and OUT (original format)
+  transaction_time_in?: string;  // ISO — for BOTH only
+  transaction_time_out?: string; // ISO — for BOTH only
+  remarks: string;               // mandatory
   employeeIds?: number[];
   employeeTypeIds?: number[];
   department_id?: number;
-  cost_center?: string;
+  cost_code?: string;
   attachment: File;
 }) => {
   const formData = new FormData();
 
-  formData.append("transaction_time", data.transaction_time);
   formData.append("reason", data.reason);
-  if (data.remarks) formData.append("remarks", data.remarks);
-  if (data.department_id) formData.append("department_id", String(data.department_id));
-  if (data.cost_center) formData.append("cost_center", data.cost_center);
+  if (data.remarks)              formData.append("remarks",              data.remarks);
+  if (data.transaction_time)     formData.append("transaction_time",     data.transaction_time);
+  if (data.transaction_time_in)  formData.append("transaction_time_in",  data.transaction_time_in);
+  if (data.transaction_time_out) formData.append("transaction_time_out", data.transaction_time_out);
+  if (data.department_id)        formData.append("department_id",        String(data.department_id));
+  if (data.cost_code)            formData.append("cost_code",            data.cost_code);
 
-  // Arrays must be appended as repeated fields
+  // Pass as comma-separated string — backend parseNumberArray handles "1,2,3"
   if (data.employeeIds && data.employeeIds.length > 0) {
-    data.employeeIds.forEach((id) => formData.append("employeeIds", String(id)));
+    formData.append("employeeIds", data.employeeIds.join(","));
   }
   if (data.employeeTypeIds && data.employeeTypeIds.length > 0) {
-    data.employeeTypeIds.forEach((id) => formData.append("employeeTypeIds", String(id)));
+    formData.append("employeeTypeIds", data.employeeTypeIds.join(","));
   }
 
   formData.append("attachment", data.attachment);
@@ -1400,6 +1408,10 @@ export const getAllDepartments = async () => {
 // Function to fetch all cost centers
 export const getAllCostCenters = async () => {
   return apiRequest("/employee/costcenters", "GET");
+};
+
+export const getAllCostCodes = async () => {
+  return apiRequest("/employee/costcode", "GET");
 };
 
 // Function to approve manual transaction by ID
