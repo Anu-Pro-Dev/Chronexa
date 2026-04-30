@@ -40,7 +40,7 @@ export default function Page() {
   const today = new Date();
   const yesterday = subDays(today, 1);
 
-  const allowedDays = orgId === 25 ? 30 : 60;
+  const allowedDays = orgId === 25 ? 20 : 30;
 
   const defaultFromDate = startOfDay(subDays(yesterday, allowedDays));
 
@@ -66,6 +66,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   const [popoverStates, setPopoverStates] = useState({
@@ -194,6 +195,7 @@ export default function Page() {
       ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
       ...(toDate && { to_date: formatDateForAPI(toDate) }),
       ...(selectedDepartment && { department_id: selectedDepartment }),
+      ...(selectedStatus && { status: selectedStatus }),
     };
 
     if (userRole === "admin") {
@@ -234,6 +236,7 @@ export default function Page() {
     toDate,
     debouncedEmployeeFilter,
     selectedDepartment,
+    selectedStatus,
     formatDateForAPI,
   ]);
 
@@ -445,8 +448,12 @@ export default function Page() {
     setSelectedDepartment(value);
     setCurrentPage(1);
     closePopover('department');
-    // Let useFetchAllEntity refetch on param change.
   }, [refetch, closePopover]);
+
+  const handleStatusChange = useCallback((value: string) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  }, []);
 
   const handleSave = useCallback(() => {
     queryClient.invalidateQueries({
@@ -455,16 +462,12 @@ export default function Page() {
   }, [queryClient, employeeId]);
 
   const handleEditClick = useCallback((rowData: any) => {
-    try {
-      const editData = {
-        ...rowData,
-      };
-
-      sessionStorage.setItem("editTransactionsData", JSON.stringify(editData));
-    } catch (error) {
-      console.error("Error setting edit data:", error);
-      toast.error("Failed to load transaction data for editing");
-    }
+    // Open the apply modal prefilled — prefer the missing punch direction
+    const punchType = rowData.Trans_IN === "Apply" ? "IN"
+      : rowData.Trans_OUT === "Apply" ? "OUT"
+      : "IN";
+    setSelectedRowData({ rowData, punchType });
+    setIsModalOpen(true);
   }, []);
 
   const handleRowSelection = useCallback((rows: any[]) => {
@@ -607,7 +610,7 @@ export default function Page() {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <Popover
             open={popoverStates.fromDate}
@@ -768,134 +771,6 @@ export default function Page() {
             </PopoverContent>
           </Popover>
         </div>
-        {/* <div>
-          <Popover
-            open={popoverStates.fromDate}
-            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
-          >
-            <PopoverTrigger asChild>
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    {t.from_date || "From Date"} :
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {fromDate
-                      ? format(fromDate, "dd/MM/yy")
-                      : (t.placeholder_date || "Choose date")}
-                  </span>
-                </p>
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
-              <Calendar
-                mode="single"
-                selected={fromDate}
-                onSelect={(date) => {
-                  handleFromDateChange(date);
-                  closePopover("fromDate");
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div>
-          <Popover
-            open={popoverStates.toDate}
-            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
-          >
-            <PopoverTrigger asChild>
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full bg-accent px-4 flex justify-between border-grey"
-              >
-                <p>
-                  <Label className="font-normal text-secondary">
-                    {t.to_date || "To Date"} :
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {toDate
-                      ? format(toDate, "dd/MM/yy")
-                      : (t.placeholder_date || "Choose date")}
-                  </span>
-                </p>
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 border-none shadow-dropdown">
-              <Calendar
-                mode="single"
-                selected={toDate}
-                onSelect={(date) => {
-                  handleToDateChange(date);
-                  closePopover("toDate");
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        </div> */}
-
-        {/* {(isAdmin || isManager) && (
-          <div>
-            <Popover
-              open={popoverStates.employeeFilter}
-              onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full bg-accent px-4 flex justify-between border-grey"
-                >
-                  <p>
-                    <Label className="font-normal text-secondary">
-                      {t.employee_no || "Employee No"} :
-                    </Label>
-                    <span className="px-1 text-sm text-text-primary">
-                      {employeeFilter
-                        ? getEmployeesData().find((item: any) =>
-                          String(item.employee_id) === employeeFilter
-                        )?.emp_no || (language === "ar"
-                          ? `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_arb || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_arb || ""}`.trim()
-                          : `${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.firstname_eng || ""} ${getEmployeesData().find((item: any) => String(item.employee_id) === employeeFilter)?.lastname_eng || ""}`.trim())
-                        : (t.placeholder_employee_filter || "Choose employee")}
-                    </span>
-                  </p>
-                  <ChevroDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-                <Command>
-                  <CommandInput placeholder={t.search_employee || "Search employee..."} />
-                  <CommandGroup className="max-h-64 overflow-auto">
-                    {getEmployeesData().map((item: any) => {
-                      const displayName = language === "ar"
-                        ? `${item.firstname_arb || ""} ${item.lastname_arb || ""}`.trim()
-                        : `${item.firstname_eng || ""} ${item.lastname_eng || ""}`.trim();
-
-                      return (
-                        <CommandItem
-                          key={item.employee_id}
-                          onSelect={() => handleEmployeeFilterChange(String(item.employee_id))}
-                        >
-                          {item.emp_no} - {displayName}
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        )} */}
       </div>
 
       <div className="bg-accent rounded-2xl">

@@ -1269,6 +1269,22 @@ export const addManualPunchRequest = async (data: {
   return apiRequest("/employeeManualTransaction/add", "POST", formData);
 };
 
+
+export const editManualPunchRequest = async (data: {
+  employee_manual_transaction_id: number;
+  transaction_time: string;
+  reason: string;
+  remarks?: string;
+  attachment?: File;
+}) => {
+  const formData = new FormData();
+  formData.append("transaction_time", data.transaction_time);
+  formData.append("reason", data.reason);
+  if (data.remarks) formData.append("remarks", data.remarks);
+  if (data.attachment) formData.append("attachment", data.attachment);
+  return apiRequest(`/employeeManualTransaction/edit/${data.employee_manual_transaction_id}`, "PUT", formData);
+};
+
 export const approveManualPunchRequest = async (data: {
   employee_manual_transaction_id: number;
   employee_id: number;

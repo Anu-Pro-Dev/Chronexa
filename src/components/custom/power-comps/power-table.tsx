@@ -176,7 +176,7 @@ export default function PowerTable({
         oddRowBackgroundColor: "transparent",
         headerFontSize: isMobile ? 12 : 14,
         headerFontWeight: 600,
-        fontSize: isMobile ? 10 : 12,
+        fontSize: isMobile ? 12 : 14,
         headerRowBorder: { width: 1, color: "#EEEEEE" },
         headerColumnBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false,
         rowBorder: props?.EnableBorders ? { width: 1, color: "#EEEEEE" } : false,
