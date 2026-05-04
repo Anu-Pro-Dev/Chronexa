@@ -77,7 +77,7 @@ export function UserDropdown() {
                   {user?.firstName?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight capitalize">
+              <div className="grid flex-1 text-left text-sm leading-tight capitalize max-w-[150px]">
                 <span className="truncate text-sm font-medium text-text-primary">
                   {user?.firstName}
                 </span>

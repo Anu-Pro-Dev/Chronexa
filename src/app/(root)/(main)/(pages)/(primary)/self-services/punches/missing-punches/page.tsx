@@ -373,6 +373,9 @@ export default function Page() {
         emp_no: empNo,
         employee_name: getEmployeeName(transaction),
         TransDate: formatDateDisplay(transaction.TransDate),
+        // Preserve raw ISO values for edit prefill BEFORE formatting overwrites them
+        raw_Trans_IN: transaction.Trans_IN,
+        raw_Trans_OUT: transaction.Trans_OUT,
         Trans_IN: timeIn || "Apply",
         Trans_OUT: timeOut || "Apply",
         Status: status,
@@ -565,10 +568,6 @@ export default function Page() {
 
   const { privilegeMap } = usePrivileges();
 
-  // Resolve the create privilege for this page the same way PowerHeader does —
-  // find the active module/submodule that matches the current route and check
-  // its `create` flag. This means the Manual Punches button appears for any
-  // role that has the Create privilege enabled, not just admins.
   const canAdd = React.useMemo(() => {
     if (!privilegeMap) return false;
     for (const moduleKey of Object.keys(privilegeMap)) {

@@ -24,11 +24,12 @@ import { format } from "date-fns";
 import { TimePicker } from "@/src/components/ui/time-picker";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import {
   addManualPunchRequest,
   editManualPunchRequest,
+  apiRequest,
 } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
@@ -56,8 +57,8 @@ const formSchema = z.object({
   time: z.date({ required_error: "time_required" }),
   employee_remarks: z
     .string()
-    .max(500, { message: "remarks_max_length" })
-    .optional(),
+    .min(1, { message: "remarks_required" })
+    .max(500, { message: "remarks_max_length" }),
   // Optional in schema — "required on add" enforced manually in onSubmit
   attachment: z
     .custom<File | undefined>(
@@ -115,19 +116,38 @@ export default function ApplyMissingPunch({
   const formErrors = translations?.formErrors || {};
 
   // ── Edit-mode detection ───────────────────────────────────────────────────
-  //
-  // From the actual API response (emp_missing_movements):
-  //   trans_IN_id / trans_OUT_id  → set only AFTER approval (event tx id)
-  //   Status_IN  / Status_OUT     → null | "Pending" | "Approved" | "Rejected"
-  //   manual_trans_IN_id / manual_trans_OUT_id → added by backend join (see note)
-  //
-  // We use manual_trans_*_id (from backend join) as primary source.
-  // If the backend hasn't been updated yet, we fall back to trans_*_id.
-  const existingManualTransId =
-    punchType === "IN"
-      ? (rowData?.manual_trans_IN_id ?? rowData?.trans_IN_id ?? null)
-      : (rowData?.manual_trans_OUT_id ?? rowData?.trans_OUT_id ?? null);
+  // Status_IN / Status_OUT === "Pending" or "Rejected" means a manual transaction
+  // already exists — we should EDIT it, not create a new one.
+  const punchStatus = punchType === "IN" ? rowData?.Status_IN : rowData?.Status_OUT;
+  const isPendingOrRejected =
+    punchStatus &&
+    (punchStatus.toUpperCase() === "PENDING" ||
+      punchStatus.toUpperCase() === "REJECTED");
 
+  const movementEmployeeId = rowData?.Employee_Id;
+  const movementId = rowData?.emp_missing_Movements_Id ?? rowData?.Emp_Missing_Movements_Id;
+
+  // Fetch the existing pending/rejected manual transaction to get its ID,
+  // prefill time and remarks.
+  const { data: existingTxData } = useQuery({
+    queryKey: ["pendingManualTx", movementEmployeeId, punchType, punchStatus],
+    queryFn: async () => {
+      const status = punchStatus.charAt(0).toUpperCase() + punchStatus.slice(1).toLowerCase();
+      const res = await apiRequest(
+        `/employeeManualTransaction/all?employee_id=${movementEmployeeId}&status=${status}&limit=50&offset=1`,
+        "GET"
+      );
+      const match = (res?.data ?? []).find(
+        (tx: any) =>
+          tx.reason === punchType &&
+          (movementId ? String(tx.emp_missing_movement_id) === String(movementId) : true)
+      );
+      return match ?? null;
+    },
+    enabled: !!movementEmployeeId && !!isPendingOrRejected,
+  });
+
+  const existingManualTransId = existingTxData?.employee_manual_transaction_id ?? null;
   const isEditMode = !!existingManualTransId;
 
   // ── Form ──────────────────────────────────────────────────────────────────
@@ -147,7 +167,14 @@ export default function ApplyMissingPunch({
         ? editManualPunchRequest(payload)
         : addManualPunchRequest(payload),
     onSuccess: () => {
-      showToast("success", "apply_missing_punch_success");
+      showToast(
+        "success",
+        isEditMode
+          ? (t.missing_punch_updated || "Missing punch updated successfully")
+          : "apply_missing_punch_success",
+        null,
+        !isEditMode  // use translation key only for add; edit uses literal string
+      );
       queryClient.invalidateQueries({
         queryKey: ["missingMovement"],
         exact: false,
@@ -202,26 +229,29 @@ export default function ApplyMissingPunch({
       form.setValue("date", parseTransDate(rowData.TransDate));
     }
 
-    // ── FIX: Pre-fill time ────────────────────────────────────────────────
-    // page.tsx maps raw API Trans_IN / Trans_OUT into raw_Trans_IN / raw_Trans_OUT
-    // before display formatting. We read either variant.
-    //
-    // For punchType "OUT" (the missing punch), we pre-fill with nothing so the
-    // user picks the correct OUT time. For punchType "IN", we pre-fill the
-    // existing IN time.
-    //
-    // When in edit mode (re-submitting a pending/rejected punch), we always
-    // pre-fill with the previously submitted time.
-    const rawTime =
-      punchType === "IN"
-        ? (rowData.raw_Trans_IN ?? rowData.Trans_IN)
-        : (rowData.raw_Trans_OUT ?? rowData.Trans_OUT);
-
-    const parsedTime = parseRawTime(rawTime);
-    if (parsedTime) {
-      form.setValue("time", parsedTime);
+    // ── Pre-fill time & remarks ──────────────────────────────────────────
+    // In edit mode: use the time & remarks from the existing manual transaction
+    // (existingTxData is fetched by the useQuery above).
+    // In create mode: no time to prefill (user picks it).
+    if (existingTxData) {
+      // Prefill time from the existing transaction
+      const parsedTime = parseRawTime(existingTxData.transaction_time);
+      if (parsedTime) form.setValue("time", parsedTime);
+      // Prefill remarks from the existing transaction
+      if (existingTxData.remarks) {
+        form.setValue("employee_remarks", existingTxData.remarks);
+        setRemarksLength(existingTxData.remarks.length);
+      }
+    } else {
+      // Create mode: try raw time from row (may be null for a missing punch)
+      const rawTime =
+        punchType === "IN"
+          ? (rowData.raw_Trans_IN ?? rowData.Trans_IN)
+          : (rowData.raw_Trans_OUT ?? rowData.Trans_OUT);
+      const parsedTime = parseRawTime(rawTime);
+      if (parsedTime) form.setValue("time", parsedTime);
     }
-  }, [rowData, punchType, form, parseTransDate]);
+  }, [rowData, punchType, form, parseTransDate, existingTxData]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -466,7 +496,7 @@ export default function ApplyMissingPunch({
                 name="employee_remarks"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.remarks || "Remarks"}</FormLabel>
+                    <FormLabel>{t.remarks || "Remarks"} <Required /></FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={
