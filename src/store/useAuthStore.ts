@@ -63,7 +63,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (decodedToken) {
         if (decodedToken.id) finalEmployeeId = Number(decodedToken.id);
-        if (decodedToken.role) finalUserRole = String(decodedToken.role);
+        // FIX: also read roleId/role_id from JWT in case role string isn't present
+        if (decodedToken.role)   finalUserRole = String(decodedToken.role);
+        if (!finalUserRole && decodedToken.roleId)   finalUserRole = String(decodedToken.roleId);
+        if (!finalUserRole && decodedToken.role_id)  finalUserRole = String(decodedToken.role_id);
       }
 
       const storageKeys = [
@@ -85,7 +88,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             const userData = parsedData.user && typeof parsedData.user === 'object' ? parsedData.user : parsedData;
 
             if (userData.employeenumber && !finalEmployeeId) finalEmployeeId = Number(userData.employeenumber);
-            if (userData.role && !finalUserRole) finalUserRole = String(userData.role);
+
+            // FIX: check role, roleId, and role_id fields — the login response
+            // stores the user object with `roleId` (number), not `role` (string),
+            // so the original code left userRole='' after every page reload.
+            if (!finalUserRole) {
+              if (userData.role)        finalUserRole = String(userData.role);
+              else if (userData.roleId)   finalUserRole = String(userData.roleId);
+              else if (userData.role_id)  finalUserRole = String(userData.role_id);
+            }
+
             if (!finalUserInfo || (userData.employeename && Object.keys(userData).length >= Object.keys(finalUserInfo).length)) {
               finalUserInfo = userData;
             }
@@ -106,12 +118,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       set({
-        employeeId: finalEmployeeId,
-        userInfo: finalUserInfo,
-        userRole: finalUserRole,
+        employeeId:        finalEmployeeId,
+        userInfo:          finalUserInfo,
+        userRole:          finalUserRole,
         isGeofenceEnabled: geofenceStatus,
-        isAuthenticated: true,
-        isChecking: false,
+        isAuthenticated:   true,
+        isChecking:        false,
       });
     } catch {
       set({ isChecking: false, isAuthenticated: false });

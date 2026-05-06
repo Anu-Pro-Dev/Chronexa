@@ -38,6 +38,7 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
   const targetStr = JSON.stringify(target);
 
   React.useEffect(() => {
+    // Always reset to 0 first (handles org/date change)
     setValues(Object.fromEntries(keys.map((k) => [k, 0])));
     if (!ready) return;
 
@@ -64,6 +65,39 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
   }, [ready, targetStr]);
 
   return values;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Attendance % count-up — animates a float from 0 to target, returns "77.2%"
+// ─────────────────────────────────────────────────────────────────────────────
+
+function useCountUpPct(target: number, ready: boolean): string {
+  const [value, setValue] = React.useState(0);
+  const rafRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    // Reset to 0 on every target/ready change (covers org & date switches)
+    setValue(0);
+    if (!ready || target === 0) return;
+
+    const startTime = Date.now();
+    const duration  = 800;
+
+    const tick = () => {
+      const elapsed  = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      setValue(parseFloat((target * progress).toFixed(1)));
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+      else setValue(target); // snap to exact final value
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [ready, target]);
+
+  return ready && target > 0 ? `${value.toFixed(1)}%` : ready ? "0.0%" : "—";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -187,24 +221,27 @@ export default function KpiGrid({ date }: KpiGridProps) {
   const { organizationId } = useUserInsightsOrganization();
   const isLicenseOrg       = organizationId === ORG_LICENSE_ONLY;
 
-  // ── Fetch attendance % for non-license orgs whenever org or date changes ───
+  // ── Fetch attendance % whenever org or date changes ────────────────────────
   React.useEffect(() => {
     if (!organizationId || isLicenseOrg) return;
     void fetchAttendancePct(organizationId, date);
   }, [organizationId, date, isLicenseOrg, fetchAttendancePct]);
 
-  // ── Daily summary ─────────────────────────────────────────────────────────
+  // ── Daily summary ──────────────────────────────────────────────────────────
   const hasSummary = date in insightsDailySummaryCache;
   const summary    = insightsDailySummaryCache[date];
 
-  // ── Attendance % data ─────────────────────────────────────────────────────
-  const pctData      = attendancePctCache[date];
-  const adjustedPct  = pctData?.adjustedPct  ?? 0;
-  const displayLabel = pctData?.displayLabel ?? "—";
-  const pctStatus    = pctData?.status       ?? "N/A";
-  const attendColor  = PCT_STATUS_COLOR[pctStatus] ?? "#9CA3AF";
+  // ── Attendance % data ──────────────────────────────────────────────────────
+  const pctData     = attendancePctCache[date];
+  const adjustedPct = pctData?.adjustedPct ?? 0;
+  const pctStatus   = pctData?.status      ?? "N/A";
+  const attendColor = PCT_STATUS_COLOR[pctStatus] ?? "#9CA3AF";
+  const hasPctData  = !!pctData && !isLicenseOrg;
 
-  // ── Count-up animation ────────────────────────────────────────────────────
+  // ── Animated attendance % label (starts from 0 on each org/date change) ───
+  const animatedPctLabel = useCountUpPct(adjustedPct, hasPctData);
+
+  // ── Count-up animation for numeric cards ──────────────────────────────────
   const animated = useCountUp(
     {
       checkIns:    summary?.checkIns    ?? 0,
@@ -220,7 +257,7 @@ export default function KpiGrid({ date }: KpiGridProps) {
 
   const total = animated.totalStaff;
 
-  // ── 6th card: License (org 27) OR Attendance % (all others) ──────────────
+  // ── 6th card: License (org 27) OR Attendance % (all others) ───────────────
   const sixthCard: KpiData = isLicenseOrg
     ? {
         label:    "License Enabled",
@@ -233,7 +270,7 @@ export default function KpiGrid({ date }: KpiGridProps) {
       }
     : {
         label:    "ATTENDANCE",
-        value:    displayLabel,
+        value:    animatedPctLabel,           // ← animated string "0.0%" → "77.2%"
         subLabel: pctData
           ? `${pctData.presentCount} of ${pctData.eligibleEmployees} eligible`
           : "loading…",
