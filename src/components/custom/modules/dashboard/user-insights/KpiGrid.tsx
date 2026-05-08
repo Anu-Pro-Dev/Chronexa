@@ -34,7 +34,7 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
   const [values, setValues] = React.useState<Record<string, number>>(() =>
     Object.fromEntries(keys.map((k) => [k, 0]))
   );
-  const rafRef    = React.useRef<number | null>(null);
+  const rafRef = React.useRef<number | null>(null);
   const targetStr = JSON.stringify(target);
 
   React.useEffect(() => {
@@ -43,11 +43,11 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
     if (!ready) return;
 
     const startTime = Date.now();
-    const duration  = 800;
-    const snapshot  = { ...target };
+    const duration = 800;
+    const snapshot = { ...target };
 
     const tick = () => {
-      const elapsed  = Date.now() - startTime;
+      const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       setValues(
         Object.fromEntries(
@@ -81,10 +81,10 @@ function useCountUpPct(target: number, ready: boolean): string {
     if (!ready || target === 0) return;
 
     const startTime = Date.now();
-    const duration  = 800;
+    const duration = 800;
 
     const tick = () => {
-      const elapsed  = Date.now() - startTime;
+      const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       setValue(parseFloat((target * progress).toFixed(1)));
       if (progress < 1) rafRef.current = requestAnimationFrame(tick);
@@ -105,13 +105,13 @@ function useCountUpPct(target: number, ready: boolean): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface KpiData {
-  label:    string;
-  value:    number | string;   // string supports "77.2%" for attendance card
+  label: string;
+  value: number | string;   // string supports "77.2%" for attendance card
   subLabel: string;
   progress: number;
-  color:    string;
-  icon?:    React.ReactNode;
-  filter?:  DrillDownFilter;
+  color: string;
+  icon?: React.ReactNode;
+  filter?: DrillDownFilter;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,10 +121,10 @@ export interface KpiData {
 const ORG_LICENSE_ONLY = 27;
 
 const PCT_STATUS_COLOR: Record<string, string> = {
-  GOOD:     "#1DAA61",
-  WARNING:  "#FFBF00",
+  GOOD: "#1DAA61",
+  WARNING: "#FFBF00",
   CRITICAL: "#DA153E",
-  "N/A":    "#9CA3AF",
+  "N/A": "#9CA3AF",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -135,7 +135,7 @@ function KpiCard({
   data,
   onClick,
 }: {
-  data:     KpiData;
+  data: KpiData;
   onClick?: () => void;
 }) {
   const isClickable = !!onClick;
@@ -148,11 +148,11 @@ function KpiCard({
       onKeyDown={
         isClickable
           ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onClick?.();
-              }
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClick?.();
             }
+          }
           : undefined
       }
       className={[
@@ -176,7 +176,7 @@ function KpiCard({
           <div
             className="bg-background w-[32px] h-[32px] shrink-0 flex items-center justify-center rounded-[8px]"
             style={{
-              color:     data.color,
+              color: data.color,
               boxShadow: `0 0 16px 6px ${data.color}22`,
             }}
           >
@@ -219,7 +219,7 @@ export default function KpiGrid({ date }: KpiGridProps) {
   const fetchAttendancePct = useUserInsightsStore((s) => s.fetchAttendancePct);
 
   const { organizationId } = useUserInsightsOrganization();
-  const isLicenseOrg       = organizationId === ORG_LICENSE_ONLY;
+  const isLicenseOrg = organizationId === ORG_LICENSE_ONLY;
 
   // ── Fetch attendance % whenever org or date changes ────────────────────────
   React.useEffect(() => {
@@ -229,14 +229,16 @@ export default function KpiGrid({ date }: KpiGridProps) {
 
   // ── Daily summary ──────────────────────────────────────────────────────────
   const hasSummary = date in insightsDailySummaryCache;
-  const summary    = insightsDailySummaryCache[date];
+  const summary = insightsDailySummaryCache[date];
 
   // ── Attendance % data ──────────────────────────────────────────────────────
-  const pctData     = attendancePctCache[date];
+  const cacheKey = date; // already resolved by parent
+  const pctData = attendancePctCache[`${organizationId}_${cacheKey}`];
+
   const adjustedPct = pctData?.adjustedPct ?? 0;
-  const pctStatus   = pctData?.status      ?? "N/A";
+  const pctStatus = pctData?.status ?? "N/A";
   const attendColor = PCT_STATUS_COLOR[pctStatus] ?? "#9CA3AF";
-  const hasPctData  = !!pctData && !isLicenseOrg;
+  const hasPctData = !!pctData && !isLicenseOrg;
 
   // ── Animated attendance % label (starts from 0 on each org/date change) ───
   const animatedPctLabel = useCountUpPct(adjustedPct, hasPctData);
@@ -244,13 +246,13 @@ export default function KpiGrid({ date }: KpiGridProps) {
   // ── Count-up animation for numeric cards ──────────────────────────────────
   const animated = useCountUp(
     {
-      checkIns:    summary?.checkIns    ?? 0,
-      checkOuts:   summary?.checkOuts   ?? 0,
+      checkIns: summary?.checkIns ?? 0,
+      checkOuts: summary?.checkOuts ?? 0,
       withLicense: summary?.withLicense ?? 0,
       absentCount: summary?.absentCount ?? 0,
-      onLeave:     summary?.onLeave     ?? 0,
-      noAppLogin:  summary?.noAppLogin  ?? 0,
-      totalStaff:  summary?.totalStaff  ?? 0,
+      onLeave: summary?.onLeave ?? 0,
+      noAppLogin: summary?.noAppLogin ?? 0,
+      totalStaff: summary?.totalStaff ?? 0,
     },
     hasSummary
   );
@@ -260,99 +262,99 @@ export default function KpiGrid({ date }: KpiGridProps) {
   // ── 6th card: License (org 27) OR Attendance % (all others) ───────────────
   const sixthCard: KpiData = isLicenseOrg
     ? {
-        label:    "License Enabled",
-        value:    animated.withLicense,
-        subLabel: "licensed users",
-        progress: total > 0 ? Math.round((animated.withLicense / total) * 100) : 0,
-        color:    "#1DAA61",
-        icon:     <UserPlusIcon color="#1DAA61" className="w-6 h-6" />,
-        filter:   "licensedList",
-      }
+      label: "License Enabled",
+      value: animated.withLicense,
+      subLabel: "licensed users",
+      progress: total > 0 ? Math.round((animated.withLicense / total) * 100) : 0,
+      color: "#1DAA61",
+      icon: <UserPlusIcon color="#1DAA61" className="w-6 h-6" />,
+      filter: "licensedList",
+    }
     : {
-        label:    "ATTENDANCE",
-        value:    animatedPctLabel,           // ← animated string "0.0%" → "77.2%"
-        subLabel: pctData
-          ? `${pctData.presentCount} of ${pctData.eligibleEmployees} eligible`
-          : "loading…",
-        progress: adjustedPct,
-        color:    attendColor,
-        icon:     <ChartBarIcon className="w-6 h-6" style={{ color: attendColor }} />,
-        filter:   "attendancePct",
-      };
+      label: "ATTENDANCE",
+      value: animatedPctLabel,           // ← animated string "0.0%" → "77.2%"
+      subLabel: pctData
+        ? `${pctData.presentCount} of ${pctData.eligibleEmployees} eligible`
+        : "loading…",
+      progress: adjustedPct,
+      color: attendColor,
+      icon: <ChartBarIcon className="w-6 h-6" style={{ color: attendColor }} />,
+      filter: "attendancePct",
+    };
 
   // ── All 6 cards ────────────────────────────────────────────────────────────
   const kpiData: KpiData[] = [
     {
-      label:    "CHECK-INS",
-      value:    animated.checkIns,
+      label: "CHECK-INS",
+      value: animated.checkIns,
       subLabel: `of ${total} employees`,
       progress: total > 0 ? Math.round((animated.checkIns / total) * 100) : 0,
-      color:    "#0078D4",
-      icon:     <PunchInIcon color="#0078D4" className="w-6 h-6" />,
-      filter:   "checkInList",
+      color: "#0078D4",
+      icon: <PunchInIcon color="#0078D4" className="w-6 h-6" />,
+      filter: "checkInList",
     },
     {
-      label:    "CHECK-OUTS",
-      value:    animated.checkOuts,
+      label: "CHECK-OUTS",
+      value: animated.checkOuts,
       subLabel: "completed today",
       progress: total > 0 ? Math.round((animated.checkOuts / total) * 100) : 0,
-      color:    "#FF6B2D",
-      icon:     <PunchOutIcon color="#FF6B2D" className="w-6 h-6" />,
-      filter:   "checkOutList",
+      color: "#FF6B2D",
+      icon: <PunchOutIcon color="#FF6B2D" className="w-6 h-6" />,
+      filter: "checkOutList",
     },
     {
-      label:    "ABSENT",
-      value:    animated.absentCount,
+      label: "ABSENT",
+      value: animated.absentCount,
       subLabel: "not at work today",
       progress: total > 0 ? Math.round((animated.absentCount / total) * 100) : 0,
-      color:    "#DA153E",
-      icon:     <UserMinusIcon color="#DA153E" className="w-6 h-6" />,
-      filter:   "absentList",
+      color: "#DA153E",
+      icon: <UserMinusIcon color="#DA153E" className="w-6 h-6" />,
+      filter: "absentList",
     },
     {
-      label:    "ON LEAVE",
-      value:    animated.onLeave,
+      label: "ON LEAVE",
+      value: animated.onLeave,
       subLabel: "approved absences",
       progress: total > 0 ? Math.round((animated.onLeave / total) * 100) : 0,
-      color:    "#FFBF00",
-      icon:     <AbsentIcon color="#FFBF00" className="w-6 h-6" />,
-      filter:   "leaveList",
+      color: "#FFBF00",
+      icon: <AbsentIcon color="#FFBF00" className="w-6 h-6" />,
+      filter: "leaveList",
     },
     {
-      label:    "NO APP LOGIN",
-      value:    animated.noAppLogin,
+      label: "NO APP LOGIN",
+      value: animated.noAppLogin,
       subLabel: "inactive today",
       progress: total > 0 ? Math.round((animated.noAppLogin / total) * 100) : 0,
-      color:    "#7D3FFF",
-      icon:     <DevicePhoneMobileIcon className="w-6 h-6" />,
-      filter:   "noAppLoginList",
+      color: "#7D3FFF",
+      icon: <DevicePhoneMobileIcon className="w-6 h-6" />,
+      filter: "noAppLoginList",
     },
     sixthCard,
   ];
 
   // ── Drill-down modal state ─────────────────────────────────────────────────
   const [modal, setModal] = React.useState<{
-    open:   boolean;
+    open: boolean;
     filter: DrillDownFilter;
-    title:  string;
-    color:  string;
-    count:  number;
+    title: string;
+    color: string;
+    count: number;
   } | null>(null);
 
   function openDrillDown(kpi: KpiData) {
     if (!kpi.filter) return;
     setModal({
-      open:   true,
+      open: true,
       filter: kpi.filter,
-      title:  kpi.label,
-      color:  kpi.color,
+      title: kpi.label,
+      color: kpi.color,
       // attendancePct shows a stat panel — no employee count needed in header
       count:
         kpi.filter === "attendancePct"
           ? 0
           : typeof kpi.value === "number"
-          ? kpi.value
-          : 0,
+            ? kpi.value
+            : 0,
     });
   }
 
