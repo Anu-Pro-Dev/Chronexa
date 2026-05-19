@@ -23,12 +23,12 @@ import { CalendarIcon } from "@/src/icons/icons";
 import { Eye, Download, Trash2Icon } from "lucide-react";
 
 const formSchema = z.object({
-  vertical: z.string().optional(),
-  company: z.string().optional(),
-  department: z.string().optional(),
+  vertical: z.array(z.string()).optional(),
+  company: z.array(z.string()).optional(),
+  department: z.array(z.string()).optional(),
   employee_type: z.array(z.string()).optional(),
-  manager_id: z.string().optional(),
-  employee: z.string().optional(),
+  manager_id: z.array(z.string()).optional(),
+  employee: z.array(z.string()).optional(),
   from_date: z.date().optional(),
   to_date: z.date().optional(),
 });
@@ -41,7 +41,12 @@ export default function EmployeeReports() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      vertical: [],
+      company: [],
+      department: [],
       employee_type: [],
+      manager_id: [],
+      employee: [],
     },
   });
 
@@ -55,8 +60,6 @@ export default function EmployeeReports() {
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
-  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
-  const [selectedEmployeeTypes, setSelectedEmployeeTypes] = useState<string[]>([]);
   const [showReportView, setShowReportView] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
   const [loadingReportData, setLoadingReportData] = useState(false);
@@ -74,28 +77,35 @@ export default function EmployeeReports() {
   const closePopover = (key: string) =>
     setPopoverStates(prev => ({ ...prev, [key]: false }));
 
-  const selectedVertical = form.watch("vertical");
-  const selectedCompany = form.watch("company");
-  const selectedDepartment = form.watch("department");
-  const selectedManagerId = form.watch("manager_id");
+  const selectedVerticals = form.watch("vertical") || [];
+  const selectedCompanies = form.watch("company") || [];
+  const selectedDepartments = form.watch("department") || [];
+  const selectedManagerIds = form.watch("manager_id") || [];
+  const selectedEmployeeIds = form.watch("employee") || [];
+  const selectedEmployeeTypes = form.watch("employee_type") || [];
 
   const { data: organizations } = useFetchAllEntity("organization", {
     searchParams: { limit: "1000" },
   });
 
   const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
-    queryKey: ["departmentsByOrg", selectedCompany],
+    queryKey: ["departmentsByOrg", selectedCompanies],
     queryFn: async () => {
-      if (!selectedCompany) return null;
-      return apiRequest(`/dept-org-mapping/by-organization/${selectedCompany}`, "GET");
+      if (selectedCompanies.length === 0) return null;
+      const allDepartments = await Promise.all(
+        selectedCompanies.map(companyId =>
+          apiRequest(`/dept-org-mapping/by-organization/${companyId}`, "GET")
+        )
+      );
+      return { data: allDepartments.flatMap(r => r?.data || []) };
     },
-    enabled: !!selectedCompany,
+    enabled: selectedCompanies.length > 0,
   });
 
   const getManagerSearchParams = () => {
     const params: any = { manager_flag: "true", limit: "1000", offset: "1" };
-    if (selectedCompany) params.organization_id = selectedCompany;
-    if (selectedDepartment) params.department_id = selectedDepartment;
+    if (selectedCompanies.length > 0) params.organization_ids = selectedCompanies.join(',');
+    if (selectedDepartments.length > 0) params.department_ids = selectedDepartments.join(',');
     return { searchParams: params };
   };
 
@@ -103,9 +113,11 @@ export default function EmployeeReports() {
 
   const getEmployeeSearchParams = () => {
     const params: any = { limit: "1000", offset: "1" };
-    if (selectedCompany) params.organization_id = selectedCompany;
-    if (selectedDepartment) params.department_id = selectedDepartment;
-    if (selectedManagerId) params.manager_id = selectedManagerId;
+    if (selectedVerticals.length > 0) params.parent_orgids = selectedVerticals.join(',');
+    if (selectedCompanies.length > 0) params.organization_ids = selectedCompanies.join(',');
+    if (selectedDepartments.length > 0) params.department_ids = selectedDepartments.join(',');
+    if (selectedManagerIds.length > 0) params.manager_ids = selectedManagerIds.join(',');
+    if (selectedEmployeeTypes.length > 0) params.employee_type_ids = selectedEmployeeTypes.join(',');
     return { searchParams: params };
   };
 
@@ -120,23 +132,25 @@ export default function EmployeeReports() {
   const debouncedManagerSearch = useCallback(debounce((v: string) => setManagerSearchTerm(v), 300), []);
 
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
-    queryKey: ["employeeSearch", employeeSearchTerm, selectedCompany, selectedDepartment, selectedManagerId],
+    queryKey: ["employeeSearch", employeeSearchTerm, selectedVerticals, selectedCompanies, selectedDepartments, selectedManagerIds, selectedEmployeeTypes],
     queryFn: async () => {
       let url = `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`;
-      if (selectedCompany) url += `&organization_id=${selectedCompany}`;
-      if (selectedDepartment) url += `&department_id=${selectedDepartment}`;
-      if (selectedManagerId) url += `&manager_id=${selectedManagerId}`;
+      if (selectedVerticals.length > 0) url += `&parent_orgids=${selectedVerticals.join(',')}`;
+      if (selectedCompanies.length > 0) url += `&organization_ids=${selectedCompanies.join(',')}`;
+      if (selectedDepartments.length > 0) url += `&department_ids=${selectedDepartments.join(',')}`;
+      if (selectedManagerIds.length > 0) url += `&manager_ids=${selectedManagerIds.join(',')}`;
+      if (selectedEmployeeTypes.length > 0) url += `&employee_type_ids=${selectedEmployeeTypes.join(',')}`;
       return apiRequest(url, "GET");
     },
     enabled: employeeSearchTerm.length > 0,
   });
 
   const { data: searchedManagers, isLoading: isSearchingManagers } = useQuery({
-    queryKey: ["managerSearch", managerSearchTerm, selectedCompany, selectedDepartment],
+    queryKey: ["managerSearch", managerSearchTerm, selectedCompanies, selectedDepartments],
     queryFn: async () => {
       let url = `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`;
-      if (selectedCompany) url += `&organization_id=${selectedCompany}`;
-      if (selectedDepartment) url += `&department_id=${selectedDepartment}`;
+      if (selectedCompanies.length > 0) url += `&organization_ids=${selectedCompanies.join(',')}`;
+      if (selectedDepartments.length > 0) url += `&department_ids=${selectedDepartments.join(',')}`;
       return apiRequest(url, "GET");
     },
     enabled: managerSearchTerm.length > 0,
@@ -170,9 +184,9 @@ export default function EmployeeReports() {
   };
 
   const getCompanyData = () => {
-    if (!organizations?.data || !selectedVertical) return [];
+    if (!organizations?.data || selectedVerticals.length === 0) return [];
     const companies = organizations.data.filter(
-      (item: any) => String(item.parent_id) === selectedVertical
+      (item: any) => selectedVerticals.includes(String(item.parent_id))
     );
     if (!companySearchTerm) return companies;
     return companies.filter((item: any) =>
@@ -182,7 +196,7 @@ export default function EmployeeReports() {
   };
 
   const getDepartmentData = () => {
-    if (!departmentsByOrg?.data || !selectedCompany) return [];
+    if (!departmentsByOrg?.data || selectedCompanies.length === 0) return [];
     const departmentsMap = new Map();
     const mappings = Array.isArray(departmentsByOrg.data) ? departmentsByOrg.data : [departmentsByOrg.data];
     mappings.forEach((mapping: any) => {
@@ -237,20 +251,55 @@ export default function EmployeeReports() {
     );
   };
 
+  const handleVerticalToggle = (verticalId: string) => {
+    form.setValue("vertical", selectedVerticals.includes(verticalId)
+      ? selectedVerticals.filter(id => id !== verticalId)
+      : [...selectedVerticals, verticalId]);
+    form.setValue("company", []);
+    form.setValue("department", []);
+    form.setValue("manager_id", []);
+    form.setValue("employee", []);
+  };
+
+  const handleCompanyToggle = (companyId: string) => {
+    const newCompanies = selectedCompanies.includes(companyId)
+      ? selectedCompanies.filter(id => id !== companyId)
+      : [...selectedCompanies, companyId];
+    form.setValue("company", newCompanies);
+    form.setValue("department", []);
+    form.setValue("manager_id", []);
+    form.setValue("employee", []);
+  };
+
+  const handleDepartmentToggle = (departmentId: string) => {
+    const newDepartments = selectedDepartments.includes(departmentId)
+      ? selectedDepartments.filter(id => id !== departmentId)
+      : [...selectedDepartments, departmentId];
+    form.setValue("department", newDepartments);
+    form.setValue("manager_id", []);
+    form.setValue("employee", []);
+  };
+
+  const handleManagerToggle = (managerId: string) => {
+    const newManagers = selectedManagerIds.includes(managerId)
+      ? selectedManagerIds.filter(id => id !== managerId)
+      : [...selectedManagerIds, managerId];
+    form.setValue("manager_id", newManagers);
+    form.setValue("employee", []);
+  };
+
   const handleEmployeeToggle = (employeeId: string) => {
-    setSelectedEmployees(prev =>
-      prev.includes(employeeId) ? prev.filter(id => id !== employeeId) : [...prev, employeeId]
-    );
+    form.setValue("employee", selectedEmployeeIds.includes(employeeId)
+      ? selectedEmployeeIds.filter(id => id !== employeeId)
+      : [...selectedEmployeeIds, employeeId]);
   };
 
   const handleEmployeeTypeToggle = (employeeTypeId: string) => {
-    setSelectedEmployeeTypes(prev => {
-      const newTypes = prev.includes(employeeTypeId)
-        ? prev.filter(type => type !== employeeTypeId)
-        : [...prev, employeeTypeId];
-      if (showReportView) { resetButtons(); setShowReportView(false); }
-      return newTypes;
-    });
+    const newTypes = selectedEmployeeTypes.includes(employeeTypeId)
+      ? selectedEmployeeTypes.filter(type => type !== employeeTypeId)
+      : [...selectedEmployeeTypes, employeeTypeId];
+    if (showReportView) { resetButtons(); setShowReportView(false); }
+    form.setValue("employee_type", newTypes);
   };
 
   const headerMap: Record<string, string> = {
@@ -278,7 +327,7 @@ export default function EmployeeReports() {
     CostCenter: "Cost Center",
   };
 
-  const isSingleEmployee = selectedEmployees.length === 1;
+  const isSingleEmployee = selectedEmployeeIds.length === 1;
 
   const getViewHeaders = () => {
     if (isSingleEmployee) {
@@ -369,10 +418,10 @@ export default function EmployeeReports() {
   const buildQueryParams = (): Record<string, string> => {
     const params: Record<string, string> = {};
     const values = form.getValues();
-    if (values.vertical) params.parent_orgid = values.vertical;
-    if (values.company) params.organization_id = values.company;
-    if (values.department) params.department_id = values.department;
-    if (values.manager_id) params.manager_id = values.manager_id;
+    if (values.vertical && values.vertical.length > 0) params.parent_orgids = values.vertical.join(',');
+    if (values.company && values.company.length > 0) params.organization_ids = values.company.join(',');
+    if (values.department && values.department.length > 0) params.department_ids = values.department.join(',');
+    if (values.manager_id && values.manager_id.length > 0) params.manager_ids = values.manager_id.join(',');
     if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
     if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
     return params;
@@ -383,8 +432,8 @@ export default function EmployeeReports() {
     if (selectedEmployeeTypes.length > 0) {
       queryParts.push(`employee_type_ids=${selectedEmployeeTypes.join(',')}`);
     }
-    if (selectedEmployees.length > 0) {
-      queryParts.push(`employee_ids=${selectedEmployees.join(',')}`);
+    if (selectedEmployeeIds.length > 0) {
+      queryParts.push(`employee_ids=${selectedEmployeeIds.join(',')}`);
     }
     if (page !== undefined) {
       queryParts.push(`limit=${rowsPerPage}`);
@@ -444,7 +493,7 @@ export default function EmployeeReports() {
 
   const getExportFormValues = () => ({
     ...form.getValues(),
-    employee_ids: selectedEmployees,
+    employee_ids: selectedEmployeeIds,
     employee_type_ids: selectedEmployeeTypes,
   });
 
@@ -523,8 +572,8 @@ export default function EmployeeReports() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    selectedVertical, selectedCompany, selectedDepartment, selectedManagerId,
-    selectedEmployees, selectedEmployeeTypes,
+    selectedVerticals, selectedCompanies, selectedDepartments, selectedManagerIds,
+    selectedEmployeeIds, selectedEmployeeTypes,
     form.watch('from_date'), form.watch('to_date'),
   ]);
 
@@ -566,13 +615,33 @@ export default function EmployeeReports() {
   };
 
   const getPlaceholderText = () => {
-    if (selectedEmployees.length === 0) return t.choose_employee || "Choose employee";
-    return `${selectedEmployees.length} ${t.employee || 'employee'}${selectedEmployees.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+    if (selectedEmployeeIds.length === 0) return t.choose_employee || "Choose employee";
+    return `${selectedEmployeeIds.length} ${t.employee || 'employee'}${selectedEmployeeIds.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
   const getEmployeeTypePlaceholderText = () => {
     if (selectedEmployeeTypes.length === 0) return t.placeholder_employee_type || "Choose type";
     return `${selectedEmployeeTypes.length} ${t.type || 'type'}${selectedEmployeeTypes.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const getVerticalPlaceholderText = () => {
+    if (selectedVerticals.length === 0) return t.placeholder_vertical || "Choose vertical";
+    return `${selectedVerticals.length} ${t.vertical || 'vertical'}${selectedVerticals.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const getCompanyPlaceholderText = () => {
+    if (selectedCompanies.length === 0) return t.placeholder_company || "Choose company";
+    return `${selectedCompanies.length} ${t.company || 'company'}${selectedCompanies.length > 1 ? 'ies' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const getDepartmentPlaceholderText = () => {
+    if (selectedDepartments.length === 0) return t.placeholder_department || "Choose department";
+    return `${selectedDepartments.length} ${t.department || 'department'}${selectedDepartments.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const getManagerPlaceholderText = () => {
+    if (selectedManagerIds.length === 0) return t.placeholder_manager || "Choose manager";
+    return `${selectedManagerIds.length} ${t.manager || 'manager'}${selectedManagerIds.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
@@ -618,19 +687,10 @@ export default function EmployeeReports() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">{t.vertical || 'Vertical'}</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("company", undefined);
-                          form.setValue("department", undefined);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                      >
+                      <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={t.placeholder_vertical || "Choose vertical"} />
+                            <SelectValue placeholder={getVerticalPlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -644,11 +704,20 @@ export default function EmployeeReports() {
                               {t.no_verticals_found || "No verticals found"}
                             </div>
                           )}
-                          {getVerticalData().map((item: any) => (
-                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                              {language === 'ar' ? item.organization_arb : item.organization_eng}
-                            </SelectItem>
-                          ))}
+                          {getVerticalData().map((item: any) => {
+                            const verticalId = item.organization_id.toString();
+                            const isChecked = selectedVerticals.includes(verticalId);
+                            return (
+                              <div
+                                key={verticalId}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleVerticalToggle(verticalId); }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>{language === 'ar' ? item.organization_arb : item.organization_eng}</span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -663,19 +732,10 @@ export default function EmployeeReports() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">{t.company || 'Company'}</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("department", undefined);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                        disabled={!selectedVertical}
-                      >
+                      <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={t.placeholder_company || "Choose company"} />
+                            <SelectValue placeholder={getCompanyPlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -689,11 +749,20 @@ export default function EmployeeReports() {
                               {t.no_companies_found || "No companies found"}
                             </div>
                           )}
-                          {getCompanyData().map((item: any) => (
-                            <SelectItem key={item.organization_id} value={item.organization_id.toString()}>
-                              {language === 'ar' ? item.organization_arb : item.organization_eng}
-                            </SelectItem>
-                          ))}
+                          {getCompanyData().map((item: any) => {
+                            const companyId = item.organization_id.toString();
+                            const isChecked = selectedCompanies.includes(companyId);
+                            return (
+                              <div
+                                key={companyId}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCompanyToggle(companyId); }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>{language === 'ar' ? item.organization_arb : item.organization_eng}</span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -708,21 +777,13 @@ export default function EmployeeReports() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("manager_id", undefined);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                        disabled={!selectedCompany || isDepartmentsLoading}
-                      >
+                      <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                             <SelectValue placeholder={
                               isDepartmentsLoading
                                 ? (t.loading_departments || "Loading departments...")
-                                : (t.placeholder_department || "Choose department")
+                                : getDepartmentPlaceholderText()
                             } />
                           </SelectTrigger>
                         </FormControl>
@@ -737,13 +798,22 @@ export default function EmployeeReports() {
                               {t.no_departments_found || "No departments found"}
                             </div>
                           )}
-                          {getDepartmentData().map((item: any) => (
-                            <SelectItem key={item.department_id} value={item.department_id.toString()}>
-                              {language === 'ar'
-                                ? (item.department_name_arb || item.department_code)
-                                : (item.department_name_eng || item.department_code)}
-                            </SelectItem>
-                          ))}
+                          {getDepartmentData().map((item: any) => {
+                            const departmentId = item.department_id.toString();
+                            const isChecked = selectedDepartments.includes(departmentId);
+                            return (
+                              <div
+                                key={departmentId}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDepartmentToggle(departmentId); }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>{language === 'ar'
+                                  ? (item.department_name_arb || item.department_code)
+                                  : (item.department_name_eng || item.department_code)}</span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -805,16 +875,10 @@ export default function EmployeeReports() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex gap-1">{t.manager || 'Manager'}</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          form.setValue("employee", undefined);
-                        }}
-                        value={field.value || ""}
-                      >
+                      <Select>
                         <FormControl>
                           <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={t.placeholder_manager || "Choose manager"} />
+                            <SelectValue placeholder={getManagerPlaceholderText()} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent
@@ -833,13 +897,22 @@ export default function EmployeeReports() {
                               {t.no_managers_found || "No managers found"}
                             </div>
                           )}
-                          {getManagerData().map((item: any) => (
-                            <SelectItem key={item.employee_id} value={item.employee_id.toString()}>
-                              {language === 'ar'
-                                ? `${item.firstname_arb || item.firstname_eng} ${item.lastname_arb || item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
-                                : `${item.firstname_eng} ${item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`}
-                            </SelectItem>
-                          ))}
+                          {getManagerData().map((item: any) => {
+                            const managerId = item.employee_id.toString();
+                            const isChecked = selectedManagerIds.includes(managerId);
+                            return (
+                              <div
+                                key={managerId}
+                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleManagerToggle(managerId); }}
+                              >
+                                <Checkbox checked={isChecked} className="mr-2" />
+                                <span>{language === 'ar'
+                                  ? `${item.firstname_arb || item.firstname_eng} ${item.lastname_arb || item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                  : `${item.firstname_eng} ${item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`}</span>
+                              </div>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -878,7 +951,7 @@ export default function EmployeeReports() {
                           )}
                           {getFilteredEmployees().map((item: any) => {
                             const empId = item?.employee_id?.toString();
-                            const isChecked = selectedEmployees.includes(empId);
+                            const isChecked = selectedEmployeeIds.includes(empId);
                             return (
                               <div
                                 key={empId}
@@ -886,11 +959,9 @@ export default function EmployeeReports() {
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeToggle(empId); }}
                               >
                                 <Checkbox checked={isChecked} className="mr-2" />
-                                <span>
-                                  {language === 'ar'
-                                    ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
-                                    : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`}
-                                </span>
+                                <span>{language === 'ar'
+                                  ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                  : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`}</span>
                               </div>
                             );
                           })}
@@ -918,7 +989,7 @@ export default function EmployeeReports() {
                               size="lg" variant="outline"
                               className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
-                              {field.value
+                              {field.value && field.value instanceof Date && !isNaN(field.value.getTime())
                                 ? format(field.value, "dd/MM/yy")
                                 : <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || 'Choose date'}</span>}
                               <CalendarIcon />
@@ -955,7 +1026,7 @@ export default function EmployeeReports() {
                               size="lg" variant="outline"
                               className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
                             >
-                              {field.value
+                              {field.value && field.value instanceof Date && !isNaN(field.value.getTime())
                                 ? format(field.value, "dd/MM/yy")
                                 : <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || 'Choose date'}</span>}
                               <CalendarIcon />
@@ -1005,8 +1076,6 @@ export default function EmployeeReports() {
                   className="flex items-center gap-2"
                   onClick={() => {
                     form.reset();
-                    setSelectedEmployees([]);
-                    setSelectedEmployeeTypes([]);
                     setShowReportView(false);
                     setReportData([]);
                     resetButtons();
