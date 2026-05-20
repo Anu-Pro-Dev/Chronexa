@@ -3,6 +3,9 @@
 import * as React from "react";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 import { getWeekStartStr } from "@/src/lib/userInsightsUtils";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 
 const COLORS = {
   present: "#2DD4BF",
@@ -20,6 +23,7 @@ export default function WeeklySummaryCard({ date }: WeeklySummaryCardProps) {
   );
   const weekStart = getWeekStartStr(date);
   const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
+  const { organizationId } = useUserInsightsOrganization();
 
   const daysWithData = rawData.filter((entry: any) => entry.total > 0);
 
@@ -63,9 +67,34 @@ export default function WeeklySummaryCard({ date }: WeeklySummaryCardProps) {
           ),
         };
 
+  const summaryExportColumns: ExportColumn[] = [
+    { header: "Metric", key: "metric", width: 22 },
+    { header: "Value", key: "value", width: 18 },
+  ];
+
+  const summaryExportData = [
+    { metric: "Avg Present / Day", value: stats.avgPresent },
+    { metric: "Best Day", value: stats.bestDay.day },
+    { metric: "Best Day Present Count", value: stats.bestDay.present },
+    { metric: "Absence Rate", value: `${stats.absenceRate}%` },
+    { metric: "Total On Leave", value: stats.totalOnLeave },
+    { metric: "Peak Absent Day", value: stats.peakAbsentDay.day },
+    { metric: "Peak Absent Day Count", value: stats.peakAbsentDay.absent },
+  ];
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4 h-full flex flex-col">
-      <h5 className="text-lg text-text-primary font-medium pb-3">Weekly Summary</h5>
+      <div className="flex items-center gap-2 pb-3">
+        <h5 className="text-lg text-text-primary font-medium">Weekly Summary</h5>
+        <ExportButton
+          data={summaryExportData}
+          columns={summaryExportColumns}
+          meta={{
+            title: "Weekly Summary",
+            filters: { Organization: String(organizationId ?? ""), "Week Of": weekStart },
+          }}
+        />
+      </div>
 
       <div className="grid grid-cols-5 gap-3 flex-1">
         <div className="text-center bg-background rounded-lg p-3 flex flex-col justify-center">

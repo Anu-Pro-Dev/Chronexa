@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
 import {
   ChartConfig,
   ChartContainer,
@@ -111,12 +113,38 @@ function ViolationsCard() {
     }
   };
 
+  const violationsExportColumns: ExportColumn[] = [
+    { header: "Month", key: "month", width: 14 },
+    { header: "Missed In", key: "missedin", width: 12 },
+    { header: "Missed Out", key: "missedout", width: 14 },
+    { header: "Late In", key: "latein", width: 10 },
+    { header: "Early Out", key: "earlyout", width: 12 },
+  ];
+
+  const violationsExportData = chartData.map((d) => ({
+    month: d.month,
+    missedin: d.missedin,
+    missedout: d.missedout,
+    latein: d.latein,
+    earlyout: d.earlyout,
+  }));
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex flex-row justify-between p-4">
-        <h5 className="text-lg text-text-primary font-medium">
-          {t?.violations}
-        </h5>
+        <div className="flex items-center gap-2">
+          <h5 className="text-lg text-text-primary font-medium">
+            {t?.violations}
+          </h5>
+          <ExportButton
+            data={violationsExportData}
+            columns={violationsExportColumns}
+            meta={{
+              title: "Violation Analytics",
+              filters: { Year: String(selectedYear) },
+            }}
+          />
+        </div>
         <Select 
           value={selectedYear.toString()} 
           onValueChange={handleYearChange}

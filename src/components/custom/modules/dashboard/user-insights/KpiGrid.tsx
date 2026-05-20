@@ -5,16 +5,21 @@
  * ──────────────────────────────────────────
  * 6 KPI cards always shown. Clicking any card opens DrillDownModal.
  *
+ * Card 5 behaviour:
+ *  - org 27       → "NO APP LOGIN"    (noAppLoginList drilldown)
+ *  - all others   → "INCOMPLETE DUTY" (incompleteDuty drilldown)
+ *
  * Card 6 behaviour:
  *  - org 27       → "License Enabled"  (licensedList drilldown)
  *  - all others   → "ATTENDANCE"       (attendancePct drilldown → stat panel)
  *
- * Cards 1–5 are identical for all orgs:
- *  CHECK-INS / CHECK-OUTS / ABSENT / ON LEAVE / NO APP LOGIN
+ * Cards 1–4 are identical for all orgs:
+ *  CHECK-INS / CHECK-OUTS / ABSENT / ON LEAVE
  */
 
 import * as React from "react";
 import { PunchInIcon, PunchOutIcon, AbsentIcon } from "@/src/icons/icons";
+import { AlertTriangle } from "lucide-react";
 import {
   DevicePhoneMobileIcon,
   UserPlusIcon,
@@ -24,6 +29,7 @@ import {
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 import DrillDownModal, { DrillDownFilter } from "./DrillDownModal";
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Count-up animation
@@ -69,14 +75,16 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Attendance % count-up — animates a float from 0 to target, returns "77.2%"
+// FIX: accepts a resetKey so the effect re-fires on org/date change even when
+//      the numeric target happens to be identical across two orgs.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function useCountUpPct(target: number, ready: boolean): string {
+function useCountUpPct(target: number, ready: boolean, resetKey?: string): string {
   const [value, setValue] = React.useState(0);
   const rafRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
-    // Reset to 0 on every target/ready change (covers org & date switches)
+    // Reset to 0 on every target/ready/resetKey change (covers org & date switches)
     setValue(0);
     if (!ready || target === 0) return;
 
@@ -95,7 +103,7 @@ function useCountUpPct(target: number, ready: boolean): string {
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [ready, target]);
+  }, [ready, target, resetKey]); // ← FIX: resetKey added
 
   return ready && target > 0 ? `${value.toFixed(1)}%` : ready ? "0.0%" : "—";
 }
@@ -215,33 +223,31 @@ export default function KpiGrid({ date }: KpiGridProps) {
   const insightsDailySummaryCache = useUserInsightsStore(
     (s) => s.insightsDailySummaryCache
   );
-  const attendancePctCache = useUserInsightsStore((s) => s.attendancePctCache);
-  const fetchAttendancePct = useUserInsightsStore((s) => s.fetchAttendancePct);
 
   const { organizationId } = useUserInsightsOrganization();
   const isLicenseOrg = organizationId === ORG_LICENSE_ONLY;
-
-  // ── Fetch attendance % whenever org or date changes ────────────────────────
-  React.useEffect(() => {
-    if (!organizationId || isLicenseOrg) return;
-    void fetchAttendancePct(organizationId, date);
-  }, [organizationId, date, isLicenseOrg, fetchAttendancePct]);
 
   // ── Daily summary ──────────────────────────────────────────────────────────
   const hasSummary = date in insightsDailySummaryCache;
   const summary = insightsDailySummaryCache[date];
 
   // ── Attendance % data ──────────────────────────────────────────────────────
-  const cacheKey = date; // already resolved by parent
-  const pctData = attendancePctCache[`${organizationId}_${cacheKey}`];
+  // FIX: select the whole cache object (stable reference) then index outside
+  // the selector — avoids a stale closure where Zustand doesn't detect the
+  // key change and the component never re-renders with fresh data.
+  const attendancePctCache = useUserInsightsStore((s) => s.attendancePctCache);
+  const pctCacheKey = `${organizationId}_${date}`;
+  const pctData = attendancePctCache[pctCacheKey];
 
   const adjustedPct = pctData?.adjustedPct ?? 0;
   const pctStatus = pctData?.status ?? "N/A";
   const attendColor = PCT_STATUS_COLOR[pctStatus] ?? "#9CA3AF";
   const hasPctData = !!pctData && !isLicenseOrg;
 
-  // ── Animated attendance % label (starts from 0 on each org/date change) ───
-  const animatedPctLabel = useCountUpPct(adjustedPct, hasPctData);
+  // ── Animated attendance % label ───────────────────────────────────────────
+  // FIX: pass pctCacheKey as resetKey so the animation always restarts on
+  // org or date change, even when the numeric value is the same as before.
+  const animatedPctLabel = useCountUpPct(adjustedPct, hasPctData, pctCacheKey);
 
   // ── Count-up animation for numeric cards ──────────────────────────────────
   const animated = useCountUp(
@@ -253,11 +259,34 @@ export default function KpiGrid({ date }: KpiGridProps) {
       onLeave: summary?.onLeave ?? 0,
       noAppLogin: summary?.noAppLogin ?? 0,
       totalStaff: summary?.totalStaff ?? 0,
+      missedIn: summary?.missedIn ?? 0,
+      missedOut: summary?.missedOut ?? 0,
     },
     hasSummary
   );
 
   const total = animated.totalStaff;
+
+  // ── 5th card: NO APP LOGIN (org 27) OR INCOMPLETE DUTY (all others) ──────
+  const fifthCard: KpiData = isLicenseOrg
+    ? {
+      label: "NO APP LOGIN",
+      value: animated.noAppLogin,
+      subLabel: "inactive today",
+      progress: total > 0 ? Math.round((animated.noAppLogin / total) * 100) : 0,
+      color: "#7D3FFF",
+      icon: <DevicePhoneMobileIcon className="w-6 h-6" />,
+      filter: "noAppLoginList",
+    }
+    : {
+      label: "INCOMPLETE DUTY",
+      value: animated.missedOut,
+      subLabel: "missed checkout",
+      progress: total > 0 ? Math.round((animated.missedOut / total) * 100) : 0,
+      color: "#E67E22",
+      icon: <AlertTriangle className="w-6 h-6" />,
+      filter: "missedOutList",
+    };
 
   // ── 6th card: License (org 27) OR Attendance % (all others) ───────────────
   const sixthCard: KpiData = isLicenseOrg
@@ -272,10 +301,10 @@ export default function KpiGrid({ date }: KpiGridProps) {
     }
     : {
       label: "ATTENDANCE",
-      value: animatedPctLabel,           // ← animated string "0.0%" → "77.2%"
-      subLabel: pctData
-        ? `${pctData.presentCount} of ${pctData.eligibleEmployees} eligible`
-        : "loading…",
+      value: animatedPctLabel,
+      subLabel: hasPctData && pctData!.presentCount != null && pctData!.eligibleEmployees != null
+        ? `${pctData!.presentCount} of ${pctData!.eligibleEmployees} eligible`
+        : "eligible",
       progress: adjustedPct,
       color: attendColor,
       icon: <ChartBarIcon className="w-6 h-6" style={{ color: attendColor }} />,
@@ -320,15 +349,7 @@ export default function KpiGrid({ date }: KpiGridProps) {
       icon: <AbsentIcon color="#FFBF00" className="w-6 h-6" />,
       filter: "leaveList",
     },
-    {
-      label: "NO APP LOGIN",
-      value: animated.noAppLogin,
-      subLabel: "inactive today",
-      progress: total > 0 ? Math.round((animated.noAppLogin / total) * 100) : 0,
-      color: "#7D3FFF",
-      icon: <DevicePhoneMobileIcon className="w-6 h-6" />,
-      filter: "noAppLoginList",
-    },
+    fifthCard,
     sixthCard,
   ];
 
@@ -348,7 +369,6 @@ export default function KpiGrid({ date }: KpiGridProps) {
       filter: kpi.filter,
       title: kpi.label,
       color: kpi.color,
-      // attendancePct shows a stat panel — no employee count needed in header
       count:
         kpi.filter === "attendancePct"
           ? 0

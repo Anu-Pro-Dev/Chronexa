@@ -126,6 +126,9 @@
 
 import * as React from "react";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 
 interface OvertimeRow {
   label: string;
@@ -168,6 +171,7 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
   const insightsOvertimeCache = useUserInsightsStore((s) => s.insightsOvertimeCache);
   const hasOvertimeData = date in insightsOvertimeCache;
   const overtime = insightsOvertimeCache[date];
+  const { organizationId } = useUserInsightsOrganization();
 
   const rawValues = [
     overtime?.avgHoursToday ?? 0,
@@ -228,9 +232,29 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
     },
   ];
 
+  const overtimeExportColumns: ExportColumn[] = [
+    { header: "Metric", key: "metric", width: 24 },
+    { header: "Value", key: "value", width: 18 },
+  ];
+
+  const overtimeExportData = overtimeData.map((r) => ({
+    metric: r.label,
+    value: r.value,
+  }));
+
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-6 flex flex-col gap-5 h-full">
-      <h5 className="text-lg text-text-primary font-medium">Overtime & Hours Worked</h5>
+      <div className="flex items-center gap-2">
+        <h5 className="text-lg text-text-primary font-medium">Overtime & Hours Worked</h5>
+        <ExportButton
+          data={overtimeExportData}
+          columns={overtimeExportColumns}
+          meta={{
+            title: "Overtime & Hours Worked",
+            filters: { Organization: String(organizationId ?? ""), Date: date },
+          }}
+        />
+      </div>
       <div className="flex flex-col gap-4">
         {overtimeData.map((row) => (
           <div key={row.label} className="flex flex-col gap-3">

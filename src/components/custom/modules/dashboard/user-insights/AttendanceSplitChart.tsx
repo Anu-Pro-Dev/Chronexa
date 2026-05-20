@@ -2,6 +2,9 @@
 
 import * as React from "react";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 
 interface AttendanceSplitChartProps {
   date: string;
@@ -38,6 +41,7 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const hasSummary = date in insightsDailySummaryCache;
   const summary = insightsDailySummaryCache[date];
+  const { organizationId } = useUserInsightsOrganization();
 
 
   const values = SLICES.map((s) => Math.max((summary as any)?.[s.key] ?? 0, 0));
@@ -56,9 +60,29 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
     return { ...s, value: values[i], start, end, pct };
   });
 
+  const splitExportColumns: ExportColumn[] = [
+    { header: "Category", key: "category", width: 20 },
+    { header: "Count", key: "count", width: 12 },
+  ];
+
+  const splitExportData = arcs.map((arc) => ({
+    category: arc.label,
+    count: arc.value,
+  }));
+
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 h-full">
-      <h5 className="text-lg text-text-primary font-medium pb-4">Yesterday's Attendance Split</h5>
+      <div className="flex items-center gap-2 pb-4">
+        <h5 className="text-lg text-text-primary font-medium">Yesterday's Attendance Split</h5>
+        <ExportButton
+          data={splitExportData}
+          columns={splitExportColumns}
+          meta={{
+            title: "Yesterday's Attendance Split",
+            filters: { Organization: String(organizationId ?? ""), Date: date },
+          }}
+        />
+      </div>
 
       <div className="flex flex-col items-center gap-4">
         {/* Donut */}

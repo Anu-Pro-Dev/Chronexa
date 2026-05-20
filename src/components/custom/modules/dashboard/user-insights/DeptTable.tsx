@@ -2,6 +2,9 @@
 
 import * as React from "react";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 
 interface DeptRow {
   name: string;
@@ -46,13 +49,39 @@ interface DeptTableProps {
 export default function DeptTable({ date }: DeptTableProps) {
   const insightsDeptAttendanceCache = useUserInsightsStore((s) => s.insightsDeptAttendanceCache);
   const hasDeptData = date in insightsDeptAttendanceCache;
+  const { organizationId } = useUserInsightsOrganization();
 
   const deptData: DeptRow[] = (insightsDeptAttendanceCache[date] ?? []).slice(0, 6);
 
+  const deptExportColumns: ExportColumn[] = [
+    { header: "Department", key: "department", width: 25 },
+    { header: "Present", key: "present", width: 12 },
+    { header: "Check-ins", key: "checkIns", width: 14 },
+    { header: "Total", key: "total", width: 10 },
+    { header: "Coverage %", key: "coveragePct", width: 14 },
+  ];
+
+  const deptExportData = deptData.map((d) => ({
+    department: d.name,
+    present: d.checkIns,
+    checkIns: d.checkIns,
+    total: d.total,
+    coveragePct: d.total > 0 ? `${Math.round((d.checkIns / d.total) * 100)}%` : "0%",
+  }));
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6 h-full">
-      <h5 className="text-lg text-text-primary font-medium pb-2">Attendance by Department</h5>
+      <div className="flex items-center gap-2 pb-2">
+        <h5 className="text-lg text-text-primary font-medium">Attendance by Department</h5>
+        <ExportButton
+          data={deptExportData}
+          columns={deptExportColumns}
+          meta={{
+            title: "Attendance by Department",
+            filters: { Organization: String(organizationId ?? ""), Date: date },
+          }}
+        />
+      </div>
       {deptData.length === 0 ? (
         <p className="text-sm text-text-secondary text-center py-6">No department data for this date</p>
       ) : (

@@ -369,7 +369,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
         "GET"
       );
       const pct = response?.data as AttendancePctData;
-      if (!pct) return;
+      if (!pct || pct.presentCount == null || pct.eligibleEmployees == null) return;
       set((state) => ({
         attendancePctCache: {
           ...state.attendancePctCache,

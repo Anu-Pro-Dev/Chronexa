@@ -18,6 +18,8 @@ import {
   CheckCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/solid";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -31,6 +33,7 @@ export type DrillDownFilter =
   | "noAppLoginList"
   | "missedIn"
   | "missedOut"
+  | "missedOutList"
   | "attendancePct";
 
 export interface DrillDownEmployee {
@@ -137,6 +140,16 @@ function getColConfig(filter: DrillDownFilter): ColConfig {
           <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FDEAEA] text-destructive border-[#F5BABA]">
             {filter === "absentList" ? "Absent" : filter === "missedIn" ? "Missed Check-In" : "Missed Check-Out"}
           </span>,
+        ],
+      };
+    case "missedOutList":
+      return {
+        headers: ["Status", "Check-In"],
+        cells:   (emp) => [
+          <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FDEAEA] text-destructive border-[#F5BABA]">
+            Missed Check-Out
+          </span>,
+          <span className="tabular-nums">{formatTime(emp.checkInTime)}</span>,
         ],
       };
     case "leaveList":
@@ -394,6 +407,64 @@ export default function DrillDownModal({
 
   const displayCount = count ?? total;
 
+  const buildExportData = () => {
+    if (isAttendancePct) {
+      if (!aggregate) return { columns: [] as ExportColumn[], data: [] as Record<string, any>[] };
+      return {
+        columns: [
+          { header: "Metric", key: "metric", width: 26 },
+          { header: "Value", key: "value", width: 14 },
+        ] as ExportColumn[],
+        data: [
+          { metric: "Total Employees", value: aggregate.totalEmployees },
+          { metric: "On Approved Leave", value: aggregate.onLeave },
+          { metric: "Eligible", value: aggregate.eligibleEmployees },
+          { metric: "Present", value: aggregate.presentCount },
+          { metric: "Absent", value: aggregate.eligibleEmployees - aggregate.presentCount },
+          { metric: "Adjusted Attendance Rate", value: aggregate.displayLabel },
+          { metric: "Status", value: aggregate.status },
+        ],
+      };
+    }
+
+    const dynHeaders = colConfig.headers;
+    const dynKeys = dynHeaders.map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, "_"));
+    const columns: ExportColumn[] = [
+      { header: "Employee Name", key: "name", width: 24 },
+      { header: "Employee No", key: "empNo", width: 14 },
+      { header: "Department", key: "department", width: 20 },
+      { header: "Employee Type", key: "empType", width: 16 },
+      ...dynHeaders.map((h, i) => ({ header: h, key: dynKeys[i], width: 16 } as ExportColumn)),
+    ];
+
+    const cellText = (emp: DrillDownEmployee, filter: DrillDownFilter): Record<string, string> => {
+      switch (filter) {
+        case "checkInList":  return { [dynKeys[0]]: emp.checkInTime ?? "—" };
+        case "checkOutList": return { [dynKeys[0]]: emp.checkOutTime ?? "—" };
+        case "absentList":
+        case "missedIn":
+        case "missedOut":    return { [dynKeys[0]]: filter === "absentList" ? "Absent" : filter === "missedIn" ? "Missed Check-In" : "Missed Check-Out" };
+        case "missedOutList": return { [dynKeys[0]]: "Missed Check-Out", [dynKeys[1]]: emp.checkInTime ?? "—" };
+        case "leaveList":    return { [dynKeys[0]]: emp.leaveType ?? "—", [dynKeys[1]]: emp.leaveDays != null ? `${emp.leaveDays}d` : "—" };
+        case "licensedList": return { [dynKeys[0]]: emp.appUsername ?? "—" };
+        case "noAppLoginList": return { [dynKeys[0]]: emp.lastLogin ?? "—" };
+        default:             return {};
+      }
+    };
+
+    const data = filtered.map((emp) => ({
+      name: emp.employeeName,
+      empNo: emp.employeeNumber ?? String(emp.employeeId),
+      department: emp.department ?? "—",
+      empType: emp.employeeType ?? "—",
+      ...cellText(emp, filter),
+    }));
+
+    return { columns, data };
+  };
+
+  const { columns: exportColumns, data: exportData } = buildExportData();
+
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
       <ResponsiveModalContent size="extraLarge" className="gap-0 p-0 overflow-hidden">
@@ -425,7 +496,14 @@ export default function DrillDownModal({
                 )}
               </p>
             </div>
-            <ResponsiveModalClose className="ml-auto shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-background hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+            {!loading && (
+              <ExportButton
+                data={exportData}
+                columns={exportColumns}
+                meta={{ title, filters: { Date: date, Org: String(orgId) } }}
+              />
+            )}
+            <ResponsiveModalClose className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-background hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
               <XMarkIcon className="w-5 h-5" />
               <span className="sr-only">Close</span>
             </ResponsiveModalClose>
@@ -504,11 +582,11 @@ export default function DrillDownModal({
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((emp) => {
+                  filtered.map((emp, idx) => {
                     const extraCells = colConfig.cells(emp);
                     return (
                       <tr
-                        key={emp.employeeId}
+                        key={`${emp.employeeId}-${idx}`}
                         className="border-b border-border-accent hover:bg-background transition-colors"
                       >
                         {/* Name + EmpNo — unchanged */}

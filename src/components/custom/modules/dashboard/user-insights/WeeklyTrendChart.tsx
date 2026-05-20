@@ -9,6 +9,9 @@ import {
 } from "@/src/components/ui/chart";
 import { getWeekStartStr } from "@/src/lib/userInsightsUtils";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 
 const ALL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -54,6 +57,7 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
   const insightsWeeklyTrendCache = useUserInsightsStore((s) => s.insightsWeeklyTrendCache);
   const weekStart = getWeekStartStr(date);
   const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
+  const { organizationId } = useUserInsightsOrganization();
 
   const byDay = new Map(rawData.map((entry: any) => [entry.day, entry]));
   const weekStartDate = new Date(`${weekStart}T00:00:00`);
@@ -69,6 +73,7 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
 
     return {
       day: day.slice(0, 3),
+      dayFull: day,
       dateLabel,
       present: entry?.present ?? 0,
       onLeave: entry?.onLeave ?? 0,
@@ -79,11 +84,43 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
     };
   });
 
+  const weeklyExportColumns: ExportColumn[] = [
+    { header: "Day", key: "day", width: 12 },
+    { header: "Date", key: "dateLabel", width: 14 },
+    { header: "Present", key: "present", width: 12 },
+    { header: "On Leave", key: "onLeave", width: 12 },
+    { header: "Absent", key: "absent", width: 12 },
+    { header: "Missed In", key: "missedIn", width: 14 },
+    { header: "Missed Out", key: "missedOut", width: 14 },
+    { header: "Total", key: "total", width: 10 },
+  ];
+
+  const weeklyExportData = chartData.map((d) => ({
+    day: d.dayFull,
+    dateLabel: d.dateLabel,
+    present: d.present,
+    onLeave: d.onLeave,
+    absent: d.absent,
+    missedIn: d.missedIn,
+    missedOut: d.missedOut,
+    total: d.total,
+  }));
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2 h-full flex flex-col">
       {/* Header */}
       <div className="flex flex-row justify-between items-center px-4 py-4 pb-6">
-        <h5 className="text-lg text-text-primary font-medium">Weekly Attendance Trend</h5>
+        <div className="flex items-center gap-2">
+          <h5 className="text-lg text-text-primary font-medium">Weekly Attendance Trend</h5>
+          <ExportButton
+            data={weeklyExportData}
+            columns={weeklyExportColumns}
+            meta={{
+              title: "Weekly Attendance Trend",
+              filters: { Organization: String(organizationId ?? ""), "Week Of": weekStart },
+            }}
+          />
+        </div>
         <div className="flex items-center gap-3 text-xs text-text-secondary">
           {LEGEND.map((item) => (
             <span key={item.label} className="flex items-center gap-1.5">

@@ -39,6 +39,7 @@ export default function UserInsightsPage() {
     fetchDeptAttendanceData,
     fetchOvertimeData,
     fetchWeeklyTrendData,
+    fetchAttendancePct,
     clearData,
   } = useUserInsightsStore();
 
@@ -58,6 +59,7 @@ export default function UserInsightsPage() {
 
     // ── Wave 1: above-the-fold KPIs + hourly chart ────────────────────────
     void fetchDailySummary(organizationId, selectedDate);
+    void fetchAttendancePct(organizationId, selectedDate);
     void fetchHourlyTrendData(organizationId, selectedDate);
 
     // ── Wave 2: department table ──────────────────────────────────────────
@@ -88,6 +90,7 @@ export default function UserInsightsPage() {
     fetchDeptAttendanceData,
     fetchOvertimeData,
     fetchWeeklyTrendData,
+    fetchAttendancePct,
     clearData,
   ]);
 

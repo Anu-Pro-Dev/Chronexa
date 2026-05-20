@@ -10,6 +10,9 @@ import {
 } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/src/components/ui/chart";
 import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
+import { useUserInsightsOrganization } from "@/src/hooks/useUserInsightsOrganization";
 
 const chartConfig = {
   checkins: { label: "Check-ins", color: "#8CD231" },
@@ -26,13 +29,36 @@ interface HourlyTrendChartProps {
 export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
   const insightsHourlyTrendCache = useUserInsightsStore((s) => s.insightsHourlyTrendCache);
   const hasHourlyData = date in insightsHourlyTrendCache;
+  const { organizationId } = useUserInsightsOrganization();
 
   const hourlyData = insightsHourlyTrendCache[date] ?? EMPTY_DATA;
+
+  const hourlyExportColumns: ExportColumn[] = [
+    { header: "Hour", key: "hour", width: 10 },
+    { header: "Check-ins", key: "checkins", width: 14 },
+    { header: "Check-outs", key: "checkouts", width: 14 },
+  ];
+
+  const hourlyExportData = hourlyData.map((h) => ({
+    hour: `${h.hour}:00`,
+    checkins: h.checkins,
+    checkouts: h.checkouts,
+  }));
 
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between px-1 pb-4">
-        <h5 className="text-lg text-text-primary font-medium">Hourly Attendance Trend</h5>
+        <div className="flex items-center gap-2">
+          <h5 className="text-lg text-text-primary font-medium">Hourly Attendance Trend</h5>
+          <ExportButton
+            data={hourlyExportData}
+            columns={hourlyExportColumns}
+            meta={{
+              title: "Hourly Attendance Trend",
+              filters: { Organization: String(organizationId ?? ""), Date: date },
+            }}
+          />
+        </div>
         <div className="flex items-center gap-3 text-xs text-text-secondary">
           {Object.entries(chartConfig).map(([key, cfg]) => (
             <span key={key} className="flex items-center gap-1">

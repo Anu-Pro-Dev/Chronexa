@@ -11,6 +11,8 @@ import {
 } from "@/src/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
 
 const chartData = [
   { activity: "Missed in", value: 24 },
@@ -68,10 +70,27 @@ function TeamAnalyticsCard() {
 
   const chartDataToRender = dir === "rtl" ? [...chartData].reverse() : chartData;
 
+  const teamAnalyticsExportColumns: ExportColumn[] = [
+    { header: "Activity", key: "activity", width: 20 },
+    { header: "Value", key: "value", width: 10 },
+  ];
+
+  const teamAnalyticsExportData = chartDataToRender.map((d: any) => ({
+    activity: d.activity,
+    value: d.value,
+  }));
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className='flex flex-row justify-between p-4'>
-        <h5 className='text-lg text-text-primary font-medium'> {t?.team_analytics}</h5>
+        <div className="flex items-center gap-2">
+          <h5 className='text-lg text-text-primary font-medium'> {t?.team_analytics}</h5>
+          <ExportButton
+            data={teamAnalyticsExportData}
+            columns={teamAnalyticsExportColumns}
+            meta={{ title: "Team Analytics" }}
+          />
+        </div>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />

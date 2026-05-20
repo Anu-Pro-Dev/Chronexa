@@ -15,6 +15,8 @@ import {
   LateInIcon,
 } from "@/src/icons/icons";
 import { useDashboardStore } from "@/src/store/useDashboardStore";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
 
 function ViolationsCard() {
   const { dir, translations } = useLanguage();
@@ -72,13 +74,32 @@ function ViolationsCard() {
   const missedOut = displayValues.missedOut;
   const lateIn = displayValues.lateIn;
   const earlyOut = displayValues.earlyOut;
+
+  const violationsExportColumns: ExportColumn[] = [
+    { header: "Type", key: "type", width: 16 },
+    { header: "Count", key: "count", width: 10 },
+  ];
+
+  const violationsExportData = [
+    { type: "Missed In", count: missedIn },
+    { type: "Missed Out", count: missedOut },
+    { type: "Late In", count: lateIn },
+    { type: "Early Out", count: earlyOut },
+  ];
   
   return (
     <div className="relative shadow-card h-full rounded-[10px] bg-accent px-2 py-3 flex flex-col items-center">
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute left-[50px] top-[50px]"></div>
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute right-[50px] bottom-[50px]"></div>
       <div className="flex flex-row justify-between py-4">
-        <h5 className="text-lg text-text-primary font-medium">{t?.violations}</h5>
+        <div className="flex items-center gap-2">
+          <h5 className="text-lg text-text-primary font-medium">{t?.violations}</h5>
+          <ExportButton
+            data={violationsExportData}
+            columns={violationsExportColumns}
+            meta={{ title: "Violations" }}
+          />
+        </div>
       </div>
       <Carousel className="w-full max-w-xs px-5" dir={dir}>
         <CarouselContent className={dir === "rtl" ? "flex-row-reverse" : ""}>

@@ -10,6 +10,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
 import { useDashboardStore } from "@/src/store/useDashboardStore";
+import { ExportButton } from "../export/ExportButton";
+import type { ExportColumn } from "../export/DashboardExcelExporter";
 
 const colorMapping = {
   worked: "#0078D4",
@@ -254,12 +256,40 @@ function WorkTrendsCard() {
 
   const hasAnyData = chartDataToRender.some(d => d.worked > 0 || d.missed > 0 || d.expected > 0 || d.holiday > 0 || d.dayoff > 0);
 
+  const workTrendsExportColumns: ExportColumn[] = [
+    { header: "Date", key: "date", width: 10 },
+    { header: "Worked (hrs)", key: "worked", width: 14 },
+    { header: "Missed (hrs)", key: "missed", width: 14 },
+    { header: "Expected (hrs)", key: "expected", width: 16 },
+    { header: "Holiday", key: "holiday", width: 10 },
+    { header: "Day Off", key: "dayoff", width: 10 },
+  ];
+
+  const workTrendsExportData = chartDataToRender.map((d) => ({
+    date: d.date,
+    worked: d.worked,
+    missed: d.missed,
+    expected: d.expected,
+    holiday: d.holiday,
+    dayoff: d.dayoff,
+  }));
+
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4">
       <div className="flex flex-row justify-between p-3">
-        <h5 className="text-lg text-text-primary font-medium">
-          {t?.work_hrs_trends}
-        </h5>
+        <div className="flex items-center gap-2">
+          <h5 className="text-lg text-text-primary font-medium">
+            {t?.work_hrs_trends}
+          </h5>
+          <ExportButton
+            data={workTrendsExportData}
+            columns={workTrendsExportColumns}
+            meta={{
+              title: "Work Hour Trends",
+              filters: { Month: months[selectedMonth - 1] },
+            }}
+          />
+        </div>
 
         <Select
           value={selectedMonth.toString()}
