@@ -240,11 +240,11 @@ function AttendancePctPanel({ data }: { data: AttendancePctData }) {
   const cfg      = statusConfig[data.status] ?? statusConfig["N/A"];
   const barColor = cfg.bar;
   const statCards = [
-    { label: "Total Employees",   value: data.totalEmployees,    icon: <UsersIcon className="w-4 h-4" />,        color: "#0078D4", bg: "#EBF5FB" },
-    { label: "On Approved Leave", value: data.onLeave,           icon: <CalendarDaysIcon className="w-4 h-4" />, color: "#B45309", bg: "#FFFBEB" },
-    { label: "Eligible",          value: data.eligibleEmployees, icon: <UsersIcon className="w-4 h-4" />,        color: "#7D3FFF", bg: "#F3EEFF" },
-    { label: "Present",           value: data.presentCount,      icon: <CheckCircleIcon className="w-4 h-4" />,  color: "#1DAA61", bg: "#EAFAF1" },
-    { label: "Absent",            value: absentCount,            icon: <XCircleIcon className="w-4 h-4" />,      color: "#DA153E", bg: "#FDEAEA" },
+    { label: "Total Employees",   value: data.totalEmployees    ?? 0, icon: <UsersIcon className="w-4 h-4" />,        color: "#0078D4", bg: "#EBF5FB" },
+    { label: "On Approved Leave", value: data.onLeave           ?? 0, icon: <CalendarDaysIcon className="w-4 h-4" />, color: "#B45309", bg: "#FFFBEB" },
+    { label: "Eligible",          value: data.eligibleEmployees ?? 0, icon: <UsersIcon className="w-4 h-4" />,        color: "#7D3FFF", bg: "#F3EEFF" },
+    { label: "Present",           value: data.presentCount      ?? 0, icon: <CheckCircleIcon className="w-4 h-4" />,  color: "#1DAA61", bg: "#EAFAF1" },
+    { label: "Absent",            value: absentCount            ?? 0, icon: <XCircleIcon className="w-4 h-4" />,      color: "#DA153E", bg: "#FDEAEA" },
   ];
   return (
     <div className="flex flex-col gap-5">

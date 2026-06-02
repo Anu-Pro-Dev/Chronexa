@@ -1445,3 +1445,13 @@ export const rejectManualTransaction = async (employee_manual_transaction_id: nu
     "PUT"
   );
 };
+
+// Function to activate a license with a key
+export const licenseActivateRequest = async (licenseId: number, licenseKey: string) => {
+  return apiRequest(`/license/activate/${licenseId}`, "PATCH", { license_key: licenseKey });
+};
+
+// Function to toggle license enabled/disabled status
+export const licenseToggleRequest = async (licenseId: number, isEnabled: boolean) => {
+  return apiRequest(`/license/toggle/${licenseId}`, "PATCH", { is_enabled: isEnabled });
+};

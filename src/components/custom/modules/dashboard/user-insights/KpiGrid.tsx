@@ -80,14 +80,16 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function useCountUpPct(target: number, ready: boolean, resetKey?: string): string {
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = React.useState<number | null>(null);
   const rafRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
-    // Reset to 0 on every target/ready/resetKey change (covers org & date switches)
-    setValue(0);
-    if (!ready || target === 0) return;
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    // null = loading, 0 = ready with zero value — forces re-render when ready changes
+    if (!ready) { setValue(null); return; }
+    if (target === 0) { setValue(0); return; }
 
+    setValue(0);
     const startTime = Date.now();
     const duration = 800;
 
@@ -96,16 +98,17 @@ function useCountUpPct(target: number, ready: boolean, resetKey?: string): strin
       const progress = Math.min(elapsed / duration, 1);
       setValue(parseFloat((target * progress).toFixed(1)));
       if (progress < 1) rafRef.current = requestAnimationFrame(tick);
-      else setValue(target); // snap to exact final value
+      else setValue(target);
     };
 
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [ready, target, resetKey]); // ← FIX: resetKey added
+  }, [ready, target, resetKey]);
 
-  return ready && target > 0 ? `${value.toFixed(1)}%` : ready ? "0.0%" : "—";
+  if (value === null) return "0.0%";              // loading
+  return value > 0 ? `${value.toFixed(1)}%` : "0.0%"; // ready
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

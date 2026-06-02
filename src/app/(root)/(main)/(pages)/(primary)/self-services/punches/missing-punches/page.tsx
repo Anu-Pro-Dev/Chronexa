@@ -374,6 +374,7 @@ export default function Page() {
         employee_name: getEmployeeName(transaction),
         TransDate: formatDateDisplay(transaction.TransDate),
         // Preserve raw ISO values for edit prefill BEFORE formatting overwrites them
+        raw_TransDate: transaction.TransDate,
         raw_Trans_IN: transaction.Trans_IN,
         raw_Trans_OUT: transaction.Trans_OUT,
         Trans_IN: timeIn || "Apply",

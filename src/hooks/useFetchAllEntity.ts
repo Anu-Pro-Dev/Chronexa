@@ -15,7 +15,7 @@ interface Options {
 export function useFetchAllEntity(entity: string, options?: Options) {
   const { searchParams = {}, enabled = true, endpoint, removeAll = false } = options || {};
 
-  const immediateParams = ['limit', 'offset'];
+  const immediateParams = ['limit', 'offset', 'status', 'organization_id', 'app_type', 'emp_no'];
   
   const { immediate, searchable } = useMemo(() => {
     const immediate: Params = {};

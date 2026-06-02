@@ -195,10 +195,8 @@ export default function ApplyMissingPunch({
   // ── Date parser ───────────────────────────────────────────────────────────
   const parseTransDate = useCallback((dateString: string) => {
     if (!dateString) return new Date();
-    // ISO string from API e.g. "2026-04-22T00:00:00.000Z"
-    const iso = new Date(dateString);
-    if (!isNaN(iso.getTime())) return iso;
-    // DD/MM/YYYY or DD/MM/YY display format
+    // DD/MM/YYYY or DD/MM/YY display format — parse first to avoid
+    // new Date() misinterpreting DD/MM/YYYY as MM/DD/YYYY
     const parts = dateString.split("/");
     if (parts.length === 3) {
       return new Date(
@@ -207,6 +205,9 @@ export default function ApplyMissingPunch({
         parseInt(parts[0], 10)
       );
     }
+    // ISO string from API e.g. "2026-04-22T00:00:00.000Z"
+    const iso = new Date(dateString);
+    if (!isNaN(iso.getTime())) return iso;
     return new Date();
   }, []);
 
@@ -224,9 +225,10 @@ export default function ApplyMissingPunch({
     // Reason
     form.setValue("reason", punchType);
 
-    // Date — TransDate is "2026-04-22T00:00:00.000Z" from the API
-    if (rowData.TransDate) {
-      form.setValue("date", parseTransDate(rowData.TransDate));
+    // Date — prefer raw ISO date if available, fall back to display format
+    const dateSource = rowData.raw_TransDate ?? rowData.TransDate;
+    if (dateSource) {
+      form.setValue("date", parseTransDate(dateSource));
     }
 
     // ── Pre-fill time & remarks ──────────────────────────────────────────

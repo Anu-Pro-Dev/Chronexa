@@ -263,6 +263,8 @@ export default function GroupApplyPunch({
 
   const parseTransDate = useCallback((dateString: string) => {
     if (!dateString) return new Date();
+    // DD/MM/YYYY or DD/MM/YY display format — parse first to avoid
+    // new Date() misinterpreting DD/MM/YYYY as MM/DD/YYYY
     const parts = dateString.split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
@@ -270,13 +272,17 @@ export default function GroupApplyPunch({
       const year = parseInt(parts[2], 10);
       return new Date(year, month, day);
     }
-    return new Date(dateString);
+    // ISO string from API e.g. "2026-04-22T00:00:00.000Z"
+    const iso = new Date(dateString);
+    if (!isNaN(iso.getTime())) return iso;
+    return new Date();
   }, []);
 
   useEffect(() => {
     if (rowData && punchType) {
       form.setValue("reason", punchType);
-      if (rowData.TransDate) form.setValue("date", parseTransDate(rowData.TransDate));
+      const dateSource = rowData.raw_TransDate ?? rowData.TransDate;
+      if (dateSource) form.setValue("date", parseTransDate(dateSource));
     }
   }, [rowData, punchType, form, parseTransDate]);
 

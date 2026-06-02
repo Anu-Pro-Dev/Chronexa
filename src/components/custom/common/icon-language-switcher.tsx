@@ -16,6 +16,7 @@ function FullContextSwitcher() {
       className="flex items-center justify-center p-2"
       aria-label={language === 'en' ? 'Switch to Arabic' : 'Switch to English'}
       title={language === 'en' ? 'العربية' : 'English'}
+      suppressHydrationWarning
     >
       <Image
         src={language === 'en' ? '/en-to-ar.png' : '/ar-to-en.png'}
@@ -39,6 +40,7 @@ function LiteContextSwitcher() {
       className="flex items-center justify-center p-2"
       aria-label={language === 'en' ? 'Switch to Arabic' : 'Switch to English'}
       title={language === 'en' ? 'العربية' : 'English'}
+      suppressHydrationWarning
     >
       <Image
         src={language === 'en' ? '/en-to-ar.png' : '/ar-to-en.png'}
