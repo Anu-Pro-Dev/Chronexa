@@ -142,7 +142,7 @@ function WeeklyViolationSummary() {
     <div className="shadow-card rounded-[10px] bg-accent p-2 flex flex-col gap-3 h-full">
       <div className="flex items-center justify-between p-4 pb-2 shrink-0">
         <h5 className="text-lg font-medium text-text-primary">
-          {t?.weekly_violation_summary || "Weekly Violation Summary"}
+          {t?.weekly_violation_summary || "Weekly Discrepancies Summary"}
         </h5>
         <div className="flex items-center gap-2">
           <button

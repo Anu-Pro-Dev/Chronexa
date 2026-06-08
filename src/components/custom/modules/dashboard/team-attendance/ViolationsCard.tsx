@@ -115,8 +115,8 @@ function ViolationsCard() {
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex flex-row justify-between p-4">
         <div className="flex items-center gap-2">
-          <h5 className="text-lg text-text-primary font-medium">
-            {t?.violations}
+          <h5 className="text-lg text-text-primary font-medium mb-2">
+            {t?.discerpencies || "Discrepancies"}
           </h5>
         </div>
         <Select 
@@ -146,7 +146,7 @@ function ViolationsCard() {
       <ChartContainer 
         config={chartConfig} 
         className={`relative w-full h-[300px] 3xl:h-[450px] ${
-          dir === "rtl" ? "-right-[45px]" : "-left-[35px]"
+          dir === "rtl" ? "-right-[45px]" : "-left-[25px]"
         }`}
         dir={dir}
       >
