@@ -35,8 +35,8 @@ export default function EmployeeCardData() {
         AbsentCount: Math.floor(formatValue(data?.AbsentCount) * progress),
         MissedCheckIn: Math.floor(formatValue(data?.MissedCheckIn) * progress),
         MissedCheckOut: Math.floor(formatValue(data?.MissedCheckOut) * progress),
-        MissingHours: parseHours(data?.MissedHrs || "00:00") * progress,
-        Overtime: parseHours(data?.OvertimeHrs || "00:00") * progress,
+        MissingHours: parseHours(data?.MissingHours || "00:00") * progress,
+        Overtime: parseHours(data?.Overtime || "00:00") * progress,
       };
 
       setAnimatedValues(newValues);

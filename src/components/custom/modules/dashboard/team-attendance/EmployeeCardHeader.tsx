@@ -51,8 +51,8 @@ export const EmployeeCardHeader = () => {
         { metric: "Absent", value: teamAttendanceDetails.AbsentCount ?? 0 },
         { metric: "Missed Check-in", value: teamAttendanceDetails.MissedCheckIn ?? 0 },
         { metric: "Missed Check-out", value: teamAttendanceDetails.MissedCheckOut ?? 0 },
-        { metric: "Missing Hours", value: formatHrs(teamAttendanceDetails.MissingHours) },
-        { metric: "Overtime", value: formatHrs(teamAttendanceDetails.Overtime) },
+        { metric: "Missing Hours", value: teamAttendanceDetails.MissingHours || "0:00" },
+        { metric: "Overtime", value: teamAttendanceDetails.Overtime || "0:00" },
       ]
     : [];
 

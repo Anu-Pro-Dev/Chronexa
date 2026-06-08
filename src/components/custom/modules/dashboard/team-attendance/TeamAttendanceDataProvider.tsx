@@ -47,12 +47,13 @@ export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
 
   useEffect(() => {
     if (!userInfo?.roleId) return;
-    if (didInit.current) return;
 
-    didInit.current = true;
     mountedRef.current = true;
 
-    setRole(userInfo.roleId);
+    if (!didInit.current) {
+      didInit.current = true;
+      setRole(userInfo.roleId);
+    }
 
     return () => {
       mountedRef.current = false;
@@ -72,8 +73,8 @@ export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
     const cacheKey = getCacheKey();
     const cachedData = teamAttendanceCache[cacheKey];
 
-    if (cachedData && cachedData.length > 0) {
-      const apiData = cachedData[0];
+    if (cachedData) {
+      const apiData = Array.isArray(cachedData) ? cachedData[0] : cachedData;
       setTeamAttendanceDetails({
         CheckInCount: apiData.CheckedIn || 0,
         CheckOutCount: apiData.CheckedOut || 0,

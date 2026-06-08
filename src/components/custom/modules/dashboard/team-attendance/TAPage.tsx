@@ -4,6 +4,7 @@ import { TeamAttendanceDataProvider } from './TeamAttendanceDataProvider';
 import EmployeeCard from './EmployeeCard';
 import LeaveAnalyticsCard from './LeaveAnalyticsCard';
 import ViolationsCard from './ViolationsCard';
+import WeeklyViolationSummary from './WeeklyViolationSummary';
 
 function TeamAttendancePage() {
     return (
@@ -16,9 +17,12 @@ function TeamAttendancePage() {
                     </div>
                 </div>
                 
-                {/* Leave Analytics Section */}
-                <div className="widget-group-2 flex justify-between gap-4">
-                    <div className='card-widget max-w-[100%] w-full h-auto flex flex-col gap-4'>
+                {/* Leave Analytics + Weekly Violation Section */}
+                <div className="widget-group-2 grid grid-cols-2 gap-4">
+                    <div className='card-widget w-full h-auto'>
+                        <WeeklyViolationSummary />
+                    </div>
+                    <div className='card-widget w-full h-auto'>
                         <LeaveAnalyticsCard />
                     </div>
                 </div>

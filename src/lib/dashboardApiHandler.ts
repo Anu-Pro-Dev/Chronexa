@@ -52,3 +52,17 @@ export const getTeamViolationAnalytics = async (year?: number) => {
     'GET'
   );
 };
+
+export const getWeeklyViolationSummary = async (weekstart: string, weekend: string) => {
+  return apiRequest(
+    `/dashboard/weekly_violation_summary?weekstart=${weekstart}&weekend=${weekend}`,
+    'GET'
+  );
+};
+
+export const getWeeklyViolationDetail = async (summaryId: number, filter: string, limit: number = 10000) => {
+  return apiRequest(
+    `/dashboard/weekly_violation_summary/${summaryId}?filter=${filter}&limit=${limit}`,
+    'GET'
+  );
+};

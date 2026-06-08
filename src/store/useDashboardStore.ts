@@ -9,6 +9,8 @@ import {
   getTeamAttendanceDetails,
   getTeamLeaveAnalytics,
   getTeamViolationAnalytics,
+  getWeeklyViolationSummary,
+  getWeeklyViolationDetail,
 } from "@/src/lib/dashboardApiHandler";
 
 interface DashboardStore {
@@ -46,6 +48,14 @@ interface DashboardStore {
   teamViolationAnalyticsCache: Record<number, any[]>;
   loadingTeamViolationAnalytics: boolean;
   fetchTeamViolationAnalyticsForYear: (year: number) => Promise<void>;
+
+  weeklyViolationCache: Record<string, any>;
+  loadingWeeklyViolation: boolean;
+  fetchWeeklyViolationSummary: (weekstart: string, weekend: string) => Promise<void>;
+
+  weeklyViolationDetailCache: Record<string, any>;
+  loadingWeeklyViolationDetail: boolean;
+  fetchWeeklyViolationDetail: (summaryId: number, filter: string, limit?: number) => Promise<void>;
 
   errorTeamDashboard: string | null;
 }
@@ -240,6 +250,10 @@ export const useDashboardStore = create<DashboardStore>()(
       loadingTeamLeaveAnalytics: false,
       teamViolationAnalyticsCache: {},
       loadingTeamViolationAnalytics: false,
+      weeklyViolationCache: {},
+      loadingWeeklyViolation: false,
+      weeklyViolationDetailCache: {},
+      loadingWeeklyViolationDetail: false,
       errorTeamDashboard: null,
 
       fetchTeamAttendance: async (date?: string, month?: number, year?: number) => {
@@ -368,6 +382,90 @@ export const useDashboardStore = create<DashboardStore>()(
               [year]: [],
             },
             loadingTeamViolationAnalytics: false,
+          }));
+        }
+      },
+
+      fetchWeeklyViolationSummary: async (weekstart: string, weekend: string) => {
+        const cacheKey = `${weekstart}_${weekend}`;
+        const { weeklyViolationCache } = get();
+
+        if (weeklyViolationCache[cacheKey]) {
+          return;
+        }
+
+        set({ loadingWeeklyViolation: true });
+
+        try {
+          const response = await getWeeklyViolationSummary(weekstart, weekend);
+
+          if (response?.success && response?.data) {
+            set((state) => ({
+              weeklyViolationCache: {
+                ...state.weeklyViolationCache,
+                [cacheKey]: response.data,
+              },
+              loadingWeeklyViolation: false,
+            }));
+          } else {
+            set((state) => ({
+              weeklyViolationCache: {
+                ...state.weeklyViolationCache,
+                [cacheKey]: null,
+              },
+              loadingWeeklyViolation: false,
+            }));
+          }
+        } catch (err) {
+          console.error(`Failed to fetch weekly violation summary for ${cacheKey}:`, err);
+          set((state) => ({
+            weeklyViolationCache: {
+              ...state.weeklyViolationCache,
+              [cacheKey]: null,
+            },
+            loadingWeeklyViolation: false,
+          }));
+        }
+      },
+
+      fetchWeeklyViolationDetail: async (summaryId: number, filter: string, limit?: number) => {
+        const cacheKey = `${summaryId}_${filter}_${limit ?? 10000}`;
+        const { weeklyViolationDetailCache } = get();
+
+        if (weeklyViolationDetailCache[cacheKey]) {
+          return;
+        }
+
+        set({ loadingWeeklyViolationDetail: true });
+
+        try {
+          const response = await getWeeklyViolationDetail(summaryId, filter, limit);
+
+          if (response?.success && response?.data) {
+            set((state) => ({
+              weeklyViolationDetailCache: {
+                ...state.weeklyViolationDetailCache,
+                [cacheKey]: response.data,
+              },
+              loadingWeeklyViolationDetail: false,
+            }));
+          } else {
+            set((state) => ({
+              weeklyViolationDetailCache: {
+                ...state.weeklyViolationDetailCache,
+                [cacheKey]: [],
+              },
+              loadingWeeklyViolationDetail: false,
+            }));
+          }
+        } catch (err) {
+          console.error(`Failed to fetch weekly violation detail for ${cacheKey}:`, err);
+          set((state) => ({
+            weeklyViolationDetailCache: {
+              ...state.weeklyViolationDetailCache,
+              [cacheKey]: [],
+            },
+            loadingWeeklyViolationDetail: false,
           }));
         }
       },

@@ -27,8 +27,6 @@ import {
 import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { Calendar1Icon } from "@/src/icons/icons";
-import { ExportButton } from "../export/ExportButton";
-import type { ExportColumn } from "../export/DashboardExcelExporter";
 
 interface LeaveAnalytic {
   employeeid: number;
@@ -192,20 +190,6 @@ export default function LeaveAnalyticsCard() {
     );
   };
 
-  const leaveExportColumns: ExportColumn[] = [
-    { header: "Month", key: "month", width: 14 },
-    { header: "Total Leaves", key: "totalLeaves", width: 14 },
-    { header: "Employees on Leave", key: "employeesOnLeave", width: 22 },
-    { header: "Avg per Employee", key: "avgPerEmployee", width: 18 },
-  ];
-
-  const leaveExportData = chartData.map((d) => ({
-    month: d.month,
-    totalLeaves: d.totalLeaves,
-    employeesOnLeave: d.employeesOnLeave,
-    avgPerEmployee: Number(d.avgPerEmployee.toFixed(1)),
-  }));
-
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-2">
       <div className="flex justify-between p-4">
@@ -213,14 +197,6 @@ export default function LeaveAnalyticsCard() {
           <h5 className="text-lg font-medium text-text-primary">
             {translationDefaults.leave_analytics}
           </h5>
-          <ExportButton
-            data={leaveExportData}
-            columns={leaveExportColumns}
-            meta={{
-              title: "Leave Analytics",
-              filters: { Year: String(selectedYear) },
-            }}
-          />
         </div>
 
         <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
