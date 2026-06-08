@@ -15,8 +15,8 @@ export default {
 				'3xl': '1920px',
 			},
 			fontFamily: {
-				poppins: [
-					'Poppins',
+				plusJakartaSans: [
+					'Plus Jakarta Sans',
 					'sans-serif'
 				]
 			},
