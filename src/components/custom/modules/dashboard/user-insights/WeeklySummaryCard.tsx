@@ -85,7 +85,7 @@ export default function WeeklySummaryCard({ date }: WeeklySummaryCardProps) {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4 h-full flex flex-col">
       <div className="flex items-center gap-2 pb-3">
-        <h5 className="text-lg text-text-primary font-medium">Weekly Summary</h5>
+        <h5 className="text-lg text-text-primary font-bold">Weekly Summary</h5>
         <ExportButton
           data={summaryExportData}
           columns={summaryExportColumns}

@@ -17,6 +17,7 @@ export const EmployeeCardHeader = () => {
   const selectedDate = useSelectedDate((s) => s.date);
   const setSelectedDate = useSelectedDate((s) => s.setDate);
   const [localDate, setLocalDate] = useState<Date>(selectedDate);
+  const [open, setOpen] = useState(false);
   const { teamAttendanceDetails } = useTeamAttendanceData();
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export const EmployeeCardHeader = () => {
     if (newDate) {
       setLocalDate(newDate);
       setSelectedDate(newDate);
+      setOpen(false); // auto-close on selection
     }
   };
 
@@ -59,7 +61,7 @@ export const EmployeeCardHeader = () => {
   return (
     <div className="flex flex-row justify-between p-4">
       <div className="flex gap-2 items-center">
-        <h5 className="cursor-pointer font-medium text-lg text-text-primary">
+        <h5 className="cursor-pointer font-bold text-lg text-text-primary">
           {t?.emp_overview || "Employee Overview"}
         </h5>
         <ExportButton
@@ -72,7 +74,7 @@ export const EmployeeCardHeader = () => {
         />
       </div>
 
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"

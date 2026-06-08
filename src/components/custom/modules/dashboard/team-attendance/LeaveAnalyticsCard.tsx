@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  Legend,
   Tooltip,
 } from "recharts";
 
@@ -79,12 +78,12 @@ export default function LeaveAnalyticsCard() {
   const chartData = useMemo(() => {
     const data = monthNames.map((month, index) => {
       const monthData = leaveAnalytics.filter(item => item.LVMonth === index + 1);
-      
+
       const totalLeaves = monthData.reduce(
         (sum, item) => sum + item.LeaveCount + item.AbsentCount,
         0
       );
-      
+
       const employeesOnLeave = monthData.filter(
         item => item.LeaveCount + item.AbsentCount > 0
       ).length;
@@ -127,10 +126,10 @@ export default function LeaveAnalyticsCard() {
 
   const summaryStats = useMemo(() => {
     const totalYearLeaves = chartData.reduce((sum, d) => sum + d.totalLeaves, 0);
-    const peakMonthData = chartData.reduce((max, d) => 
+    const peakMonthData = chartData.reduce((max, d) =>
       d.totalLeaves > max.totalLeaves ? d : max
     , chartData[0]);
-    
+
     const employeesWithLeaves = employees.filter(empId => {
       const empLeaves = leaveAnalytics
         .filter(item => item.employeeid === empId)
@@ -142,7 +141,7 @@ export default function LeaveAnalyticsCard() {
 
     return {
       totalYearLeaves,
-      peakMonth: peakMonthData?.month || 'N/A',
+      peakMonth: peakMonthData?.month || "N/A",
       peakMonthLeaves: peakMonthData?.totalLeaves || 0,
       avgPerEmployee,
     };
@@ -150,36 +149,33 @@ export default function LeaveAnalyticsCard() {
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload?.length) return null;
-
     const data = payload[0].payload;
-    
     return (
       <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-        <p className="font-semibold mb-2">{data.month}</p>
-        <div className="space-y-1 text-sm">
-          <p style={{ color: '#3b82f6' }}>
+        <p className="font-semibold mb-2 text-text-primary text-sm">{data.month}</p>
+        <div className="space-y-1 text-xs">
+          <p style={{ color: "#3b82f6" }}>
             Total Leaves: <span className="font-medium">{data.totalLeaves}</span>
           </p>
-          <p style={{ color: '#8b5cf6' }}>
+          <p style={{ color: "#8b5cf6" }}>
             Employees: <span className="font-medium">{data.employeesOnLeave}</span>
           </p>
-          <p className="text-muted-foreground">
+          <p className="text-text-secondary">
             Avg: <span className="font-medium">{data.avgPerEmployee.toFixed(1)}</span>
           </p>
         </div>
-        
         {data.details.length > 0 && (
           <>
-            <hr className="my-2" />
-            <p className="text-xs font-semibold mb-1">Top Contributors:</p>
+            <hr className="my-2 border-border" />
+            <p className="text-[11px] font-semibold mb-1 text-text-secondary uppercase tracking-wider">Top Contributors</p>
             <div className="max-h-32 overflow-y-auto text-xs space-y-0.5">
               {data.details
-                .sort((a: any, b: any) => 
+                .sort((a: any, b: any) =>
                   (b.LeaveCount + b.AbsentCount) - (a.LeaveCount + a.AbsentCount)
                 )
                 .slice(0, 5)
                 .map((emp: any) => (
-                  <p key={emp.employeeid} className="text-muted-foreground">
+                  <p key={emp.employeeid} className="text-text-secondary">
                     Emp {emp.employeeid}: {emp.LeaveCount + emp.AbsentCount} days
                   </p>
                 ))}
@@ -191,14 +187,15 @@ export default function LeaveAnalyticsCard() {
   };
 
   return (
-    <div className="shadow-card rounded-[10px] bg-accent p-2">
-      <div className="flex justify-between p-4">
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <h5 className="text-lg font-medium text-text-primary">
+          <h5 className="text-lg font-bold text-text-primary">
             {translationDefaults.leave_analytics}
           </h5>
         </div>
-
         <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
@@ -206,9 +203,9 @@ export default function LeaveAnalyticsCard() {
               {selectedYear}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-accent rounded-md shadow-dropdown">
             {years.map(year => (
-              <SelectItem key={year} value={year.toString()}>
+              <SelectItem key={year} value={year.toString()} className="text-text-primary bg-accent">
                 {year}
               </SelectItem>
             ))}
@@ -216,66 +213,65 @@ export default function LeaveAnalyticsCard() {
         </Select>
       </div>
 
-      <ChartContainer 
-        config={chartConfig} 
-        dir={dir} 
-        className={`relative w-full h-[300px] 3xl:h-[450px] ${dir === "rtl" ? "-right-[30px]" : "-left-[25px]"}`}
+      {/* Legend */}
+      <div className="flex justify-center items-center gap-2 text-xs text-text-secondary">
+        <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: "#3b82f6" }} />
+        <span>{translationDefaults.total_leaves}</span>
+      </div>
+
+      {/* Chart */}
+      <ChartContainer
+        config={chartConfig}
+        dir={dir}
+        className={`w-full h-[220px] relative ${dir === "rtl" ? "-right-[25px]" : "-left-[20px]"}`}
       >
-        <BarChart data={chartData}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+        <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
           <XAxis
             dataKey="month"
             tickLine={false}
             axisLine={false}
+            tick={{ fontSize: 11 }}
             tickFormatter={v => v.slice(0, 3)}
           />
-          <YAxis 
-            tickLine={false} 
-            axisLine={false} 
-            tickMargin={10} 
-            orientation={dir === "rtl" ? "right" : "left"} 
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 11 }}
+            tickMargin={10}
+            orientation={dir === "rtl" ? "right" : "left"}
           />
-          
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(59, 130, 246, 0.1)" }} />
-          
-          <Legend
-            verticalAlign="bottom"
-            height={36}
-            iconType="circle"
-          />
-
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(59,130,246,0.08)" }} />
           <Bar
             dataKey="totalLeaves"
             name={translationDefaults.total_leaves}
             fill="#3b82f6"
             radius={[4, 4, 0, 0]}
+            isAnimationActive
+            animationDuration={800}
           />
         </BarChart>
       </ChartContainer>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4 px-4 pb-4 pt-2">
-        <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-2xl font-medium" style={{ color: '#3b82f6' }}>
-            {summaryStats.totalYearLeaves}
-          </p>
-          <p className="text-xs text-muted-foreground">{translationDefaults.total_leaves}</p>
-        </div>
-        <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-lg font-medium" style={{ color: '#8b5cf6' }}>
-            {summaryStats.peakMonth}
-          </p>
-          <p className="text-xs text-muted-foreground">{translationDefaults.peak_month}</p>
-          <p className="text-xs font-semibold" style={{ color: '#8b5cf6' }}>
-            {summaryStats.peakMonthLeaves} leaves
-          </p>
-        </div>
-        <div className="text-center bg-background rounded-lg p-3 border border-border">
-          <p className="text-2xl font-medium" style={{ color: '#10b981' }}>
-            {summaryStats.avgPerEmployee.toFixed(1)}
-          </p>
-          <p className="text-xs text-muted-foreground">{translationDefaults.avg_per_employee}</p>
-        </div>
+      {/* Summary stat cards — matches KpiCard style */}
+      <div className="grid grid-cols-3 gap-3 pt-1">
+        {[
+          { label: translationDefaults.total_leaves,    value: summaryStats.totalYearLeaves,               color: "#3b82f6", sub: null },
+          { label: translationDefaults.peak_month,      value: summaryStats.peakMonth,                     color: "#8b5cf6", sub: `${summaryStats.peakMonthLeaves} leaves` },
+          { label: translationDefaults.avg_per_employee, value: summaryStats.avgPerEmployee.toFixed(1),    color: "#1DAA61", sub: "per employee" },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-background rounded-[10px] shadow-card p-3 flex flex-col gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">
+              {stat.label}
+            </p>
+            <p className="text-2xl font-medium leading-none" style={{ color: stat.color }}>
+              {stat.value}
+            </p>
+            {stat.sub && (
+              <p className="text-xs text-text-secondary">{stat.sub}</p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

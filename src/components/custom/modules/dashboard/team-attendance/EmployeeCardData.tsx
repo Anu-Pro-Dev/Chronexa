@@ -71,22 +71,20 @@ export default function EmployeeCardData() {
   };
 
   const employeeData = [
-    { label: t?.workforce, value: displayValues.Workforce, color: "text-primary", icon: EmployeesIcon(), shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]", isHours: false },
-    { label: t?.project_managers, value: displayValues.ProjectManagers, color: "text-[#FF6B2D]", icon: <ManagerIcon color="#FF6B2D" />, shadow: "shadow-[0_0_20px_15px_rgba(255,107,45,0.15)]", isHours: false },
-    { label: t?.check_in, value: displayValues.CheckInCount, color: "text-[#1DAA61]", icon: <CheckCircleIcon className="size-6 text-[#1DAA61]" />, shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]", isHours: false },
-    { label: t?.check_out, value: displayValues.CheckOutCount, color: "text-[#7D3FFF]", icon: <XCircleIcon className="size-6 text-[#7D3FFF]" />, shadow: "shadow-[0_0_20px_15px_rgba(125,63,255,0.05)]", isHours: false },
-    { label: t?.approved_leaves, value: displayValues.ApprovedLeaves, color: "text-[#FFBF00]", icon: LeaveTakenIcon(), shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]", isHours: false },
-    { label: t?.absent, value: displayValues.AbsentCount, color: "text-[#FF3B3B]", icon: <AbsentIcon color="#FF3B3B" />, shadow: "shadow-[0_0_20px_15px_rgba(255,59,59,0.1)]", isHours: false },
-    { label: t?.missed_check_in, value: displayValues.MissedCheckIn, color: "text-[#2AD90F]", icon: <UserPlusIcon className="size-5 text-[#2AD90F]" />, shadow: "shadow-[0_0_20px_15px_rgba(42,214,15,0.15)]", isHours: false },
-    { label: t?.missed_check_out, value: displayValues.MissedCheckOut, color: "text-[#E6107C]", icon: <UserMinusIcon className="size-5 text-[#E6107C]" />, shadow: "shadow-[0_0_20px_15px_rgba(230,16,124,0.1)]", isHours: false },
-    { label: t?.missing_hours, value: displayValues.MissingHours, color: "text-[#DA153E]", icon: <VoilationIcon color="#DA153E" />, shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]", isHours: true },
-    { label: t?.overtime, value: displayValues.Overtime, color: "text-[#158993]", icon: <ClockIcon className="size-5 text-[#158993]" />, shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]", isHours: true },
+    { label: t?.workforce,        value: displayValues.Workforce,      color: "text-primary",      hexColor: "#0078D4", icon: EmployeesIcon(),                                         shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]",  isHours: false },
+    { label: t?.project_managers, value: displayValues.ProjectManagers, color: "text-[#FF6B2D]",   hexColor: "#FF6B2D", icon: <ManagerIcon color="#FF6B2D" />,                         shadow: "shadow-[0_0_20px_15px_rgba(255,107,45,0.15)]", isHours: false },
+    { label: t?.check_in,         value: displayValues.CheckInCount,   color: "text-[#1DAA61]",   hexColor: "#1DAA61", icon: <CheckCircleIcon className="size-6 text-[#1DAA61]" />,  shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]",  isHours: false },
+    { label: t?.check_out,        value: displayValues.CheckOutCount,  color: "text-[#7D3FFF]",   hexColor: "#7D3FFF", icon: <XCircleIcon className="size-6 text-[#7D3FFF]" />,      shadow: "shadow-[0_0_20px_15px_rgba(125,63,255,0.05)]", isHours: false },
+    { label: t?.approved_leaves,  value: displayValues.ApprovedLeaves, color: "text-[#FFBF00]",   hexColor: "#FFBF00", icon: LeaveTakenIcon(),                                        shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]",  isHours: false },
+    { label: t?.absent,           value: displayValues.AbsentCount,    color: "text-[#FF3B3B]",   hexColor: "#FF3B3B", icon: <AbsentIcon color="#FF3B3B" />,                          shadow: "shadow-[0_0_20px_15px_rgba(255,59,59,0.1)]",   isHours: false },
+    { label: t?.missed_check_in,  value: displayValues.MissedCheckIn,  color: "text-[#2AD90F]",   hexColor: "#2AD90F", icon: <UserPlusIcon className="size-5 text-[#2AD90F]" />,     shadow: "shadow-[0_0_20px_15px_rgba(42,214,15,0.15)]",  isHours: false },
+    { label: t?.missed_check_out, value: displayValues.MissedCheckOut, color: "text-[#E6107C]",   hexColor: "#E6107C", icon: <UserMinusIcon className="size-5 text-[#E6107C]" />,    shadow: "shadow-[0_0_20px_15px_rgba(230,16,124,0.1)]",  isHours: false },
+    { label: t?.missing_hours,    value: displayValues.MissingHours,   color: "text-[#DA153E]",   hexColor: "#DA153E", icon: <VoilationIcon color="#DA153E" />,                       shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]",  isHours: true  },
+    { label: t?.overtime,         value: displayValues.Overtime,       color: "text-[#158993]",   hexColor: "#158993", icon: <ClockIcon className="size-5 text-[#158993]" />,         shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]", isHours: true  },
   ];
 
   const formatDisplayValue = (value: number, isHours: boolean) => {
-    if (isHours) {
-      return `${value.toFixed(0)} hrs`;
-    }
+    if (isHours) return `${value.toFixed(0)} hrs`;
     return Math.floor(value);
   };
 
@@ -97,12 +95,13 @@ export default function EmployeeCardData() {
           <React.Fragment key={`${item.label}-${index}`}>
             <div>
               <div className="flex gap-10">
-                <p className="text-text-secondary font-semibold text-sm w-[5rem]">{item.label}</p>
-                <div className={`icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] ${item.shadow} ${item.color}`}>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary w-[5rem] leading-tight">{item.label}</p>
+                <div className={`icon-group bg-background w-[32px] h-[32px] flex justify-center items-center rounded-[8px] ${item.shadow}`}
+                  style={{ color: item.hexColor, boxShadow: undefined }}>
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-medium pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
+              <p className={`text-2xl font-medium pt-2 ${item.color}`}>{formatDisplayValue(item.value, item.isHours)}</p>
             </div>
             {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
           </React.Fragment>
@@ -110,11 +109,9 @@ export default function EmployeeCardData() {
       </div>
 
       <div className="flex justify-around py-2">
-        {Array(5)
-          .fill(null)
-          .map((_, index) => (
-            <div key={`line-${index}`} className="h-[1px] w-[60px] bg-text-secondary flex self-center opacity-10"></div>
-          ))}
+        {Array(5).fill(null).map((_, index) => (
+          <div key={`line-${index}`} className="h-[1px] w-[60px] bg-text-secondary flex self-center opacity-10"></div>
+        ))}
       </div>
 
       <div className="flex justify-between p-3">
@@ -122,12 +119,13 @@ export default function EmployeeCardData() {
           <React.Fragment key={`${item.label}-${index + 5}`}>
             <div>
               <div className="flex gap-10">
-                <p className="text-text-secondary font-semibold text-sm w-[60px]">{item.label}</p>
-                <div className={`icon-group bg-background w-[35px] h-[35px] flex justify-center items-center rounded-[10px] ${item.shadow} ${item.color}`}>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary w-[60px] leading-tight">{item.label}</p>
+                <div className={`icon-group bg-background w-[32px] h-[32px] flex justify-center items-center rounded-[8px] ${item.shadow}`}
+                  style={{ color: item.hexColor }}>
                   {item.icon}
                 </div>
               </div>
-              <p className={`text-2xl ${item.color} font-medium pt-2`}>{formatDisplayValue(item.value, item.isHours)}</p>
+              <p className={`text-2xl font-medium pt-2 ${item.color}`}>{formatDisplayValue(item.value, item.isHours)}</p>
             </div>
             {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
           </React.Fragment>

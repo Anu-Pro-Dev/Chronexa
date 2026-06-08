@@ -72,7 +72,7 @@ export default function DeptTable({ date }: DeptTableProps) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 px-6 h-full">
       <div className="flex items-center gap-2 pb-2">
-        <h5 className="text-lg text-text-primary font-medium">Attendance by Department</h5>
+        <h5 className="text-lg text-text-primary font-bold">Attendance by Department</h5>
         <ExportButton
           data={deptExportData}
           columns={deptExportColumns}

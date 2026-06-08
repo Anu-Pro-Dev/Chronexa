@@ -80,7 +80,7 @@ function InsightsCard() {
     return(
         <div className='shadow-card rounded-[10px] bg-accent p-6'>
             <div className='flex flex-row justify-between'>
-                <h5 className='text-lg text-text-primary font-medium'>{t?.important}</h5>
+                <h5 className='text-lg text-text-primary font-bold'>{t?.important}</h5>
                 <Link href="/alerts/email" className='text-primary text-sm font-regular flex items-center justify-center gap-1'>
                     {translations?.buttons?.show_all}
                 </Link>

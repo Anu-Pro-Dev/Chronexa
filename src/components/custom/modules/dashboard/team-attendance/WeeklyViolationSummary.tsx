@@ -94,7 +94,8 @@ function WeeklyViolationSummary() {
 
   const widgets = [
     {
-      label: "Late",
+      label: "Late In",
+      subLabel: "arrivals this week",
       filter: "late",
       value: weekData?.TotalLateCount || 0,
       color: "#FF6347",
@@ -102,6 +103,7 @@ function WeeklyViolationSummary() {
     },
     {
       label: "Early Out",
+      subLabel: "left early this week",
       filter: "early",
       value: weekData?.TotalEarlyOutCount || 0,
       color: "#FFBF00",
@@ -109,6 +111,7 @@ function WeeklyViolationSummary() {
     },
     {
       label: "Missed Punch",
+      subLabel: "missed punch this week",
       filter: "missed_punch",
       value: weekData?.TotalMissedPunchCount || 0,
       color: "#0078D4",
@@ -116,12 +119,19 @@ function WeeklyViolationSummary() {
     },
     {
       label: "Incomplete Duty",
+      subLabel: "incomplete this week",
       filter: "incomplete_duty",
       value: weekData?.TotalIncompleteDutyCount || 0,
       color: "#1E9090",
       icon: <ArrowDownIcon className="size-5 text-[#1E9090]" />,
     },
   ];
+
+  const totalViolations =
+    (weekData?.TotalLateCount || 0) +
+    (weekData?.TotalEarlyOutCount || 0) +
+    (weekData?.TotalMissedPunchCount || 0) +
+    (weekData?.TotalIncompleteDutyCount || 0) || 1;
 
   function openDrillDown(widget: typeof widgets[0]) {
     setModal({
@@ -139,20 +149,22 @@ function WeeklyViolationSummary() {
   }
 
   return (
-    <div className="shadow-card rounded-[10px] bg-accent p-2 flex flex-col gap-3 h-full">
-      <div className="flex items-center justify-between p-4 pb-2 shrink-0">
-        <h5 className="text-lg font-medium text-text-primary">
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-4 h-full">
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h5 className="text-lg font-bold text-text-primary">
           {t?.weekly_violation_summary || "Weekly Discrepancies Summary"}
         </h5>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setWeekOffset((p) => p - 1)}
             className="w-7 h-7 rounded-full flex items-center justify-center text-text-secondary hover:bg-background hover:text-text-primary transition-colors"
           >
             <ChevronLeftIcon className="w-4 h-4" />
           </button>
-          <span className="text-xs text-text-secondary font-medium whitespace-nowrap">
-            {formatDate(weekRange.start)} - {formatDate(weekRange.end)}
+          <span className="text-xs text-text-secondary font-medium whitespace-nowrap px-1">
+            {formatDate(weekRange.start)} – {formatDate(weekRange.end)}
           </span>
           <button
             onClick={() => setWeekOffset((p) => p + 1)}
@@ -163,7 +175,9 @@ function WeeklyViolationSummary() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-2 px-2 pb-2 shrink-0">
+
+      {/* KPI cards — matches KpiGrid / EmployeeCardData style */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 my-2">
         {widgets.map((widget) => (
           <div
             key={widget.label}
@@ -176,22 +190,43 @@ function WeeklyViolationSummary() {
                 openDrillDown(widget);
               }
             }}
-            className="bg-background rounded-lg border border-border px-2 py-6 flex flex-col items-center gap-1 cursor-pointer hover:ring-2 hover:ring-offset-1 hover:brightness-95 active:scale-[0.98] transition-all duration-150"
-            style={{ '--tw-ring-color': widget.color } as React.CSSProperties}
+            className="bg-background rounded-[8px] p-4 flex flex-col gap-2 select-none cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-offset-1 hover:brightness-95 active:scale-[0.98] shadow-md"
+            style={{ "--tw-ring-color": widget.color } as React.CSSProperties}
           >
-            <div className="icon-group bg-accent w-[28px] h-[28px] flex justify-center items-center rounded-[8px]"
-              style={{ boxShadow: `0 0 12px 8px ${widget.color}08` }}>
-              {widget.icon}
+            {/* Label + icon */}
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">
+                {widget.label}
+              </p>
+              <div
+                className="bg-accent w-[24px] h-[24px] shrink-0 flex items-center justify-center rounded-[8px]"
+                style={{ color: widget.color, boxShadow: `0 0 16px 6px ${widget.color}22` }}
+              >
+                {widget.icon}
+              </div>
             </div>
-            <p className="text-base font-medium" style={{ color: widget.color }}>
+
+            {/* Value */}
+            <p className="text-2xl font-medium text-text-primary leading-none">
               {widget.value}
             </p>
-            <p className="text-text-secondary font-semibold text-xs text-center">{widget.label}</p>
+
+            {/* Progress bar */}
+            <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden mt-1">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min((widget.value / totalViolations) * 100, 100)}%`,
+                  backgroundColor: widget.color,
+                }}
+              />
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="overflow-y-auto flex-1 min-h-0 scrollbar-hide mt-2">
+      {/* Employee table */}
+      <div className="overflow-y-auto flex-1 min-h-0 scrollbar-hide">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-accent z-10 border-b border-border-accent">
             <tr className="text-text-secondary text-[11px] uppercase tracking-wider font-semibold">

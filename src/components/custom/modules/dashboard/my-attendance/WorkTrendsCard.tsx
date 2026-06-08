@@ -278,7 +278,7 @@ function WorkTrendsCard() {
     <div className="shadow-card rounded-[10px] bg-accent p-4">
       <div className="flex flex-row justify-between p-3">
         <div className="flex items-center gap-2">
-          <h5 className="text-lg text-text-primary font-medium">
+          <h5 className="text-lg text-text-primary font-bold">
             {t?.work_hrs_trends}
           </h5>
           <ExportButton

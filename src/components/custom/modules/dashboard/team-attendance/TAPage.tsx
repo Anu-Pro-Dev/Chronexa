@@ -17,16 +17,12 @@ function TeamAttendancePage() {
                     </div>
                 </div>
                 
-                {/* Leave Analytics + Weekly Violation Section */}
-                <div className="widget-group-2 grid grid-cols-2 gap-4">
-                    <div className='card-widget w-full h-auto'>
-                        <WeeklyViolationSummary />
-                    </div>
-                    <div className='card-widget w-full h-auto'>
-                        <LeaveAnalyticsCard />
-                    </div>
+                {/* Weekly Violations + Leave Analytics */}
+                <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-4 items-stretch">
+                    <WeeklyViolationSummary />
+                    <LeaveAnalyticsCard />
                 </div>
-                
+
                 {/* Violations Section */}
                 <div className="widget-group-3 flex justify-between gap-4">
                     <div className="card-widget max-w-[100%] w-full h-auto flex flex-col gap-4">

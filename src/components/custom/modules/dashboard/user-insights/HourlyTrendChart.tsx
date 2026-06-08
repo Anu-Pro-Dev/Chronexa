@@ -49,7 +49,7 @@ export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between px-1 pb-4">
         <div className="flex items-center gap-2">
-          <h5 className="text-lg text-text-primary font-medium">Hourly Attendance Trend</h5>
+          <h5 className="text-lg text-text-primary font-bold">Hourly Attendance Trend</h5>
           <ExportButton
             data={hourlyExportData}
             columns={hourlyExportColumns}

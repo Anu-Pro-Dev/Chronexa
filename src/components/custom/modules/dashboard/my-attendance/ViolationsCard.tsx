@@ -93,7 +93,7 @@ function ViolationsCard() {
       <div className="w-44 h-44 rounded-full bg-[#0078D426] blur-[50px] absolute right-[50px] bottom-[50px]"></div>
       <div className="flex flex-row justify-between py-4">
         <div className="flex items-center gap-2">
-          <h5 className="text-lg text-text-primary font-medium">{t?.violations}</h5>
+          <h5 className="text-lg text-text-primary font-bold">{t?.discerpencies || "Discrepancies"}</h5>
           <ExportButton
             data={violationsExportData}
             columns={violationsExportColumns}

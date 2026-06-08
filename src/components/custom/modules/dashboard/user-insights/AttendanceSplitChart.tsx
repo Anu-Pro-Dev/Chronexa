@@ -73,7 +73,7 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3 h-full">
       <div className="flex items-center gap-2 pb-4">
-        <h5 className="text-lg text-text-primary font-medium">Yesterday's Attendance Split</h5>
+        <h5 className="text-lg text-text-primary font-bold">Yesterday's Attendance Split</h5>
         <ExportButton
           data={splitExportData}
           columns={splitExportColumns}

@@ -111,7 +111,7 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
       {/* Header */}
       <div className="flex flex-row justify-between items-center px-4 py-4 pb-6">
         <div className="flex items-center gap-2">
-          <h5 className="text-lg text-text-primary font-medium">Weekly Attendance Trend</h5>
+          <h5 className="text-lg text-text-primary font-bold">Weekly Attendance Trend</h5>
           <ExportButton
             data={weeklyExportData}
             columns={weeklyExportColumns}

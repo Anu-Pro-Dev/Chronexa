@@ -102,7 +102,7 @@
 
 //   return (
 //     <div className="bg-accent rounded-[10px] shadow-card p-6 flex flex-col gap-5 h-full">
-//       <h5 className="text-lg text-text-primary font-medium">Overtime & Hours Worked</h5>
+//       <h5 className="text-lg text-text-primary font-bold">Overtime & Hours Worked</h5>
 //       <div className="flex flex-col gap-4">
 //         {overtimeData.map((row) => (
 //           <div key={row.label} className="flex flex-col gap-3">
@@ -245,7 +245,7 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-6 flex flex-col gap-5 h-full">
       <div className="flex items-center gap-2">
-        <h5 className="text-lg text-text-primary font-medium">Overtime & Hours Worked</h5>
+        <h5 className="text-lg text-text-primary font-bold">Overtime & Hours Worked</h5>
         <ExportButton
           data={overtimeExportData}
           columns={overtimeExportColumns}

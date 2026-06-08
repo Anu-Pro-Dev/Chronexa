@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
@@ -34,7 +34,7 @@ function ViolationsCard() {
 
   const formatValue = (value: any): number => {
     if (value === null || value === undefined) return 0;
-    return typeof value === 'string' ? parseInt(value) || 0 : Number(value) || 0;
+    return typeof value === "string" ? parseInt(value) || 0 : Number(value) || 0;
   };
 
   const monthTranslationsMap: Record<string, string> = {
@@ -55,11 +55,10 @@ function ViolationsCard() {
   const chartData = useMemo(() => {
     const months = [
       "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "July", "August", "September", "October", "November", "December",
     ];
 
     const monthDataMap = new Map();
-    
     violationsData.forEach((item: ViolationAnalytic) => {
       monthDataMap.set(item.ViolationMnth, {
         missedin: formatValue(item.MissedIn),
@@ -79,29 +78,15 @@ function ViolationsCard() {
   }, [violationsData]);
 
   const chartConfig = {
-    missedin: {
-      label: t?.missed_in || "Missed in",
-      color: "#0078D4",
-    },
-    missedout: {
-      label: t?.missed_out || "Missed out",
-      color: "#1E9090",
-    },
-    latein: {
-      label: t?.late_in || "Late in",
-      color: "#FF6347",
-    },
-    earlyout: {
-      label: t?.early_out || "Early out",
-      color: "#FFBF00",
-    },
+    missedin:  { label: t?.missed_in  || "Missed In",  color: "#0078D4" },
+    missedout: { label: t?.missed_out || "Missed Out", color: "#1E9090" },
+    latein:    { label: t?.late_in    || "Late In",    color: "#FF6347" },
+    earlyout:  { label: t?.early_out  || "Early Out",  color: "#FFBF00" },
   } satisfies ChartConfig;
 
   const localizedChartData = dir === "rtl" ? [...chartData].reverse() : chartData;
 
-  const years = useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => currentYear - i);
-  }, [currentYear]);
+  const years = useMemo(() => Array.from({ length: 5 }, (_, i) => currentYear - i), [currentYear]);
 
   const handleYearChange = (year: string) => {
     const newYear = Number(year);
@@ -112,17 +97,14 @@ function ViolationsCard() {
   };
 
   return (
-    <div className="shadow-card rounded-[10px] bg-accent p-2">
-      <div className="flex flex-row justify-between p-4">
-        <div className="flex items-center gap-2">
-          <h5 className="text-lg text-text-primary font-medium mb-2">
-            {t?.discerpencies || "Discrepancies"}
-          </h5>
-        </div>
-        <Select 
-          value={selectedYear.toString()} 
-          onValueChange={handleYearChange}
-        >
+    <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-1">
+        <h5 className="text-lg text-text-primary font-bold">
+          {t?.discerpencies || "Discrepancies"}
+        </h5>
+        <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
           <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
             <Calendar1Icon width="14" height="16" />
             <SelectValue placeholder={translations?.select_year || "Select Year"}>
@@ -134,7 +116,7 @@ function ViolationsCard() {
               <SelectItem
                 key={year}
                 value={year.toString()}
-                className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-primary"
+                className="text-text-primary bg-accent"
               >
                 {year}
               </SelectItem>
@@ -143,77 +125,55 @@ function ViolationsCard() {
         </Select>
       </div>
 
-      <ChartContainer 
-        config={chartConfig} 
-        className={`relative w-full h-[300px] 3xl:h-[450px] ${
-          dir === "rtl" ? "-right-[45px]" : "-left-[25px]"
-        }`}
+      {/* Legend */}
+      <div className="flex justify-center items-center gap-4 text-xs text-text-secondary">
+        {Object.entries(chartConfig).map(([key, cfg]) => (
+          <span key={key} className="flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
+            {cfg.label}
+          </span>
+        ))}
+      </div>
+
+      {/* Chart */}
+      <ChartContainer
+        config={chartConfig}
         dir={dir}
+        className={`w-full h-[260px] relative ${dir === "rtl" ? "-right-[25px]" : "-left-[25px]"}`}
       >
         <LineChart
           accessibilityLayer
           data={localizedChartData}
-          margin={{
-            left: 12,
-            right: 12,
-          }}
+          margin={{ left: 12, right: 12, top: 4, bottom: 0 }}
         >
-          <CartesianGrid vertical={false} />
+          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
           <XAxis
             dataKey="month"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
+            tick={{ fontSize: 11 }}
             tickFormatter={(value) => {
               if (dir === "rtl") {
                 const translated = monthTranslationsMap[value] || value;
                 return translated.slice(0, 3);
-              } else {
-                return value.slice(0, 3);
               }
+              return value.slice(0, 3);
             }}
           />
-          
           <YAxis
             type="number"
             tickLine={false}
             tickMargin={10}
             axisLine={false}
+            tick={{ fontSize: 11 }}
             orientation={dir === "rtl" ? "right" : "left"}
           />
-          <ChartTooltip
-            content={<ChartTooltipContent />}
-            cursor={false}
-            defaultIndex={1}
-          />
-          <Line
-            dataKey="missedin"
-            type="monotone"
-            stroke="var(--color-missedin)"
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            dataKey="missedout"
-            type="monotone"
-            stroke="var(--color-missedout)"
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            dataKey="latein"
-            type="monotone"
-            stroke="var(--color-latein)"
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            dataKey="earlyout"
-            type="monotone"
-            stroke="var(--color-earlyout)"
-            strokeWidth={2}
-            dot={false}
-          />
+          <ChartTooltip content={<ChartTooltipContent />} cursor={false} defaultIndex={1} />
+          <Line dataKey="missedin"  type="monotone" stroke="var(--color-missedin)"  strokeWidth={2} dot={false} />
+          <Line dataKey="missedout" type="monotone" stroke="var(--color-missedout)" strokeWidth={2} dot={false} />
+          <Line dataKey="latein"    type="monotone" stroke="var(--color-latein)"    strokeWidth={2} dot={false} />
+          <Line dataKey="earlyout"  type="monotone" stroke="var(--color-earlyout)"  strokeWidth={2} dot={false} />
         </LineChart>
       </ChartContainer>
     </div>

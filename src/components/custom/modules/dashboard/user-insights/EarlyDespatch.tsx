@@ -26,7 +26,7 @@ export default function EarlyDespatch({ date }: EarlyDespatchProps) {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h5 className="text-lg text-text-primary font-medium pb-2">Early Departures</h5>
+        <h5 className="text-lg text-text-primary font-bold pb-2">Early Departures</h5>
         {/* {despatchData && (
           <span className="text-[11px] text-text-secondary bg-background border border-border rounded-full px-2 py-0.5">
             ≥{despatchData.thresholdMinutes}min threshold
