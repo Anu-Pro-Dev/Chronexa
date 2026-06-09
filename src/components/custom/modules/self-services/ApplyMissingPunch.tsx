@@ -115,24 +115,36 @@ export default function ApplyMissingPunch({
   const t = translations?.modules?.selfServices || {};
   const formErrors = translations?.formErrors || {};
 
+  // ── Org-level attachment exemption ───────────────────────────────────────
+  // API response shape:
+  //   rowData.employee_master.organization.parent_organization.organization_id
+  // Employees whose org's parent is org 5 are exempt from mandatory attachment.
+  const isAttachmentOptional =
+    (rowData?.employee_master?.organization?.parent_organization
+      ?.organization_id ?? null) === 5;
+
   // ── Edit-mode detection ───────────────────────────────────────────────────
   // Status_IN / Status_OUT === "Pending" or "Rejected" means a manual transaction
   // already exists — we should EDIT it, not create a new one.
-  const punchStatus = punchType === "IN" ? rowData?.Status_IN : rowData?.Status_OUT;
+  const punchStatus =
+    punchType === "IN" ? rowData?.Status_IN : rowData?.Status_OUT;
   const isPendingOrRejected =
     punchStatus &&
     (punchStatus.toUpperCase() === "PENDING" ||
       punchStatus.toUpperCase() === "REJECTED");
 
   const movementEmployeeId = rowData?.Employee_Id;
-  const movementId = rowData?.emp_missing_Movements_Id ?? rowData?.Emp_Missing_Movements_Id;
+  const movementId =
+    rowData?.emp_missing_Movements_Id ?? rowData?.Emp_Missing_Movements_Id;
 
   // Fetch the existing pending/rejected manual transaction to get its ID,
   // prefill time and remarks.
   const { data: existingTxData } = useQuery({
     queryKey: ["pendingManualTx", movementEmployeeId, punchType, punchStatus],
     queryFn: async () => {
-      const status = punchStatus.charAt(0).toUpperCase() + punchStatus.slice(1).toLowerCase();
+      const status =
+        punchStatus.charAt(0).toUpperCase() +
+        punchStatus.slice(1).toLowerCase();
       const res = await apiRequest(
         `/employeeManualTransaction/all?employee_id=${movementEmployeeId}&status=${status}&limit=50&offset=1`,
         "GET"
@@ -140,14 +152,17 @@ export default function ApplyMissingPunch({
       const match = (res?.data ?? []).find(
         (tx: any) =>
           tx.reason === punchType &&
-          (movementId ? String(tx.emp_missing_movement_id) === String(movementId) : true)
+          (movementId
+            ? String(tx.emp_missing_movement_id) === String(movementId)
+            : true)
       );
       return match ?? null;
     },
     enabled: !!movementEmployeeId && !!isPendingOrRejected,
   });
 
-  const existingManualTransId = existingTxData?.employee_manual_transaction_id ?? null;
+  const existingManualTransId =
+    existingTxData?.employee_manual_transaction_id ?? null;
   const isEditMode = !!existingManualTransId;
 
   // ── Form ──────────────────────────────────────────────────────────────────
@@ -170,10 +185,10 @@ export default function ApplyMissingPunch({
       showToast(
         "success",
         isEditMode
-          ? (t.missing_punch_updated || "Missing punch updated successfully")
+          ? t.missing_punch_updated || "Missing punch updated successfully"
           : "apply_missing_punch_success",
         null,
-        !isEditMode  // use translation key only for add; edit uses literal string
+        !isEditMode // use translation key only for add; edit uses literal string
       );
       queryClient.invalidateQueries({
         queryKey: ["missingMovement"],
@@ -217,9 +232,7 @@ export default function ApplyMissingPunch({
 
     // Employee
     const name =
-      rowData.employee_name ??
-      rowData.employee_master?.firstname_eng ??
-      "";
+      rowData.employee_name ?? rowData.employee_master?.firstname_eng ?? "";
     form.setValue("employee", `${name} (${rowData.Employee_Id})`);
 
     // Reason
@@ -232,24 +245,20 @@ export default function ApplyMissingPunch({
     }
 
     // ── Pre-fill time & remarks ──────────────────────────────────────────
-    // In edit mode: use the time & remarks from the existing manual transaction
-    // (existingTxData is fetched by the useQuery above).
+    // In edit mode: use the time & remarks from the existing manual transaction.
     // In create mode: no time to prefill (user picks it).
     if (existingTxData) {
-      // Prefill time from the existing transaction
       const parsedTime = parseRawTime(existingTxData.transaction_time);
       if (parsedTime) form.setValue("time", parsedTime);
-      // Prefill remarks from the existing transaction
       if (existingTxData.remarks) {
         form.setValue("employee_remarks", existingTxData.remarks);
         setRemarksLength(existingTxData.remarks.length);
       }
     } else {
-      // Create mode: try raw time from row (may be null for a missing punch)
       const rawTime =
         punchType === "IN"
-          ? (rowData.raw_Trans_IN ?? rowData.Trans_IN)
-          : (rowData.raw_Trans_OUT ?? rowData.Trans_OUT);
+          ? rowData.raw_Trans_IN ?? rowData.Trans_IN
+          : rowData.raw_Trans_OUT ?? rowData.Trans_OUT;
       const parsedTime = parseRawTime(rawTime);
       if (parsedTime) form.setValue("time", parsedTime);
     }
@@ -259,8 +268,9 @@ export default function ApplyMissingPunch({
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (isSubmitting) return;
 
-    // Attachment required only when creating a new punch request
-    if (!isEditMode && !values.attachment) {
+    // Attachment is required when creating a new punch request,
+    // UNLESS the employee's parent org is exempt (parent_organization.organization_id === 5).
+    if (!isEditMode && !values.attachment && !isAttachmentOptional) {
       form.setError("attachment", { message: "invalid_file_error" });
       return;
     }
@@ -268,7 +278,6 @@ export default function ApplyMissingPunch({
     setIsSubmitting(true);
 
     try {
-      // Combine date + time into a single datetime string
       const dt = new Date(values.date);
       dt.setHours(
         values.time.getHours(),
@@ -287,7 +296,6 @@ export default function ApplyMissingPunch({
             transaction_time,
             reason: values.reason,
             remarks: values.employee_remarks || "",
-            // Only send a new file if the user selected one
             ...(values.attachment ? { attachment: values.attachment } : {}),
           }
         : {
@@ -297,7 +305,8 @@ export default function ApplyMissingPunch({
             reason: values.reason,
             remarks: values.employee_remarks || "",
             transaction_status: "Pending",
-            attachment: values.attachment as File,
+            // Attachment may be undefined when org is exempt
+            ...(values.attachment ? { attachment: values.attachment } : {}),
           };
 
       applyMissingPunchMutation.mutate(payload);
@@ -463,7 +472,7 @@ export default function ApplyMissingPunch({
                   <FormItem>
                     <FormLabel>
                       {t.attachment || "Attachment"}{" "}
-                      {!isEditMode && <Required />}
+                      {!isEditMode && !isAttachmentOptional && <Required />}
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -498,7 +507,9 @@ export default function ApplyMissingPunch({
                 name="employee_remarks"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.remarks || "Remarks"} <Required /></FormLabel>
+                    <FormLabel>
+                      {t.remarks || "Remarks"} <Required />
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={
