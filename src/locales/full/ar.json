@@ -128,7 +128,8 @@
         "configuration": "التكوين",
         "settings": "الإعدادات",
         "alerts": "التنبيهات",
-        "user_management": "إدارة المستخدم"
+        "user_management": "إدارة المستخدم",
+        "manuals": "الأدلة"
       },
       "auth": {
         "reset_password": "إعادة تعيين كلمة المرور",
@@ -1023,6 +1024,9 @@
         "password_reset_success_desc": "تم إنشاء كلمة مرور جديدة.",
         "password_reset_sent_to": "أُرسل إلى",
         "password_reset_footer": "تم إرسال كلمة المرور الجديدة إلى عنوان البريد الإلكتروني المسجل."
+      },
+      "manuals": {
+        "digital_manuals": "الأدلة الرقمية"
       }
     },
     "sub_modules": {
@@ -1060,7 +1064,8 @@
       "app_settings": "إعدادات التطبيق",
       "email": "البريد الإلكتروني",
       "assign_roles": "تعيين الأدوار",
-      "users": "المستخدمون"
+      "users": "المستخدمون",
+      "digital_manuals": "الأدلة الرقمية"
     },
     "toastNotifications": {
       "formsubmission_error": "خطأ في إرسال النموذج",

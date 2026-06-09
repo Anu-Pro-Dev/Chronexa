@@ -496,6 +496,18 @@ export default function LanguageProvider({
       ],
     };
 
+    const manuals = {
+      route_name: "Manuals",
+      path: "/manuals/",
+      items: [
+        {
+          label: currentLanguageData.translations?.modules?.manuals?.digital_manuals || "Digital Manuals",
+          path: "/manuals/digital-manuals/",
+          value: "digital_manuals",
+        },
+      ],
+    };
+
     return {
       dashboard,
       companyMaster,
@@ -509,7 +521,8 @@ export default function LanguageProvider({
       configuration,
       settings,
       alerts,
-      userManagement
+      userManagement,
+      manuals,
     };
   }, [authData.isAuthenticated, authData.isGeofenceEnabled, currentLanguageData]);
 

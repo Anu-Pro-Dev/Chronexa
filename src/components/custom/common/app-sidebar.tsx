@@ -15,6 +15,7 @@ import {
   DevicesIcon,
   UserManagementIcon,
   EmployeeMasterIcon,
+  ManualsIcon,
   OrganizationIcon,
   ReportsIcon,
   SchedulingIcon,
@@ -52,6 +53,7 @@ const getModuleIcon = (moduleKey: string) => {
     "Configuration": ConfigurationIcon,
     "Settings": SettingsIcon,
     "Alerts": AlertsIcon,
+    "Manuals": ManualsIcon,
   };
   return iconMap[moduleKey] || DashboardIcon;
 };

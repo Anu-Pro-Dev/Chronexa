@@ -128,7 +128,8 @@
         "configuration": "Configuration",
         "settings": "Settings",
         "alerts": "Alerts",
-        "user_management": "User Management"
+        "user_management": "User Management",
+        "manuals": "Manuals"
       },
       "auth": {
         "reset_password": "Reset Password",
@@ -1025,6 +1026,9 @@
         "password_reset_success_desc": "A new password has been generated.",
         "password_reset_sent_to": "Sent To",
         "password_reset_footer": "The new password has been sent to the registered email address."
+      },
+      "manuals": {
+        "digital_manuals": "Digital Manuals"
       }
     },
     "sub_modules": {
@@ -1058,7 +1062,8 @@
       "app_settings": "App Settings",
       "email": "Email",
       "assign_roles": "Assign Roles",
-      "users": "Users"
+      "users": "Users",
+      "digital_manuals": "Digital Manuals"
     },
     "toastNotifications": {
       "formsubmission_error": "Form submission error.",
