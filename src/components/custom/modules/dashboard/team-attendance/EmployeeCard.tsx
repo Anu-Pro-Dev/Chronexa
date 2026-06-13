@@ -6,7 +6,7 @@ import { EmployeeCardHeader } from './EmployeeCardHeader';
 
 function EmployeeCard() {
     return (
-        <div className='shadow-card rounded-[10px] bg-accent p-2'>
+        <div className='shadow-card rounded-[10px] bg-accent'>
            <TeamAttendanceDataProvider>
                 <EmployeeCardHeader />
                 <EmployeeCardData />

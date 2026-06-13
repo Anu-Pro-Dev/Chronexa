@@ -7,7 +7,7 @@ function LeaveCard() {
     const [page, setPage] = useState<"Leaves" | "Permissions">("Leaves");
 
     return (
-        <div className='shadow-card rounded-[10px] bg-accent p-2 h-full flex flex-col justify-between'>
+        <div className='shadow-card rounded-[10px] bg-accent p-4 flex flex-col gap-4 h-full'>
             <LeaveCardHeader page={page} setPage={setPage} />
             <LeaveCardData page={page} />
         </div>

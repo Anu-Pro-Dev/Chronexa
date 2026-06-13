@@ -13,7 +13,7 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
   };
 
   return (
-    <div className="flex flex-row justify-between p-4">
+    <div className="flex flex-row justify-between">
       <div className="flex gap-2">
         <h5
           className={`cursor-pointer font-bold text-lg ${

@@ -1,136 +1,251 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import * as React from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { EmployeesIcon, OrgIcon, ManagerIcon, EmployeeCountIcon, VoilationIcon, LeaveTakenIcon, AbsentIcon } from "@/src/icons/icons";
+import {
+  EmployeesIcon, PunchInIcon, PunchOutIcon, AbsentIcon,
+  LeaveTakenIcon, VoilationIcon, ManagerIcon, ClockIcon,
+} from "@/src/icons/icons";
+import { MissedInIcon, MissedOutIcon } from "@/src/icons/icons";
 import { useTeamAttendanceData } from "./TeamAttendanceDataProvider";
-import { CheckCircleIcon, XCircleIcon, UserMinusIcon, UserPlusIcon, ClockIcon } from '@heroicons/react/24/solid'
+
+const formatValue = (v: any): number =>
+  v === null || v === undefined ? 0 : typeof v === "string" ? Number(v) || 0 : Number(v);
+
+const parseHours = (timeString: string): number => {
+  if (!timeString || timeString === "00:00") return 0;
+  const [h, m] = timeString.split(":").map(Number);
+  return h + m / 60;
+};
+
+function useCountUp(target: Record<string, number>, ready: boolean) {
+  const keys = Object.keys(target);
+  const [values, setValues] = React.useState<Record<string, number>>(() =>
+    Object.fromEntries(keys.map((k) => [k, 0]))
+  );
+  const rafRef = React.useRef<number | null>(null);
+  const targetStr = JSON.stringify(target);
+
+  React.useEffect(() => {
+    setValues(Object.fromEntries(keys.map((k) => [k, 0])));
+    if (!ready) return;
+
+    const startTime = Date.now();
+    const duration = 800;
+    const snapshot = { ...target };
+
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      setValues(
+        Object.fromEntries(
+          Object.entries(snapshot).map(([k, v]) => [k, Math.floor(v * progress)])
+        )
+      );
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [ready, targetStr]);
+
+  return values;
+}
+
+function KpiCard({
+  label,
+  value,
+  subLabel,
+  progress,
+  color,
+  icon,
+}: {
+  label: string;
+  value: number | string;
+  subLabel: string;
+  progress: number;
+  color: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div
+      className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 select-none transition-all duration-150 hover:ring-2 hover:ring-offset-1 hover:brightness-95 active:scale-[0.98]"
+      style={{ "--tw-ring-color": color } as React.CSSProperties}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">
+          {label}
+        </p>
+        {icon && (
+          <div
+            className="bg-background w-[32px] h-[32px] shrink-0 flex items-center justify-center rounded-[8px]"
+            style={{
+              color,
+              boxShadow: `0 0 16px 6px ${color}22`,
+            }}
+          >
+            {icon}
+          </div>
+        )}
+      </div>
+
+      <p className="text-2xl font-medium text-text-primary leading-none">
+        {value}
+      </p>
+
+      <p className="text-xs text-text-secondary">{subLabel}</p>
+
+      <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden mt-1">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${progress}%`, backgroundColor: color }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function EmployeeCardData() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
   const { teamAttendanceDetails, loading } = useTeamAttendanceData();
-  
-  const [animatedValues, setAnimatedValues] = useState<any>(null);
 
-  useEffect(() => {
-    if (teamAttendanceDetails && !loading) {
-      animateValues(teamAttendanceDetails);
-    }
-  }, [teamAttendanceDetails, loading]);
+  const hasData = !!teamAttendanceDetails && !loading;
+  const d = teamAttendanceDetails || {};
 
-  const animateValues = (data: any) => {
-    const startTime = Date.now();
-    const duration = 800;
+  const workforce = formatValue(d.Workforce);
+  const missingHrs = parseHours(d.MissingHours || "00:00");
+  const overtimeHrs = parseHours(d.Overtime || "00:00");
 
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+  const animated = useCountUp(
+    {
+      Workforce: workforce,
+      ProjectManagers: formatValue(d.ProjectManagers),
+      CheckInCount: formatValue(d.CheckInCount),
+      CheckOutCount: formatValue(d.CheckOutCount),
+      ApprovedLeaves: formatValue(d.ApprovedLeaves),
+      AbsentCount: formatValue(d.AbsentCount),
+      MissedCheckIn: formatValue(d.MissedCheckIn),
+      MissedCheckOut: formatValue(d.MissedCheckOut),
+      MissingHours: Math.floor(missingHrs),
+      Overtime: Math.floor(overtimeHrs),
+    },
+    hasData
+  );
 
-      const newValues = {
-        Workforce: Math.floor(formatValue(data?.Workforce) * progress),
-        ProjectManagers: Math.floor(formatValue(data?.ProjectManagers) * progress),
-        CheckInCount: Math.floor(formatValue(data?.CheckInCount) * progress),
-        CheckOutCount: Math.floor(formatValue(data?.CheckOutCount) * progress),
-        ApprovedLeaves: Math.floor(formatValue(data?.ApprovedLeaves) * progress),
-        AbsentCount: Math.floor(formatValue(data?.AbsentCount) * progress),
-        MissedCheckIn: Math.floor(formatValue(data?.MissedCheckIn) * progress),
-        MissedCheckOut: Math.floor(formatValue(data?.MissedCheckOut) * progress),
-        MissingHours: parseHours(data?.MissingHours || "00:00") * progress,
-        Overtime: parseHours(data?.Overtime || "00:00") * progress,
-      };
+  const total = animated.Workforce;
 
-      setAnimatedValues(newValues);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    animate();
-  };
-
-  const formatValue = (v: any) => (v === null || v === undefined ? 0 : v);
-
-  const parseHours = (timeString: string): number => {
-    if (!timeString || timeString === "00:00") return 0;
-    const [hours, minutes] = timeString.split(':').map(Number);
-    return hours + (minutes / 60);
-  };
-
-  const displayValues = animatedValues || {
-    Workforce: 0,
-    ProjectManagers: 0,
-    CheckInCount: 0,
-    CheckOutCount: 0,
-    ApprovedLeaves: 0,
-    AbsentCount: 0,
-    MissedCheckIn: 0,
-    MissedCheckOut: 0,
-    MissingHours: 0,
-    Overtime: 0,
-  };
-
-  const employeeData = [
-    { label: t?.workforce,        value: displayValues.Workforce,      color: "text-primary",      hexColor: "#0078D4", icon: EmployeesIcon(),                                         shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]",  isHours: false },
-    { label: t?.project_managers, value: displayValues.ProjectManagers, color: "text-[#FF6B2D]",   hexColor: "#FF6B2D", icon: <ManagerIcon color="#FF6B2D" />,                         shadow: "shadow-[0_0_20px_15px_rgba(255,107,45,0.15)]", isHours: false },
-    { label: t?.check_in,         value: displayValues.CheckInCount,   color: "text-[#1DAA61]",   hexColor: "#1DAA61", icon: <CheckCircleIcon className="size-6 text-[#1DAA61]" />,  shadow: "shadow-[0_0_20px_15px_rgba(0,120,212,0.05)]",  isHours: false },
-    { label: t?.check_out,        value: displayValues.CheckOutCount,  color: "text-[#7D3FFF]",   hexColor: "#7D3FFF", icon: <XCircleIcon className="size-6 text-[#7D3FFF]" />,      shadow: "shadow-[0_0_20px_15px_rgba(125,63,255,0.05)]", isHours: false },
-    { label: t?.approved_leaves,  value: displayValues.ApprovedLeaves, color: "text-[#FFBF00]",   hexColor: "#FFBF00", icon: LeaveTakenIcon(),                                        shadow: "shadow-[0_0_20px_15px_rgba(255,191,0,0.15)]",  isHours: false },
-    { label: t?.absent,           value: displayValues.AbsentCount,    color: "text-[#FF3B3B]",   hexColor: "#FF3B3B", icon: <AbsentIcon color="#FF3B3B" />,                          shadow: "shadow-[0_0_20px_15px_rgba(255,59,59,0.1)]",   isHours: false },
-    { label: t?.missed_check_in,  value: displayValues.MissedCheckIn,  color: "text-[#2AD90F]",   hexColor: "#2AD90F", icon: <UserPlusIcon className="size-5 text-[#2AD90F]" />,     shadow: "shadow-[0_0_20px_15px_rgba(42,214,15,0.15)]",  isHours: false },
-    { label: t?.missed_check_out, value: displayValues.MissedCheckOut, color: "text-[#E6107C]",   hexColor: "#E6107C", icon: <UserMinusIcon className="size-5 text-[#E6107C]" />,    shadow: "shadow-[0_0_20px_15px_rgba(230,16,124,0.1)]",  isHours: false },
-    { label: t?.missing_hours,    value: displayValues.MissingHours,   color: "text-[#DA153E]",   hexColor: "#DA153E", icon: <VoilationIcon color="#DA153E" />,                       shadow: "shadow-[0_0_20px_15px_rgba(218,21,62,0.05)]",  isHours: true  },
-    { label: t?.overtime,         value: displayValues.Overtime,       color: "text-[#158993]",   hexColor: "#158993", icon: <ClockIcon className="size-5 text-[#158993]" />,         shadow: "shadow-[0_0_20px_15px_rgba(103,65,202,0.05)]", isHours: true  },
+  const cards = [
+    {
+      label: t?.workforce || "WORKFORCE",
+      value: animated.Workforce,
+      subLabel: "total employees",
+      progress: 100,
+      color: "#0078D4",
+      icon: <EmployeesIcon />,
+    },
+    {
+      label: t?.project_managers || "PROJECT MANAGERS",
+      value: animated.ProjectManagers,
+      subLabel: "total managers",
+      progress: total > 0 ? Math.round((animated.ProjectManagers / total) * 100) : 0,
+      color: "#7D3FFF",
+      icon: <ManagerIcon color="#7D3FFF" />,
+    },
+    {
+      label: t?.check_in || "CHECK-INS",
+      value: animated.CheckInCount,
+      subLabel: `of ${total} employees`,
+      progress: total > 0 ? Math.round((animated.CheckInCount / total) * 100) : 0,
+      color: "#1DAA61",
+      icon: <PunchInIcon color="#1DAA61" />,
+    },
+    {
+      label: t?.check_out || "CHECK-OUTS",
+      value: animated.CheckOutCount,
+      subLabel: "completed today",
+      progress: total > 0 ? Math.round((animated.CheckOutCount / total) * 100) : 0,
+      color: "#FF6B2D",
+      icon: <PunchOutIcon color="#FF6B2D" />,
+    },
+    {
+      label: t?.approved_leaves || "ON LEAVE",
+      value: animated.ApprovedLeaves,
+      subLabel: "approved absences",
+      progress: total > 0 ? Math.round((animated.ApprovedLeaves / total) * 100) : 0,
+      color: "#FFBF00",
+      icon: <LeaveTakenIcon />,
+    },
+    {
+      label: t?.absent || "ABSENT",
+      value: animated.AbsentCount,
+      subLabel: "not at work today",
+      progress: total > 0 ? Math.round((animated.AbsentCount / total) * 100) : 0,
+      color: "#DA153E",
+      icon: <AbsentIcon color="#DA153E" />,
+    },
+    {
+      label: t?.missed_check_in || "MISSED CHECK-IN",
+      value: animated.MissedCheckIn,
+      subLabel: "missed punch in",
+      progress: total > 0 ? Math.round((animated.MissedCheckIn / total) * 100) : 0,
+      color: "#E6107C",
+      icon: MissedInIcon("#E6107C"),
+    },
+    {
+      label: t?.missed_check_out || "MISSED CHECK-OUT",
+      value: animated.MissedCheckOut,
+      subLabel: "missed punch out",
+      progress: total > 0 ? Math.round((animated.MissedCheckOut / total) * 100) : 0,
+      color: "#0EA5E9",
+      icon: MissedOutIcon("#0EA5E9"),
+    },
+    {
+      label: t?.missing_hours || "MISSING HOURS",
+      value: `${animated.MissingHours} hrs`,
+      subLabel: "unaccounted hours",
+      progress: Math.min(Math.round((missingHrs / 8) * 100), 100),
+      color: "#E67E22",
+      icon: <VoilationIcon color="#E67E22" />,
+    },
+    {
+      label: t?.overtimee || "OVERTIME",
+      value: `${animated.Overtime} hrs`,
+      subLabel: "extra hours",
+      progress: Math.min(Math.round((overtimeHrs / 8) * 100), 100),
+      color: "#10B981",
+      icon: <ClockIcon color="#10B981" />,
+    },
   ];
 
-  const formatDisplayValue = (value: number, isHours: boolean) => {
-    if (isHours) return `${value.toFixed(0)} hrs`;
-    return Math.floor(value);
-  };
+  if (loading && !teamAttendanceDetails) {
+    return (
+      <div className="animate-pulse space-y-4 p-4 pt-0">
+      <div className="grid grid-cols-5 gap-3">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-[10px]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="flex justify-center items-center h-[200px]">
+        <p className="text-text-secondary">No data available</p>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="flex justify-between p-3">
-        {employeeData.slice(0, 5).map((item, index) => (
-          <React.Fragment key={`${item.label}-${index}`}>
-            <div>
-              <div className="flex gap-10">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary w-[5rem] leading-tight">{item.label}</p>
-                <div className={`icon-group bg-background w-[32px] h-[32px] flex justify-center items-center rounded-[8px] ${item.shadow}`}
-                  style={{ color: item.hexColor, boxShadow: undefined }}>
-                  {item.icon}
-                </div>
-              </div>
-              <p className={`text-2xl font-medium pt-2 ${item.color}`}>{formatDisplayValue(item.value, item.isHours)}</p>
-            </div>
-            {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
-          </React.Fragment>
+    <div className="p-4 pt-0">
+      <div className="grid grid-cols-5 gap-3">
+        {cards.map((card) => (
+          <KpiCard key={card.label} {...card} />
         ))}
       </div>
-
-      <div className="flex justify-around py-2">
-        {Array(5).fill(null).map((_, index) => (
-          <div key={`line-${index}`} className="h-[1px] w-[60px] bg-text-secondary flex self-center opacity-10"></div>
-        ))}
-      </div>
-
-      <div className="flex justify-between p-3">
-        {employeeData.slice(5).map((item, index) => (
-          <React.Fragment key={`${item.label}-${index + 5}`}>
-            <div>
-              <div className="flex gap-10">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary w-[60px] leading-tight">{item.label}</p>
-                <div className={`icon-group bg-background w-[32px] h-[32px] flex justify-center items-center rounded-[8px] ${item.shadow}`}
-                  style={{ color: item.hexColor }}>
-                  {item.icon}
-                </div>
-              </div>
-              <p className={`text-2xl font-medium pt-2 ${item.color}`}>{formatDisplayValue(item.value, item.isHours)}</p>
-            </div>
-            {index < 4 && <div className="w-[1px] h-[60px] mx-4 bg-text-secondary flex self-center opacity-15"></div>}
-          </React.Fragment>
-        ))}
-      </div>
-    </>
+    </div>
   );
 }
