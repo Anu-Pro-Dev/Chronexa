@@ -207,7 +207,7 @@ function ViolationsCard() {
           </div>
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 mr-4 ">
           <div className="grid grid-cols-4 gap-4">
             {metricCards.map((card) => (
               <div
