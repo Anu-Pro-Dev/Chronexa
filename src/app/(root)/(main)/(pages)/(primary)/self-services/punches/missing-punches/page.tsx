@@ -34,7 +34,7 @@ export default function Page() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { modules, language, translations } = useLanguage();
-  const { isAuthenticated, isChecking, employeeId, userInfo } = useAuthGuard();
+  const { isAuthenticated, isChecking, employeeId, userInfo, userRole: authUserRole } = useAuthGuard();
   const orgId = userInfo?.organization_id ?? userInfo?.organization?.id;
 
   const today = new Date();
@@ -186,7 +186,7 @@ export default function Page() {
   }, [departmentsData]);
 
   const { apiEndpoint, searchParams } = useMemo(() => {
-    const userRole = userInfo?.role?.toLowerCase();
+    const role = (authUserRole || userInfo?.role || "").toLowerCase();
 
     const commonParams = {
       limit: String(rowsPerPage),
@@ -198,22 +198,26 @@ export default function Page() {
       ...(selectedStatus && { status: selectedStatus }),
     };
 
-    if (userRole === "admin") {
+    if (role === "admin") {
       return {
         apiEndpoint: "/missingMovement/all",
         searchParams: {
           ...commonParams,
-          // ...(employeeId && { employee_id: String(employeeId) }),
-          // ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
         },
       };
-    } else if (userRole === "manager") {
+    } else if (role === "manager") {
       return {
         apiEndpoint: "/missingMovement/team/all",
         searchParams: {
           ...commonParams,
-          // ...(employeeId && { employee_id: String(employeeId) }),
-          // ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+        },
+      };
+    } else if (role === "employee") {
+      return {
+        apiEndpoint: "/missingMovement/all",
+        searchParams: {
+          ...commonParams,
+          ...(employeeId && { employeeId: String(employeeId) }),
         },
       };
     }
@@ -222,12 +226,11 @@ export default function Page() {
         apiEndpoint: "/missingMovement/all",
         searchParams: {
           ...commonParams,
-          ...(employeeId && { employee_id: String(employeeId) }),
         },
       };
     }
   }, [
-    userInfo?.role,
+    authUserRole, userInfo?.role,
     employeeId,
     rowsPerPage,
     offset,

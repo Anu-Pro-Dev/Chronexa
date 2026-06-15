@@ -50,7 +50,10 @@ export default function EmployeeReports() {
     },
   });
 
-  const [popoverStates, setPopoverStates] = useState({ fromDate: false, toDate: false });
+  const [reportType, setReportType] = useState<'daily' | 'weekly' | 'monthly' | 'summary'>('daily');
+  const [popoverStates, setPopoverStates] = useState({ fromDate: false, toDate: false, weekDate: false, monthDate: false });
+  const [weekDate, setWeekDate] = useState<Date | undefined>(undefined);
+  const [monthDate, setMonthDate] = useState<Date | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportType, setExportType] = useState<'excel' | 'pdf' | 'csv' | null>(null);
@@ -76,6 +79,31 @@ export default function EmployeeReports() {
 
   const closePopover = (key: string) =>
     setPopoverStates(prev => ({ ...prev, [key]: false }));
+
+  const getWeekRange = (date: Date) => {
+    const day = date.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const monday = new Date(date);
+    monday.setDate(date.getDate() + diff);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return { start: monday, end: sunday };
+  };
+
+  const getMonthRange = (date: Date) => {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return { start, end };
+  };
+
+  const formatWeekLabel = (date: Date) => {
+    const { start, end } = getWeekRange(date);
+    return `${format(start, 'dd/MM/yy')} - ${format(end, 'dd/MM/yy')}`;
+  };
+
+  const formatMonthLabel = (date: Date) => {
+    return format(date, 'MMMM yyyy');
+  };
 
   const selectedVerticals = form.watch("vertical") || [];
   const selectedCompanies = form.watch("company") || [];
@@ -325,11 +353,29 @@ export default function EmployeeReports() {
     ManagerName: "Manager Name",
     CostCode: "Cost Code",
     CostCenter: "Cost Center",
+    WeekStart: "Week Start",
+    WeekEnd: "Week End",
+    TotalWorkedHrs: "Total Worked Hrs",
+    TotalMissedHrs: "Total Missed Hrs",
+    TotalExtraHrs: "Total Extra Hrs",
+    TotalAbsents: "Total Absents",
+    EmployeeCount: "Employee Count",
+    Month: "Month",
+    Year: "Year",
   };
 
   const isSingleEmployee = selectedEmployeeIds.length === 1;
 
   const getViewHeaders = () => {
+    if (reportType === 'weekly') {
+      return ['EmployeeNo', 'Name', 'WeekStart', 'WeekEnd', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
+    if (reportType === 'monthly') {
+      return ['EmployeeNo', 'Name', 'Month', 'Year', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
+    if (reportType === 'summary') {
+      return ['EmployeeNo', 'Name', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
     if (isSingleEmployee) {
       return [
         'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'PunchOut',
@@ -348,7 +394,7 @@ export default function EmployeeReports() {
 
   const formatCellValue = (header: string, value: any): string => {
     if (value === null || value === undefined || value === '') return '-';
-    if (header === 'WorkDate') {
+    if (header === 'WorkDate' || header === 'WeekStart' || header === 'WeekEnd') {
       try {
         const date = new Date(value);
         return format(date, 'dd-MM-yyyy');
@@ -357,7 +403,7 @@ export default function EmployeeReports() {
       }
     }
     if (header === 'PunchIn' || header === 'PunchOut') return value || '-';
-    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) return value || '-';
+    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs'].includes(header)) return value || '-';
     if (header === 'IsAbsent') {
       if (!value || value === '') return 'Present';
       return value;
@@ -385,9 +431,15 @@ export default function EmployeeReports() {
       totalExtraMinutes: 0,
     };
     dataArray.forEach((row: any) => {
-      totals.totalWorkedMinutes += parseTimeToMinutes(row.DailyWorkedHrs);
-      totals.totalMissedMinutes += parseTimeToMinutes(row.DailyMissedHrs);
-      totals.totalExtraMinutes += parseTimeToMinutes(row.DailyExtraWork);
+      if (reportType === 'daily') {
+        totals.totalWorkedMinutes += parseTimeToMinutes(row.DailyWorkedHrs);
+        totals.totalMissedMinutes += parseTimeToMinutes(row.DailyMissedHrs);
+        totals.totalExtraMinutes += parseTimeToMinutes(row.DailyExtraWork);
+      } else {
+        totals.totalWorkedMinutes += parseTimeToMinutes(row.TotalWorkedHrs);
+        totals.totalMissedMinutes += parseTimeToMinutes(row.TotalMissedHrs);
+        totals.totalExtraMinutes += parseTimeToMinutes(row.TotalExtraHrs);
+      }
     });
     const fmt = (mins: number) => {
       const h = Math.floor(Math.abs(mins) / 60);
@@ -400,7 +452,9 @@ export default function EmployeeReports() {
       totalExtraHours: fmt(totals.totalExtraMinutes),
       totalLateInHours: "00:00",
       totalEarlyOutHours: "00:00",
-      totalAbsents: dataArray.filter(row => row.IsAbsent === 'Absent').length.toString(),
+      totalAbsents: reportType === 'daily'
+        ? dataArray.filter(row => row.IsAbsent === 'Absent').length.toString()
+        : dataArray.reduce((sum, row) => sum + (parseInt(row.TotalAbsents) || 0), 0).toString(),
     };
   };
 
@@ -422,8 +476,19 @@ export default function EmployeeReports() {
     if (values.company && values.company.length > 0) params.organization_ids = values.company.join(',');
     if (values.department && values.department.length > 0) params.department_ids = values.department.join(',');
     if (values.manager_id && values.manager_id.length > 0) params.manager_ids = values.manager_id.join(',');
-    if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
-    if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
+    if (reportType === 'weekly' && weekDate) {
+      const { start, end } = getWeekRange(weekDate);
+      params.from_date = format(start, 'yyyy-MM-dd');
+      params.to_date = format(end, 'yyyy-MM-dd');
+    } else if (reportType === 'monthly' && monthDate) {
+      const { start, end } = getMonthRange(monthDate);
+      params.from_date = format(start, 'yyyy-MM-dd');
+      params.to_date = format(end, 'yyyy-MM-dd');
+    } else {
+      if (values.from_date) params.from_date = format(values.from_date, 'yyyy-MM-dd');
+      if (values.to_date) params.to_date = format(values.to_date, 'yyyy-MM-dd');
+    }
+    if (reportType !== 'daily') params.type = reportType;
     return params;
   };
 
@@ -435,7 +500,7 @@ export default function EmployeeReports() {
     if (selectedEmployeeIds.length > 0) {
       queryParts.push(`employee_ids=${selectedEmployeeIds.join(',')}`);
     }
-    if (page !== undefined) {
+    if (page !== undefined && reportType === 'daily') {
       queryParts.push(`limit=${rowsPerPage}`);
       queryParts.push(`offset=${(page - 1) * rowsPerPage}`);
     }
@@ -495,6 +560,7 @@ export default function EmployeeReports() {
     ...form.getValues(),
     employee_ids: selectedEmployeeIds,
     employee_type_ids: selectedEmployeeTypes,
+    report_type: reportType,
   });
 
   const handleExportCSV = async () => {
@@ -574,7 +640,7 @@ export default function EmployeeReports() {
   }, [
     selectedVerticals, selectedCompanies, selectedDepartments, selectedManagerIds,
     selectedEmployeeIds, selectedEmployeeTypes,
-    form.watch('from_date'), form.watch('to_date'),
+    form.watch('from_date'), form.watch('to_date'), reportType, weekDate, monthDate,
   ]);
 
   function onSubmit(_values: z.infer<typeof formSchema>) { return; }
@@ -647,7 +713,7 @@ export default function EmployeeReports() {
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
   const summaryTotals = reportData.length > 0 ? calculateSummaryTotals(reportData) : null;
 
-  const singleEmployeeInfo = isSingleEmployee && reportData.length > 0
+  const singleEmployeeInfo = isSingleEmployee && reportType === 'daily' && reportData.length > 0
     ? {
       name: reportData[0]?.Name,
       empNo: reportData[0]?.EmployeeNo,
@@ -663,10 +729,26 @@ export default function EmployeeReports() {
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="relative bg-accent p-6 rounded-2xl">
-          <div className="col-span-2 py-6">
+          <div className="col-span-2 py-6 flex items-center justify-between">
             <h1 className="font-medium text-xl text-primary">
               {t.employee_time_attendance_report || 'Employee Time Attendance Report'}
             </h1>
+            <div className="flex gap-2 bg-backdrop rounded-lg p-1">
+              {(['daily', 'weekly', 'monthly', 'summary'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => { setReportType(type); setShowReportView(false); resetButtons(); setReportData([]); setWeekDate(undefined); setMonthDate(undefined); }}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    reportType === type
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-text-secondary hover:text-primary'
+                  }`}
+                >
+                  {t[type === 'daily' ? 'daily' : type === 'weekly' ? 'weekly' : type === 'monthly' ? 'monthly' : 'summary'] || type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <p
@@ -972,80 +1054,146 @@ export default function EmployeeReports() {
                   )}
                 />
 
-                {/* ── FROM DATE ─────────────────── */}
-                <FormField
-                  control={form.control}
-                  name="from_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t.from_date || 'From Date'}</FormLabel>
-                      <Popover
-                        open={popoverStates.fromDate}
-                        onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
-                      >
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              size="lg" variant="outline"
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
-                            >
-                              {field.value && field.value instanceof Date && !isNaN(field.value.getTime())
-                                ? format(field.value, "dd/MM/yy")
-                                : <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || 'Choose date'}</span>}
-                              <CalendarIcon />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(date) => { field.onChange(date); closePopover('fromDate'); }}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* ── DATE FIELDS ──────────────── */}
+                {reportType === 'weekly' ? (
+                  /* ── WEEK DATE ────────────────── */
+                  <FormItem>
+                    <FormLabel>{t.week || 'Week'}</FormLabel>
+                    <Popover
+                      open={popoverStates.weekDate}
+                      onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, weekDate: open }))}
+                    >
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            size="lg" variant="outline"
+                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+                          >
+                            {weekDate
+                              ? <span>{formatWeekLabel(weekDate)}</span>
+                              : <span className="font-normal text-sm text-text-secondary">{t.placeholder_week || 'Choose week'}</span>}
+                            <CalendarIcon />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={weekDate}
+                          onSelect={(date) => { setWeekDate(date); closePopover('weekDate'); }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                ) : reportType === 'monthly' ? (
+                  /* ── MONTH DATE ───────────────── */
+                  <FormItem>
+                    <FormLabel>{t.month || 'Month'}</FormLabel>
+                    <Popover
+                      open={popoverStates.monthDate}
+                      onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, monthDate: open }))}
+                    >
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            size="lg" variant="outline"
+                            className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+                          >
+                            {monthDate
+                              ? <span>{formatMonthLabel(monthDate)}</span>
+                              : <span className="font-normal text-sm text-text-secondary">{t.placeholder_month || 'Choose month'}</span>}
+                            <CalendarIcon />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={monthDate}
+                          onSelect={(date) => { setMonthDate(date); closePopover('monthDate'); }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                ) : (
+                  /* ── FROM DATE / TO DATE (daily & summary) ── */
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="from_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t.from_date || 'From Date'}</FormLabel>
+                          <Popover
+                            open={popoverStates.fromDate}
+                            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, fromDate: open }))}
+                          >
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  size="lg" variant="outline"
+                                  className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+                                >
+                                  {field.value && field.value instanceof Date && !isNaN(field.value.getTime())
+                                    ? format(field.value, "dd/MM/yy")
+                                    : <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || 'Choose date'}</span>}
+                                  <CalendarIcon />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(date) => { field.onChange(date); closePopover('fromDate'); }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                {/* ── TO DATE ───────────────────── */}
-                <FormField
-                  control={form.control}
-                  name="to_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t.to_date || 'To Date'}</FormLabel>
-                      <Popover
-                        open={popoverStates.toDate}
-                        onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
-                      >
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              size="lg" variant="outline"
-                              className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
-                            >
-                              {field.value && field.value instanceof Date && !isNaN(field.value.getTime())
-                                ? format(field.value, "dd/MM/yy")
-                                : <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || 'Choose date'}</span>}
-                              <CalendarIcon />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(date) => { field.onChange(date); closePopover('toDate'); }}
-                            disabled={(date) => date > new Date()}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="to_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t.to_date || 'To Date'}</FormLabel>
+                          <Popover
+                            open={popoverStates.toDate}
+                            onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, toDate: open }))}
+                          >
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  size="lg" variant="outline"
+                                  className="w-full bg-accent px-3 flex justify-between text-text-primary max-w-[350px] 3xl:max-w-[450px] text-sm font-normal"
+                                >
+                                  {field.value && field.value instanceof Date && !isNaN(field.value.getTime())
+                                    ? format(field.value, "dd/MM/yy")
+                                    : <span className="font-normal text-sm text-text-secondary">{t.placeholder_date || 'Choose date'}</span>}
+                                  <CalendarIcon />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(date) => { field.onChange(date); closePopover('toDate'); }}
+                                disabled={(date) => date > new Date()}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
               </div>
             </div>
 
@@ -1078,6 +1226,8 @@ export default function EmployeeReports() {
                     form.reset();
                     setShowReportView(false);
                     setReportData([]);
+                    setWeekDate(undefined);
+                    setMonthDate(undefined);
                     resetButtons();
                   }}
                   disabled={loading}

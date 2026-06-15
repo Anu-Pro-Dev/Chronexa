@@ -4,9 +4,10 @@ import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 
 const manuals = [
-  { fileName: "admin.docx", label: "admin_label", defaultLabel: "Admin Manual" },
-  { fileName: "manager.docx", label: "manager_label", defaultLabel: "Manager Manual" },
-  { fileName: "timekeeper.docx", label: "timekeeper_label", defaultLabel: "Timekeeper Manual" },
+  { fileName: "Chronexa_TimePro_Admin_Guide.pdf", label: "admin_label", defaultLabel: "Admin Manual" },
+  { fileName: "Chronexa_TimePro_Manager_Guide.pdf", label: "manager_label", defaultLabel: "Manager Manual" },
+  { fileName: "Chronexa_TimePro_Employee_Guide.pdf", label: "employee_label", defaultLabel: "Employee Manual" },
+  { fileName: "Chronexa_TimePro_Timekeeper_Guide.pdf", label: "timekeeper_label", defaultLabel: "Timekeeper Manual" },
 ];
 
 export default function Page() {
@@ -16,7 +17,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader disableFeatures items={modules?.manuals?.items} />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
         {manuals.map((doc) => (
           <a
             key={doc.fileName}

@@ -186,6 +186,10 @@ export class ExcelExporter {
       params.parent_orgid = this.formValues.vertical.toString();
     }
 
+    if (this.formValues.report_type && this.formValues.report_type !== 'daily') {
+      params.type = this.formValues.report_type;
+    }
+
     return params;
   }
 

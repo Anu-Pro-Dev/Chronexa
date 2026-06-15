@@ -125,6 +125,10 @@ export class CSVExporter {
       queryParts.push(`parent_orgid=${this.formValues.vertical}`);
     }
 
+    if (this.formValues.report_type && this.formValues.report_type !== 'daily') {
+      queryParts.push(`type=${this.formValues.report_type}`);
+    }
+
     // NOTE: No limit or offset — fetch ALL matching records in one request.
     // The backend's /report/attendance endpoint does not support offset-based
     // pagination reliably, so we request everything at once for exports.

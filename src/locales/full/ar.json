@@ -921,7 +921,11 @@
         "total_missed_hours": "إجمالي الساعات المفقودة",
         "total_worked_hours": "إجمالي ساعات العمل",
         "total_extra_hours": "إجمالي ساعات العمل الإضافية",
-        "view_before_export": "قم بعرض التقرير على الشاشة أولاً، ثم قم بالتصدير إلى PDF أو CSV حسب الحاجة."
+        "view_before_export": "قم بعرض التقرير على الشاشة أولاً، ثم قم بالتصدير إلى PDF أو CSV حسب الحاجة.",
+        "daily": "يومي",
+        "weekly": "أسبوعي",
+        "monthly": "شهري",
+        "summary": "ملخص"
       },
       "configurations": {
         "roles": "الأدوار",
