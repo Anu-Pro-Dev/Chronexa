@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import {
   WorkingDaysIcon, TotalLeavesIcon, LeaveTakenIcon,
@@ -9,6 +9,7 @@ import { useAttendanceData } from "./AttendanceData";
 import { KpiCard } from "./KpiCard";
 import type { KpiCardData } from "./KpiCard";
 import { useCountUpInt, useCountUpFloat } from "./useCountUp";
+import LeaveDetailModal from "./LeaveDetailModal";
 
 interface LeaveCardDataProps {
   page: "Leaves" | "Permissions";
@@ -34,7 +35,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
 
-  const [activeCard, setActiveCard] = useState<string | null>(null);
+  const [modalCard, setModalCard] = React.useState<KpiCardData | null>(null);
 
   const hasData = !!attendanceDetails && !loading;
 
@@ -190,18 +191,28 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
     );
   }
 
+  const cols = page === "Leaves" ? "grid-cols-2 md:grid-cols-6" : "grid-cols-2 md:grid-cols-5";
+
   return (
     <div className="p-4 pt-0">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className={`grid ${cols} gap-3`}>
         {cards.map((card) => (
           <KpiCard
             key={card.label}
             data={card}
-            isActive={activeCard === card.label}
-            onClick={() => setActiveCard((prev) => (prev === card.label ? null : card.label))}
+            onClick={() => setModalCard(card)}
           />
         ))}
       </div>
+
+      {modalCard && (
+        <LeaveDetailModal
+          open={!!modalCard}
+          onOpenChange={(open) => { if (!open) setModalCard(null); }}
+          cardData={modalCard}
+          page={page}
+        />
+      )}
     </div>
   );
 }

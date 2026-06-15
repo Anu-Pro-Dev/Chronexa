@@ -21,7 +21,7 @@ export default function Page() {
         {manuals.map((doc) => (
           <a
             key={doc.fileName}
-            href={`/Manuals/${doc.fileName}`}
+            href={`/manuals/${doc.fileName}`}
             download
             className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border border-border bg-card hover:shadow-lg hover:border-primary/30 transition-all group cursor-pointer"
           >

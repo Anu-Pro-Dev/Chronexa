@@ -103,14 +103,14 @@ function ViolationsCard() {
     {
       label: t?.late_in || "Late Check-In",
       value: animated.lateIn,
-      color: "#E67E22",
-      icon: LateInIcon("#E67E22"),
+      color: "#F59E0B",
+      icon: LateInIcon("#F59E0B"),
     },
     {
       label: t?.early_out || "Early Check-Out",
       value: animated.earlyOut,
-      color: "#D2691E",
-      icon: EarlyOutIcon("#D2691E"),
+      color: "#C084FC",
+      icon: EarlyOutIcon("#C084FC"),
     },
     {
       label: t?.missed_in || "Missing Check-In",
@@ -212,13 +212,19 @@ function ViolationsCard() {
             {metricCards.map((card) => (
               <div
                 key={card.label}
-                className="bg-background rounded-[12px] border border-border/40 p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-border/80 h-[110px]"
+                className="bg-background rounded-[12px] p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-offset-1 h-[110px]"
+                style={{ "--tw-ring-color": card.color } as React.CSSProperties}
               >
                 <div
                   className="w-[34px] h-[34px] flex items-center justify-center rounded-[9px]"
-                  style={{ backgroundColor: `${card.color}18` }}
+                  style={{
+                    backgroundColor: `${card.color}18`,
+                    border: `1.5px solid ${card.color}44`,
+                  }}
                 >
-                  <span style={{ color: card.color }}>{card.icon}</span>
+                  {React.cloneElement(card.icon as React.ReactElement, {
+                    style: { color: card.color, width: '18px', height: '18px' },
+                  })}
                 </div>
                 <p className="text-2xl font-bold text-text-primary leading-none">{card.value}</p>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary text-center leading-tight">
