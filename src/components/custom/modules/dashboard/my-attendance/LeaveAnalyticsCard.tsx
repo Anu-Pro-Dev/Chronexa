@@ -245,7 +245,7 @@ function LeaveAnalyticsCard() {
           </ChartContainer>
 
           {/* Summary row */}
-          <div className="grid grid-cols-4 gap-3">
+          {/* <div className="grid grid-cols-4 gap-3">
             <div className="bg-background rounded-lg p-3 text-center">
               <p className="text-lg font-bold" style={{ color: "hsl(var(--chart-leaves))" }}>
                 {summaryStats.totalLeaves}
@@ -278,7 +278,7 @@ function LeaveAnalyticsCard() {
                 Peak Absent ({summaryStats.peakAbsentVal})
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* Active month detail */}
           {activeData && (

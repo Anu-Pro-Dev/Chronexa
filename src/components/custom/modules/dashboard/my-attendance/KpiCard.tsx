@@ -27,7 +27,7 @@ export function KpiCard({
 
   return (
     <div
-      role={isClickable ? "button" : undefined}
+      // role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={
@@ -44,7 +44,7 @@ export function KpiCard({
         "bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 select-none",
         "transition-all duration-150",
         isClickable
-          ? "cursor-pointer hover:ring-2 hover:ring-offset-1 hover:brightness-95 hover:shadow-popup active:scale-[0.98]"
+          ? "cursor-auto hover:ring-2 hover:ring-offset-1 hover:brightness-95 hover:shadow-popup active:scale-[0.98]"
           : "",
         isActive ? "ring-2 ring-offset-1" : "",
       ].join(" ")}

@@ -25,7 +25,7 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
         >
           {t?.leaves}
         </h5>
-        <h5 className="cursor-pointer font-bold text-lg text-text-primary">/</h5>
+        <h5 className=" font-bold text-lg text-text-primary">/</h5>
         <h5
           className={`cursor-pointer font-bold text-lg ${
             page === "Permissions"
