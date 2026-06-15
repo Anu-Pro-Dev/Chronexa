@@ -1,120 +1,28 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
-  ChartLegend,
   ChartTooltip,
+  ChartTooltipContent,
 } from "@/src/components/ui/chart";
+import type { ChartConfig } from "@/src/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { Calendar1Icon } from "@/src/icons/icons";
 import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { ExportButton } from "../export/ExportButton";
 import type { ExportColumn } from "../export/DashboardExcelExporter";
 
-const colorMapping = {
-  worked: "#0078D4",
-  missed: "#C7E7FF",
-  expected: "#C7E7FF",
-  holiday: "#FFD700",
-  dayoff: "#EBEBEB",
-};
+const chartConfig = {
+  worked: { label: "Worked", color: "#0078D4" },
+  missed: { label: "Missed", color: "#C7E7FF" },
+} satisfies ChartConfig;
 
 const formatHoursToHM = (decimalHours: number) => {
   const hours = Math.floor(decimalHours);
   const minutes = Math.round((decimalHours - hours) * 60);
   return `${hours}h ${minutes}m`;
-};
-
-const CustomTooltip = ({ active, payload }: any) => {
-  const { translations } = useLanguage();
-  const t = translations?.modules?.dashboard || {};
-
-  if (!active || !payload || !payload.length) return null;
-
-  const data = payload[0].payload;
-
-  if (data.dayoff > 0) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-        <p className="text-sm font-semibold text-gray-700">
-          {t?.day || "Day"} {data.date}
-        </p>
-        <div className="flex items-center gap-2 mt-1">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.dayoff }}></div>
-          <span className="text-sm text-gray-600">{t?.dayoff || "Day Off"}</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (data.holiday > 0) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-        <p className="text-sm font-semibold text-gray-700">
-          {t?.day || "Day"} {data.date}
-        </p>
-        <div className="flex items-center gap-2 mt-1">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.holiday }}></div>
-          <span className="text-sm text-gray-600">{t?.holiday || "Holiday"}</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-      <p className="text-sm font-semibold text-gray-700 mb-2">
-        {t?.day || "Day"} {data.date}
-      </p>
-      {data.worked > 0 && (
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.worked }}></div>
-          <span className="text-sm text-gray-600">
-            {t?.worked_hrs || "Worked"}: {formatHoursToHM(data.worked)}
-          </span>
-        </div>
-      )}
-      {data.missed > 0 && (
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: colorMapping.missed }}></div>
-          <span className="text-sm text-gray-600">
-            {t?.missed_hrs || "Missed"}: {formatHoursToHM(data.missed)}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const CustomLegend = ({ payload }: any) => {
-  const { translations } = useLanguage();
-  const t = translations?.modules?.dashboard || {};
-
-  const customLabels: { [key in "worked" | "missed" | "expected" | "holiday" | "dayoff"]: string } = {
-    worked: t?.worked_hrs,
-    missed: t?.missed_hrs,
-    expected: t?.expected_hrs,
-    holiday: t?.holiday || "Holiday",
-    dayoff: t?.dayoff || "Day Off",
-  };
-
-  return (
-    <div className="flex justify-center mt-4">
-      {payload?.map((entry: any, index: number) => (
-        <div key={`legend-${entry.value}-${index}`} className="flex items-center mx-2">
-          <div
-            className="w-3 h-3 mr-2 rounded-sm"
-            style={{ backgroundColor: entry.color }}
-          ></div>
-          <span className="text-sm text-gray-700 px-1">
-            {customLabels[entry.value as "worked" | "missed" | "expected" | "holiday" | "dayoff"] || entry.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
 };
 
 function WorkTrendsCard() {
@@ -152,52 +60,19 @@ function WorkTrendsCard() {
         date: (i + 1).toString(),
         worked: 0,
         missed: 0,
-        expected: 0,
-        holiday: 0,
-        dayoff: 0,
-        isRestDay: false,
       }));
     }
 
-    const data = Array.from({ length: daysInMonth }, (_, i) => {
+    return Array.from({ length: daysInMonth }, (_, i) => {
       const dayNumber = i + 1;
-
       const dayData = workHourTrends.find(item => item.DayofDate === dayNumber);
 
       if (!dayData) {
-        return {
-          date: dayNumber.toString(),
-          worked: 0,
-          missed: 0,
-          expected: 0,
-          holiday: 0,
-          dayoff: 0,
-          isRestDay: false,
-        };
+        return { date: dayNumber.toString(), worked: 0, missed: 0 };
       }
 
-      if (dayData.restday === 1) {
-        return {
-          date: dayNumber.toString(),
-          worked: 0,
-          missed: 0,
-          expected: 0,
-          holiday: 0,
-          dayoff: 9,
-          isRestDay: true,
-        };
-      }
-
-      if (dayData.holiday === 1) {
-        return {
-          date: dayNumber.toString(),
-          worked: 0,
-          missed: 0,
-          expected: 0,
-          holiday: 9,
-          dayoff: 0,
-          isRestDay: false,
-        };
+      if (dayData.restday === 1 || dayData.holiday === 1) {
+        return { date: dayNumber.toString(), worked: 0, missed: 0 };
       }
 
       const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0)
@@ -207,45 +82,23 @@ function WorkTrendsCard() {
       const expectedHours = expectedMinutes / 60;
       const workedHours = (dayData.WorkMinutes || 0) / 60;
 
-      let worked, missed, expected;
+      let worked, missed;
 
       if (workedHours > expectedHours) {
         worked = Number(workedHours.toFixed(2));
         missed = 0;
-        expected = 0;
       } else {
         worked = Number(workedHours.toFixed(2));
         missed = Number((expectedHours - workedHours).toFixed(2));
-        expected = Number(expectedHours.toFixed(2));
       }
 
-      return {
-        date: dayNumber.toString(),
-        worked,
-        missed,
-        expected,
-        holiday: 0,
-        dayoff: 0,
-        isRestDay: false,
-      };
+      return { date: dayNumber.toString(), worked, missed };
     });
-
-    return data;
   }, [workHourTrends, selectedMonth, currentYear]);
 
   const chartDataFinal = dir === "rtl" ? [...chartDataToRender].reverse() : chartDataToRender;
 
-  const maxExpectedHours = Math.max(
-    ...chartDataToRender.map(d => d.expected),
-    0
-  );
-
-  const maxValue = Math.max(
-    ...chartDataToRender.map(d => d.worked + d.missed),
-    ...chartDataToRender.map(d => d.holiday),
-    ...chartDataToRender.map(d => d.dayoff),
-    9
-  );
+  const maxValue = Math.max(...chartDataToRender.map(d => d.worked + d.missed), 9);
 
   const yAxisMax = Math.max(Math.ceil(maxValue / 3) * 3, 9);
 
@@ -254,29 +107,21 @@ function WorkTrendsCard() {
     ticks.push(i);
   }
 
-  const hasAnyData = chartDataToRender.some(d => d.worked > 0 || d.missed > 0 || d.expected > 0 || d.holiday > 0 || d.dayoff > 0);
-
   const workTrendsExportColumns: ExportColumn[] = [
     { header: "Date", key: "date", width: 10 },
     { header: "Worked (hrs)", key: "worked", width: 14 },
     { header: "Missed (hrs)", key: "missed", width: 14 },
-    { header: "Expected (hrs)", key: "expected", width: 16 },
-    { header: "Holiday", key: "holiday", width: 10 },
-    { header: "Day Off", key: "dayoff", width: 10 },
   ];
 
   const workTrendsExportData = chartDataToRender.map((d) => ({
     date: d.date,
     worked: d.worked,
     missed: d.missed,
-    expected: d.expected,
-    holiday: d.holiday,
-    dayoff: d.dayoff,
   }));
 
   return (
-    <div className="shadow-card rounded-[10px] bg-accent p-4">
-      <div className="flex flex-row justify-between p-3">
+    <div className="shadow-card rounded-[10px] bg-accent p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h5 className="text-lg text-text-primary font-bold">
             {t?.work_hrs_trends}
@@ -290,112 +135,70 @@ function WorkTrendsCard() {
             }}
           />
         </div>
-
-        <Select
-          value={selectedMonth.toString()}
-          onValueChange={(value) => setSelectedMonth(Number(value))}
-        >
-          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
-            <Calendar1Icon width="14" height="16" />
-            <SelectValue>
-              {selectedMonth === currentMonth
-                ? translations?.this_month || "هذا الشهر"
-                : months[selectedMonth - 1]}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-accent rounded-md shadow-dropdown">
-            {months.map((month, index) => {
-              const monthValue = index + 1;
-              return (
-                <SelectItem
-                  key={`month-${index}`}
-                  value={monthValue.toString()}
-                  className="text-text-primary bg-accent"
-                >
-                  {monthValue === currentMonth
-                    ? translations?.this_month || "هذا الشهر"
-                    : month}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          {Object.entries(chartConfig).map(([key, cfg]) => (
+            <span key={key} className="flex items-center gap-1 text-xs text-text-secondary">
+              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: cfg.color }} />
+              {cfg.label}
+            </span>
+          ))}
+          <Select
+            value={selectedMonth.toString()}
+            onValueChange={(value) => setSelectedMonth(Number(value))}
+          >
+            <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+              <Calendar1Icon width="14" height="16" />
+              <SelectValue>
+                {selectedMonth === currentMonth
+                  ? translations?.this_month || "هذا الشهر"
+                  : months[selectedMonth - 1]}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-accent rounded-md shadow-dropdown">
+              {months.map((month, index) => {
+                const monthValue = index + 1;
+                return (
+                  <SelectItem
+                    key={`month-${index}`}
+                    value={monthValue.toString()}
+                    className="text-text-primary bg-accent"
+                  >
+                    {monthValue === currentMonth
+                      ? translations?.this_month || "هذا الشهر"
+                      : month}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {loadingWorkHourTrends ? (
-        <div className="flex justify-center items-center h-[300px]">
+        <div className="flex justify-center items-center h-[400px]">
           <p className="text-text-secondary">{translations?.buttons?.loading || "جارٍ التحميل"}</p>
         </div>
       ) : (
-        <div className="relative">
-          <ChartContainer
-            dir={dir}
-            className={`relative w-full h-[400px] 3xl:h-[450px] flex justify-center ${dir === "rtl" ? "-right-[35px]" : "-left-[25px]"}`}
-            config={{
-              type: { label: "Bar Chart", icon: undefined, color: "#0078D4" },
-              options: {},
-            }}
-          >
-            <BarChart accessibilityLayer data={chartDataFinal}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                tickMargin={2}
-                axisLine={false}
-                interval={0}
-              />
-              <YAxis
-                type="number"
-                tickLine={false}
-                tickMargin={3}
-                axisLine={false}
-                domain={[0, yAxisMax]}
-                ticks={ticks}
-                orientation={dir === "rtl" ? "right" : "left"}
-              />
-              {hasAnyData && <ChartTooltip cursor={false} content={<CustomTooltip />} />}
-              <ChartLegend content={<CustomLegend />} />
-
-              <Bar
-                dataKey="worked"
-                stackId="b"
-                fill={colorMapping.worked}
-                radius={0}
-                barSize={5}
-              />
-              <Bar
-                dataKey="missed"
-                stackId="b"
-                fill={colorMapping.missed}
-                radius={0}
-                barSize={5}
-              />
-              <Bar
-                dataKey="holiday"
-                stackId="b"
-                fill={colorMapping.holiday}
-                radius={0}
-                barSize={5}
-              />
-              <Bar
-                dataKey="dayoff"
-                stackId="b"
-                fill={colorMapping.dayoff}
-                radius={0}
-                barSize={5}
-              />
-            </BarChart>
-          </ChartContainer>
-
-          {!hasAnyData && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <p className="text-text-secondary font-regular text-center">
-                {translations?.no_data || "لا توجد بيانات متاحة"}
-              </p>
-            </div>
-          )}
-        </div>
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+          <AreaChart data={chartDataFinal} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+            <defs>
+              <linearGradient id="workedGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="65%" stopColor="#0078D4" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#0078D4" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="missedGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="65%" stopColor="#C7E7FF" stopOpacity={0.4} />
+                <stop offset="95%" stopColor="#C7E7FF" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} interval={0} />
+            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} domain={[0, yAxisMax]} ticks={ticks} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Area type="monotone" dataKey="worked" stackId="1" stroke="#0078D4" strokeWidth={2} fill="url(#workedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
+            <Area type="monotone" dataKey="missed" stackId="1" stroke="#C7E7FF" strokeWidth={2} fill="url(#missedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
+          </AreaChart>
+        </ChartContainer>
       )}
     </div>
   );
