@@ -747,7 +747,7 @@ export default function EmployeeReports() {
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
   const summaryTotals = reportData.length > 0 ? calculateSummaryTotals(reportData) : null;
 
-  const singleEmployeeInfo = isSingleEmployee && reportType === 'daily' && reportData.length > 0
+  const singleEmployeeInfo = isSingleEmployee && reportData.length > 0
     ? {
       name: reportData[0]?.Name,
       empNo: reportData[0]?.EmployeeNo,
