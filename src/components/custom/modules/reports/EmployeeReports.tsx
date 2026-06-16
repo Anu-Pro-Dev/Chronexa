@@ -500,7 +500,7 @@ export default function EmployeeReports() {
     if (selectedEmployeeIds.length > 0) {
       queryParts.push(`employee_ids=${selectedEmployeeIds.join(',')}`);
     }
-    if (page !== undefined && reportType === 'daily') {
+    if (page !== undefined && (reportType === 'daily' || reportType === 'weekly' || reportType === 'monthly')) {
       queryParts.push(`limit=${rowsPerPage}`);
       queryParts.push(`offset=${(page - 1) * rowsPerPage}`);
     }
@@ -554,7 +554,13 @@ export default function EmployeeReports() {
     setShowViewButton(true);
   };
 
-  const handlePageChange = (newPage: number) => fetchReportData(newPage);
+  const handlePageChange = (newPage: number) => {
+    if (isServerPaginated) {
+      fetchReportData(newPage);
+    } else {
+      setCurrentPage(newPage);
+    }
+  };
 
   const getExportFormValues = () => ({
     ...form.getValues(),
@@ -710,6 +716,10 @@ export default function EmployeeReports() {
     return `${selectedManagerIds.length} ${t.manager || 'manager'}${selectedManagerIds.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
+  const isServerPaginated = reportType === 'daily' || reportType === 'weekly' || reportType === 'monthly';
+  const displayData = isServerPaginated
+    ? reportData
+    : reportData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   const totalPages = Math.ceil(totalRecords / rowsPerPage);
   const summaryTotals = reportData.length > 0 ? calculateSummaryTotals(reportData) : null;
 
@@ -1261,6 +1271,15 @@ export default function EmployeeReports() {
                     </Button>
                     <Button
                       type="button" size="sm"
+                      className="flex items-center gap-2 bg-[#217346] hover:bg-[#2e8c57]"
+                      onClick={() => { handleExportExcel(); setShowReportView(false); }}
+                      disabled={loading}
+                    >
+                      <Download className="w-4 h-4" />
+                      {translations?.buttons?.export_excel || 'Export Excel'}
+                    </Button>
+                    <Button
+                      type="button" size="sm"
                       className="flex items-center gap-2 bg-[#B11C20] hover:bg-[#e41c23]"
                       onClick={() => { handleShowReport(); setShowReportView(false); }}
                       disabled={loading}
@@ -1351,7 +1370,7 @@ export default function EmployeeReports() {
                       </tr>
                     </thead>
                     <tbody>
-                      {reportData.map((row, idx) => (
+                      {displayData.map((row, idx) => (
                         <tr key={idx} className="hover:bg-backdrop">
                           {viewHeaders.map((header) => {
                             const cellValue = formatCellValue(header, row[header]);
@@ -1413,6 +1432,16 @@ export default function EmployeeReports() {
                   >
                     {translations?.buttons?.next || "Next"}
                   </Button>
+                  <span className="text-xs text-text-secondary ml-4">
+                    ({t?.limit || "Limit"}: {rowsPerPage})
+                  </span>
+                </div>
+              )}
+              {totalPages <= 1 && (
+                <div className="flex justify-center mt-6">
+                  <span className="text-xs text-text-secondary">
+                    ({t?.limit || "Limit"}: {rowsPerPage})
+                  </span>
                 </div>
               )}
             </>

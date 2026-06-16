@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { apiRequest } from "@/src/lib/apiHandler"; 
+import { apiRequest } from "@/src/lib/apiHandler";
 
 export interface ExcelExporterProps {
   formValues: any;
@@ -15,7 +15,7 @@ export class ExcelExporter {
   private calculateSummaryTotals: (data: any[]) => any;
   private onProgress?: (current: number, total: number, phase: string) => void;
   private showToast: (type: 'success' | 'error', messageKey: string, params?: Record<string, any>) => void;
-  
+
   constructor({ formValues, headerMap, calculateSummaryTotals, onProgress, showToast }: ExcelExporterProps) {
     this.formValues = formValues;
     this.headerMap = headerMap;
@@ -24,35 +24,48 @@ export class ExcelExporter {
     this.showToast = showToast;
   }
 
-  // UPDATED: Column names to match sp_employee_daily_report
-  private getFilteredHeaders() {   
+  // 1-based column index -> Excel column letter (1 -> A, 27 -> AA)
+  private colLetter(n: number): string {
+    let s = '';
+    while (n > 0) {
+      const m = (n - 1) % 26;
+      s = String.fromCharCode(65 + m) + s;
+      n = Math.floor((n - 1) / 26);
+    }
+    return s;
+  }
+
+  private getReportTitle(): string {
+    const rt = this.formValues.report_type;
+    if (rt === 'weekly') return 'EMPLOYEE WEEKLY ATTENDANCE REPORT';
+    if (rt === 'monthly') return 'EMPLOYEE MONTHLY ATTENDANCE REPORT';
+    if (rt === 'summary') return 'EMPLOYEE ATTENDANCE SUMMARY REPORT';
+    return 'EMPLOYEE DAILY MOVEMENT REPORT';
+  }
+
+  // ── Columns per report type (mirrors the on-screen view headers) ──
+  private getFilteredHeaders(): string[] {
+    const rt = this.formValues.report_type;
+
+    if (rt === 'weekly') {
+      return ['EmployeeNo', 'Name', 'WeekStart', 'WeekEnd', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
+    if (rt === 'monthly') {
+      return ['EmployeeNo', 'Name', 'Month', 'Year', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
+    if (rt === 'summary') {
+      return ['EmployeeNo', 'Name', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
     return [
-      'EmployeeNo',
-      'Name',
-      'ParentOrganization',
-      'Organization',
-      'Department',
-      'EmployeeType',
-      'WorkDate',
-      'WorkDay',
-      'Shift',
-      'PunchIn',
-      'GeoLocationIn',
-      'PunchOut',
-      'GeoLocationOut',
-      'DailyWorkedHrs',
-      'DailyMissedHrs',
-      'DailyExtraWork',
-      'IsAbsent',
-      'MissedPunch',
-      'EmployeeStatus',
+      'EmployeeNo', 'Name', 'ParentOrganization', 'Organization', 'Department',
+      'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
+      'PunchOut', 'GeoLocationOut', 'DailyWorkedHrs', 'DailyMissedHrs',
+      'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
     ];
   }
 
-  // UPDATED: Use new column names
   private getEmployeeDetails(data: any[]) {
     const hasSpecificEmployees = this.formValues.employee_ids && this.formValues.employee_ids.length > 0;
-    
     if (hasSpecificEmployees && data.length > 0) {
       const firstRow = data[0];
       return {
@@ -60,13 +73,8 @@ export class ExcelExporter {
         employeeName: firstRow?.Name || '',
         employeeNo: firstRow?.EmployeeNo || '',
       };
-    } else {
-      return {
-        employeeId: 'All Employees',
-        employeeName: 'All Employees',
-        employeeNo: '', 
-      };
     }
+    return { employeeId: 'All Employees', employeeName: 'All Employees', employeeNo: '' };
   }
 
   private getTextWidth(text: string): number {
@@ -75,34 +83,30 @@ export class ExcelExporter {
     return text.length + wideCount * 0.5;
   }
 
-  // UPDATED: formatCellValue for new column names
   private formatCellValue(header: string, value: any): string {
     if (value === null || value === undefined || value === '') return '';
-    
-    // WorkDate - format as dd-MM-yyyy
-    if (header === 'WorkDate' && value) {
+
+    // Date columns — format from the date part to avoid timezone day-shift
+    if (header === 'WorkDate' || header === 'WeekStart' || header === 'WeekEnd') {
       try {
-        const date = new Date(value);
-        return format(date, 'dd-MM-yyyy');
+        const datePart = String(value).split(' ')[0].split('T')[0];
+        const [year, month, day] = datePart.split('-');
+        if (year && month && day) return `${day}-${month}-${year}`;
+        return value;
       } catch {
-        if (typeof value === 'string') {
-          const datePart = value.split(' ')[0].split('T')[0];
-          if (datePart.includes('-')) {
-            const [year, month, day] = datePart.split('-');
-            return `${day}-${month}-${year}`;
-          }
-        }
         return value;
       }
     }
 
-    // PunchIn/PunchOut are already formatted as HH:mm:ss from SP
     if (header === 'PunchIn' || header === 'PunchOut') {
       return value || '';
     }
 
-    // Time columns are already formatted as HH:mm:ss from SP
-    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) {
+    // Already-formatted "HH:MM"/"HH:MM:SS" strings
+    if ([
+      'DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork',
+      'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs',
+    ].includes(header)) {
       return value || '';
     }
 
@@ -112,11 +116,11 @@ export class ExcelExporter {
   private applyCellStyle(cell: any, styleType: 'header' | 'data' | 'title' | 'label' | 'value') {
     const baseStyle = {
       border: {
-        top: { style: 'thin' }, 
-        left: { style: 'thin' }, 
-        bottom: { style: 'thin' }, 
-        right: { style: 'thin' }
-      }
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      },
     };
 
     switch (styleType) {
@@ -125,29 +129,25 @@ export class ExcelExporter {
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0078D4" } };
         cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
         break;
-      
       case 'data':
         cell.font = { name: "Nunito Sans", size: 8 };
         cell.alignment = { vertical: "middle", wrapText: true };
         break;
-      
       case 'title':
         cell.font = { name: "Nunito Sans", bold: true, size: 12, color: { argb: "FF000000" } };
         cell.alignment = { vertical: "middle", horizontal: "center" };
         break;
-      
       case 'label':
         cell.font = { name: "Nunito Sans", bold: true, size: 9, color: { argb: "FFFFFFFF" } };
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0078D4" } };
         cell.alignment = { vertical: "middle", horizontal: "center" };
         break;
-      
       case 'value':
         cell.font = { name: "Nunito Sans", size: 9 };
         cell.alignment = { vertical: "middle" };
         break;
     }
-    
+
     cell.border = baseStyle.border;
   }
 
@@ -158,34 +158,13 @@ export class ExcelExporter {
   private buildQueryParams(): Record<string, string> {
     const params: Record<string, string> = {};
 
-    if (this.formValues.from_date) {
-      params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
-    }
-
-    if (this.formValues.to_date) {
-      params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
-    }
-
-    if (this.formValues.manager_id) {
-      params.manager_id = this.formValues.manager_id.toString();
-    }
-
-    if (this.formValues.organization) {
-      params.organization_id = this.formValues.organization.toString();
-    }
-
-    if (this.formValues.company) {
-      params.organization_id = this.formValues.company.toString();
-    }
-
-    if (this.formValues.department) {
-      params.department_id = this.formValues.department.toString();
-    }
-
-    if (this.formValues.vertical) {
-      params.parent_orgid = this.formValues.vertical.toString();
-    }
-
+    if (this.formValues.from_date) params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
+    if (this.formValues.to_date) params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
+    if (this.formValues.manager_id) params.manager_id = this.formValues.manager_id.toString();
+    if (this.formValues.organization) params.organization_id = this.formValues.organization.toString();
+    if (this.formValues.company) params.organization_id = this.formValues.company.toString();
+    if (this.formValues.department) params.department_id = this.formValues.department.toString();
+    if (this.formValues.vertical) params.parent_orgid = this.formValues.vertical.toString();
     if (this.formValues.report_type && this.formValues.report_type !== 'daily') {
       params.type = this.formValues.report_type;
     }
@@ -199,7 +178,6 @@ export class ExcelExporter {
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
       queryParts.push(`employee_ids=${this.formValues.employee_ids.join(',')}`);
     }
-
     if (this.formValues.employee_type_ids && this.formValues.employee_type_ids.length > 0) {
       queryParts.push(`employee_type_ids=${this.formValues.employee_type_ids.join(',')}`);
     }
@@ -239,9 +217,7 @@ export class ExcelExporter {
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
 
-        if (offset === 0 && total > 0) {
-          apiTotal = total;
-        }
+        if (offset === 0 && total > 0) apiTotal = total;
 
         if (batch.length === 0) {
           hasMore = false;
@@ -251,21 +227,17 @@ export class ExcelExporter {
         allData.push(...batch);
         fetchedRecords += batch.length;
         offset += BATCH_SIZE;
-        
+
         hasMore = batch.length === BATCH_SIZE;
 
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
-
         await this.yieldToMain();
-
       } catch (error) {
         console.error('Error fetching batch:', error);
-        
         if (error && typeof error === 'object' && 'requireLogin' in error) {
           this.showToast('error', 'excel_session_expired');
           throw new Error('Session expired. Please login again.');
         }
-        
         this.showToast('error', 'excel_fetch_error');
         throw new Error('Failed to fetch data from server');
       }
@@ -291,67 +263,64 @@ export class ExcelExporter {
         import("exceljs"),
         import("file-saver"),
       ]);
-
       const { saveAs } = fileSaver;
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Report");
-
       workbook.creator = "Report Generator";
       workbook.created = new Date();
 
       const filteredHeaders = this.getFilteredHeaders();
+      const lastColIndex = filteredHeaders.length;
+      const lastCol = this.colLetter(lastColIndex);
+      const noLabelCol = this.colLetter(Math.max(lastColIndex - 1, 1));
+      const noValueCol = lastCol;
+
       const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(allData);
       let currentRow = 1;
 
-      // Title row
-      worksheet.mergeCells(`A${currentRow}:S${currentRow}`);
-      const dailyReportsCell = worksheet.getCell(`A${currentRow}`);
-      dailyReportsCell.value = "CHRONEXA";
-      dailyReportsCell.font = {
-        name: "Nunito Sans",
-        bold: true,
-        size: 18,
-        color: { argb: "FF0078D4" },
-      };
-      dailyReportsCell.alignment = { vertical: "middle", horizontal: "center" };
+      // Brand row
+      worksheet.mergeCells(`A${currentRow}:${lastCol}${currentRow}`);
+      const brandCell = worksheet.getCell(`A${currentRow}`);
+      brandCell.value = "CHRONEXA";
+      brandCell.font = { name: "Nunito Sans", bold: true, size: 18, color: { argb: "FF0078D4" } };
+      brandCell.alignment = { vertical: "middle", horizontal: "center" };
       worksheet.getRow(currentRow).height = 35;
       currentRow += 2;
 
-      worksheet.mergeCells(`A${currentRow}:S${currentRow}`);
+      // Title row (dynamic by report type)
+      worksheet.mergeCells(`A${currentRow}:${lastCol}${currentRow}`);
       const titleCell = worksheet.getCell(`A${currentRow}`);
-      titleCell.value = "EMPLOYEE DAILY MOVEMENT REPORT";
-      titleCell.font = {
-        name: "Nunito Sans",
-        bold: true,
-        size: 14,
-        color: { argb: "FF0078D4" },
-      };
+      titleCell.value = this.getReportTitle();
+      titleCell.font = { name: "Nunito Sans", bold: true, size: 14, color: { argb: "FF0078D4" } };
       titleCell.alignment = { vertical: "middle", horizontal: "center" };
       worksheet.getRow(currentRow).height = 30;
       currentRow += 2;
 
+      // Meta row
       worksheet.getCell(`A${currentRow}`).value = `Employee ID: ${employeeId}`;
       worksheet.getCell(`A${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-      worksheet.getCell(`S${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
-      worksheet.getCell(`S${currentRow}`).font = { name: "Nunito Sans", size: 10 };
-      worksheet.getCell(`S${currentRow}`).alignment = { horizontal: "right" };
+      worksheet.getCell(`${lastCol}${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
+      worksheet.getCell(`${lastCol}${currentRow}`).font = { name: "Nunito Sans", size: 10 };
+      worksheet.getCell(`${lastCol}${currentRow}`).alignment = { horizontal: "right" };
       currentRow += 2;
-      
+
+      // Employee name / no
       const nameCell = worksheet.getCell(`A${currentRow}`);
       nameCell.value = 'EMPLOYEE NAME';
       this.applyCellStyle(nameCell, 'label');
       const nameValueCell = worksheet.getCell(`B${currentRow}`);
       nameValueCell.value = employeeName;
       this.applyCellStyle(nameValueCell, 'value');
-      const empNoCell = worksheet.getCell(`R${currentRow}`);
+      const empNoCell = worksheet.getCell(`${noLabelCol}${currentRow}`);
       empNoCell.value = 'EMPLOYEE NO';
       this.applyCellStyle(empNoCell, 'label');
-      const empNoValueCell = worksheet.getCell(`S${currentRow}`);
+      const empNoValueCell = worksheet.getCell(`${noValueCol}${currentRow}`);
       empNoValueCell.value = employeeNo;
       this.applyCellStyle(empNoValueCell, 'value');
       currentRow++;
 
+      // From / To
       if (this.formValues.from_date || this.formValues.to_date) {
         const fromDateCell = worksheet.getCell(`A${currentRow}`);
         fromDateCell.value = 'FROM DATE';
@@ -359,17 +328,17 @@ export class ExcelExporter {
         const fromDateValueCell = worksheet.getCell(`B${currentRow}`);
         fromDateValueCell.value = this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '-';
         this.applyCellStyle(fromDateValueCell, 'value');
-        const toDateCell = worksheet.getCell(`R${currentRow}`);
+        const toDateCell = worksheet.getCell(`${noLabelCol}${currentRow}`);
         toDateCell.value = 'TO DATE';
         this.applyCellStyle(toDateCell, 'label');
-        const toDateValueCell = worksheet.getCell(`S${currentRow}`);
+        const toDateValueCell = worksheet.getCell(`${noValueCol}${currentRow}`);
         toDateValueCell.value = this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '-';
         this.applyCellStyle(toDateValueCell, 'value');
         currentRow++;
       }
 
       currentRow += 1;
-      
+
       // Header row
       filteredHeaders.forEach((header, index) => {
         const cell = worksheet.getCell(currentRow, index + 1);
@@ -380,22 +349,21 @@ export class ExcelExporter {
 
       this.onProgress?.(allData.length, allData.length, 'generating');
 
-      // Data rows
+      // Data rows (chunked)
       const CHUNK_SIZE = 500;
       const totalRows = allData.length;
       let processedRows = 0;
-      
+
       for (let i = 0; i < totalRows; i += CHUNK_SIZE) {
         const chunk = allData.slice(i, i + CHUNK_SIZE);
-        
+
         chunk.forEach((row: Record<string, any>) => {
           filteredHeaders.forEach((header, index) => {
             const cell = worksheet.getCell(currentRow, index + 1);
             const cellValue = this.formatCellValue(header, row[header]);
             cell.value = cellValue;
             this.applyCellStyle(cell, 'data');
-            
-            // Highlight absent and missed punch cells
+
             if ((header === 'IsAbsent' && cellValue && cellValue !== '') ||
                 (header === 'MissedPunch' && cellValue && cellValue !== '')) {
               cell.font = { ...cell.font, color: { argb: 'FFFF0000' } };
@@ -406,7 +374,6 @@ export class ExcelExporter {
         });
 
         this.onProgress?.(processedRows, allData.length, 'generating');
-        
         await this.yieldToMain();
       }
 
@@ -423,14 +390,13 @@ export class ExcelExporter {
 
       const summaryData = [
         ['Total Worked Hours', summaryTotals.totalWorkedHours, 'Total Missed Hours', summaryTotals.totalMissedHours, 'Total Extra Hours', summaryTotals.totalExtraHours],
-        ['Total Absents', summaryTotals.totalAbsents, '', '', '', '']
+        ['Total Absents', summaryTotals.totalAbsents, '', '', '', ''],
       ];
 
       summaryData.forEach((rowData) => {
         for (let i = 0; i < rowData.length; i += 2) {
           const labelCol = String.fromCharCode(65 + i);
           const valueCol = String.fromCharCode(65 + i + 1);
-          
           if (rowData[i]) {
             const labelCell = worksheet.getCell(`${labelCol}${currentRow}`);
             labelCell.value = rowData[i];
@@ -443,11 +409,11 @@ export class ExcelExporter {
         currentRow++;
       });
 
-      // Auto-fit columns
+      // Column widths
       worksheet.columns = filteredHeaders.map(header => ({
         header: this.headerMap[header] || header,
         key: header,
-        width: 10
+        width: 10,
       }));
 
       worksheet.columns.forEach((column, index) => {
@@ -455,15 +421,14 @@ export class ExcelExporter {
         for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
           const cell = worksheet.getCell(rowIndex, index + 1);
           if (cell.value) {
-            const cellText = String(cell.value);
-            const textWidth = this.getTextWidth(cellText);
+            const textWidth = this.getTextWidth(String(cell.value));
             maxWidth = Math.max(maxWidth, textWidth);
           }
         }
         column.width = Math.min(Math.max(maxWidth + 1, 6), 40);
       });
 
-      // Auto-fit row heights
+      // Row heights
       for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
         const row = worksheet.getRow(rowIndex);
         if (rowIndex === 1) {
@@ -489,7 +454,8 @@ export class ExcelExporter {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
-      const filename = `report_${
+      const rt = this.formValues.report_type || 'daily';
+      const filename = `report_${rt}_${
         this.formValues.employee_ids?.length > 0
           ? this.formValues.employee_ids.length === 1
             ? 'employee_' + this.formValues.employee_ids[0]
@@ -499,12 +465,12 @@ export class ExcelExporter {
 
       this.onProgress?.(allData.length, allData.length, 'complete');
       saveAs(blob, filename);
-      
+
       this.showToast('success', 'excel_export_success', { count: allData.length.toLocaleString() });
     } catch (error) {
       console.error("Excel export error:", error);
-      
       if (error instanceof Error && error.message.includes('Session expired')) {
+        // already toasted
       } else {
         this.showToast('error', 'excel_export_error');
       }

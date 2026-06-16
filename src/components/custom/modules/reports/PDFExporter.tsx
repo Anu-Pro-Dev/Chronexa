@@ -28,30 +28,22 @@ export class PDFExporter {
   }
 
   private async loadLogoAsBase64(): Promise<string | null> {
-    if (!this.logoUrl) {
-      return null;
-    }
-    
+    if (!this.logoUrl) return null;
     try {
-      const logoPath = this.logoUrl.startsWith('/') 
-        ? window.location.origin + this.logoUrl 
+      const logoPath = this.logoUrl.startsWith('/')
+        ? window.location.origin + this.logoUrl
         : this.logoUrl;
-            
+
       const response = await fetch(logoPath);
-      
       if (!response.ok) {
         console.error('Failed to fetch logo:', response.status, response.statusText);
         return null;
       }
-      
+
       const blob = await response.blob();
-      
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          resolve(result);
-        };
+        reader.onloadend = () => resolve(reader.result as string);
         reader.onerror = (error) => {
           console.error('FileReader error:', error);
           reject(error);
@@ -68,37 +60,91 @@ export class PDFExporter {
     return new Promise(resolve => setTimeout(resolve, 0));
   }
 
+  // ── Report title per type ──
+  private getReportTitle(): string {
+    const rt = this.formValues.report_type;
+    if (rt === 'weekly') return 'EMPLOYEE WEEKLY ATTENDANCE REPORT';
+    if (rt === 'monthly') return 'EMPLOYEE MONTHLY ATTENDANCE REPORT';
+    if (rt === 'summary') return 'EMPLOYEE ATTENDANCE SUMMARY REPORT';
+    return 'EMPLOYEE DAILY MOVEMENT REPORT';
+  }
+
+  // ── Columns per report type (mirrors the on-screen view headers) ──
+  private getFilteredHeaders(): string[] {
+    const rt = this.formValues.report_type;
+
+    if (rt === 'weekly') {
+      return ['EmployeeNo', 'Name', 'WeekStart', 'WeekEnd', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
+    if (rt === 'monthly') {
+      return ['EmployeeNo', 'Name', 'Month', 'Year', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
+    if (rt === 'summary') {
+      return ['EmployeeNo', 'Name', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+    }
+    return [
+      'EmployeeNo', 'Name', 'ParentOrganization', 'Organization', 'Department',
+      'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
+      'PunchOut', 'GeoLocationOut', 'DailyWorkedHrs', 'DailyMissedHrs',
+      'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
+    ];
+  }
+
+  private getColumnWidth(header: string): string {
+    const widthMap: Record<string, string> = {
+      // daily
+      'EmployeeNo': '4%', 'Name': '7%', 'ParentOrganization': '6%', 'Organization': '6%',
+      'Department': '6%', 'EmployeeType': '5%', 'WorkDate': '5%', 'WorkDay': '4%',
+      'Shift': '4%', 'PunchIn': '5%', 'GeoLocationIn': '7%', 'PunchOut': '5%',
+      'GeoLocationOut': '7%', 'DailyWorkedHrs': '5%', 'DailyMissedHrs': '5%',
+      'DailyExtraWork': '5%', 'IsAbsent': '5%', 'MissedPunch': '5%', 'EmployeeStatus': '5%',
+      // aggregated
+      'WeekStart': '12%', 'WeekEnd': '12%', 'Month': '12%', 'Year': '8%',
+      'TotalWorkedHrs': '13%', 'TotalMissedHrs': '13%', 'TotalExtraHrs': '13%', 'TotalAbsents': '10%',
+    };
+    return widthMap[header] || '5%';
+  }
+
+  private formatCellValue(header: string, value: any): string {
+    if (value === null || value === undefined || value === '') return '';
+
+    // Date columns — format from the date part to avoid timezone day-shift
+    if (header === 'WorkDate' || header === 'WeekStart' || header === 'WeekEnd') {
+      try {
+        const datePart = String(value).split('T')[0];
+        const [y, m, d] = datePart.split('-');
+        if (y && m && d) return `${d}-${m}-${y}`;
+        return value;
+      } catch {
+        return value;
+      }
+    }
+
+    if (header === 'PunchIn' || header === 'PunchOut') {
+      return value || '';
+    }
+
+    // Already-formatted "HH:MM"/"HH:MM:SS" strings
+    if ([
+      'DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork',
+      'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs',
+    ].includes(header)) {
+      return value || '';
+    }
+
+    return String(value);
+  }
+
   private buildQueryParams(): Record<string, string> {
     const params: Record<string, string> = {};
 
-    if (this.formValues.from_date) {
-      params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
-    }
-
-    if (this.formValues.to_date) {
-      params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
-    }
-
-    if (this.formValues.manager_id) {
-      params.manager_id = this.formValues.manager_id.toString();
-    }
-
-    if (this.formValues.organization) {
-      params.organization_id = this.formValues.organization.toString();
-    }
-
-    if (this.formValues.company) {
-      params.organization_id = this.formValues.company.toString();
-    }
-
-    if (this.formValues.department) {
-      params.department_id = this.formValues.department.toString();
-    }
-
-    if (this.formValues.vertical) {
-      params.parent_orgid = this.formValues.vertical.toString();
-    }
-
+    if (this.formValues.from_date) params.from_date = format(this.formValues.from_date, 'yyyy-MM-dd');
+    if (this.formValues.to_date) params.to_date = format(this.formValues.to_date, 'yyyy-MM-dd');
+    if (this.formValues.manager_id) params.manager_id = this.formValues.manager_id.toString();
+    if (this.formValues.organization) params.organization_id = this.formValues.organization.toString();
+    if (this.formValues.company) params.organization_id = this.formValues.company.toString();
+    if (this.formValues.department) params.department_id = this.formValues.department.toString();
+    if (this.formValues.vertical) params.parent_orgid = this.formValues.vertical.toString();
     if (this.formValues.report_type && this.formValues.report_type !== 'daily') {
       params.type = this.formValues.report_type;
     }
@@ -112,7 +158,6 @@ export class PDFExporter {
     if (this.formValues.employee_ids && this.formValues.employee_ids.length > 0) {
       queryParts.push(`employee_ids=${this.formValues.employee_ids.join(',')}`);
     }
-
     if (this.formValues.employee_type_ids && this.formValues.employee_type_ids.length > 0) {
       queryParts.push(`employee_type_ids=${this.formValues.employee_type_ids.join(',')}`);
     }
@@ -127,6 +172,7 @@ export class PDFExporter {
     return `/report/attendance${queryString ? `?${queryString}` : ''}`;
   }
 
+  // Page through results (offset is a ROW offset, matching the backend)
   private async fetchDataInBatches(): Promise<any[]> {
     const allData: any[] = [];
     const BATCH_SIZE = 2000;
@@ -152,9 +198,7 @@ export class PDFExporter {
         const batch = Array.isArray(response) ? response : (response.data || []);
         const total = response?.total || 0;
 
-        if (offset === 0 && total > 0) {
-          apiTotal = total;
-        }
+        if (offset === 0 && total > 0) apiTotal = total;
 
         if (batch.length === 0) {
           hasMore = false;
@@ -168,17 +212,13 @@ export class PDFExporter {
         hasMore = batch.length === BATCH_SIZE;
 
         this.onProgress?.(fetchedRecords, apiTotal || fetchedRecords, 'fetching');
-
         await this.yieldToMain();
-
       } catch (error) {
         console.error('Error fetching batch:', error);
-        
         if (error && typeof error === 'object' && 'requireLogin' in error) {
           this.showToast('error', 'pdf_session_expired');
           throw new Error('Session expired. Please login again.');
         }
-        
         this.showToast('error', 'pdf_fetch_error');
         throw new Error('Failed to fetch data from server');
       }
@@ -187,10 +227,8 @@ export class PDFExporter {
     return allData;
   }
 
-  // UPDATED: Use new column names
   private getEmployeeDetails(data: any[]) {
     const isSpecificEmployee = this.formValues.employee_ids?.length > 0;
-    
     if (isSpecificEmployee && data.length > 0) {
       const firstRow = data[0];
       return {
@@ -198,98 +236,8 @@ export class PDFExporter {
         employeeName: firstRow?.Name || '',
         employeeNo: firstRow?.EmployeeNo || '',
       };
-    } else {
-      return {
-        employeeId: 'All Employees',
-        employeeName: 'All Employees',
-        employeeNo: '',
-      };
     }
-  }
-
-  // UPDATED: Column names to match sp_employee_daily_report
-  private getFilteredHeaders() {
-    return [
-      'EmployeeNo',
-      'Name',
-      'ParentOrganization',
-      'Organization',
-      'Department',
-      'EmployeeType',
-      'WorkDate',
-      'WorkDay',
-      'Shift',
-      'PunchIn',
-      'GeoLocationIn',
-      'PunchOut',
-      'GeoLocationOut',
-      'DailyWorkedHrs',
-      'DailyMissedHrs',
-      'DailyExtraWork',
-      'IsAbsent',
-      'MissedPunch',
-      'EmployeeStatus',
-    ];
-  }
-
-  // UPDATED: Column widths for new column names
-  private getColumnWidth(header: string): string {
-    const widthMap: Record<string, string> = {
-      'EmployeeNo': '4%',
-      'Name': '7%',
-      'ParentOrganization': '6%',
-      'Organization': '6%',
-      'Department': '6%',
-      'EmployeeType': '5%',
-      'WorkDate': '5%',
-      'WorkDay': '4%',
-      'Shift': '4%',
-      'PunchIn': '5%',
-      'GeoLocationIn': '7%',
-      'PunchOut': '5%',
-      'GeoLocationOut': '7%',
-      'DailyWorkedHrs': '5%',
-      'DailyMissedHrs': '5%',
-      'DailyExtraWork': '5%',
-      'IsAbsent': '5%',
-      'MissedPunch': '5%',
-      'EmployeeStatus': '5%',
-    };
-    return widthMap[header] || '5%';
-  }
-
-  // UPDATED: formatCellValue for new column names
-  private formatCellValue(header: string, value: any): string {
-    if (value === null || value === undefined || value === '') return '';
-    
-    // WorkDate - format as dd-MM-yyyy
-    if (header === 'WorkDate' && value) {
-      try {
-        const date = new Date(value);
-        return format(date, 'dd-MM-yyyy');
-      } catch {
-        if (typeof value === 'string') {
-          const datePart = value.split(' ')[0].split('T')[0];
-          if (datePart.includes('-')) {
-            const [year, month, day] = datePart.split('-');
-            return `${day}-${month}-${year}`;
-          }
-        }
-        return value;
-      }
-    }
-
-    // PunchIn/PunchOut are already formatted as HH:mm:ss from SP
-    if (header === 'PunchIn' || header === 'PunchOut') {
-      return value || '';
-    }
-
-    // Time columns are already formatted as HH:mm:ss from SP
-    if (['DailyWorkedHrs', 'DailyMissedHrs', 'DailyExtraWork'].includes(header)) {
-      return value || '';
-    }
-
-    return String(value);
+    return { employeeId: 'All Employees', employeeName: 'All Employees', employeeNo: '' };
   }
 
   private generateHTMLContent(displayData: any[], allData?: any[], logoBase64?: string | null): string {
@@ -297,42 +245,38 @@ export class PDFExporter {
     const { employeeId, employeeName, employeeNo } = this.getEmployeeDetails(dataForSummary);
     const filteredHeaders = this.getFilteredHeaders();
     const summaryTotals = this.calculateSummaryTotals(dataForSummary);
-    
+    const reportTitle = this.getReportTitle();
+
     const MAX_PDF_ROWS = 1000;
     const showingLimitedData = allData && allData.length > MAX_PDF_ROWS;
-    
     const dataArray = [...displayData];
 
     return `
       <div style="padding: 10px; font-family: Arial, sans-serif; width: 100%; font-size: 7px;">
         ${showingLimitedData ? `
           <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 8px; margin-bottom: 10px; font-size: 9px;">
-            <strong>Note:</strong> PDF showing first ${MAX_PDF_ROWS.toLocaleString()} of ${allData!.length.toLocaleString()} records. 
+            <strong>Note:</strong> PDF showing first ${MAX_PDF_ROWS.toLocaleString()} of ${allData!.length.toLocaleString()} records.
             Summary totals reflect all ${allData!.length.toLocaleString()} records. Use CSV export for complete dataset.
           </div>
         ` : ''}
-        
+
         ${logoBase64 ? `
           <div style="text-align: center; margin-bottom: 8px;">
             <img src="${logoBase64}" alt="Logo" style="height: 40px;" />
           </div>
         ` : ''}
-        
+
         <h1 style="text-align: center; font-size: 14px; font-weight: bold; margin: 8px 0;">
-          EMPLOYEE DAILY MOVEMENT REPORT
+          ${reportTitle}
         </h1>
 
         <table style="width: 100%; margin-bottom: 8px; font-size: 9px;">
           <tr>
-            <td>
-              <strong>Employee ID:</strong> ${employeeId}
-            </td>
-            <td style="text-align: right;">
-              <strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}
-            </td>
+            <td><strong>Employee ID:</strong> ${employeeId}</td>
+            <td style="text-align: right;"><strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}</td>
           </tr>
         </table>
-         
+
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px;">
           <tr>
             <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NAME</td>
@@ -340,7 +284,7 @@ export class PDFExporter {
             <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NO</td>
             <td style="border: 1px solid black; padding: 5px; width: 25%;">${employeeNo}</td>
           </tr>
-          ${this.formValues.from_date || this.formValues.to_date ? 
+          ${this.formValues.from_date || this.formValues.to_date ?
             `<tr>
               <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center;">FROM DATE</td>
               <td style="border: 1px solid black; padding: 5px;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '-'}</td>
@@ -349,7 +293,7 @@ export class PDFExporter {
             </tr>`
           : ''}
         </table>
-      
+
         <table style="width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed;">
           <thead>
             <tr style="background-color: #0078D4;">
@@ -359,14 +303,13 @@ export class PDFExporter {
             </tr>
           </thead>
           <tbody>
-            ${dataArray.map((row: Record<string, any>, index: number) => `
+            ${dataArray.map((row: Record<string, any>) => `
               <tr>
                 ${filteredHeaders.map(header => {
                   const cellValue = this.formatCellValue(header, row[header]);
-                  const isAbsentOrMissed = (header === 'IsAbsent' && cellValue && cellValue !== '') || 
+                  const isAbsentOrMissed = (header === 'IsAbsent' && cellValue && cellValue !== '') ||
                                            (header === 'MissedPunch' && cellValue && cellValue !== '');
                   const textColor = isAbsentOrMissed ? 'color: red;' : '';
-                  
                   return `
                     <td style="border: 1px solid black; padding: 3px; font-size: 6px; ${textColor} width: ${this.getColumnWidth(header)}; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis;">${cellValue}</td>
                   `;
@@ -380,7 +323,7 @@ export class PDFExporter {
           <h2 style="text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 10px;">
             SUMMARY TOTALS ${showingLimitedData ? `(All ${allData!.length.toLocaleString()} Records)` : ''}
           </h2>
-          
+
           <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
             <tr>
               <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 25%;">Total Worked Hours</td>
@@ -414,32 +357,31 @@ export class PDFExporter {
       this.onProgress?.(allData.length, allData.length, 'processing');
 
       const MAX_PDF_ROWS = 1000;
-      const dataToExport = allData.length > MAX_PDF_ROWS 
-        ? allData.slice(0, MAX_PDF_ROWS)
-        : allData;
+      const dataToExport = allData.length > MAX_PDF_ROWS ? allData.slice(0, MAX_PDF_ROWS) : allData;
 
       if (allData.length > MAX_PDF_ROWS) {
-        this.showToast('loading', 'pdf_limited_rows', { 
+        this.showToast('loading', 'pdf_limited_rows', {
           count: allData.length.toLocaleString(),
-          limit: MAX_PDF_ROWS.toLocaleString()
+          limit: MAX_PDF_ROWS.toLocaleString(),
         });
       }
 
       const html2pdf = await import('html2pdf.js').then(module => module.default);
-      
+
       this.onProgress?.(allData.length, allData.length, 'generating');
-      
+
       const logoBase64 = await this.loadLogoAsBase64();
-      
-      const htmlContent = allData.length > MAX_PDF_ROWS 
+
+      const htmlContent = allData.length > MAX_PDF_ROWS
         ? this.generateHTMLContent(dataToExport, allData, logoBase64)
         : this.generateHTMLContent(dataToExport, undefined, logoBase64);
 
       await this.yieldToMain();
 
+      const rt = this.formValues.report_type || 'daily';
       const opt = {
         margin: [0.2, 0.2, 0.2, 0.2],
-        filename: `report_${
+        filename: `report_${rt}_${
           this.formValues.employee_ids?.length > 0
             ? this.formValues.employee_ids.length === 1
               ? 'employee_' + this.formValues.employee_ids[0]
@@ -447,47 +389,35 @@ export class PDFExporter {
             : 'all'
         }_${format(new Date(), 'yyyy-MM-dd')}.pdf`,
         image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          logging: false,
-        },
-        jsPDF: { 
-          unit: 'in', 
-          format: 'a4', 
-          orientation: 'landscape'
-        }
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
       };
-      
+
       const container = document.createElement('div');
       container.innerHTML = htmlContent;
       document.body.appendChild(container);
-      
+
       await new Promise(resolve => setTimeout(resolve, 200));
-      
       await html2pdf().set(opt).from(container).save();
-      
+
       setTimeout(() => {
         document.body.removeChild(container);
       }, 1000);
-                  
+
       this.onProgress?.(allData.length, allData.length, 'complete');
-      
+
       if (allData.length > MAX_PDF_ROWS) {
         this.showToast('success', 'pdf_export_success_limited', {
           limit: MAX_PDF_ROWS.toLocaleString(),
-          total: allData.length.toLocaleString()
+          total: allData.length.toLocaleString(),
         });
       } else {
-        this.showToast('success', 'pdf_export_success', {
-          count: allData.length.toLocaleString()
-        });
+        this.showToast('success', 'pdf_export_success', { count: allData.length.toLocaleString() });
       }
-
     } catch (error) {
       console.error("Error generating PDF:", error);
-      
       if (error instanceof Error && error.message.includes('Session expired')) {
+        // already toasted
       } else {
         this.showToast('error', 'pdf_export_error');
       }
