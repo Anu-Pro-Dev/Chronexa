@@ -27,7 +27,7 @@ export function KpiCard({
 
   return (
     <div
-      role={isClickable ? "button" : undefined}
+      // role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={
