@@ -37,12 +37,12 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
           {t?.permissions}
         </h5>
       </div>
-      <Link
+      {/* <Link
         href={getApplyLink()}
         className="text-primary text-sm font-regular flex items-center justify-center gap-1"
       >
         {translations?.buttons?.apply}
-      </Link>
+      </Link> */}
     </div>
   );
 };

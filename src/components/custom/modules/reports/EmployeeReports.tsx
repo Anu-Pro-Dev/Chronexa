@@ -21,6 +21,7 @@ import { ExcelExporter } from './ExcelExporter';
 import { CSVExporter } from './CSVExporter';
 import { CalendarIcon } from "@/src/icons/icons";
 import { Eye, Download, Trash2Icon } from "lucide-react";
+import { useAuthStore } from "@/src/store/useAuthStore";
 
 const formSchema = z.object({
   vertical: z.array(z.string()).optional(),
@@ -71,6 +72,20 @@ export default function EmployeeReports() {
   const [showExportButtons, setShowExportButtons] = useState(false);
   const [showViewButton, setShowViewButton] = useState(true);
   const rowsPerPage = 50;
+
+  const { employeeId: authEmployeeId, userRole } = useAuthStore();
+  const isEmployee = userRole?.toLowerCase() === "employee";
+  const isManager = userRole?.toLowerCase() === "manager";
+
+  useEffect(() => {
+    if (isEmployee && authEmployeeId) {
+      form.setValue("employee", [authEmployeeId.toString()]);
+    }
+    if (isManager && authEmployeeId) {
+      form.setValue("manager_id", [authEmployeeId.toString()]);
+    }
+  }, [isEmployee, isManager, authEmployeeId, form]);
+
   const [progressDetails, setProgressDetails] = useState({
     current: 0,
     total: 0,
@@ -368,12 +383,21 @@ export default function EmployeeReports() {
 
   const getViewHeaders = () => {
     if (reportType === 'weekly') {
+      if (isSingleEmployee) {
+        return ['WeekStart', 'WeekEnd', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+      }
       return ['EmployeeNo', 'Name', 'WeekStart', 'WeekEnd', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
     }
     if (reportType === 'monthly') {
+      if (isSingleEmployee) {
+        return ['Month', 'Year', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+      }
       return ['EmployeeNo', 'Name', 'Month', 'Year', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
     }
     if (reportType === 'summary') {
+      if (isSingleEmployee) {
+        return ['TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
+      }
       return ['EmployeeNo', 'Name', 'TotalWorkedHrs', 'TotalMissedHrs', 'TotalExtraHrs', 'TotalAbsents'];
     }
     if (isSingleEmployee) {
@@ -475,7 +499,7 @@ export default function EmployeeReports() {
     if (values.vertical && values.vertical.length > 0) params.parent_orgids = values.vertical.join(',');
     if (values.company && values.company.length > 0) params.organization_ids = values.company.join(',');
     if (values.department && values.department.length > 0) params.department_ids = values.department.join(',');
-    if (values.manager_id && values.manager_id.length > 0) params.manager_ids = values.manager_id.join(',');
+    if (values.manager_id && values.manager_id.length > 0) params.manager_id = values.manager_id.join(',');
     if (reportType === 'weekly' && weekDate) {
       const { start, end } = getWeekRange(weekDate);
       params.from_date = format(start, 'yyyy-MM-dd');
@@ -772,6 +796,8 @@ export default function EmployeeReports() {
             <div className="p-5 flex flex-col">
               <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
 
+                {!isEmployee && !isManager && (
+                  <>
                 {/* ── VERTICAL ──────────────────── */}
                 <FormField
                   control={form.control}
@@ -1011,8 +1037,11 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
+                  </>
+                )}
 
                 {/* ── EMPLOYEE ──────────────────── */}
+                {!isEmployee && (
                 <FormField
                   control={form.control}
                   name="employee"
@@ -1063,11 +1092,12 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
+                )}
 
                 {/* ── DATE FIELDS ──────────────── */}
                 {reportType === 'weekly' ? (
                   /* ── WEEK DATE ────────────────── */
-                  <FormItem>
+                  <FormItem className={isEmployee ? "col-span-2" : ""}>
                     <FormLabel>{t.week || 'Week'}</FormLabel>
                     <Popover
                       open={popoverStates.weekDate}
@@ -1098,7 +1128,7 @@ export default function EmployeeReports() {
                   </FormItem>
                 ) : reportType === 'monthly' ? (
                   /* ── MONTH DATE ───────────────── */
-                  <FormItem>
+                  <FormItem className={isEmployee ? "col-span-2" : ""}>
                     <FormLabel>{t.month || 'Month'}</FormLabel>
                     <Popover
                       open={popoverStates.monthDate}
