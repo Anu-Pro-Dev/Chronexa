@@ -15,9 +15,15 @@ import { ExportButton } from "../export/ExportButton";
 import type { ExportColumn } from "../export/DashboardExcelExporter";
 
 const chartConfig = {
-  worked: { label: "Worked", color: "#0078D4" },
-  missed: { label: "Missed", color: "#C7E7FF" },
-} satisfies ChartConfig;
+  worked: {
+    label: "Worked",
+    color: "#0EA5E9", // Green
+  },
+  missed: {
+    label: "Missed",
+    color: "#8B5CF6", // Red
+  },
+}satisfies ChartConfig;
 
 const formatHoursToHM = (decimalHours: number) => {
   const hours = Math.floor(decimalHours);
@@ -71,8 +77,20 @@ function WorkTrendsCard() {
         return { date: dayNumber.toString(), worked: 0, missed: 0 };
       }
 
-      if (dayData.restday === 1 || dayData.holiday === 1) {
-        return { date: dayNumber.toString(), worked: 0, missed: 0 };
+      const isRestDay =
+        dayData.restday === 1 &&
+        (!dayData.WorkMinutes || dayData.WorkMinutes === 0);
+
+      const isHoliday =
+        dayData.holiday === 1 &&
+        (!dayData.WorkMinutes || dayData.WorkMinutes === 0);
+
+      if (isRestDay || isHoliday) {
+        return {
+          date: dayNumber.toString(),
+          worked: 0,
+          missed: 0,
+        };
       }
 
       const expectedMinutes = (dayData.ExpectedWork === null || dayData.ExpectedWork === 0)
@@ -183,20 +201,20 @@ function WorkTrendsCard() {
           <AreaChart data={chartDataFinal} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
             <defs>
               <linearGradient id="workedGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="65%" stopColor="#0078D4" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#0078D4" stopOpacity={0} />
+                <stop offset="65%" stopColor="#0EA5E9" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="missedGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="65%" stopColor="#C7E7FF" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#C7E7FF" stopOpacity={0} />
+                <stop offset="65%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} interval={0} />
             <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} domain={[0, yAxisMax]} ticks={ticks} />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Area type="monotone" dataKey="worked" stackId="1" stroke="#0078D4" strokeWidth={2} fill="url(#workedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
-            <Area type="monotone" dataKey="missed" stackId="1" stroke="#C7E7FF" strokeWidth={2} fill="url(#missedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
+            <Area type="monotone" dataKey="worked"  stroke="#0EA5E9" strokeWidth={2} fill="url(#workedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
+            <Area type="monotone" dataKey="missed"  stroke="#8B5CF6" strokeWidth={2} fill="url(#missedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
           </AreaChart>
         </ChartContainer>
       )}
