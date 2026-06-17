@@ -7,7 +7,7 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
-import { editSecUserRequest, adminResetPasswordRequest, licenseToggleRequest, apiRequest } from "@/src/lib/apiHandler";
+import { editSecUserRequest, adminResetPasswordRequest, licenseToggleRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import CustomButton from "@/src/components/ui/CustomButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
@@ -22,6 +22,8 @@ import ActivateLicenseModal from "@/src/components/custom/modules/user-managemen
 type Column = {
   field: string;
   headerName: string;
+  width?: number;
+  flex?: number;
   cellRenderer?: (row: any) => React.ReactNode;
 };
 
@@ -44,7 +46,7 @@ function LicenseToggle({
   licenseId: number | null;
   status: string | null;
   onActivate: () => void;
-  onToggleSuccess: (rowId: number, newVal: boolean) => void;
+  onToggleSuccess: (rowId: number | null, newVal: boolean) => void;
 }) {
   const active = String(value) === "1" || String(value).toLowerCase() === "enabled";
   const [saving, setSaving] = useState(false);
@@ -60,7 +62,7 @@ function LicenseToggle({
   const showActive = organizationId === 27 && employeeTypeId === 26 && !isUsed;
 
   const handleToggle = async () => {
-    if (!licenseId) return;
+    if (!licenseId || rowId == null) return;
     setSaving(true);
     const newVal = !active;
     onToggleSuccess(rowId, newVal);
@@ -190,11 +192,10 @@ export default function Page() {
   const [successModalPassword, setSuccessModalPassword] = useState("");
 
   const [activateModalOpen, setActivateModalOpen] = useState(false);
-  const [activateLicenseId, setActivateLicenseId] = useState<number | null>(null);
-  const [activatingUserId, setActivatingUserId] = useState<number | null>(null);
-  const [activatingLoading, setActivatingLoading] = useState(false);
+  const [activateUserId, setActivateUserId] = useState<number | null>(null);
 
-  const handleLicenseToggle = useCallback((rowId: number, newVal: boolean) => {
+  const handleLicenseToggle = useCallback((rowId: number | null, newVal: boolean) => {
+    if (rowId == null) return;
     setLicenseOverrides(prev => ({ ...prev, [rowId]: newVal }));
   }, []);
 
@@ -325,29 +326,17 @@ export default function Page() {
     queryClient.invalidateQueries({ queryKey: ["/secuser/list"] });
   }, [queryClient]);
 
-  const handleActivateClick = useCallback(async (userId: number, cachedLicenseId: number | null | undefined) => {
-    if (cachedLicenseId) {
-      setActivateLicenseId(cachedLicenseId);
-      setActivateModalOpen(true);
+  // Just opens the modal with the user_id — the modal resolves the license
+  // record itself, so this no longer depends on the (possibly paginated)
+  // licenseData list being complete. Accepts number | null since row.user_id
+  // may be null, and guards before using it.
+  const handleActivateClick = useCallback((userId: number | null) => {
+    if (userId == null) {
+      showToast("error", "No user ID found for this row");
       return;
     }
-    setActivatingUserId(userId);
-    setActivatingLoading(true);
-    try {
-      const res = await apiRequest(`/license/getbyuserid/${userId}`, "GET");
-      const license = res?.data ?? res;
-      if (license?.id) {
-        setActivateLicenseId(license.id);
-        setActivateModalOpen(true);
-      } else {
-        showToast("error", "No license found for this user");
-      }
-    } catch {
-      showToast("error", "Failed to fetch license information");
-    } finally {
-      setActivatingLoading(false);
-      setActivatingUserId(null);
-    }
+    setActivateUserId(userId);
+    setActivateModalOpen(true);
   }, [showToast]);
 
   const showLicenseColumn = selectedOrganization === "27";
@@ -416,7 +405,7 @@ export default function Page() {
                 isUsed={licInfo?.isUsed ?? false}
                 licenseId={licInfo?.licenseId ?? null}
                 status={licInfo?.status ?? null}
-                onActivate={() => handleActivateClick(row.user_id, licInfo?.licenseId)}
+                onActivate={() => handleActivateClick(row.user_id)}
                 onToggleSuccess={handleLicenseToggle}
               />
             );
@@ -654,7 +643,7 @@ export default function Page() {
       <ActivateLicenseModal
         open={activateModalOpen}
         onOpenChange={setActivateModalOpen}
-        licenseId={activateLicenseId}
+        userId={activateUserId}
         onSuccess={handleLicenseActivationSuccess}
       />
     </div>

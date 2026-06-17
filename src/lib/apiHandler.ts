@@ -1455,3 +1455,8 @@ export const licenseActivateRequest = async (licenseId: number, licenseKey: stri
 export const licenseToggleRequest = async (licenseId: number, isEnabled: boolean) => {
   return apiRequest(`/license/toggle/${licenseId}`, "PATCH", { is_enabled: isEnabled });
 };
+
+// Function to fetch license(s) for a specific user
+export const getLicenseByUserId = async (user_id: number) => {
+  return apiRequest(`/license/getbyuserid/${user_id}`, "GET");
+};

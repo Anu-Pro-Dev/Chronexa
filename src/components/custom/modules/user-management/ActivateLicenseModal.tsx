@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
@@ -7,7 +7,7 @@ import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation } from "@tanstack/react-query";
 import { useShowToast } from "@/src/utils/toastHelper";
-import { licenseActivateRequest } from "@/src/lib/apiHandler";
+import { licenseActivateRequest, getLicenseByUserId } from "@/src/lib/apiHandler";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -18,21 +18,59 @@ import {
 export default function ActivateLicenseModal({
   open,
   onOpenChange,
-  licenseId,
+  userId,
   onSuccess,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  licenseId: number | null;
+  userId: number | null;
   onSuccess: () => void;
 }) {
   const { translations } = useLanguage();
   const [keyValue, setKeyValue] = useState("");
   const [keyError, setKeyError] = useState("");
+  const [licenseId, setLicenseId] = useState<number | null>(null);
+  const [resolving, setResolving] = useState(false);
   const showToast = useShowToast();
   const btnT = translations?.buttons || {};
 
   const keyPattern = /^[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}$/;
+
+  // Resolve the license record fresh every time the modal opens for a user,
+  // instead of relying on a possibly-paginated/stale client-side list.
+  useEffect(() => {
+    if (!open || !userId) {
+      setLicenseId(null);
+      return;
+    }
+
+    let cancelled = false;
+    setResolving(true);
+
+    getLicenseByUserId(userId)
+      .then((res) => {
+        if (cancelled) return;
+        const list = Array.isArray(res?.data) ? res.data : [];
+        // Prefer the license currently marked in_use; fall back to the first one.
+        const target = list.find((lic: any) => lic.in_use) ?? list[0] ?? null;
+        setLicenseId(target?.id ?? null);
+        if (!target?.id) {
+          showToast("error", "No license record found for this user");
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLicenseId(null);
+        showToast("error", "Failed to load license for this user");
+      })
+      .finally(() => {
+        if (!cancelled) setResolving(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, userId]);
 
   const activateMutation = useMutation({
     mutationFn: () => licenseActivateRequest(licenseId!, keyValue),
@@ -88,6 +126,13 @@ export default function ActivateLicenseModal({
               placeholder="XXXX-XXXX-XXXX-XXXX"
               value={keyValue}
               onChange={handleKeyChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleActivate();
+                }
+              }}
               className="mt-1 bg-background font-mono tracking-wider uppercase"
             />
             {keyError && (
@@ -108,10 +153,10 @@ export default function ActivateLicenseModal({
               type="button"
               size="lg"
               className="w-full"
-              disabled={!keyValue.trim() || activateMutation.isPending}
+              disabled={!keyValue.trim() || !licenseId || resolving || activateMutation.isPending}
               onClick={handleActivate}
             >
-              {activateMutation.isPending ? "Activating..." : "Activate"}
+              {resolving ? "Loading..." : activateMutation.isPending ? "Activating..." : "Activate"}
             </Button>
           </div>
         </div>

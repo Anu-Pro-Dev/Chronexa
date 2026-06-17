@@ -1,18 +1,40 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 
-const manuals = [
-  { fileName: "Chronexa_TimePro_Admin_Guide.pdf", label: "admin_label", defaultLabel: "Admin Manual" },
-  { fileName: "Chronexa_TimePro_Manager_Guide.pdf", label: "manager_label", defaultLabel: "Manager Manual" },
-  { fileName: "Chronexa_TimePro_Employee_Guide.pdf", label: "employee_label", defaultLabel: "Employee Manual" },
-  { fileName: "Chronexa_TimePro_Timekeeper_Guide.pdf", label: "timekeeper_label", defaultLabel: "Timekeeper Manual" },
+const allManuals = [
+  { fileName: "Chronexa_TimePro_Admin_Guide.pdf", label: "admin_label", defaultLabel: "Admin Manual", role: "admin" },
+  { fileName: "Chronexa_TimePro_Manager_Guide.pdf", label: "manager_label", defaultLabel: "Manager Manual", role: "manager" },
+  { fileName: "Chronexa_TimePro_Employee_Guide.pdf", label: "employee_label", defaultLabel: "Employee Manual", role: "employee" },
+  { fileName: "Chronexa_TimePro_Timekeeper_Guide.pdf", label: "timekeeper_label", defaultLabel: "Timekeeper Manual", role: "timekeeper" },
+  { fileName: "Chronexa_TimePro_User_Admin_Guide.pdf", label: "user_admin_label", defaultLabel: "User Admin Manual", role: "user_admin" },
 ];
 
 export default function Page() {
   const { modules, translations } = useLanguage();
+  const { userRole } = useAuthGuard();
   const t = translations?.modules?.manuals || {};
+
+  const manuals = useMemo(() => {
+    const role = userRole?.toLowerCase();
+
+    if (role === "admin") return allManuals;
+
+    if (role === "manager")
+      return allManuals.filter(
+        (m) => m.role === "manager" || m.role === "employee"
+      );
+
+    if (role === "timekeeper")
+      return allManuals.filter((m) => m.role === "timekeeper");
+
+    if (role === "user_admin")
+      return allManuals.filter((m) => m.role === "user_admin");
+
+    return allManuals.filter((m) => m.role === "employee");
+  }, [userRole]);
 
   return (
     <div className="flex flex-col gap-4">
