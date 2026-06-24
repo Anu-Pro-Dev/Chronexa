@@ -493,6 +493,11 @@ export default function LanguageProvider({
           path: "/user-management/users/",
           value: "users",
         },
+        {
+          label: currentLanguageData.translations?.modules?.userManagement?.user_license || "User License",
+          path: "/user-management/user-license/",
+          value: "user-license",
+        },
       ],
     };
 

@@ -1029,7 +1029,17 @@
         "password_reset_success_title": "Password Reset Successful",
         "password_reset_success_desc": "A new password has been generated.",
         "password_reset_sent_to": "Sent To",
-        "password_reset_footer": "The new password has been sent to the registered email address."
+        "password_reset_footer": "The new password has been sent to the registered email address.",
+        "user_license": "User License",
+        "local_license": "Local License",
+        "ad_license": "AD License",
+        "col_id": "ID",
+        "col_user_id": "User ID",
+        "col_status": "License Status",
+        "col_in_use": "In Use",
+        "col_license_key": "License Key",
+        "yes": "Yes",
+        "no": "No"
       },
       "manuals": {
         "digital_manuals": "Digital Manuals"

@@ -1027,7 +1027,17 @@
         "password_reset_success_title": "تمت إعادة تعيين كلمة المرور بنجاح",
         "password_reset_success_desc": "تم إنشاء كلمة مرور جديدة.",
         "password_reset_sent_to": "أُرسل إلى",
-        "password_reset_footer": "تم إرسال كلمة المرور الجديدة إلى عنوان البريد الإلكتروني المسجل."
+        "password_reset_footer": "تم إرسال كلمة المرور الجديدة إلى عنوان البريد الإلكتروني المسجل.",
+        "user_license": "ترخيص المستخدم",
+        "local_license": "الترخيص المحلي",
+        "ad_license": "ترخيص AD",
+        "col_id": "المعرف",
+        "col_user_id": "معرف المستخدم",
+        "col_status": "الحالة",
+        "col_in_use": "قيد الاستخدام",
+        "col_license_key": "مفتاح الترخيص",
+        "yes": "نعم",
+        "no": "لا"
       },
       "manuals": {
         "digital_manuals": "الأدلة الرقمية"
