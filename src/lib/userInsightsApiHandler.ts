@@ -228,22 +228,45 @@ export interface OrganizationEarlyDespatchData {
   }>;
 }
 
-export interface OrganizationListItem {
+export interface PlainOrgItem {
+  type: "org";
   id: number;
   name: string;
-  employeeCount: number;
+  entity_name: null;
+  employee_count: number;
 }
+
+export interface EntityGroupItem {
+  type: "entity";
+  entity_name: string;
+  employee_count_total: number;
+  orgs: {
+    id: number;
+    name: string;
+    employee_count: number;
+  }[];
+}
+
+export type OrganizationListItem = PlainOrgItem | EntityGroupItem;
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Organization list
 // ─────────────────────────────────────────────────────────────────────────────
 
+// export async function fetchOrganizationList(): Promise<OrganizationListItem[]> {
+//   const response = await apiRequest(`/insights/list`, "GET");
+//   // Backend returns { success: true, data: [...] } — plain array, not { organizations: [...] }
+//   const list = response?.data;
+//   if (!list) throw new Error("No organization list data returned");
+//   return Array.isArray(list) ? list : (list.organizations ?? []);
+// }
+
 export async function fetchOrganizationList(): Promise<OrganizationListItem[]> {
   const response = await apiRequest(`/insights/list`, "GET");
-  // Backend returns { success: true, data: [...] } — plain array, not { organizations: [...] }
   const list = response?.data;
   if (!list) throw new Error("No organization list data returned");
-  return Array.isArray(list) ? list : (list.organizations ?? []);
+  return Array.isArray(list) ? list : [];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

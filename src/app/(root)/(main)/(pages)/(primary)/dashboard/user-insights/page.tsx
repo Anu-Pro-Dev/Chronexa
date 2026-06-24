@@ -13,7 +13,9 @@ import { useUserInsightsStore } from "@/src/store/useUserInsightsStore";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/src/components/ui/select";
@@ -34,7 +36,7 @@ function OrganizationDropdown() {
       .then((orgs) => setOrganizations(orgs))
       .catch(console.error)
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Set default org whenever defaultOrganizationId resolves (auth store may be slow)
@@ -72,11 +74,29 @@ function OrganizationDropdown() {
       </SelectTrigger>
       {/* min-w-[280px] gives enough room so org names don't get clipped */}
       <SelectContent className="max-h-60 min-w-[280px]">
-        {organizations.map((org) => (
-          <SelectItem key={org.id} value={String(org.id)} className="whitespace-normal">
-            {org.name}
-          </SelectItem>
-        ))}
+        {organizations.map((item) => {
+          if (item.type === "org") {
+            return (
+              <SelectItem key={item.id} value={String(item.id)} className="whitespace-normal">
+                {item.name}
+              </SelectItem>
+            );
+          }
+
+          // entity group
+          return (
+            <SelectGroup key={item.entity_name}>
+              <SelectLabel className="text-xs font-semibold text-text-secondary px-2">
+                {item.entity_name}
+              </SelectLabel>
+              {item.orgs.map((org) => (
+                <SelectItem key={org.id} value={String(org.id)} className="whitespace-normal pl-4">
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          );
+        })}
       </SelectContent>
     </Select>
   );

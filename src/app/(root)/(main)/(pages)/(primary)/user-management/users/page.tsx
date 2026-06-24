@@ -30,9 +30,7 @@ type Column = {
 function LicenseToggle({
   value,
   rowId,
-  organizationId,
-  employeeTypeId,
-  isUsed,
+  licenseStatus,
   licenseId,
   status,
   onActivate,
@@ -40,9 +38,7 @@ function LicenseToggle({
 }: {
   value: string | null;
   rowId: number | null;
-  organizationId: number | null;
-  employeeTypeId: number | null;
-  isUsed: boolean;
+  licenseStatus: string | null;
   licenseId: number | null;
   status: string | null;
   onActivate: () => void;
@@ -51,6 +47,20 @@ function LicenseToggle({
   const active = String(value) === "1" || String(value).toLowerCase() === "enabled";
   const [saving, setSaving] = useState(false);
 
+  // 1. license_status (from secuser payload) === INACTIVE -> Activate button.
+  // Clicking it ONLY opens the activate modal; no toggle call happens here.
+  if (String(licenseStatus).toUpperCase() === "INACTIVE") {
+    return (
+      <button
+        onClick={onActivate}
+        className="inline-flex items-center justify-center rounded-full px-3 py-0.5 text-xs font-regular border bg-success/10 text-success border-success/30 cursor-pointer hover:opacity-75 select-none"
+      >
+        Activate
+      </button>
+    );
+  }
+
+  // 2. status (from license table) === EXPIRED -> static red chip, not clickable.
   if (String(status).toUpperCase() === "EXPIRED") {
     return (
       <span className="inline-flex items-center justify-center rounded-full px-3 py-0.5 text-xs font-regular border bg-destructive/10 text-destructive border-destructive/30 select-none">
@@ -59,8 +69,7 @@ function LicenseToggle({
     );
   }
 
-  const showActive = organizationId === 27 && employeeTypeId === 26 && !isUsed;
-
+  // 3. license_status === ACTIVE -> Enabled/Disabled toggle (same as original behavior).
   const handleToggle = async () => {
     if (!licenseId || rowId == null) return;
     setSaving(true);
@@ -74,17 +83,6 @@ function LicenseToggle({
       setSaving(false);
     }
   };
-
-  if (showActive) {
-    return (
-      <button
-        onClick={onActivate}
-        className="inline-flex items-center justify-center rounded-full px-3 py-0.5 text-xs font-regular border bg-success/10 text-success border-success/30 cursor-pointer hover:opacity-75 select-none"
-      >
-        Activate
-      </button>
-    );
-  }
 
   return (
     <button
@@ -238,7 +236,7 @@ export default function Page() {
 
   const licenseSearchParams = useMemo(() => ({
     ...(licenseStatusFilter || {}),
-    ...(licenseStatusFilter ? { limit: "10000" } : {}),
+    limit: "10000",
   }), [licenseStatusFilter]);
 
   const { data: licenseData } = useFetchAllEntity("license", {
@@ -400,9 +398,7 @@ export default function Page() {
               <LicenseToggle
                 value={row.user_license}
                 rowId={row.user_id}
-                organizationId={row.organization_id}
-                employeeTypeId={row.employee_type_id}
-                isUsed={licInfo?.isUsed ?? false}
+                licenseStatus={row.license_status}
                 licenseId={licInfo?.licenseId ?? null}
                 status={licInfo?.status ?? null}
                 onActivate={() => handleActivateClick(row.user_id)}
