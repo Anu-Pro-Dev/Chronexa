@@ -73,7 +73,7 @@ export default function Page() {
     },
     {
       field: "parent_id",
-      headerName: t.parent,
+      headerName: t.vertical,
       cellRenderer: (row: any) => {
         if (!row.parent_id) {
           return <span className="text-gray-500 italic">No Parent</span>;
@@ -83,6 +83,15 @@ export default function Page() {
         
         return <span>{parentName || "Loading..."}</span>;
       },
+    },
+    {
+      field: "entity_name",
+      headerName: t.entity,
+      cellRenderer: (row: any) => (
+        row.entity_name
+          ? <span>{row.entity_name}</span>
+          : <span className="text-gray-500 italic">—</span>
+      ),
     },
   ], [language, orgMap, t]);
 

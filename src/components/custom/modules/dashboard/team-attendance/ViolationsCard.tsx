@@ -86,7 +86,11 @@ function ViolationsCard() {
 
   const localizedChartData = dir === "rtl" ? [...chartData].reverse() : chartData;
 
-  const years = useMemo(() => Array.from({ length: 5 }, (_, i) => currentYear - i), [currentYear]);
+  const years = useMemo(() => {
+    const START_YEAR = 2025;
+    const count = Math.max(currentYear - START_YEAR + 1, 1);
+    return Array.from({ length: count }, (_, i) => currentYear - i);
+  }, [currentYear]);
 
   const handleYearChange = (year: string) => {
     const newYear = Number(year);

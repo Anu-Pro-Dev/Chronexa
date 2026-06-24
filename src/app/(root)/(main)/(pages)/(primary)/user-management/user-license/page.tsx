@@ -68,6 +68,17 @@ export default function Page() {
           </span>
         ),
       },
+      ...(activeTab === "local-license"
+        ? [{
+            field: "license_type",
+            headerName: t.col_license_type || "License Type",
+            width: 140,
+            flex: 0,
+            cellRenderer: (row: any) => (
+              <span>{row.license_type || <span className="text-text-secondary">—</span>}</span>
+            ),
+          }]
+        : []),
       {
         field: "status",
         headerName: t.col_status || "License Status",

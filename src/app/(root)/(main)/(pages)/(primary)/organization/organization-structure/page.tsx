@@ -71,7 +71,11 @@ export default function Page() {
             onClick={() => hasChildren && toggleNode(node.organization_id)}
           >
             <div className="flex items-center gap-2">
-              <span>{isRTL ? node.organization_arb : node.organization_eng}</span>
+              <span>{
+                node.organization_types?.organization_type_id === 3 && node.display_name
+                  ? node.display_name
+                  : (isRTL ? node.organization_arb : node.organization_eng)
+              }</span>
               {node.organization_code && (
                 <span className="text-sm opacity-75">
                   ({node.organization_code})

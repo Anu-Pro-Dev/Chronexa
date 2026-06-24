@@ -351,7 +351,7 @@ export default function Page() {
   const columns: Column[] = useMemo(
     () => {
       const cols: Column[] = [
-        { field: "emp_no", headerName: t.col_number || "Number", width: 90, flex: 0 },
+        { field: "emp_no", headerName: t.col_number || "Number", width: 120, flex: 0 },
         {
           field: language === "ar" ? "firstname_arb" : "name",
           headerName: t.col_name || "Name",

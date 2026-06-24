@@ -134,6 +134,7 @@ export default function OfficialForm({
 
     if (organizationSearchTerm) {
       return orgs.filter((item: any) =>
+        item.display_name?.toLowerCase().includes(organizationSearchTerm.toLowerCase()) ||
         item.organization_eng?.toLowerCase().includes(organizationSearchTerm.toLowerCase()) ||
         item.organization_arb?.toLowerCase().includes(organizationSearchTerm.toLowerCase())
       );
@@ -302,7 +303,7 @@ export default function OfficialForm({
                           {field.value
                             ? getOrganizationsData.find(
                               (item: any) => Number(item.organization_id) === Number(field.value)
-                            )?.[language === 'ar' ? 'organization_arb' : 'organization_eng']
+                            )?.display_name
                             : t.placeholder_organization || "Choose organization"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
@@ -320,7 +321,7 @@ export default function OfficialForm({
                         {getOrganizationsData.map((item: any) => (
                           <CommandItem
                             key={item.organization_id}
-                            value={language === 'ar' ? item.organization_arb : item.organization_eng}
+                            value={item.display_name || (language === 'ar' ? item.organization_arb : item.organization_eng)}
                             onSelect={() => {
                               field.onChange(Number(item.organization_id));
                               setOpenOrganization(false);
@@ -332,7 +333,7 @@ export default function OfficialForm({
                                 field.value === Number(item.organization_id) ? "opacity-100" : "opacity-0"
                               )}
                             />
-                            {language === 'ar' ? item.organization_arb : item.organization_eng}
+                            {item.display_name || (language === 'ar' ? item.organization_arb : item.organization_eng)}
                           </CommandItem>
                         ))}
                       </CommandGroup>

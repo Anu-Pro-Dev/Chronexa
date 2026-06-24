@@ -289,6 +289,7 @@ export default function EmployeeReports() {
 
     if (companySearchTerm) {
       return companies.filter((item: any) =>
+        item.display_name?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
         item.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
         item.organization_arb?.toLowerCase().includes(companySearchTerm.toLowerCase())
       );
@@ -914,8 +915,8 @@ export default function EmployeeReports() {
     ? {
       name: reportData[0]?.firstname_eng,
       empNo: reportData[0]?.employee_number,
-      company: reportData[0]?.parent_org_eng,
-      division: reportData[0]?.organization_eng,
+      company: reportData[0]?.parent_org_display_name || reportData[0]?.parent_org_eng,
+      division: reportData[0]?.organization_display_name || reportData[0]?.organization_eng,
       department: getDepartmentName(reportData[0]),
       type: reportData[0]?.employee_type,
     }
@@ -1020,7 +1021,7 @@ export default function EmployeeReports() {
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCompanyToggle(companyId); }}
                               >
                                 <Checkbox checked={isChecked} className="mr-2" />
-                                <span>{language === 'ar' ? item.organization_arb : item.organization_eng}</span>
+                                <span>{item.display_name || (language === 'ar' ? item.organization_arb : item.organization_eng)}</span>
                               </div>
                             );
                           })}
@@ -1030,7 +1031,7 @@ export default function EmployeeReports() {
                     </FormItem>
                   )}
                 />
-
+                
                 {/* DEPARTMENT */}
                 <FormField
                   control={form.control}

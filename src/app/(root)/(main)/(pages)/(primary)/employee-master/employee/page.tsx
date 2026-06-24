@@ -321,7 +321,7 @@ export default function Page() {
                     {selectedOrganization
                       ? organizationsData.find(
                         (item: any) => String(item.organization_id) === selectedOrganization
-                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
+                      )?.display_name
                       : t.placeholder_organization}
                   </span>
                 </p>
@@ -337,7 +337,7 @@ export default function Page() {
                       key={item.organization_id}
                       onSelect={() => handleOrganizationChange(String(item.organization_id))}
                     >
-                      {language === "ar" ? item.organization_arb : item.organization_eng}
+                      {item.display_name || (language === "ar" ? item.organization_arb : item.organization_eng)}
                     </CommandItem>
                   ))}
                 </CommandGroup>

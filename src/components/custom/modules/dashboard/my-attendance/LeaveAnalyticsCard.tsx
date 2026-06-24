@@ -129,7 +129,9 @@ function LeaveAnalyticsCard() {
   } satisfies ChartConfig;
 
   const years = useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => currentYear - i);
+    const START_YEAR = 2025;
+    const count = Math.max(currentYear - START_YEAR + 1, 1);
+    return Array.from({ length: count }, (_, i) => currentYear - i);
   }, [currentYear]);
 
   const leaveExportColumns: ExportColumn[] = [

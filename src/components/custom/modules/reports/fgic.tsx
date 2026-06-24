@@ -641,8 +641,8 @@ export default function EmployeeReports() {
     ? {
       name: reportData[0]?.firstname_eng,
       empNo: reportData[0]?.employee_number,
-      company: reportData[0]?.parent_org_eng,
-      division: reportData[0]?.organization_eng,
+      company: reportData[0]?.parent_org_display_name || reportData[0]?.parent_org_eng,
+      division: reportData[0]?.organization_display_name || reportData[0]?.organization_eng,
       type: reportData[0]?.employee_type,
     }
     : null;

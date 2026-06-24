@@ -22,11 +22,14 @@ import { CSVExporter } from './CSVExporter';
 import { CalendarIcon } from "@/src/icons/icons";
 import { Eye, Download, Trash2Icon } from "lucide-react";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import { Separator } from "@/src/components/ui/separator";
 
 const formSchema = z.object({
   vertical: z.array(z.string()).optional(),
   company: z.array(z.string()).optional(),
   department: z.array(z.string()).optional(),
+  division: z.array(z.string()).optional(),
+  cost_center: z.array(z.string()).optional(),
   employee_type: z.array(z.string()).optional(),
   manager_id: z.array(z.string()).optional(),
   employee: z.array(z.string()).optional(),
@@ -45,6 +48,8 @@ export default function EmployeeReports() {
       vertical: [],
       company: [],
       department: [],
+      division: [],
+      cost_center: [],
       employee_type: [],
       manager_id: [],
       employee: [],
@@ -61,6 +66,8 @@ export default function EmployeeReports() {
   const [verticalSearchTerm, setVerticalSearchTerm] = useState("");
   const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [departmentSearchTerm, setDepartmentSearchTerm] = useState("");
+  const [divisionSearchTerm, setDivisionSearchTerm] = useState("");
+  const [costCenterSearchTerm, setCostCenterSearchTerm] = useState("");
   const [employeeTypeSearchTerm, setEmployeeTypeSearchTerm] = useState("");
   const [employeeSearchTerm, setEmployeeSearchTerm] = useState("");
   const [managerSearchTerm, setManagerSearchTerm] = useState("");
@@ -125,6 +132,8 @@ export default function EmployeeReports() {
   const selectedDepartments = form.watch("department") || [];
   const selectedManagerIds = form.watch("manager_id") || [];
   const selectedEmployeeIds = form.watch("employee") || [];
+  const selectedDivisions = form.watch("division") || [];
+  const selectedCostCenters = form.watch("cost_center") || [];
   const selectedEmployeeTypes = form.watch("employee_type") || [];
 
   const { data: organizations } = useFetchAllEntity("organization", {
@@ -149,6 +158,8 @@ export default function EmployeeReports() {
     const params: any = { manager_flag: "true", limit: "1000", offset: "1" };
     if (selectedCompanies.length > 0) params.organization_ids = selectedCompanies.join(',');
     if (selectedDepartments.length > 0) params.department_ids = selectedDepartments.join(',');
+    if (selectedDivisions.length > 0) params.division_ids = selectedDivisions.join(',');
+    if (selectedCostCenters.length > 0) params.cost_center_ids = selectedCostCenters.join(',');
     return { searchParams: params };
   };
 
@@ -160,28 +171,36 @@ export default function EmployeeReports() {
     if (selectedCompanies.length > 0) params.organization_ids = selectedCompanies.join(',');
     if (selectedDepartments.length > 0) params.department_ids = selectedDepartments.join(',');
     if (selectedManagerIds.length > 0) params.manager_ids = selectedManagerIds.join(',');
+    if (selectedDivisions.length > 0) params.division_ids = selectedDivisions.join(',');
+    if (selectedCostCenters.length > 0) params.cost_center_ids = selectedCostCenters.join(',');
     if (selectedEmployeeTypes.length > 0) params.employee_type_ids = selectedEmployeeTypes.join(',');
     return { searchParams: params };
   };
 
   const { data: employees } = useFetchAllEntity("employee", getEmployeeSearchParams());
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
+  const { data: costCenters } = useFetchAllEntity("costCenter", { removeAll: true });
+  const { data: divisions } = useFetchAllEntity("division", { removeAll: true });
 
   const debouncedVerticalSearch = useCallback(debounce((v: string) => setVerticalSearchTerm(v), 300), []);
   const debouncedCompanySearch = useCallback(debounce((v: string) => setCompanySearchTerm(v), 300), []);
   const debouncedDepartmentSearch = useCallback(debounce((v: string) => setDepartmentSearchTerm(v), 300), []);
+  const debouncedDivisionSearch = useCallback(debounce((v: string) => setDivisionSearchTerm(v), 300), []);
+  const debouncedCostCenterSearch = useCallback(debounce((v: string) => setCostCenterSearchTerm(v), 300), []);
   const debouncedEmployeeTypeSearch = useCallback(debounce((v: string) => setEmployeeTypeSearchTerm(v), 300), []);
   const debouncedEmployeeSearch = useCallback(debounce((v: string) => setEmployeeSearchTerm(v), 300), []);
   const debouncedManagerSearch = useCallback(debounce((v: string) => setManagerSearchTerm(v), 300), []);
 
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
-    queryKey: ["employeeSearch", employeeSearchTerm, selectedVerticals, selectedCompanies, selectedDepartments, selectedManagerIds, selectedEmployeeTypes],
+    queryKey: ["employeeSearch", employeeSearchTerm, selectedVerticals, selectedCompanies, selectedDepartments, selectedDivisions, selectedCostCenters, selectedManagerIds, selectedEmployeeTypes],
     queryFn: async () => {
       let url = `/employee/search?search=${encodeURIComponent(employeeSearchTerm)}`;
       if (selectedVerticals.length > 0) url += `&parent_orgids=${selectedVerticals.join(',')}`;
       if (selectedCompanies.length > 0) url += `&organization_ids=${selectedCompanies.join(',')}`;
       if (selectedDepartments.length > 0) url += `&department_ids=${selectedDepartments.join(',')}`;
       if (selectedManagerIds.length > 0) url += `&manager_ids=${selectedManagerIds.join(',')}`;
+      if (selectedDivisions.length > 0) url += `&division_ids=${selectedDivisions.join(',')}`;
+      if (selectedCostCenters.length > 0) url += `&cost_center_ids=${selectedCostCenters.join(',')}`;
       if (selectedEmployeeTypes.length > 0) url += `&employee_type_ids=${selectedEmployeeTypes.join(',')}`;
       return apiRequest(url, "GET");
     },
@@ -189,11 +208,13 @@ export default function EmployeeReports() {
   });
 
   const { data: searchedManagers, isLoading: isSearchingManagers } = useQuery({
-    queryKey: ["managerSearch", managerSearchTerm, selectedCompanies, selectedDepartments],
+    queryKey: ["managerSearch", managerSearchTerm, selectedCompanies, selectedDepartments, selectedDivisions, selectedCostCenters],
     queryFn: async () => {
       let url = `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`;
       if (selectedCompanies.length > 0) url += `&organization_ids=${selectedCompanies.join(',')}`;
       if (selectedDepartments.length > 0) url += `&department_ids=${selectedDepartments.join(',')}`;
+      if (selectedDivisions.length > 0) url += `&division_ids=${selectedDivisions.join(',')}`;
+      if (selectedCostCenters.length > 0) url += `&cost_center_ids=${selectedCostCenters.join(',')}`;
       return apiRequest(url, "GET");
     },
     enabled: managerSearchTerm.length > 0,
@@ -233,6 +254,7 @@ export default function EmployeeReports() {
     );
     if (!companySearchTerm) return companies;
     return companies.filter((item: any) =>
+      item.display_name?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
       item.organization_eng?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
       item.organization_arb?.toLowerCase().includes(companySearchTerm.toLowerCase())
     );
@@ -258,6 +280,24 @@ export default function EmployeeReports() {
       item.department_name_eng?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
       item.department_name_arb?.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
       item.department_code?.toLowerCase().includes(departmentSearchTerm.toLowerCase())
+    );
+  };
+
+  const getCostCenterData = () => {
+    if (!costCenters?.data) return [];
+    const centers = costCenters.data.filter((item: any) => item.cost_center_id);
+    if (!costCenterSearchTerm) return centers;
+    return centers.filter((item: any) =>
+      item.cost_center_name?.toLowerCase().includes(costCenterSearchTerm.toLowerCase())
+    );
+  };
+
+  const getDivisionData = () => {
+    if (!divisions?.data) return [];
+    const divs = divisions.data.filter((item: any) => item.division_id);
+    if (!divisionSearchTerm) return divs;
+    return divs.filter((item: any) =>
+      item.division_name?.toLowerCase().includes(divisionSearchTerm.toLowerCase())
     );
   };
 
@@ -321,6 +361,20 @@ export default function EmployeeReports() {
     form.setValue("department", newDepartments);
     form.setValue("manager_id", []);
     form.setValue("employee", []);
+  };
+
+  const handleDivisionToggle = (divisionId: string) => {
+    const newDivisions = selectedDivisions.includes(divisionId)
+      ? selectedDivisions.filter(id => id !== divisionId)
+      : [...selectedDivisions, divisionId];
+    form.setValue("division", newDivisions);
+  };
+
+  const handleCostCenterToggle = (costCenterId: string) => {
+    const newCostCenters = selectedCostCenters.includes(costCenterId)
+      ? selectedCostCenters.filter(id => id !== costCenterId)
+      : [...selectedCostCenters, costCenterId];
+    form.setValue("cost_center", newCostCenters);
   };
 
   const handleManagerToggle = (managerId: string) => {
@@ -499,6 +553,8 @@ export default function EmployeeReports() {
     if (values.vertical && values.vertical.length > 0) params.parent_orgids = values.vertical.join(',');
     if (values.company && values.company.length > 0) params.organization_ids = values.company.join(',');
     if (values.department && values.department.length > 0) params.department_ids = values.department.join(',');
+    if (values.division && values.division.length > 0) params.division_ids = values.division.join(',');
+    if (values.cost_center && values.cost_center.length > 0) params.cost_center_ids = values.cost_center.join(',');
     if (values.manager_id && values.manager_id.length > 0) params.manager_id = values.manager_id.join(',');
     if (reportType === 'weekly' && weekDate) {
       const { start, end } = getWeekRange(weekDate);
@@ -518,6 +574,12 @@ export default function EmployeeReports() {
 
   const buildUrl = (params: Record<string, string>, page?: number): string => {
     const queryParts: string[] = [];
+    if (selectedDivisions.length > 0) {
+      queryParts.push(`division_ids=${selectedDivisions.join(',')}`);
+    }
+    if (selectedCostCenters.length > 0) {
+      queryParts.push(`cost_center_ids=${selectedCostCenters.join(',')}`);
+    }
     if (selectedEmployeeTypes.length > 0) {
       queryParts.push(`employee_type_ids=${selectedEmployeeTypes.join(',')}`);
     }
@@ -653,12 +715,14 @@ export default function EmployeeReports() {
   useEffect(() => {
     return () => {
       debouncedVerticalSearch.cancel(); debouncedCompanySearch.cancel();
-      debouncedDepartmentSearch.cancel(); debouncedEmployeeTypeSearch.cancel();
+      debouncedDepartmentSearch.cancel(); debouncedDivisionSearch.cancel(); debouncedCostCenterSearch.cancel();
+      debouncedEmployeeTypeSearch.cancel();
       debouncedEmployeeSearch.cancel(); debouncedManagerSearch.cancel();
     };
   }, [
     debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch,
-    debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch,
+    debouncedDivisionSearch, debouncedCostCenterSearch, debouncedEmployeeTypeSearch,
+    debouncedEmployeeSearch, debouncedManagerSearch,
   ]);
 
   useEffect(() => {
@@ -735,6 +799,16 @@ export default function EmployeeReports() {
     return `${selectedDepartments.length} ${t.department || 'department'}${selectedDepartments.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
+  const getDivisionPlaceholderText = () => {
+    if (selectedDivisions.length === 0) return t.placeholder_division || "Choose division";
+    return `${selectedDivisions.length} ${t.division || 'division'}${selectedDivisions.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
+  const getCostCenterPlaceholderText = () => {
+    if (selectedCostCenters.length === 0) return t.placeholder_cost_center || "Choose cost center";
+    return `${selectedCostCenters.length} ${t.cost_center || 'cost center'}${selectedCostCenters.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+  };
+
   const getManagerPlaceholderText = () => {
     if (selectedManagerIds.length === 0) return t.placeholder_manager || "Choose manager";
     return `${selectedManagerIds.length} ${t.manager || 'manager'}${selectedManagerIds.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
@@ -751,8 +825,8 @@ export default function EmployeeReports() {
     ? {
       name: reportData[0]?.Name,
       empNo: reportData[0]?.EmployeeNo,
-      company: reportData[0]?.ParentOrganization,
-      division: reportData[0]?.Organization,
+      company: reportData[0]?.ParentOrganizationDisplayName || reportData[0]?.ParentOrganization,
+      division: reportData[0]?.OrganizationDisplayName || reportData[0]?.Organization,
       department: reportData[0]?.Department,
       type: reportData[0]?.EmployeeType,
       status: reportData[0]?.EmployeeStatus,
@@ -763,7 +837,7 @@ export default function EmployeeReports() {
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="relative bg-accent p-6 rounded-2xl">
-          <div className="col-span-2 py-6 flex items-center justify-between">
+          <div className="col-span-2 px-4 py-6 flex items-center justify-between">
             <h1 className="font-medium text-xl text-primary">
               {t.employee_time_attendance_report || 'Employee Time Attendance Report'}
             </h1>
@@ -773,11 +847,10 @@ export default function EmployeeReports() {
                   key={type}
                   type="button"
                   onClick={() => { setReportType(type); setShowReportView(false); resetButtons(); setReportData([]); setWeekDate(undefined); setMonthDate(undefined); }}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    reportType === type
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${reportType === type
                       ? 'bg-primary text-white shadow-sm'
                       : 'text-text-secondary hover:text-primary'
-                  }`}
+                    }`}
                 >
                   {t[type === 'daily' ? 'daily' : type === 'weekly' ? 'weekly' : type === 'monthly' ? 'monthly' : 'summary'] || type.charAt(0).toUpperCase() + type.slice(1)}
                 </button>
@@ -794,306 +867,13 @@ export default function EmployeeReports() {
           </div>
           <div className="flex flex-col gap-6">
             <div className="p-5 flex flex-col">
-              <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
-
-                {!isEmployee && !isManager && (
-                  <>
-                {/* ── VERTICAL ──────────────────── */}
-                <FormField
-                  control={form.control}
-                  name="vertical"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">{t.vertical || 'Vertical'}</FormLabel>
-                      <Select>
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={getVerticalPlaceholderText()} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder={t.search_verticals || "Search verticals..."}
-                          onSearchChange={debouncedVerticalSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getVerticalData().length === 0 && verticalSearchTerm && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.no_verticals_found || "No verticals found"}
-                            </div>
-                          )}
-                          {getVerticalData().map((item: any) => {
-                            const verticalId = item.organization_id.toString();
-                            const isChecked = selectedVerticals.includes(verticalId);
-                            return (
-                              <div
-                                key={verticalId}
-                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleVerticalToggle(verticalId); }}
-                              >
-                                <Checkbox checked={isChecked} className="mr-2" />
-                                <span>{language === 'ar' ? item.organization_arb : item.organization_eng}</span>
-                              </div>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* ── COMPANY ───────────────────── */}
-                <FormField
-                  control={form.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">{t.company || 'Company'}</FormLabel>
-                      <Select>
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={getCompanyPlaceholderText()} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder={t.search_companies || "Search companies..."}
-                          onSearchChange={debouncedCompanySearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getCompanyData().length === 0 && companySearchTerm && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.no_companies_found || "No companies found"}
-                            </div>
-                          )}
-                          {getCompanyData().map((item: any) => {
-                            const companyId = item.organization_id.toString();
-                            const isChecked = selectedCompanies.includes(companyId);
-                            return (
-                              <div
-                                key={companyId}
-                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCompanyToggle(companyId); }}
-                              >
-                                <Checkbox checked={isChecked} className="mr-2" />
-                                <span>{language === 'ar' ? item.organization_arb : item.organization_eng}</span>
-                              </div>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* ── DEPARTMENT ────────────────── */}
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
-                      <Select>
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={
-                              isDepartmentsLoading
-                                ? (t.loading_departments || "Loading departments...")
-                                : getDepartmentPlaceholderText()
-                            } />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder={t.search_departments || "Search departments..."}
-                          onSearchChange={debouncedDepartmentSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getDepartmentData().length === 0 && departmentSearchTerm && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.no_departments_found || "No departments found"}
-                            </div>
-                          )}
-                          {getDepartmentData().map((item: any) => {
-                            const departmentId = item.department_id.toString();
-                            const isChecked = selectedDepartments.includes(departmentId);
-                            return (
-                              <div
-                                key={departmentId}
-                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDepartmentToggle(departmentId); }}
-                              >
-                                <Checkbox checked={isChecked} className="mr-2" />
-                                <span>{language === 'ar'
-                                  ? (item.department_name_arb || item.department_code)
-                                  : (item.department_name_eng || item.department_code)}</span>
-                              </div>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* ── EMPLOYEE TYPE ─────────────── */}
-                <FormField
-                  control={form.control}
-                  name="employee_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
-                      <Select>
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={getEmployeeTypePlaceholderText()} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder={t.search_employee_types || "Search employee types..."}
-                          onSearchChange={debouncedEmployeeTypeSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {getEmployeeTypesData().length === 0 && employeeTypeSearchTerm && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.no_employee_types_found || "No employee types found"}
-                            </div>
-                          )}
-                          {getEmployeeTypesData().map((item: any) => {
-                            const typeValue = item.employee_type_id.toString();
-                            const isChecked = selectedEmployeeTypes.includes(typeValue);
-                            return (
-                              <div
-                                key={item.employee_type_id}
-                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeTypeToggle(typeValue); }}
-                              >
-                                <Checkbox checked={isChecked} className="mr-2" />
-                                <span>
-                                  {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* ── MANAGER ───────────────────── */}
-                <FormField
-                  control={form.control}
-                  name="manager_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">{t.manager || 'Manager'}</FormLabel>
-                      <Select>
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={getManagerPlaceholderText()} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder={t.search_managers || "Search managers..."}
-                          onSearchChange={debouncedManagerSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {isSearchingManagers && managerSearchTerm.length > 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.searching || "Searching..."}
-                            </div>
-                          )}
-                          {getManagerData().length === 0 && managerSearchTerm.length > 0 && !isSearchingManagers && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.no_managers_found || "No managers found"}
-                            </div>
-                          )}
-                          {getManagerData().map((item: any) => {
-                            const managerId = item.employee_id.toString();
-                            const isChecked = selectedManagerIds.includes(managerId);
-                            return (
-                              <div
-                                key={managerId}
-                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleManagerToggle(managerId); }}
-                              >
-                                <Checkbox checked={isChecked} className="mr-2" />
-                                <span>{language === 'ar'
-                                  ? `${item.firstname_arb || item.firstname_eng} ${item.lastname_arb || item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
-                                  : `${item.firstname_eng} ${item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`}</span>
-                              </div>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                  </>
-                )}
-
-                {/* ── EMPLOYEE ──────────────────── */}
-                {!isEmployee && (
-                <FormField
-                  control={form.control}
-                  name="employee"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex gap-1">{t.employee || 'Employee'}</FormLabel>
-                      <Select>
-                        <FormControl>
-                          <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                            <SelectValue placeholder={getPlaceholderText()} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent
-                          showSearch={true}
-                          searchPlaceholder={t.search_employees || "Search employees..."}
-                          onSearchChange={debouncedEmployeeSearch}
-                          className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
-                        >
-                          {isSearchingEmployees && employeeSearchTerm.length > 0 && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.searching || "Searching..."}
-                            </div>
-                          )}
-                          {getFilteredEmployees().length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
-                            <div className="p-3 text-sm text-text-secondary">
-                              {t.no_employees_found || "No employees found"}
-                            </div>
-                          )}
-                          {getFilteredEmployees().map((item: any) => {
-                            const empId = item?.employee_id?.toString();
-                            const isChecked = selectedEmployeeIds.includes(empId);
-                            return (
-                              <div
-                                key={empId}
-                                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeToggle(empId); }}
-                              >
-                                <Checkbox checked={isChecked} className="mr-2" />
-                                <span>{language === 'ar'
-                                  ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
-                                  : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`}</span>
-                              </div>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                )}
-
+              {/* ── DATE RANGE SECTION ─────────── */}
+              <div className="col-span-2">
+                <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-2">
+                  {t.date_range || 'Date Range'}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-10">
                 {/* ── DATE FIELDS ──────────────── */}
                 {reportType === 'weekly' ? (
                   /* ── WEEK DATE ────────────────── */
@@ -1235,6 +1015,408 @@ export default function EmployeeReports() {
                   </>
                 )}
               </div>
+
+              {/* ── FILTERS SECTION ──────────── */}
+              {!isEmployee && !isManager && (
+                <>
+                  <div className="col-span-2 mb-3">
+                    <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-2">
+                      {t.filters || 'Filters'}
+                    </h3>
+                  </div>
+                </>
+              )}
+              {!isEmployee && (
+                <div className="grid grid-cols-2 gap-y-5 gap-10 px-8 pb-5">
+                {!isEmployee && !isManager && (
+                  <>
+                    {/* ── VERTICAL ──────────────────── */}
+                    <FormField
+                      control={form.control}
+                      name="vertical"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex gap-1">{t.vertical || 'Vertical'}</FormLabel>
+                          <Select>
+                            <FormControl>
+                              <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                                <SelectValue placeholder={getVerticalPlaceholderText()} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent
+                              showSearch={true}
+                              searchPlaceholder={t.search_verticals || "Search verticals..."}
+                              onSearchChange={debouncedVerticalSearch}
+                              className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                            >
+                              {getVerticalData().length === 0 && verticalSearchTerm && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_verticals_found || "No verticals found"}
+                                </div>
+                              )}
+                              {getVerticalData().map((item: any) => {
+                                const verticalId = item.organization_id.toString();
+                                const isChecked = selectedVerticals.includes(verticalId);
+                                return (
+                                  <div
+                                    key={verticalId}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleVerticalToggle(verticalId); }}
+                                  >
+                                    <Checkbox checked={isChecked} className="mr-2" />
+                                    <span>{language === 'ar' ? item.organization_arb : item.organization_eng}</span>
+                                  </div>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* ── COMPANY ───────────────────── */}
+                    <FormField
+                      control={form.control}
+                      name="company"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex gap-1">{t.company || 'Company'}</FormLabel>
+                          <Select>
+                            <FormControl>
+                              <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                                <SelectValue placeholder={getCompanyPlaceholderText()} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent
+                              showSearch={true}
+                              searchPlaceholder={t.search_companies || "Search companies..."}
+                              onSearchChange={debouncedCompanySearch}
+                              className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                            >
+                              {getCompanyData().length === 0 && companySearchTerm && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_companies_found || "No companies found"}
+                                </div>
+                              )}
+                              {getCompanyData().map((item: any) => {
+                                const companyId = item.organization_id.toString();
+                                const isChecked = selectedCompanies.includes(companyId);
+                                return (
+                                  <div
+                                    key={companyId}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCompanyToggle(companyId); }}
+                                  >
+                                    <Checkbox checked={isChecked} className="mr-2" />
+                                    <span>{item.display_name || (language === 'ar' ? item.organization_arb : item.organization_eng)}</span>
+                                  </div>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* ── DEPARTMENT ────────────────── */}
+                    <FormField
+                      control={form.control}
+                      name="department"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
+                          <Select>
+                            <FormControl>
+                              <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                                <SelectValue placeholder={
+                                  isDepartmentsLoading
+                                    ? (t.loading_departments || "Loading departments...")
+                                    : getDepartmentPlaceholderText()
+                                } />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent
+                              showSearch={true}
+                              searchPlaceholder={t.search_departments || "Search departments..."}
+                              onSearchChange={debouncedDepartmentSearch}
+                              className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                            >
+                              {getDepartmentData().length === 0 && departmentSearchTerm && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_departments_found || "No departments found"}
+                                </div>
+                              )}
+                              {getDepartmentData().map((item: any) => {
+                                const departmentId = item.department_id.toString();
+                                const isChecked = selectedDepartments.includes(departmentId);
+                                return (
+                                  <div
+                                    key={departmentId}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDepartmentToggle(departmentId); }}
+                                  >
+                                    <Checkbox checked={isChecked} className="mr-2" />
+                                    <span>{language === 'ar'
+                                      ? (item.department_name_arb || item.department_code)
+                                      : (item.department_name_eng || item.department_code)}</span>
+                                  </div>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* ── DIVISION ──────────────────── */}
+                    <FormField
+                      control={form.control}
+                      name="division"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex gap-1">{t.division || 'Division'}</FormLabel>
+                          <Select>
+                            <FormControl>
+                              <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                                <SelectValue placeholder={getDivisionPlaceholderText()} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent
+                              showSearch={true}
+                              searchPlaceholder={t.search_division || "Search division..."}
+                              onSearchChange={debouncedDivisionSearch}
+                              className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                            >
+                              {getDivisionData().length === 0 && divisionSearchTerm && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_results || "No results found"}
+                                </div>
+                              )}
+                              {getDivisionData().map((item: any) => {
+                                const divisionId = item.division_id.toString();
+                                const isChecked = selectedDivisions.includes(divisionId);
+                                return (
+                                  <div
+                                    key={divisionId}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDivisionToggle(divisionId); }}
+                                  >
+                                    <Checkbox checked={isChecked} className="mr-2" />
+                                    <span>{item.division_name || divisionId}</span>
+                                  </div>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* ── COST CENTER ────────────────── */}
+                    <FormField
+                      control={form.control}
+                      name="cost_center"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex gap-1">{t.cost_center || 'Cost Center'}</FormLabel>
+                          <Select>
+                            <FormControl>
+                              <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                                <SelectValue placeholder={getCostCenterPlaceholderText()} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent
+                              showSearch={true}
+                              searchPlaceholder={t.search_cost_center || "Search cost center..."}
+                              onSearchChange={debouncedCostCenterSearch}
+                              className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                            >
+                              {getCostCenterData().length === 0 && costCenterSearchTerm && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_results || "No results found"}
+                                </div>
+                              )}
+                              {getCostCenterData().map((item: any) => {
+                                const costCenterId = item.cost_center_id.toString();
+                                const isChecked = selectedCostCenters.includes(costCenterId);
+                                return (
+                                  <div
+                                    key={costCenterId}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCostCenterToggle(costCenterId); }}
+                                  >
+                                    <Checkbox checked={isChecked} className="mr-2" />
+                                    <span>{item.cost_center_name || costCenterId}</span>
+                                  </div>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* ── EMPLOYEE TYPE ─────────────── */}
+                    <FormField
+                      control={form.control}
+                      name="employee_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex gap-1">{t.employee_type || 'Employee Type'}</FormLabel>
+                          <Select>
+                            <FormControl>
+                              <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                                <SelectValue placeholder={getEmployeeTypePlaceholderText()} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent
+                              showSearch={true}
+                              searchPlaceholder={t.search_employee_types || "Search employee types..."}
+                              onSearchChange={debouncedEmployeeTypeSearch}
+                              className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                            >
+                              {getEmployeeTypesData().length === 0 && employeeTypeSearchTerm && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_employee_types_found || "No employee types found"}
+                                </div>
+                              )}
+                              {getEmployeeTypesData().map((item: any) => {
+                                const typeValue = item.employee_type_id.toString();
+                                const isChecked = selectedEmployeeTypes.includes(typeValue);
+                                return (
+                                  <div
+                                    key={item.employee_type_id}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeTypeToggle(typeValue); }}
+                                  >
+                                    <Checkbox checked={isChecked} className="mr-2" />
+                                    <span>
+                                      {language === 'ar' ? item.employee_type_arb : item.employee_type_eng}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* ── MANAGER ───────────────────── */}
+                    <FormField
+                      control={form.control}
+                      name="manager_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex gap-1">{t.manager || 'Manager'}</FormLabel>
+                          <Select>
+                            <FormControl>
+                              <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                                <SelectValue placeholder={getManagerPlaceholderText()} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent
+                              showSearch={true}
+                              searchPlaceholder={t.search_managers || "Search managers..."}
+                              onSearchChange={debouncedManagerSearch}
+                              className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                            >
+                              {isSearchingManagers && managerSearchTerm.length > 0 && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.searching || "Searching..."}
+                                </div>
+                              )}
+                              {getManagerData().length === 0 && managerSearchTerm.length > 0 && !isSearchingManagers && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_managers_found || "No managers found"}
+                                </div>
+                              )}
+                              {getManagerData().map((item: any) => {
+                                const managerId = item.employee_id.toString();
+                                const isChecked = selectedManagerIds.includes(managerId);
+                                return (
+                                  <div
+                                    key={managerId}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleManagerToggle(managerId); }}
+                                  >
+                                    <Checkbox checked={isChecked} className="mr-2" />
+                                    <span>{language === 'ar'
+                                      ? `${item.firstname_arb || item.firstname_eng} ${item.lastname_arb || item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                      : `${item.firstname_eng} ${item.lastname_eng || ''} ${item.emp_no ? `(${item.emp_no})` : ''}`}</span>
+                                  </div>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </>
+              )}
+
+              {/* ── EMPLOYEE ──────────────────── */}
+              <FormField
+                control={form.control}
+                name="employee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex gap-1">{t.employee || 'Employee'}</FormLabel>
+                    <Select>
+                      <FormControl>
+                        <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
+                          <SelectValue placeholder={getPlaceholderText()} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent
+                        showSearch={true}
+                        searchPlaceholder={t.search_employees || "Search employees..."}
+                        onSearchChange={debouncedEmployeeSearch}
+                        className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
+                      >
+                        {isSearchingEmployees && employeeSearchTerm.length > 0 && (
+                          <div className="p-3 text-sm text-text-secondary">
+                            {t.searching || "Searching..."}
+                          </div>
+                        )}
+                        {getFilteredEmployees().length === 0 && employeeSearchTerm.length > 0 && !isSearchingEmployees && (
+                          <div className="p-3 text-sm text-text-secondary">
+                            {t.no_employees_found || "No employees found"}
+                          </div>
+                        )}
+                        {getFilteredEmployees().map((item: any) => {
+                          const empId = item?.employee_id?.toString();
+                          const isChecked = selectedEmployeeIds.includes(empId);
+                          return (
+                            <div
+                              key={empId}
+                              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEmployeeToggle(empId); }}
+                            >
+                              <Checkbox checked={isChecked} className="mr-2" />
+                              <span>{language === 'ar'
+                                ? `${item.firstname_arb || item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`
+                                : `${item.firstname_eng} ${item.emp_no ? `(${item.emp_no})` : ''}`}</span>
+                            </div>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              </div>
+              )}
+
             </div>
 
             {/* ── Progress Bar ─────────────────────────────────────────── */}
