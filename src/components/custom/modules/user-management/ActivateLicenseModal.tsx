@@ -20,11 +20,13 @@ export default function ActivateLicenseModal({
   onOpenChange,
   userId,
   onSuccess,
+  isAdLicense = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: number | null;
   onSuccess: () => void;
+  isAdLicense?: boolean;
 }) {
   const { translations } = useLanguage();
   const [keyValue, setKeyValue] = useState("");
@@ -47,7 +49,7 @@ export default function ActivateLicenseModal({
     let cancelled = false;
     setResolving(true);
 
-    getLicenseByUserId(userId)
+    getLicenseByUserId(userId, isAdLicense)
       .then((res) => {
         if (cancelled) return;
         const list = Array.isArray(res?.data) ? res.data : [];

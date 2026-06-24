@@ -175,6 +175,7 @@ function PasswordCell({
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
+  const [activeTab, setActiveTab] = useState<"ad-user" | "local-users">("ad-user");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -211,6 +212,10 @@ export default function Page() {
   const showToast = useShowToast();
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
   const t = translations?.modules?.userManagement || {};
 
   const orgSearchParams = useMemo(() => ({ limit: "1000" }), []);
@@ -220,7 +225,9 @@ export default function Page() {
   });
 
   const organizationsData = useMemo(() => {
-    return organizationData?.data || [];
+    return (organizationData?.data || []).filter(
+      (item: any) => item.organization_type_id !== 1 && item.organization_type_id !== 2
+    );
   }, [organizationData]);
 
   const licenseToStatus = useMemo<Record<string, string | undefined>>(() => ({
@@ -234,20 +241,23 @@ export default function Page() {
     return status ? { status } : undefined;
   }, [selectedLicense]);
 
+  const showLicenseColumn = activeTab === "ad-user" ? true : selectedOrganization === "27";
+
   const licenseSearchParams = useMemo(() => ({
     ...(licenseStatusFilter || {}),
     limit: "10000",
   }), [licenseStatusFilter]);
 
-  const { data: licenseData } = useFetchAllEntity("license", {
+  const { data: licenseData } = useFetchAllEntity(activeTab === "ad-user" ? "ad-license" : "license", {
     searchParams: licenseSearchParams,
+    enabled: showLicenseColumn,
   });
 
   const licenseMap = useMemo(() => {
     if (!licenseData?.data || !Array.isArray(licenseData.data)) return {};
-    return (licenseData.data as any[]).reduce((acc: Record<number, { isUsed: boolean; licenseId: number; status: string }>, lic: any) => {
+    return (licenseData.data as any[]).reduce((acc: Record<number, any>, lic: any) => {
       if (lic.user_id != null) {
-        acc[lic.user_id] = { isUsed: lic.is_used === true, licenseId: lic.id, status: lic.status };
+        acc[lic.user_id] = lic;
       }
       return acc;
     }, {});
@@ -266,12 +276,13 @@ export default function Page() {
 
   const userSearchParams = useMemo(() => ({
     limit: isLicenseFilterActive ? "10000" : String(rowsPerPage),
-    offset: String((currentPage - 1) * (isLicenseFilterActive ? 10000 : rowsPerPage) + 1),
+    offset: String(currentPage),
+    adUser: activeTab === "ad-user" ? "true" : "false",
     ...(debouncedSearchValue && { search: debouncedSearchValue }),
     ...(selectedAppType && selectedAppType !== "all" && { app_type: selectedAppType }),
     ...(selectedOrganization && { organization_id: selectedOrganization }),
     ...(empNoFilter && { emp_no: empNoFilter }),
-  }), [isLicenseFilterActive, rowsPerPage, debouncedSearchValue, selectedAppType, selectedOrganization, empNoFilter, currentPage]);
+  }), [isLicenseFilterActive, rowsPerPage, debouncedSearchValue, selectedAppType, selectedOrganization, empNoFilter, currentPage, activeTab]);
 
   const { data: userData, isLoading } = useFetchAllEntity("secuser", {
     endpoint: "/secuser/list",
@@ -337,8 +348,6 @@ export default function Page() {
     setActivateModalOpen(true);
   }, [showToast]);
 
-  const showLicenseColumn = selectedOrganization === "27";
-
   const columns: Column[] = useMemo(
     () => {
       const cols: Column[] = [
@@ -394,12 +403,25 @@ export default function Page() {
           flex: 0,
           cellRenderer: (row: any) => {
             const licInfo = licenseMap[row.user_id];
+            if (activeTab === "ad-user") {
+              return (
+                <LicenseToggle
+                  value={licInfo?.is_used ? "Enabled" : "Disabled"}
+                  rowId={row.user_id}
+                  licenseStatus={licInfo?.status}
+                  licenseId={licInfo?.id ?? null}
+                  status={licInfo?.status ?? null}
+                  onActivate={() => handleActivateClick(row.user_id)}
+                  onToggleSuccess={handleLicenseToggle}
+                />
+              );
+            }
             return (
               <LicenseToggle
                 value={row.user_license}
                 rowId={row.user_id}
                 licenseStatus={row.license_status}
-                licenseId={licInfo?.licenseId ?? null}
+                licenseId={licInfo?.id ?? null}
                 status={licInfo?.status ?? null}
                 onActivate={() => handleActivateClick(row.user_id)}
                 onToggleSuccess={handleLicenseToggle}
@@ -411,7 +433,7 @@ export default function Page() {
 
       return cols;
     },
-    [language, t, handleResetSuccess, handleLicenseToggle, licenseMap, showLicenseColumn, handleActivateClick]
+    [language, t, handleResetSuccess, handleLicenseToggle, licenseMap, showLicenseColumn, handleActivateClick, activeTab]
   );
 
   const data = useMemo(() => {
@@ -511,6 +533,11 @@ export default function Page() {
     ]
   );
 
+  const tabs = [
+    { key: "ad-user" as const, label: t.ad_users || "AD Users" },
+    { key: "local-users" as const, label: t.local_users || "Local Users" },
+  ];
+
   return (
     <div className="flex flex-col gap-4">
       <PowerHeader
@@ -523,58 +550,82 @@ export default function Page() {
         size="medium"
       />
 
-      {/* ─── Filters ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:max-w-[1050px]">
+      <div className="bg-accent rounded-2xl">
+        <div className="flex items-center justify-between p-6 pb-6">
+          <h1 className="font-medium text-xl text-primary">
+            {t.user_management || "User Management"}
+          </h1>
 
-        {/* Organization filter */}
-        <div>
-          <Popover
-            open={popoverStates.organization}
-            onOpenChange={(open) =>
-              setPopoverStates((prev) => ({ ...prev, organization: open }))
-            }
-          >
-            <PopoverTrigger asChild>
-              <Button
-                size="lg"
-                variant="outline"
-                className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
+          {/* Organization filter */}
+          <div className="w-[320px]">
+            <Popover
+              open={popoverStates.organization}
+              onOpenChange={(open) =>
+                setPopoverStates((prev) => ({ ...prev, organization: open }))
+              }
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
+                >
+                  <p className={`truncate w-full ${language === "ar" ? "text-right" : "text-left"}`}>
+                    <Label className="font-normal text-secondary">
+                      {t.filter_organization || "Organization"} :
+                    </Label>
+                    <span className="px-1 text-sm text-text-primary">
+                      {selectedOrganization
+                        ? organizationsData.find(
+                          (item: any) => String(item.organization_id) === selectedOrganization
+                        )?.display_name
+                        : (t.choose_organization || "Choose organization")}
+                    </span>
+                  </p>
+                  <ChevronDown className="ml-2 h-4 w-4 text-text-primary shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
+                <Command>
+                  <CommandInput placeholder={`${translations?.search || "Search"} ${t.filter_organization || "Organization"}...`} />
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {organizationsData.map((item: any) => (
+                      <CommandItem
+                        key={item.organization_id}
+                        onSelect={() => handleOrganizationChange(String(item.organization_id))}
+                      >
+                        {item.display_name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+        <div className="px-6">
+          <div className="flex gap-20 items-center border-b pb-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={
+                  activeTab === tab.key
+                    ? "text-primary text-base underline underline-offset-[14px] font-medium"
+                    : "text-text-secondary font-regular hover:text-primary transition-colors duration-200"
+                }
               >
-                <p className={`truncate w-full ${language === "ar" ? "text-right" : "text-left"}`}>
-                  <Label className="font-normal text-secondary">
-                    {t.filter_organization || "Organization"} :
-                  </Label>
-                  <span className="px-1 text-sm text-text-primary">
-                    {selectedOrganization
-                      ? organizationsData.find(
-                        (item: any) => String(item.organization_id) === selectedOrganization
-                      )?.[language === "ar" ? "organization_arb" : "organization_eng"]
-                      : (t.choose_organization || "Choose organization")}
-                  </span>
-                </p>
-                <ChevronDown className="ml-2 h-4 w-4 text-text-primary shrink-0" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
-              <Command>
-                <CommandInput placeholder={`${translations?.search || "Search"} ${t.filter_organization || "Organization"}...`} />
-                <CommandGroup className="max-h-64 overflow-auto">
-                  {organizationsData.map((item: any) => (
-                    <CommandItem
-                      key={item.organization_id}
-                      onSelect={() => handleOrganizationChange(String(item.organization_id))}
-                    >
-                      {language === "ar" ? item.organization_arb : item.organization_eng}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* App Type filter */}
-        <div>
+      {/* ─── Filters ──────────────────────────────────────────────────────── */}
+      {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:max-w-[1050px] px-6 pt-6"> */}
+
+        {/* App Type filter — commented out */}
+        {/* <div>
           <Select onValueChange={handleAppTypeFilterChange} value={selectedAppType}>
             <SelectTrigger className="bg-accent border-grey">
               <p className={`truncate w-full ${language === "ar" ? "text-right" : "text-left"}`}>
@@ -592,7 +643,7 @@ export default function Page() {
               <SelectItem value="fieldtrack">{t.fieldtrack || "Field Track"}</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         {/* License filter — commented out for now */}
         {/* {showLicenseColumn && (
@@ -619,14 +670,17 @@ export default function Page() {
           </div>
         )} */}
 
-      </div>
+      {/* </div> */}
 
-      <PowerTable
-        props={props}
-        onEditClick={handleEditClick}
-        onRowSelection={handleRowSelection}
-        isLoading={isLoading}
-      />
+      <div className="px-3 pb-6 pt-4">
+        <PowerTable
+          props={props}
+          onEditClick={handleEditClick}
+          onRowSelection={handleRowSelection}
+          isLoading={isLoading}
+        />
+      </div>
+      </div>
 
       <PasswordResetSuccessModal
         open={successModalOpen}
@@ -641,6 +695,7 @@ export default function Page() {
         onOpenChange={setActivateModalOpen}
         userId={activateUserId}
         onSuccess={handleLicenseActivationSuccess}
+        isAdLicense={activeTab === "ad-user"}
       />
     </div>
   );

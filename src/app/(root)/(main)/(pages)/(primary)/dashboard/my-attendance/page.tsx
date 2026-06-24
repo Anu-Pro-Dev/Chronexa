@@ -35,11 +35,11 @@ export default function Dashboard() {
     const loadStaticElements = () => {
       SetLeaveAndAttendance([
         { label: "Working Days", icon: <WorkingDaysIcon />, value: "212" },
-        { label: "Total leaves", icon: <TotalLeavesIcon />, value: "09" },
+        // { label: "Total leaves", icon: <TotalLeavesIcon />, value: "09" },
         { label: "Leaves Taken", icon: <LeaveTakenIcon />, value: "06" },
         { label: "Leaves Absent", icon: <AbsentIcon />, value: "03" },
         { label: "Approved leaves", icon: <ApprovedIcon />, value: "02" },
-        { label: "Pending leaves", icon: <PendingIcon />, value: "01" },
+        // { label: "Pending leaves", icon: <PendingIcon />, value: "01" },
       ]);
     };
 

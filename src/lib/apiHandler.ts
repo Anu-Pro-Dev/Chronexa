@@ -1457,6 +1457,7 @@ export const licenseToggleRequest = async (licenseId: number, isEnabled: boolean
 };
 
 // Function to fetch license(s) for a specific user
-export const getLicenseByUserId = async (user_id: number) => {
-  return apiRequest(`/license/getbyuserid/${user_id}`, "GET");
+export const getLicenseByUserId = async (user_id: number, isAdLicense?: boolean) => {
+  const prefix = isAdLicense ? "ad-license" : "license";
+  return apiRequest(`/${prefix}/getbyuserid/${user_id}`, "GET");
 };

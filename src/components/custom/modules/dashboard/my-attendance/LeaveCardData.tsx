@@ -78,14 +78,14 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
       color: "#0078D4",
       icon: WorkingDaysIcon(),
     },
-    {
-      label: t?.total_leaves || "TOTAL LEAVES",
-      value: animatedLeaves.totalLeaves,
-      subLabel: "leave entitlement",
-      progress: Math.round((animatedLeaves.totalLeaves / denom) * 100),
-      color: "#6741CA",
-      icon: TotalLeavesIcon(),
-    },
+    // {
+    //   label: t?.total_leaves || "TOTAL LEAVES",
+    //   value: animatedLeaves.totalLeaves,
+    //   subLabel: "leave entitlement",
+    //   progress: Math.round((animatedLeaves.totalLeaves / denom) * 100),
+    //   color: "#6741CA",
+    //   icon: TotalLeavesIcon(),
+    // },
     {
       label: t?.leaves_taken || "LEAVES TAKEN",
       value: animatedLeaves.leaveTaken,
@@ -110,14 +110,14 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
       color: "#1DAA61",
       icon: ApprovedIcon(),
     },
-    {
-      label: t?.pending_leaves || "PENDING LEAVES",
-      value: animatedLeaves.balanceLeaves,
-      subLabel: "balance remaining",
-      progress: Math.round((animatedLeaves.balanceLeaves / denom) * 100),
-      color: "#FF6347",
-      icon: PendingIcon(),
-    },
+    // {
+    //   label: t?.pending_leaves || "PENDING LEAVES",
+    //   value: animatedLeaves.balanceLeaves,
+    //   subLabel: "balance remaining",
+    //   progress: Math.round((animatedLeaves.balanceLeaves / denom) * 100),
+    //   color: "#FF6347",
+    //   icon: PendingIcon(),
+    // },
   ];
 
   // ── Permissions KPI cards ──────────────────────────────────────────────
@@ -191,7 +191,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
     );
   }
 
-  const cols = page === "Leaves" ? "grid-cols-2 md:grid-cols-6" : "grid-cols-2 md:grid-cols-5";
+  const cols = page === "Leaves" ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-5";
 
   return (
     <div className="p-4 pt-0">
