@@ -99,14 +99,16 @@ body {
     /* --backdrop: #E91D250d; */
     /* --table-backdrop: #E91D251a; */
 
-    /* Charts Color */
-    --chart-leaves: 206 100% 89%;
-    --chart-leaves-hover: 206 100% 75%;
+    /*  Charts Color */
+    --chart-leaves: 173 80% 40%;
+    --chart-leaves-hover: 173 80% 32%;
     /* darker on hover */
 
-    --chart-absent: 206 100% 42%;
-    --chart-absent-hover: 206 100% 30%;
+    --chart-absent: 350 89% 60%;
+    --chart-absent-hover: 350 89% 50%;
     /* darker on hover */
+
+
   }
 
   /* Dark mode styles */
@@ -123,6 +125,11 @@ body {
     --fullpage: #121212;
     --text-content: #C5C5C5;
     /* Add more overrides as needed */
+    --chart-leaves: 173 70% 48%;
+    --chart-leaves-hover: 173 70% 56%;
+    /* lighter on hover for dark bg */
+    --chart-absent: 350 95% 66%;
+    --chart-absent-hover: 350 95% 74%;
   }
 
   /* Night mode styles */

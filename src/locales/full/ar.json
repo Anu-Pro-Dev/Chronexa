@@ -288,7 +288,8 @@
         "missed_check_in": "تسجيل دخول فائت",
         "missed_check_out": "تسجيل خروج فائت",
         "missing_hours": "الساعات المفقودة",
-        "user_insights": "رؤى المستخدم"
+        "user_insights": "رؤى المستخدم",
+        "monthly_discrepancies_summary": "Monthly Discrepancies Summary"
       },
       "companyMaster": {
         "locations": "المواقع",

@@ -3,7 +3,7 @@ import React from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import {
   WorkingDaysIcon, TotalLeavesIcon, LeaveTakenIcon,
-  AbsentIcon, PendingIcon, ApprovedIcon,
+  AbsentIcon, PendingIcon, ApprovedIcon, ViolationIcon
 } from "@/src/icons/icons";
 import { useAttendanceData } from "./AttendanceData";
 import { KpiCard } from "./KpiCard";
@@ -46,6 +46,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
   const monthlyAbsent = formatValue(parseInt(attendanceDetails?.MonthlyAbsent || "0"));
   const approvedLeaves = formatValue(attendanceDetails?.ApprovedLeaves);
   const balanceLeaves = formatValue(attendanceDetails?.BalanceLeaves);
+  const rejectedLeaves = formatValue(attendanceDetails?.RejectedLeaveCount);
 
   // Permission hours
   const totalPerm = parsePermissionHours("06:00");
@@ -56,7 +57,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
 
   // Animated values
   const animatedLeaves = useCountUpInt(
-    { expectedDays, totalLeaves, leaveTaken, monthlyAbsent, approvedLeaves, balanceLeaves },
+    { expectedDays, totalLeaves, leaveTaken, monthlyAbsent, approvedLeaves, balanceLeaves, rejectedLeaves },
     hasData,
   );
 
@@ -92,7 +93,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
       subLabel: "unapproved absences",
       progress: Math.round((animatedLeaves.monthlyAbsent / denom) * 100),
       color: "#DA153E",
-      icon: <AbsentIcon color="#DA153E" />,
+      icon: <AbsentIcon color="#DA153E" className="w-5 h-5"/>,
     },
     {
       label: t?.approved_leaves || "APPROVED LEAVES",
@@ -101,6 +102,14 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
       progress: Math.round((animatedLeaves.approvedLeaves / denom) * 100),
       color: "#10B981",
       icon: React.cloneElement(ApprovedIcon() as React.ReactElement, { color: "#10B981" }),
+    },
+    {
+      label: t?.rejected_leaves || "REJECTED LEAVES",
+      value: animatedLeaves.rejectedLeaves,
+      subLabel: "rejected requests",
+      progress: Math.round((animatedLeaves.rejectedLeaves / denom) * 100),
+      color: "#F97316",
+      icon: <ViolationIcon color="#F97316" className="w-5 h-5"/>,
     },
   ];
 
@@ -122,8 +131,8 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
       value: `${animatedPerms.pendingPerm.toFixed(1)} hrs`,
       subLabel: "awaiting approval",
       progress: Math.round((animatedPerms.pendingPerm / permDenom) * 100),
-      color: "#FF6347",
-      icon: React.cloneElement(PendingIcon() as React.ReactElement, { color: "#FF6347" }),
+      color: "#F59E0B",
+      icon: React.cloneElement(PendingIcon() as React.ReactElement, { color: "#F59E0B" }),
     },
     {
       label: t?.applied_perms || "APPLIED PERMISSION",
@@ -147,7 +156,7 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
       subLabel: "rejected requests",
       progress: Math.round((animatedPerms.rejectedPerm / permDenom) * 100),
       color: "#EF4444",
-      icon: <AbsentIcon color="#EF4444" />,
+      icon: <AbsentIcon color="#EF4444" className="w-5 h-5"/>,
     },
   ];
 
@@ -175,10 +184,10 @@ export default function LeaveCardData({ page }: LeaveCardDataProps) {
     );
   }
 
-  const cols = page === "Leaves" ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-5";
+  const cols = "grid-cols-2 md:grid-cols-5";
 
   return (
-    <div className="p-4 pt-0">
+    <div className="p-0 pt-0">
       <div className={`grid ${cols} gap-3`}>
         {cards.map((card) => (
           <KpiCard

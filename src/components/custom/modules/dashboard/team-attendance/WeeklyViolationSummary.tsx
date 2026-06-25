@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useDashboardStore } from "@/src/store/useDashboardStore";
-import { ClockIcon, VoilationIcon } from "@/src/icons/icons";
+import { ClockIcon, ViolationIcon } from "@/src/icons/icons";
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import ViolationDrillDownModal from './ViolationDrillDownModal';
@@ -99,7 +99,7 @@ function WeeklyViolationSummary() {
       filter: "late",
       value: weekData?.TotalLateCount || 0,
       color: "#FF6347",
-      icon: <ClockIcon color="#FF6347" />,
+      icon: <ClockIcon color="#FF6347" className="w-4 h-4"/>,
     },
     {
       label: "Early Out",
@@ -107,7 +107,7 @@ function WeeklyViolationSummary() {
       filter: "early",
       value: weekData?.TotalEarlyOutCount || 0,
       color: "#FFBF00",
-      icon: <ArrowUpIcon className="size-5 text-[#FFBF00]" />,
+      icon: <ArrowUpIcon className="size-5 text-[#FFBF00] w-4 h-4"/>,
     },
     {
       label: "Missed Punch",
@@ -115,7 +115,7 @@ function WeeklyViolationSummary() {
       filter: "missed_punch",
       value: weekData?.TotalMissedPunchCount || 0,
       color: "#0078D4",
-      icon: <VoilationIcon color="#0078D4" />,
+      icon: <ViolationIcon color="#0078D4" />,
     },
     {
       label: "Incomplete Duty",
@@ -123,7 +123,7 @@ function WeeklyViolationSummary() {
       filter: "incomplete_duty",
       value: weekData?.TotalIncompleteDutyCount || 0,
       color: "#1E9090",
-      icon: <ArrowDownIcon className="size-5 text-[#1E9090]" />,
+      icon: <ArrowDownIcon className="size-5 text-[#1E9090] w-4 h-4"/>,
     },
   ];
 

@@ -5,6 +5,7 @@ import LeaveCard from "./LeaveCard";
 import LeaveAnalyticsCard from "./LeaveAnalyticsCard";
 import ViolationsCard from "./ViolationsCard";
 import WorkTrendsCard from "./WorkTrendsCard";
+import WeeklyReportCard from "./WeeklyReportCard";
 import ScheduleCard from "./ScheduleCard";
 import InsightsCard from "./InsightsCard";
 import { InlineLoading } from "@/src/app/loading";
@@ -12,6 +13,7 @@ import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 import PunchStatusWidget from "./PunchStatusWidget";
 import { useNotificationSettings } from "@/src/components/custom/common/notification-settings";
 import { getTodayStatus } from "@/src/lib/apiHandler";
+import { usePunch } from "@/src/providers/PunchProvider";
 
 interface TodayStatusData {
   has_schedule: boolean;
@@ -114,11 +116,7 @@ function PunchStatusSection() {
   };
 
   if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="shadow-card rounded-[10px] bg-gray-200 dark:bg-gray-700 h-48"></div>
-      </div>
-    );
+    return null;
   }
 
   if (!notificationSettings.enabled) {
@@ -326,26 +324,36 @@ function PunchStatusSection() {
 
 function MyAttendancePage() {
   const { userInfo } = useAuthGuard();
+  const { isPunchedIn, punchInTime } = usePunch();
 
   return (
     <AttendanceDataProvider>
       <Suspense fallback={<InlineLoading message="Loading dashboard..." />}>
         <div className="flex flex-col gap-4">
           {/* Top decorative banner */}
-          <div className="bg-gradient-to-br from-[#0078D4] via-[#0095D9] to-[#00BCD4] rounded-[10px] shadow-card p-5 text-white">
+          <div className="rounded-[12px] shadow-card p-5 text-white" style={{ background: "linear-gradient(135deg, #0078D4 0%, #00BCD4 100%)" }}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium opacity-90">Welcome back,</p>
-                <h2 className="text-2xl font-bold mt-0.5">{userInfo?.employeename?.firsteng && userInfo?.employeename?.lasteng ? `${userInfo.employeename.firsteng} ${userInfo.employeename.lasteng}`.trim() : userInfo?.employeename?.firstarb || "Employee"}</h2>
+                <h2 className="text-2xl font-bold mt-0.5">{userInfo?.employeename?.firsteng || userInfo?.employeename?.firstarb || "Employee"}</h2>
                 <p className="text-xs opacity-75 mt-1">Here&apos;s your attendance overview for today</p>
               </div>
-              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center border border-white/20">
-                <p className="text-2xl font-bold">
-                  {new Date().toLocaleDateString('en-US', { day: 'numeric' })}
-                </p>
-                <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
-                  {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                </p>
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center border border-white/20 min-w-[90px]">
+                {isPunchedIn && punchInTime ? (
+                  <>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">Check In</p>
+                    <p className="text-xl font-bold mt-0.5">{punchInTime}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-2xl font-bold">
+                      {new Date().toLocaleDateString('en-US', { day: 'numeric' })}
+                    </p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                      {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -357,16 +365,11 @@ function MyAttendancePage() {
           <div className="bg-accent rounded-[10px] shadow-card overflow-hidden">
             <div className="px-5 pt-4 pb-1">
               <div className="flex items-center gap-2.5">
-                <div className="w-1 h-6 rounded-full bg-gradient-to-b from-[#0078D4] to-[#00BCD4]" />
                 <h5 className="text-lg text-text-primary font-bold">Leave & Permission</h5>
-                <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent ml-2" />
               </div>
             </div>
             <LeaveCard />
           </div>
-
-          {/* Discrepancies section with gradient accent header */}
-          <ViolationsCard />
 
           {/* Two-column grid for Analytics + Schedule */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -378,8 +381,14 @@ function MyAttendancePage() {
             </div>
           </div>
 
+          {/* Discrepancies section with gradient accent header */}
+          <ViolationsCard />
+
           {/* Work Trends - full width */}
           <WorkTrendsCard />
+
+          {/* Last week report table with month-to-date export */}
+          <WeeklyReportCard />
         </div>
       </Suspense>
     </AttendanceDataProvider>

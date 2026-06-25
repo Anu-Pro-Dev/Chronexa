@@ -17,11 +17,11 @@ import type { ExportColumn } from "../export/DashboardExcelExporter";
 const chartConfig = {
   worked: {
     label: "Worked",
-    color: "#0EA5E9", // Green
+    color: "#0EA5E9",
   },
   missed: {
     label: "Missed",
-    color: "#8B5CF6", // Red
+    color: "#FF6B2D",
   },
 }satisfies ChartConfig;
 
@@ -141,11 +141,9 @@ function WorkTrendsCard() {
     <div className="shadow-card rounded-[10px] bg-accent p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-1 h-6 rounded-full bg-gradient-to-b from-[#0EA5E9] to-[#8B5CF6]" />
           <h5 className="text-lg text-text-primary font-bold">
             {t?.work_hrs_trends}
           </h5>
-          <div className="h-px w-12 bg-gradient-to-r from-border to-transparent hidden sm:block" />
           <ExportButton
             data={workTrendsExportData}
             columns={workTrendsExportColumns}
@@ -207,8 +205,8 @@ function WorkTrendsCard() {
                 <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="missedGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="65%" stopColor="#8B5CF6" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                <stop offset="65%" stopColor="#FF6B2D" stopOpacity={0.4} />
+                <stop offset="95%" stopColor="#FF6B2D" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
@@ -216,7 +214,7 @@ function WorkTrendsCard() {
             <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} domain={[0, yAxisMax]} ticks={ticks} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Area type="monotone" dataKey="worked"  stroke="#0EA5E9" strokeWidth={2} fill="url(#workedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
-            <Area type="monotone" dataKey="missed"  stroke="#8B5CF6" strokeWidth={2} fill="url(#missedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
+            <Area type="monotone" dataKey="missed"  stroke="#FF6B2D" strokeWidth={2} fill="url(#missedGrad)" dot={false} isAnimationActive={true} animationDuration={800} />
           </AreaChart>
         </ChartContainer>
       )}

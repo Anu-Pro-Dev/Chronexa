@@ -5,6 +5,8 @@ import EmployeeCard from './EmployeeCard';
 import LeaveAnalyticsCard from './LeaveAnalyticsCard';
 import ViolationsCard from './ViolationsCard';
 import WeeklyViolationSummary from './WeeklyViolationSummary';
+import WeeklyReportCard from './TeamReportCard';
+import TeamReportCard from './TeamReportCard';
 
 function TeamAttendancePage() {
     return (
@@ -29,6 +31,8 @@ function TeamAttendancePage() {
                         <ViolationsCard />
                     </div>
                 </div>
+
+                <TeamReportCard />
             </div>
         </TeamAttendanceDataProvider>
     );

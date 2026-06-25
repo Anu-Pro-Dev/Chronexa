@@ -16,7 +16,7 @@ const apiInstance = axios.create({
 });
 
 // Function to handle API requests
-export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", data?: any) => {
+export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", data?: any, timeout?: number) => {
   try {
     const token = getAuthToken();
 
@@ -26,6 +26,8 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
       method,
       url: endpoint,
       data,
+      // Falls back to the instance default (30s) when undefined.
+      timeout,
       // withCredentials: true,
       headers: {
         ...(isFormData
@@ -38,10 +40,17 @@ export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT
     const response = await apiInstance(config);
     return response.data;
   } catch (error) {
-    if ((error as any).isAxiosError && (error as any).response) {
+    const ax = error as any;
+    if (ax.isAxiosError && ax.response) {
       // throw new Error(error.response.data.message || ERROR_GENERIC);
       throw error;
     } else {
+      // No HTTP response reached the client (timeout, CORS, or unreachable host).
+      // Log the real reason so it isn't masked by the generic message.
+      console.error("apiRequest failed (no response):", ax?.code, ax?.message, endpoint);
+      if (ax?.code === "ECONNABORTED") {
+        throw new Error("Request timed out");
+      }
       throw new Error(ERROR_NETWORK);
     }
   }

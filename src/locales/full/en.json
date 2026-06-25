@@ -289,7 +289,8 @@
         "missed_check_in": "Missed CheckIn",
         "missed_check_out": "Missed CheckOut",
         "missing_hours": "Missing Hours",
-        "user_insights": "User Insights"
+        "user_insights": "User Insights",
+        "monthly_discrepancies_summary": "Monthly Discrepancies Summary"
       },
       "companyMaster": {
         "locations": "Locations",

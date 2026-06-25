@@ -46,7 +46,7 @@ function TimerCard() {
 
   if (!isClient) {
     return (
-      <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#0078D4] to-[#003E6E] text-white p-4 flex flex-col items-center">
+      <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#4338CA] to-[#1E1B4B] text-white p-4 flex flex-col items-center">
         <Image
           src="/ClockCardBG.svg"
           alt="Clock Your Hours"
@@ -97,7 +97,7 @@ function TimerCard() {
   const overtimeMinutes = Math.floor((overtimeSeconds % 3600) / 60);
 
   return (
-    <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#0078D4] to-[#003E6E] text-white p-4 flex flex-col items-center">
+    <div className="shadow-card relative rounded-[10px] bg-gradient-to-bl from-[#4338CA] to-[#1E1B4B] text-white p-4 flex flex-col items-center">
       <Image
         src="/ClockCardBG.svg"
         alt="Clock Your Hours"

@@ -78,10 +78,10 @@ function ViolationsCard() {
   }, [violationsData]);
 
   const chartConfig = {
-    missedin:  { label: t?.missed_in  || "Missed In",  color: "#0078D4" },
+    missedin: { label: t?.missed_in || "Missed In", color: "#0078D4" },
     missedout: { label: t?.missed_out || "Missed Out", color: "#1E9090" },
-    latein:    { label: t?.late_in    || "Late In",    color: "#FF6347" },
-    earlyout:  { label: t?.early_out  || "Early Out",  color: "#FFBF00" },
+    latein: { label: t?.late_in || "Late In", color: "#FF6347" },
+    earlyout: { label: t?.early_out || "Early Out", color: "#FFBF00" },
   } satisfies ChartConfig;
 
   const localizedChartData = dir === "rtl" ? [...chartData].reverse() : chartData;
@@ -108,35 +108,38 @@ function ViolationsCard() {
         <h5 className="text-lg text-text-primary font-bold">
           {t?.discerpencies || "Discrepancies"}
         </h5>
-        <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
-            <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translations?.select_year || "Select Year"}>
-              {selectedYear}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-accent rounded-md shadow-dropdown">
-            {years.map((year) => (
-              <SelectItem
-                key={year}
-                value={year.toString()}
-                className="text-text-primary bg-accent"
-              >
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
-      {/* Legend */}
-      <div className="flex justify-center items-center gap-4 text-xs text-text-secondary">
-        {Object.entries(chartConfig).map(([key, cfg]) => (
-          <span key={key} className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
-            {cfg.label}
-          </span>
-        ))}
+        <div className="flex items-center gap-3">
+          {/* Legend */}
+          <div className="flex justify-center items-center gap-4 text-xs text-text-secondary">
+            {Object.entries(chartConfig).map(([key, cfg]) => (
+              <span key={key} className="flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
+                {cfg.label}
+              </span>
+            ))}
+          </div>
+          <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
+            <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+              <Calendar1Icon width="14" height="16" />
+              <SelectValue placeholder={translations?.select_year || "Select Year"}>
+                {selectedYear}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-accent rounded-md shadow-dropdown">
+              {years.map((year) => (
+                <SelectItem
+                  key={year}
+                  value={year.toString()}
+                  className="text-text-primary bg-accent"
+                >
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
       </div>
 
       {/* Chart */}
@@ -174,10 +177,10 @@ function ViolationsCard() {
             orientation={dir === "rtl" ? "right" : "left"}
           />
           <ChartTooltip content={<ChartTooltipContent />} cursor={false} defaultIndex={1} />
-          <Line dataKey="missedin"  type="monotone" stroke="var(--color-missedin)"  strokeWidth={2} dot={false} />
+          <Line dataKey="missedin" type="monotone" stroke="var(--color-missedin)" strokeWidth={2} dot={false} />
           <Line dataKey="missedout" type="monotone" stroke="var(--color-missedout)" strokeWidth={2} dot={false} />
-          <Line dataKey="latein"    type="monotone" stroke="var(--color-latein)"    strokeWidth={2} dot={false} />
-          <Line dataKey="earlyout"  type="monotone" stroke="var(--color-earlyout)"  strokeWidth={2} dot={false} />
+          <Line dataKey="latein" type="monotone" stroke="var(--color-latein)" strokeWidth={2} dot={false} />
+          <Line dataKey="earlyout" type="monotone" stroke="var(--color-earlyout)" strokeWidth={2} dot={false} />
         </LineChart>
       </ChartContainer>
     </div>

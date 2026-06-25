@@ -3,7 +3,7 @@ import * as React from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import {
   EmployeesIcon, PunchInIcon, PunchOutIcon, AbsentIcon,
-  LeaveTakenIcon, VoilationIcon, ManagerIcon, ClockIcon,
+  LeaveTakenIcon, ViolationIcon, ManagerIcon, ClockIcon,
 } from "@/src/icons/icons";
 import { MissedInIcon, MissedOutIcon } from "@/src/icons/icons";
 import { useTeamAttendanceData } from "./TeamAttendanceDataProvider";
@@ -207,7 +207,7 @@ export default function EmployeeCardData() {
       subLabel: "unaccounted hours",
       progress: Math.min(Math.round((missingHrs / 8) * 100), 100),
       color: "#E67E22",
-      icon: <VoilationIcon color="#E67E22" />,
+      icon: <ViolationIcon color="#E67E22" />,
     },
     {
       label: t?.overtimee || "OVERTIME",
@@ -215,7 +215,7 @@ export default function EmployeeCardData() {
       subLabel: "extra hours",
       progress: Math.min(Math.round((overtimeHrs / 8) * 100), 100),
       color: "#10B981",
-      icon: <ClockIcon color="#10B981" />,
+      icon: <ClockIcon color="#10B981" className="w-4 h-4" />,
     },
   ];
 

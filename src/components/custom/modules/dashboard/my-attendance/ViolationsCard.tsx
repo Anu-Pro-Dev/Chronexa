@@ -60,8 +60,11 @@ function ViolationsCard() {
   const attendanceDetails = useDashboardStore((s) => s.attendanceDetails);
   const loadingDashboard = useDashboardStore((s) => s.loadingDashboard);
 
-  const lateInRaw = formatValue(attendanceDetails?.Late);
-  const earlyOutRaw = formatValue(attendanceDetails?.Early);
+  // Monthly figures for late / early (fall back to the daily field if the
+  // monthly key is absent). Missed in/out have no monthly counterpart, so the
+  // API totals are used as-is.
+  const lateInRaw = formatValue(attendanceDetails?.MonthlyLate ?? attendanceDetails?.Late);
+  const earlyOutRaw = formatValue(attendanceDetails?.MonthlyEarly ?? attendanceDetails?.Early);
   const missedInRaw = formatValue(attendanceDetails?.TotalMissedIn);
   const missedOutRaw = formatValue(attendanceDetails?.TotalMissedOut);
   const totalRaw = lateInRaw + earlyOutRaw + missedInRaw + missedOutRaw;
@@ -75,7 +78,7 @@ function ViolationsCard() {
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const pieColors = ["#F59E0B", "#C084FC", "#EF4444", "#DC2626"];
+  const pieColors = ["#F59E0B", "#38BDF8", "#FB7185", "#8B5CF6"];
   const pieData = [
     { name: t?.late_in || "Late Check-In", value: lateInRaw, color: pieColors[0] },
     { name: t?.early_out || "Early Check-Out", value: earlyOutRaw, color: pieColors[1] },
@@ -109,20 +112,20 @@ function ViolationsCard() {
     {
       label: t?.early_out || "Early Check-Out",
       value: animated.earlyOut,
-      color: "#C084FC",
-      icon: EarlyOutIcon("#C084FC"),
+      color: "#38BDF8",
+      icon: EarlyOutIcon("#38BDF8"),
     },
     {
       label: t?.missed_in || "Missing Check-In",
       value: animated.missedIn,
-      color: "#DA153E",
-      icon: MissedInIcon("#DA153E"),
+      color: "#FB7185",
+      icon: MissedInIcon("#FB7185"),
     },
     {
       label: t?.missed_out || "Missing Check-Out",
       value: animated.missedOut,
-      color: "#C0392B",
-      icon: MissedOutIcon("#C0392B"),
+      color: "#8B5CF6",
+      icon: MissedOutIcon("#8B5CF6"),
     },
   ];
 
@@ -150,9 +153,9 @@ function ViolationsCard() {
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-1.5 h-7 rounded-full bg-gradient-to-b from-[#EF4444] via-[#F97316] to-[#F59E0B]" />
+          {/* <div className="w-1.5 h-7 rounded-full bg-gradient-to-b from-[#EF4444] via-[#F97316] to-[#F59E0B]" /> */}
           <h5 className="text-lg text-text-primary font-bold">
-            {t?.discrepancies || "Discrepancies"}
+            {t?.monthly_discrepancies_summary || "Monthly Discrepancies Summary"}
           </h5>
           <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent ml-2 hidden sm:block" />
         </div>

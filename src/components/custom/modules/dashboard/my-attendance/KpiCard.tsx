@@ -53,7 +53,7 @@ export function KpiCard({
       } as React.CSSProperties}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-wider leading-tight"
+        <p className="text-xs font-bold uppercase tracking-wider leading-tight"
           style={{ color: data.color }}
         >
           {data.label}
@@ -69,7 +69,7 @@ export function KpiCard({
             }}
           >
             {React.cloneElement(data.icon as React.ReactElement, {
-              style: { width: '18px', height: '18px', color: data.color },
+              style: { width: '24px', height: '24px', color: data.color },
             })}
           </div>
         )}
@@ -79,7 +79,7 @@ export function KpiCard({
         {data.value}
       </p>
 
-      <p className="text-[11px] font-medium text-text-secondary">{data.subLabel}</p>
+      <p className="text-xs font-medium text-text-secondary">{data.subLabel}</p>
 
       <div className="h-2 w-full bg-gray-200/60 dark:bg-gray-700/60 rounded-full overflow-hidden mt-1">
         <div

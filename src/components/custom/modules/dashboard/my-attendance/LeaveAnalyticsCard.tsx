@@ -152,11 +152,9 @@ function LeaveAnalyticsCard() {
     <div className="shadow-card rounded-[10px] bg-accent p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-1 h-6 rounded-full bg-gradient-to-b from-[#FFBF00] to-[#F59E0B]" />
           <h5 className="text-lg text-text-primary font-bold">
             {translationDefaults.leave_analytics}
           </h5>
-          <div className="h-px w-12 bg-gradient-to-r from-border to-transparent hidden sm:block" />
           <ExportButton
             data={leaveExportData}
             columns={leaveExportColumns}
@@ -166,28 +164,39 @@ function LeaveAnalyticsCard() {
             }}
           />
         </div>
-        <Select
-          value={selectedYear.toString()}
-          onValueChange={(value) => { setSelectedYear(Number(value)); setActiveMonth(null); }}
-        >
-          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
-            <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translationDefaults.select_year}>
-              {selectedYear}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-accent rounded-md shadow-dropdown">
-            {years.map((year) => (
-              <SelectItem
-                key={year}
-                value={year.toString()}
-                className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-primary"
-              >
-                {year}
-              </SelectItem>
+        <div className="flex items-center gap-3">
+          {/* Legend */}
+          <div className="flex justify-center items-center gap-4 text-xs text-text-secondary">
+            {Object.entries(chartConfig).map(([key, cfg]) => (
+              <span key={key} className="flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
+                {cfg.label}
+              </span>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+          <Select
+            value={selectedYear.toString()}
+            onValueChange={(value) => { setSelectedYear(Number(value)); setActiveMonth(null); }}
+          >
+            <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+              <Calendar1Icon width="14" height="16" />
+              <SelectValue placeholder={translationDefaults.select_year}>
+                {selectedYear}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-accent rounded-md shadow-dropdown">
+              {years.map((year) => (
+                <SelectItem
+                  key={year}
+                  value={year.toString()}
+                  className="text-text-primary gap-0 bg-accent hover:bg-primary hover:text-primary"
+                >
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {loadingLeaveAnalytics ? (

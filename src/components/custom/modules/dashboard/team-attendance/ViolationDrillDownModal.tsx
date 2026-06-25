@@ -9,7 +9,7 @@ import {
   ResponsiveModalTitle,
 } from "@/src/components/ui/responsive-modal";
 import { XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { ClockIcon, VoilationIcon } from "@/src/icons/icons";
+import { ClockIcon, ViolationIcon } from "@/src/icons/icons";
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid'
 import { ExportButton } from "../export/ExportButton";
 import type { ExportColumn } from "../export/DashboardExcelExporter";
@@ -41,7 +41,7 @@ interface EmployeeRow {
 const violationIcons: Record<string, React.ReactNode> = {
   "Late": <ClockIcon color="#FF6347" />,
   "Early Out": <ArrowUpIcon className="size-5 text-[#FFBF00]" />,
-  "Missed Punch": <VoilationIcon color="#0078D4" />,
+  "Missed Punch": <ViolationIcon color="#0078D4" />,
   "Incomplete Duty": <ArrowDownIcon className="size-5 text-[#1E9090]" />,
 };
 
@@ -179,7 +179,7 @@ function ViolationDrillDownModal({ open, onOpenChange, type, filter, count, colo
               className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0"
               style={{ backgroundColor: `${color}18`, color }}
             >
-              {violationIcons[type] || <VoilationIcon color={color} />}
+              {violationIcons[type] || <ViolationIcon color={color} />}
             </div>
             <div className="flex-1 min-w-0 text-left">
               <ResponsiveModalTitle className="text-left normal-case text-base">

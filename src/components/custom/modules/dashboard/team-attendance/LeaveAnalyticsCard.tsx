@@ -129,7 +129,7 @@ export default function LeaveAnalyticsCard() {
     const totalYearLeaves = chartData.reduce((sum, d) => sum + d.totalLeaves, 0);
     const peakMonthData = chartData.reduce((max, d) =>
       d.totalLeaves > max.totalLeaves ? d : max
-    , chartData[0]);
+      , chartData[0]);
 
     const employeesWithLeaves = employees.filter(empId => {
       const empLeaves = leaveAnalytics
@@ -197,27 +197,29 @@ export default function LeaveAnalyticsCard() {
             {translationDefaults.leave_analytics}
           </h5>
         </div>
-        <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
-            <Calendar1Icon width="14" height="16" />
-            <SelectValue placeholder={translationDefaults.select_year}>
-              {selectedYear}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-accent rounded-md shadow-dropdown">
-            {years.map(year => (
-              <SelectItem key={year} value={year.toString()} className="text-text-primary bg-accent">
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="flex items-center gap-3">
+          {/* Legend */}
+          <div className="flex justify-center items-center gap-2 text-xs text-text-secondary">
+            <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: "#3b82f6" }} />
+            <span>{translationDefaults.total_leaves}</span>
+          </div>
+          <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
+            <SelectTrigger className="w-auto h-9 border pl-3 border-border-accent shadow-button rounded-lg text-text-secondary font-semibold text-sm flex gap-2">
+              <Calendar1Icon width="14" height="16" />
+              <SelectValue placeholder={translationDefaults.select_year}>
+                {selectedYear}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-accent rounded-md shadow-dropdown">
+              {years.map(year => (
+                <SelectItem key={year} value={year.toString()} className="text-text-primary bg-accent">
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* Legend */}
-      <div className="flex justify-center items-center gap-2 text-xs text-text-secondary">
-        <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: "#3b82f6" }} />
-        <span>{translationDefaults.total_leaves}</span>
       </div>
 
       {/* Chart */}
@@ -257,9 +259,9 @@ export default function LeaveAnalyticsCard() {
       {/* Summary stat cards — matches KpiCard style */}
       <div className="grid grid-cols-3 gap-3 pt-1">
         {[
-          { label: translationDefaults.total_leaves,    value: summaryStats.totalYearLeaves,               color: "#3b82f6", sub: null },
-          { label: translationDefaults.peak_month,      value: summaryStats.peakMonth,                     color: "#8b5cf6", sub: `${summaryStats.peakMonthLeaves} leaves` },
-          { label: translationDefaults.avg_per_employee, value: summaryStats.avgPerEmployee.toFixed(1),    color: "#1DAA61", sub: "per employee" },
+          { label: translationDefaults.total_leaves, value: summaryStats.totalYearLeaves, color: "#3b82f6", sub: null },
+          { label: translationDefaults.peak_month, value: summaryStats.peakMonth, color: "#8b5cf6", sub: `${summaryStats.peakMonthLeaves} leaves` },
+          { label: translationDefaults.avg_per_employee, value: summaryStats.avgPerEmployee.toFixed(1), color: "#1DAA61", sub: "per employee" },
         ].map((stat) => (
           <div key={stat.label} className="bg-background rounded-[10px] shadow-card p-3 flex flex-col gap-1">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">

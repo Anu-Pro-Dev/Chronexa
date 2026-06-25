@@ -219,11 +219,10 @@ export const useDashboardStore = create<DashboardStore>()(
           const currentMonth = new Date().getMonth() + 1;
           const currentYear = new Date().getFullYear();
 
-          const [attendance, schedule, leaveAnalytics, workHours] = await Promise.all([
+          const [attendance, schedule, leaveAnalytics] = await Promise.all([
             getAttendanceDetails(targetDate),
             getWorkSchedule(targetDate),
             getLeaveAnalytics(currentYear),
-            getWorkHourTrends(currentMonth.toString()),
           ]);
 
           set({
@@ -231,9 +230,6 @@ export const useDashboardStore = create<DashboardStore>()(
             workSchedule: schedule?.data[0] || null,
             leaveAnalyticsCache: {
               [currentYear]: leaveAnalytics?.data || [],
-            },
-            workHourTrendsCache: {
-              [currentMonth]: workHours?.data || [],
             },
             loadingDashboard: false,
           });

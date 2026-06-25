@@ -3,13 +3,17 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import Link from "next/link";
-import { useDashboardStore } from "@/src/store/useDashboardStore";
+import { useAttendanceData } from "./AttendanceData";
 
-const timeStringToHours = (timeStr: string | null): number => {
-  if (!timeStr) return 0;
+const timeStringToHours = (timeStr: string | number | null): number => {
+  if (timeStr === null || timeStr === undefined) return 0;
+  if (typeof timeStr === "number") return timeStr;
   const cleanStr = timeStr.trim();
   const parts = cleanStr.split(':');
-  if (parts.length < 2) return 0;
+  if (parts.length < 2) {
+    const n = parseFloat(cleanStr);
+    return isNaN(n) ? 0 : n;
+  }
   const hours = parseInt(parts[0], 10) || 0;
   const minutes = parseInt(parts[1], 10) || 0;
   return hours + (minutes / 60);
@@ -43,12 +47,12 @@ function PremiumRing({ pct, size = 110, strokeWidth = 8 }: { pct: number; size?:
   const offset = circ - (circ * animated) / 100;
 
   return (
-    <div className="relative inline-flex" style={{ filter: 'drop-shadow(0 0 12px rgba(0, 120, 212, 0.25))' }}>
+    <div className="relative inline-flex" style={{ filter: 'drop-shadow(0 0 12px rgba(160, 90, 255, 0.25))' }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <defs>
           <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#0078D4" />
-            <stop offset="100%" stopColor="#00BCD4" />
+            <stop offset="0%" stopColor="#8CD231" />
+            <stop offset="100%" stopColor="#A05AFF" />
           </linearGradient>
         </defs>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-border, #e5e7eb)" strokeWidth={strokeWidth} opacity="0.4" />
@@ -102,21 +106,20 @@ function ScheduleCard() {
   const { translations } = useLanguage();
   const t = translations?.modules?.dashboard || {};
 
-  const workSchedule = useDashboardStore((state) => state.workSchedule);
-  const loadingDashboard = useDashboardStore((state) => state.loadingDashboard);
-  const errorDashboard = useDashboardStore((state) => state.errorDashboard);
+  const { attendanceDetails, loading, error: attendanceError } = useAttendanceData();
+  const errorDashboard = attendanceError;
 
   const stats = useMemo(() => {
-    if (!workSchedule) {
+    if (!attendanceDetails) {
       return { totalHours: 0, workedHours: 0, overtimeHours: 0, pendingHours: 0, completionPct: 0 };
     }
-    const totalHours = timeStringToHours(workSchedule.TotalMonthlyExpectedWrkHrs as string);
-    const workedHours = timeStringToHours(workSchedule.TotalWorkedHrs as string);
-    const pendingHours = timeStringToHours(workSchedule.PendingWorkHrs as string);
-    const overtimeHours = timeStringToHours(workSchedule.TotalExtraHrs as string);
-    const completionPct = workSchedule.WorkCompletionPercent || 0;
+    const totalHours = timeStringToHours(attendanceDetails.TotalMonthlyExpectedWrkHrs);
+    const workedHours = timeStringToHours(attendanceDetails.TotalWorkedHrs);
+    const pendingHours = timeStringToHours(attendanceDetails.PendingWorkHrs);
+    const overtimeHours = timeStringToHours(attendanceDetails.TotalExtraHrs);
+    const completionPct = attendanceDetails.WorkCompletionPercent || 0;
     return { totalHours, workedHours, overtimeHours, pendingHours, completionPct };
-  }, [workSchedule]);
+  }, [attendanceDetails]);
 
   const extraStats = useMemo(() => {
     const dayOfMonth = new Date().getDate();
@@ -129,9 +132,9 @@ function ScheduleCard() {
   }, [stats]);
 
   const segments = [
-    { label: t?.worked || "Worked", value: stats.workedHours, pct: extraStats.workedPct, color1: "#0078D4", color2: "#00BCD4" },
-    { label: t?.overtime || "Overtime", value: stats.overtimeHours, pct: extraStats.overtimePct, color1: "#2196F3", color2: "#64B5F6" },
-    { label: t?.pending || "Pending", value: stats.pendingHours, pct: extraStats.pendingPct, color1: "#78909C", color2: "#B0BEC5" },
+    { label: t?.worked || "Worked", value: stats.workedHours, pct: extraStats.workedPct, color1: "#A05AFF", color2: "#8B5CF6" },
+    { label: t?.overtime || "Overtime", value: stats.overtimeHours, pct: extraStats.overtimePct, color1: "#8CD231", color2: "#65B025" },
+    { label: t?.pending || "Pending", value: stats.pendingHours, pct: extraStats.pendingPct, color1: "#78909C", color2: "#78909C" },
   ];
 
   if (errorDashboard) {
@@ -147,8 +150,7 @@ function ScheduleCard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 rounded-full bg-gradient-to-b from-[#0078D4] to-[#00BCD4]" />
-          <h5 className="text-lg text-text-primary font-bold">{t?.schedule}</h5>
+          <h5 className="text-lg text-text-primary font-bold">{t?.monthly_schedule}</h5>
         </div>
         <Link
           href="/scheduling/weekly-schedule/organization-schedule"
