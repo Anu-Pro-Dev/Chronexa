@@ -27,7 +27,6 @@ export function KpiCard({
 
   return (
     <div
-      // role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={
@@ -42,41 +41,53 @@ export function KpiCard({
       }
       className={[
         "bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 select-none",
-        "transition-all duration-150",
+        "transition-all duration-200 border border-transparent",
         isClickable
-          ? "cursor-pointer hover:ring-2 hover:ring-offset-1 hover:brightness-95 hover:shadow-popup active:scale-[0.98]"
+          ? "cursor-pointer hover:scale-[1.02] hover:shadow-popup active:scale-[0.98]"
           : "",
         isActive ? "ring-2 ring-offset-1" : "",
       ].join(" ")}
-      style={{ "--tw-ring-color": data.color } as React.CSSProperties}
+      style={{
+        "--tw-ring-color": data.color,
+        borderColor: `${data.color}22`,
+      } as React.CSSProperties}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">
+        <p className="text-[11px] font-bold uppercase tracking-wider leading-tight"
+          style={{ color: data.color }}
+        >
           {data.label}
         </p>
         {data.icon && (
           <div
-            className="bg-background w-[32px] h-[32px] shrink-0 flex items-center justify-center rounded-[8px]"
+            className="w-[34px] h-[34px] shrink-0 flex items-center justify-center rounded-[10px]"
             style={{
+              backgroundColor: `${data.color}15`,
               color: data.color,
-              boxShadow: `0 0 16px 6px ${data.color}22`,
+              border: `1.5px solid ${data.color}30`,
+              boxShadow: `0 0 20px 4px ${data.color}18`,
             }}
           >
-            {data.icon}
+            {React.cloneElement(data.icon as React.ReactElement, {
+              style: { width: '18px', height: '18px', color: data.color },
+            })}
           </div>
         )}
       </div>
 
-      <p className="text-2xl font-medium text-text-primary leading-none">
+      <p className="text-2xl font-bold text-text-primary leading-none mt-1">
         {data.value}
       </p>
 
-      <p className="text-xs text-text-secondary">{data.subLabel}</p>
+      <p className="text-[11px] font-medium text-text-secondary">{data.subLabel}</p>
 
-      <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden mt-1">
+      <div className="h-2 w-full bg-gray-200/60 dark:bg-gray-700/60 rounded-full overflow-hidden mt-1">
         <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${data.progress}%`, backgroundColor: data.color }}
+          className="h-full rounded-full transition-all duration-700 ease-out"
+          style={{
+            width: `${data.progress}%`,
+            background: `linear-gradient(90deg, ${data.color}cc, ${data.color})`,
+          }}
         />
       </div>
     </div>

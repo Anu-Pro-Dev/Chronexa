@@ -35,7 +35,8 @@ interface DashboardStore {
 
   loadingDashboard: boolean;
   errorDashboard: string | null;
-  fetchDashboardData: () => Promise<void>;
+  fetchDashboardData: (date?: string) => Promise<void>;
+  clearDashboardData: () => void;
 
   teamAttendanceCache: Record<string, any[]>;
   loadingTeamAttendance: boolean;
@@ -207,12 +208,10 @@ export const useDashboardStore = create<DashboardStore>()(
         }
       },
 
-      fetchDashboardData: async () => {
-        const { attendanceDetails, workSchedule } = get();
-        if (attendanceDetails && workSchedule) {
-          set({ loadingDashboard: false });
-          return;
-        }
+      clearDashboardData: () => set({ attendanceDetails: null, workSchedule: null }),
+
+      fetchDashboardData: async (date?: string) => {
+        const targetDate = date || new Date().toISOString().split('T')[0];
 
         set({ loadingDashboard: true, errorDashboard: null });
 
@@ -221,8 +220,8 @@ export const useDashboardStore = create<DashboardStore>()(
           const currentYear = new Date().getFullYear();
 
           const [attendance, schedule, leaveAnalytics, workHours] = await Promise.all([
-            getAttendanceDetails(),
-            getWorkSchedule(),
+            getAttendanceDetails(targetDate),
+            getWorkSchedule(targetDate),
             getLeaveAnalytics(currentYear),
             getWorkHourTrends(currentMonth.toString()),
           ]);

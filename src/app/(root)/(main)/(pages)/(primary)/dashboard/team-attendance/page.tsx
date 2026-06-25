@@ -9,7 +9,7 @@ import { useDashboardStore } from "@/src/store/useDashboardStore";
 
 export default function Page() {
   const { modules } = useLanguage();
-  const { userInfo } = useAuthGuard();
+  const { userInfo, userRole } = useAuthGuard();
 
   const setRole = useDashboardStore((s) => s.setRole);
   const fetchTeamAttendance = useDashboardStore((s) => s.fetchTeamAttendance);
@@ -22,7 +22,7 @@ export default function Page() {
   const didInit = useRef(false);
 
   useEffect(() => {
-    if (!userInfo?.roleId) return;
+    if (!userInfo) return;
     if (didInit.current) return;
 
     didInit.current = true;
@@ -30,12 +30,15 @@ export default function Page() {
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
 
-    setRole(userInfo.roleId);
+    const roleId = userInfo.roleId ?? userInfo.role_id ?? (userRole ? Number(userRole) : null);
+    if (roleId) {
+      setRole(roleId);
+    }
     
     fetchTeamAttendance(undefined, currentMonth, currentYear);
     fetchTeamLeaveAnalytics(currentYear);
     fetchTeamViolations(currentYear);
-  }, [userInfo?.roleId, setRole, fetchTeamAttendance, fetchTeamLeaveAnalytics, fetchTeamViolations]);
+  }, [userInfo, userRole, setRole, fetchTeamAttendance, fetchTeamLeaveAnalytics, fetchTeamViolations]);
 
   const hasCachedData = Object.keys(teamAttendanceCache).length > 0;
   const isInitialLoading = loadingTeamAttendance && !hasCachedData;

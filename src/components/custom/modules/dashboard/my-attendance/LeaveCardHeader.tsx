@@ -13,36 +13,29 @@ export const LeaveCardHeader = ({ page, setPage }: any) => {
   };
 
   return (
-    <div className="flex flex-row justify-between">
-      <div className="flex gap-2">
-        <h5
-          className={`cursor-pointer font-bold text-lg ${
+    <div className="flex flex-row justify-between items-center">
+      <div className="flex gap-1.5 items-center bg-background rounded-lg p-1">
+        <button
+          className={`cursor-pointer font-bold text-sm px-3.5 py-1.5 rounded-md transition-all duration-200 ${
             page === "Leaves"
-              ? "border-b-[2px] border-primary text-primary"
-              : "text-text-primary"
+              ? "bg-gradient-to-r from-[#0078D4] to-[#00BCD4] text-white shadow-md"
+              : "text-text-secondary hover:text-text-primary"
           }`}
           onClick={() => setPage("Leaves")}
         >
           {t?.leaves}
-        </h5>
-        <h5 className=" font-bold text-lg text-text-primary">/</h5>
-        <h5
-          className={`cursor-pointer font-bold text-lg ${
+        </button>
+        <button
+          className={`cursor-pointer font-bold text-sm px-3.5 py-1.5 rounded-md transition-all duration-200 ${
             page === "Permissions"
-              ? "border-b-[2px] border-primary text-primary"
-              : "text-text-primary"
+              ? "bg-gradient-to-r from-[#8B5CF6] to-[#A78BFA] text-white shadow-md"
+              : "text-text-secondary hover:text-text-primary"
           }`}
           onClick={() => setPage("Permissions")}
         >
           {t?.permissions}
-        </h5>
+        </button>
       </div>
-      {/* <Link
-        href={getApplyLink()}
-        className="text-primary text-sm font-regular flex items-center justify-center gap-1"
-      >
-        {translations?.buttons?.apply}
-      </Link> */}
     </div>
   );
 };

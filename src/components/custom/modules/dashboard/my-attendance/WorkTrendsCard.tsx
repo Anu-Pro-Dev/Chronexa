@@ -140,10 +140,12 @@ function WorkTrendsCard() {
   return (
     <div className="shadow-card rounded-[10px] bg-accent p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-1 h-6 rounded-full bg-gradient-to-b from-[#0EA5E9] to-[#8B5CF6]" />
           <h5 className="text-lg text-text-primary font-bold">
             {t?.work_hrs_trends}
           </h5>
+          <div className="h-px w-12 bg-gradient-to-r from-border to-transparent hidden sm:block" />
           <ExportButton
             data={workTrendsExportData}
             columns={workTrendsExportColumns}

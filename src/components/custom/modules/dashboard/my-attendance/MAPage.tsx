@@ -140,10 +140,10 @@ function PunchStatusSection() {
   if (todayStatus.schedule_info?.actual_out_time) {
     if (!todayStatus.schedule_info?.actual_in_time) {
       return (
-        <div className="shadow-card rounded-[10px] bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4">
+        <div className="shadow-card rounded-[10px] bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/20 border border-orange-200 dark:border-orange-800 p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-100 dark:bg-orange-800/30 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="bg-gradient-to-br from-orange-400 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-orange-200/50">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
@@ -186,10 +186,10 @@ function PunchStatusSection() {
 
     if (timeDiffHours >= 2) {
       return (
-        <div className="shadow-card rounded-[10px] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+        <div className="shadow-card rounded-[10px] bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/20 border border-red-200 dark:border-red-800 p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-red-100 dark:bg-red-800/30 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="bg-gradient-to-br from-red-400 to-rose-500 p-2.5 rounded-xl shadow-lg shadow-red-200/50">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
@@ -262,10 +262,10 @@ function PunchStatusSection() {
   
   if (hasMissedPunchIn) {
     return (
-      <div className="shadow-card rounded-[10px] bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+      <div className="shadow-card rounded-[10px] bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/20 border border-red-200 dark:border-red-800 p-4">
         <div className="flex items-center gap-3">
-          <div className="bg-red-100 dark:bg-red-800/30 p-2 rounded-lg">
-            <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+          <div className="bg-gradient-to-br from-red-400 to-rose-500 p-2.5 rounded-xl shadow-lg shadow-red-200/50">
+            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
           </div>
@@ -290,10 +290,10 @@ function PunchStatusSection() {
     const minutesUntilEnd = Math.floor((flexibleEnd.getTime() - now.getTime()) / (1000 * 60));
     
     return (
-      <div className="shadow-card rounded-[10px] bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-4">
+      <div className="shadow-card rounded-[10px] bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-800 p-4">
         <div className="flex items-center gap-3">
-          <div className="bg-yellow-100 dark:bg-yellow-800/30 p-2 rounded-lg">
-            <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+          <div className="bg-gradient-to-br from-yellow-400 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-yellow-200/50">
+            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
             </svg>
           </div>
@@ -330,41 +330,56 @@ function MyAttendancePage() {
   return (
     <AttendanceDataProvider>
       <Suspense fallback={<InlineLoading message="Loading dashboard..." />}>
-        <div className="space-y-4">
-          {/* Single instance — rendered once for all breakpoints */}
+        <div className="flex flex-col gap-4">
+          {/* Top decorative banner */}
+          <div className="bg-gradient-to-br from-[#0078D4] via-[#0095D9] to-[#00BCD4] rounded-[10px] shadow-card p-5 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium opacity-90">Welcome back,</p>
+                <h2 className="text-2xl font-bold mt-0.5">{userInfo?.employeename?.firsteng && userInfo?.employeename?.lasteng ? `${userInfo.employeename.firsteng} ${userInfo.employeename.lasteng}`.trim() : userInfo?.employeename?.firstarb || "Employee"}</h2>
+                <p className="text-xs opacity-75 mt-1">Here&apos;s your attendance overview for today</p>
+              </div>
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center border border-white/20">
+                <p className="text-2xl font-bold">
+                  {new Date().toLocaleDateString('en-US', { day: 'numeric' })}
+                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                  {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Punch status section */}
           <PunchStatusSection />
 
-          {/* Full-width leave / permission section */}
-          <LeaveCard />
+          {/* Leave / Permission section with gradient accent header */}
+          <div className="bg-accent rounded-[10px] shadow-card overflow-hidden">
+            <div className="px-5 pt-4 pb-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-6 rounded-full bg-gradient-to-b from-[#0078D4] to-[#00BCD4]" />
+                <h5 className="text-lg text-text-primary font-bold">Leave & Permission</h5>
+                <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent ml-2" />
+              </div>
+            </div>
+            <LeaveCard />
+          </div>
 
-          {/* Full-width discrepancies section */}
+          {/* Discrepancies section with gradient accent header */}
           <ViolationsCard />
 
-          {/* Mobile / Tablet */}
-          <div className="3xl:hidden space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="w-full flex flex-col gap-4">
-                <LeaveAnalyticsCard />
-              </div>
-              <div className="w-full flex flex-col gap-4">
-                <ScheduleCard />
-              </div>
+          {/* Two-column grid for Analytics + Schedule */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <LeaveAnalyticsCard />
             </div>
-            <div className="flex justify-between gap-4">
-              <div className="w-full h-auto flex flex-col gap-4">
-                <WorkTrendsCard />
-              </div>
+            <div className="flex flex-col">
+              <ScheduleCard />
             </div>
           </div>
 
-          {/* Desktop */}
-          <div className="hidden 3xl:block space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <LeaveAnalyticsCard />
-              <ScheduleCard />
-            </div>
-            <WorkTrendsCard />
-          </div>
+          {/* Work Trends - full width */}
+          <WorkTrendsCard />
         </div>
       </Suspense>
     </AttendanceDataProvider>

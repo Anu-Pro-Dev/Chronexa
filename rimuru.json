@@ -1,0 +1,18 @@
+{
+  "$schema": "https://github.com/gowdaman-dev/rimuru-ai/config.json",
+  "mcp": {
+    "mssql": {
+      "type": "local",
+      "command": ["npx", "-y", "@connorbritain/mssql-mcp-server@latest"],
+      "enabled": true,
+      "env": {
+        "SERVER_NAME": "160.25.62.34",
+        "DATABASE_NAME": "Chronexa",
+        "SQL_AUTH_MODE": "sql",
+        "SQL_USERNAME": "server34External",
+        "SQL_PASSWORD": "Welcome@34",
+        "TRUST_SERVER_CERTIFICATE": "true"
+      }
+    }
+  }
+}

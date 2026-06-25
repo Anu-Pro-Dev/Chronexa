@@ -31,7 +31,7 @@ interface ProviderProps {
 }
 
 export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
-  const { userInfo } = useAuthGuard();
+  const { userInfo, userRole } = useAuthGuard();
   const selectedDate = useSelectedDate((s) => s.date);
   
   const setRole = useDashboardStore((s) => s.setRole);
@@ -46,19 +46,22 @@ export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
   const prevDateRef = useRef<string>("");
 
   useEffect(() => {
-    if (!userInfo?.roleId) return;
+    if (!userInfo) return;
 
     mountedRef.current = true;
 
     if (!didInit.current) {
       didInit.current = true;
-      setRole(userInfo.roleId);
+      const roleId = userInfo.roleId ?? userInfo.role_id ?? (userRole ? Number(userRole) : null);
+      if (roleId) {
+        setRole(roleId);
+      }
     }
 
     return () => {
       mountedRef.current = false;
     };
-  }, [userInfo?.roleId, setRole]);
+  }, [userInfo, userRole, setRole]);
 
   const getCacheKey = () => {
     const formattedDate = formatLocalDate(selectedDate);

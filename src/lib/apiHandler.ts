@@ -8,6 +8,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 // Centralized axios instance for API requests
 const apiInstance = axios.create({
   baseURL: API_URL,
+  timeout: 30000,
   headers: {
     "ngrok-skip-browser-warning": "true",
   },

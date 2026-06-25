@@ -1,11 +1,11 @@
 import { apiRequest } from './apiHandler';
 
-export const getAttendanceDetails = async () => {
-  return apiRequest('/dashboard/attendance', 'GET');
+export const getAttendanceDetails = async (date?: string) => {
+  return apiRequest(`/dashboard/attendance${date ? `?date=${date}` : ''}`, 'GET');
 };
 
-export const getWorkSchedule = async () => {
-  return apiRequest('/dashboard/work-schedule', 'GET');
+export const getWorkSchedule = async (date?: string) => {
+  return apiRequest(`/dashboard/work-schedule${date ? `?date=${date}` : ''}`, 'GET');
 };
 
 export const getLeaveAnalytics = async (year?: number) => {

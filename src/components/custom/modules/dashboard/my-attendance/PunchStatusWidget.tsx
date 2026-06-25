@@ -262,23 +262,25 @@ function PunchStatusWidget({
 
       <div className="space-y-3">
         {/* Main Widget */}
-        <div className="shadow-card rounded-[10px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4">
+        <div className="shadow-card rounded-[10px] bg-accent border border-border p-5">
           {/* Notification Permission Banner */}
           {enableNotifications && enableBrowserNotifications && !hasPermission && (
-            <div className="mb-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm">
-              <div className="flex items-start gap-2">
-                <svg
-                  className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
+            <div className="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3.5 text-sm">
+              <div className="flex items-start gap-3">
+                <div className="bg-gradient-to-br from-blue-400 to-indigo-500 p-2 rounded-lg shadow-md shrink-0">
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                  </svg>
+                </div>
                 <div>
-                  <p className="text-blue-900 dark:text-blue-100 font-regular">
+                  <p className="text-blue-900 dark:text-blue-100 font-semibold">
                     {t?.enable_notifications || "Enable notifications"}
                   </p>
-                  <p className="text-blue-700 dark:text-blue-300 text-xs mt-1">
+                  <p className="text-blue-700 dark:text-blue-300 text-xs mt-0.5">
                     {t?.notification_help ||
                       "Get reminded when it's time to punch out"}
                   </p>
@@ -287,80 +289,80 @@ function PunchStatusWidget({
             </div>
           )}
 
-
+          {/* Punch In/Out Time Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-success bg-opacity-10 p-2 rounded-lg">
-                <PunchInIcon />
+              <div className="bg-gradient-to-br from-emerald-400 to-green-500 p-2.5 rounded-xl shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30">
+                <PunchInIcon color="white" width="22" height="22" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-regular">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
                   {t?.punch_in || "Punch In"}
                 </p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{punchInTime}</p>
+                <p className="text-xl font-bold text-text-primary mt-0.5">{punchInTime}</p>
               </div>
             </div>
 
-            <div className="h-12 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <div className="flex items-center gap-2 text-text-secondary">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
 
             <div className="flex items-center gap-3">
-              <div className="bg-destructive bg-opacity-10 p-2 rounded-lg">
-                <PunchOutIcon />
+              <div className={`p-2.5 rounded-xl shadow-lg ${
+                hasPunchedOut
+                  ? "bg-gradient-to-br from-blue-400 to-indigo-500 shadow-blue-200/50 dark:shadow-blue-900/30"
+                  : timeRemaining?.isOvertime
+                    ? "bg-gradient-to-br from-red-400 to-rose-500 shadow-red-200/50 dark:shadow-red-900/30"
+                    : "bg-gradient-to-br from-blue-400 to-cyan-400 shadow-blue-200/50 dark:shadow-blue-900/30"
+              }`}>
+                <PunchOutIcon color="white" width="22" height="22" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-regular">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
                   {hasPunchedOut
                     ? (t?.punch_out || "Punch Out")
                     : (t?.expected_punch_out || "Expected Punch Out")
                   }
                 </p>
-                <p
-                  className={`text-lg font-medium ${hasPunchedOut
-                    ? "text-gray-900 dark:text-white"
+                <p className={`text-xl font-bold mt-0.5 ${
+                  hasPunchedOut
+                    ? "text-text-primary"
                     : timeRemaining?.isOvertime
                       ? "text-red-600 dark:text-red-400"
-                      : "text-blue-600 dark:text-blue-400"
-                    }`}
-                >
+                      : "text-[#0078D4] dark:text-[#00BCD4]"
+                }`}>
                   {hasPunchedOut ? punchOutTime : expectedPunchOutTime}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Time Remaining Badge */}
+          {/* Time Remaining / Completed Badge */}
           {!hasPunchedOut && timeRemaining && (
-            <div className="mt-3 text-center">
+            <div className="mt-4 text-center">
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${timeRemaining.isOvertime
-                  ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
-                  : "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-                  }`}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold ${
+                  timeRemaining.isOvertime
+                    ? "bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 shadow-sm"
+                    : "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 shadow-sm"
+                }`}
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                    clipRule="evenodd"
-                  />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {timeRemaining.text}
               </span>
             </div>
           )}
 
-          {/* Shift Completed Badge - shown when punched out */}
+          {/* Shift Completed Badge */}
           {hasPunchedOut && workedHours !== null && punchOutDate && expectedPunchOut && (
-            <div className="mt-3 text-center">
-              <span
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                    clipRule="evenodd"
-                  />
+            <div className="mt-4 text-center">
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {(() => {
                   const diffMs = expectedPunchOut.getTime() - punchOutDate.getTime();
@@ -379,11 +381,11 @@ function PunchStatusWidget({
             </div>
           )}
 
-          {/* Progress bar showing time progress */}
+          {/* Progress bar */}
           <div className="mt-4">
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-              <span>{hasPunchedOut ? (t?.shift_complete || "Shift Completed") : (t?.shift_progress || "Shift Progress")}</span>
-              <span>
+            <div className="flex justify-between text-xs text-text-secondary mb-1.5">
+              <span className="font-medium">{hasPunchedOut ? (t?.shift_complete || "Shift Completed") : (t?.shift_progress || "Shift Progress")}</span>
+              <span className="font-semibold">
                 {hasPunchedOut && workedHours !== null
                   ? (() => {
                     const workedHoursInt = Math.floor(workedHours);
@@ -394,47 +396,50 @@ function PunchStatusWidget({
                 }
               </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-gray-200/60 dark:bg-gray-700/60 rounded-full h-2.5 overflow-hidden">
               <div
-                className={`h-2 rounded-full transition-all duration-300 bg-primary dark:bg-primary-100`}
+                className="h-full rounded-full transition-all duration-500 ease-out"
                 style={{
                   width: `${Math.min(100, progress)}%`,
+                  background: hasPunchedOut
+                    ? 'linear-gradient(90deg, #10B981, #34D399)'
+                    : timeRemaining?.isOvertime
+                      ? 'linear-gradient(90deg, #EF4444, #F87171)'
+                      : 'linear-gradient(90deg, #0078D4, #00BCD4)',
                 }}
-              ></div>
+              />
             </div>
           </div>
 
           {/* Schedule Details */}
-          <div className="mt-1 pt-1">
-            {/* Schedule Type Badge */}
+          <div className="mt-4 pt-3 border-t border-border">
             {scheduleLabel && (
-              <div className="mb-3 flex items-center justify-between">
-                <span
-                  className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold"
-                  style={{
-                    backgroundColor: `${todayStatus.schedule_info?.schedule_color}15`,
-                    color: todayStatus.schedule_info?.schedule_color || '#3B82F6',
-                    borderLeft: `3px solid ${todayStatus.schedule_info?.schedule_color || '#3B82F6'}`
-                  }}
-                >
-                  {scheduleLabel}
-                </span>
-                <div className="text-xs">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    {t?.progress || "Progress"}:
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase"
+                    style={{
+                      background: `linear-gradient(135deg, ${todayStatus.schedule_info?.schedule_color}18, ${todayStatus.schedule_info?.schedule_color}08)`,
+                      color: todayStatus.schedule_info?.schedule_color || '#3B82F6',
+                      border: `1.5px solid ${todayStatus.schedule_info?.schedule_color}44`,
+                      boxShadow: `0 0 12px ${todayStatus.schedule_info?.schedule_color}22`,
+                    }}
+                  >
+                    {scheduleLabel}
                   </span>
-                  <span className="ml-1 font-semibold text-gray-900 dark:text-white">
-                    {Math.min(100, progress).toFixed(1)}%
-                  </span>
+                  {todayStatus.schedule_info?.location && (
+                    <span className="text-xs text-text-secondary flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-medium">{todayStatus.schedule_info.location.location_name_eng}</span>
+                    </span>
+                  )}
                 </div>
-                {todayStatus.schedule_info?.location && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                    </svg>
-                    {todayStatus.schedule_info.location.location_name_eng}
-                  </span>
-                )}
+                <div className="text-xs font-semibold text-text-secondary bg-background px-2.5 py-1 rounded-lg">
+                  <span>{t?.progress || "Progress"}: </span>
+                  <span className="text-text-primary">{Math.min(100, progress).toFixed(1)}%</span>
+                </div>
               </div>
             )}
           </div>

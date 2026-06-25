@@ -60,10 +60,10 @@ function ViolationsCard() {
   const attendanceDetails = useDashboardStore((s) => s.attendanceDetails);
   const loadingDashboard = useDashboardStore((s) => s.loadingDashboard);
 
-  const lateInRaw = formatValue(attendanceDetails?.LateInCount);
-  const earlyOutRaw = formatValue(attendanceDetails?.EarlyOutCount);
-  const missedInRaw = formatValue(attendanceDetails?.MissedInCount);
-  const missedOutRaw = formatValue(attendanceDetails?.MissedOutCount);
+  const lateInRaw = formatValue(attendanceDetails?.Late);
+  const earlyOutRaw = formatValue(attendanceDetails?.Early);
+  const missedInRaw = formatValue(attendanceDetails?.TotalMissedIn);
+  const missedOutRaw = formatValue(attendanceDetails?.TotalMissedOut);
   const totalRaw = lateInRaw + earlyOutRaw + missedInRaw + missedOutRaw;
 
   const hasData = !!attendanceDetails && !loadingDashboard;
@@ -75,7 +75,7 @@ function ViolationsCard() {
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const pieColors = ["#E67E22", "#D2691E", "#DA153E", "#C0392B"];
+  const pieColors = ["#F59E0B", "#C084FC", "#EF4444", "#DC2626"];
   const pieData = [
     { name: t?.late_in || "Late Check-In", value: lateInRaw, color: pieColors[0] },
     { name: t?.early_out || "Early Check-Out", value: earlyOutRaw, color: pieColors[1] },
@@ -149,10 +149,12 @@ function ViolationsCard() {
   return (
     <div className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-1.5 h-7 rounded-full bg-gradient-to-b from-[#EF4444] via-[#F97316] to-[#F59E0B]" />
           <h5 className="text-lg text-text-primary font-bold">
             {t?.discrepancies || "Discrepancies"}
           </h5>
+          <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent ml-2 hidden sm:block" />
         </div>
         <ExportButton
           data={exportData}
@@ -168,7 +170,7 @@ function ViolationsCard() {
             <defs>
               {chartData.map((_, index) => (
                 <filter key={`shadow-${index}`} id={`ps-${index}`}>
-                  <feDropShadow dx={0} dy={2} stdDeviation={3} floodColor={"#000"} floodOpacity={0.2} />
+                  <feDropShadow dx={0} dy={2} stdDeviation={4} floodColor={"#000"} floodOpacity={0.25} />
                 </filter>
               ))}
             </defs>
@@ -200,30 +202,30 @@ function ViolationsCard() {
           </PieChart>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <p className="text-3xl font-bold text-text-primary ">{totalRaw}</p>
-              <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mt-0.5">Total</p>
-              
+              <p className="text-3xl font-bold text-text-primary">{totalRaw}</p>
+              <p className="text-[10px] text-text-secondary font-semibold uppercase tracking-wider mt-0.5">Total</p>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 mr-4 ">
+        <div className="flex-1 min-w-0 mr-4">
           <div className="grid grid-cols-4 gap-4">
             {metricCards.map((card) => (
               <div
                 key={card.label}
-                className="bg-background rounded-[12px] p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-offset-1 h-[110px]"
-                style={{ "--tw-ring-color": card.color } as React.CSSProperties}
+                className="bg-background rounded-[12px] p-3.5 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.03] hover:shadow-lg h-[110px] border"
+                style={{ borderColor: `${card.color}22` }}
               >
                 <div
-                  className="w-[34px] h-[34px] flex items-center justify-center rounded-[9px]"
+                  className="w-[36px] h-[36px] flex items-center justify-center rounded-[10px]"
                   style={{
-                    backgroundColor: `${card.color}18`,
+                    background: `linear-gradient(135deg, ${card.color}20, ${card.color}08)`,
                     border: `1.5px solid ${card.color}44`,
+                    boxShadow: `0 0 16px 4px ${card.color}15`,
                   }}
                 >
                   {React.cloneElement(card.icon as React.ReactElement, {
-                    style: { color: card.color, width: '18px', height: '18px' },
+                    style: { color: card.color, width: '20px', height: '20px' },
                   })}
                 </div>
                 <p className="text-2xl font-bold text-text-primary leading-none">{card.value}</p>
