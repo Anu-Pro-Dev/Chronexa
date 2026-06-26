@@ -43,7 +43,7 @@ export function KpiCard({
         "bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 select-none",
         "transition-all duration-200 border border-transparent",
         isClickable
-          ? "cursor-pointer hover:scale-[1.02] hover:shadow-popup active:scale-[0.98]"
+          ? "cursor-pointer hover:scale-[1.02] hover:shadow-popup hover:ring-2 hover:ring-offset-1 active:scale-[0.98]"
           : "",
         isActive ? "ring-2 ring-offset-1" : "",
       ].join(" ")}

@@ -190,12 +190,14 @@ function WeeklyViolationSummary() {
                 openDrillDown(widget);
               }
             }}
-            className="bg-background rounded-[8px] p-4 flex flex-col gap-2 select-none cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-offset-1 hover:brightness-95 active:scale-[0.98] shadow-md"
+            className="bg-background rounded-[8px] p-4 flex flex-col gap-2 select-none cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-offset-1 hover:brightness-95 hover:scale-[1.02] hover:shadow-popup active:scale-[0.98] shadow-md"
             style={{ "--tw-ring-color": widget.color } as React.CSSProperties}
           >
             {/* Label + icon */}
             <div className="flex items-start justify-between gap-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">
+              <p className="text-[11px] font-semibold uppercase tracking-wider leading-tight"
+                style={{ color: widget.color }}
+              >
                 {widget.label}
               </p>
               <div

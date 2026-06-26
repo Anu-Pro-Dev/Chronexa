@@ -11,6 +11,7 @@ import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { ExportButton } from "../export/ExportButton";
 import type { ExportColumn } from "../export/DashboardExcelExporter";
 import { PieChart, Pie, Cell } from "recharts";
+import DiscrepancyDetailModal, { type DiscrepancyFilter } from "./DiscrepancyDetailModal";
 
 const formatValue = (value: unknown): number => {
   if (value === null || value === undefined) return 0;
@@ -77,6 +78,7 @@ function ViolationsCard() {
   );
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [active, setActive] = useState<{ filter: DiscrepancyFilter; label: string; color: string; count: number } | null>(null);
 
   const pieColors = ["#F59E0B", "#38BDF8", "#FB7185", "#8B5CF6"];
   const pieData = [
@@ -108,24 +110,32 @@ function ViolationsCard() {
       value: animated.lateIn,
       color: "#F59E0B",
       icon: LateInIcon("#F59E0B"),
+      filter: "late" as DiscrepancyFilter,
+      count: lateInRaw,
     },
     {
       label: t?.early_out || "Early Check-Out",
       value: animated.earlyOut,
       color: "#38BDF8",
       icon: EarlyOutIcon("#38BDF8"),
+      filter: "early" as DiscrepancyFilter,
+      count: earlyOutRaw,
     },
     {
       label: t?.missed_in || "Missing Check-In",
       value: animated.missedIn,
       color: "#FB7185",
       icon: MissedInIcon("#FB7185"),
+      filter: "missedIn" as DiscrepancyFilter,
+      count: missedInRaw,
     },
     {
       label: t?.missed_out || "Missing Check-Out",
       value: animated.missedOut,
       color: "#8B5CF6",
       icon: MissedOutIcon("#8B5CF6"),
+      filter: "missedOut" as DiscrepancyFilter,
+      count: missedOutRaw,
     },
   ];
 
@@ -216,8 +226,17 @@ function ViolationsCard() {
             {metricCards.map((card) => (
               <div
                 key={card.label}
-                className="bg-background rounded-[12px] p-3.5 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.03] hover:shadow-lg h-[110px] border"
-                style={{ borderColor: `${card.color}22` }}
+                role="button"
+                tabIndex={0}
+                onClick={() => setActive({ filter: card.filter, label: card.label, color: card.color, count: card.count })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActive({ filter: card.filter, label: card.label, color: card.color, count: card.count });
+                  }
+                }}
+                className="bg-background rounded-[12px] p-3.5 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.03] hover:shadow-lg hover:ring-2 hover:ring-offset-1 h-[110px] border cursor-pointer"
+                style={{ borderColor: `${card.color}22`, "--tw-ring-color": card.color } as React.CSSProperties}
               >
                 <div
                   className="w-[36px] h-[36px] flex items-center justify-center rounded-[10px]"
@@ -240,6 +259,15 @@ function ViolationsCard() {
           </div>
         </div>
       </div>
+
+      <DiscrepancyDetailModal
+        open={!!active}
+        onOpenChange={(o) => { if (!o) setActive(null); }}
+        filter={active?.filter ?? "late"}
+        type={active?.label ?? ""}
+        color={active?.color ?? "#000000"}
+        count={active?.count ?? 0}
+      />
     </div>
   );
 }

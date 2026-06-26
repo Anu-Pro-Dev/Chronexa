@@ -70,11 +70,13 @@ function KpiCard({
 }) {
   return (
     <div
-      className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 select-none transition-all duration-150 hover:ring-2 hover:ring-offset-1 hover:brightness-95 active:scale-[0.98]"
+      className="bg-accent rounded-[10px] shadow-card p-4 flex flex-col gap-2 select-none transition-all duration-200 hover:ring-2 hover:ring-offset-1 hover:brightness-95 hover:scale-[1.02] hover:shadow-popup active:scale-[0.98]"
       style={{ "--tw-ring-color": color } as React.CSSProperties}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary leading-tight">
+        <p className="text-[11px] font-semibold uppercase tracking-wider leading-tight"
+          style={{ color }}
+        >
           {label}
         </p>
         {icon && (
