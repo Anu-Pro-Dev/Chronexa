@@ -161,7 +161,7 @@ export default function EmployeeCardData() {
       subLabel: `of ${total} employees`,
       progress: total > 0 ? Math.round((animated.CheckInCount / total) * 100) : 0,
       color: "#1DAA61",
-      icon: <PunchInIcon color="#1DAA61" />,
+      icon: <PunchInIcon color="#1DAA61" className="w-5 h-5"/>,
     },
     {
       label: t?.check_out || "CHECK-OUTS",
@@ -169,7 +169,7 @@ export default function EmployeeCardData() {
       subLabel: "completed today",
       progress: total > 0 ? Math.round((animated.CheckOutCount / total) * 100) : 0,
       color: "#FF6B2D",
-      icon: <PunchOutIcon color="#FF6B2D" />,
+      icon: <PunchOutIcon color="#FF6B2D" className="w-5 h-5"/>,
     },
     {
       label: t?.approved_leaves || "ON LEAVE",
@@ -185,7 +185,7 @@ export default function EmployeeCardData() {
       subLabel: "not at work today",
       progress: total > 0 ? Math.round((animated.AbsentCount / total) * 100) : 0,
       color: "#DA153E",
-      icon: <AbsentIcon color="#DA153E" />,
+      icon: <AbsentIcon color="#DA153E" className="w-5 h-5"/>,
     },
     {
       label: t?.missed_check_in || "MISSED CHECK-IN",
@@ -217,7 +217,7 @@ export default function EmployeeCardData() {
       subLabel: "extra hours",
       progress: Math.min(Math.round((overtimeHrs / 8) * 100), 100),
       color: "#10B981",
-      icon: <ClockIcon color="#10B981" className="w-4 h-4" />,
+      icon: <ClockIcon color="#10B981" className="w-5 h-5" />,
     },
   ];
 

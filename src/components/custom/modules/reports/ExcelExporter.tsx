@@ -259,11 +259,11 @@ export class ExcelExporter {
 
       this.onProgress?.(allData.length, allData.length, 'processing');
 
-      const [{ default: ExcelJS }, fileSaver] = await Promise.all([
-        import("exceljs"),
-        import("file-saver"),
-      ]);
-      const { saveAs } = fileSaver;
+      const excel = await import("exceljs");
+      const ExcelJS = excel.default ?? excel;
+
+      const fs = await import("file-saver");
+      const { saveAs } = fs.default ?? fs;
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Report");
@@ -365,7 +365,7 @@ export class ExcelExporter {
             this.applyCellStyle(cell, 'data');
 
             if ((header === 'IsAbsent' && cellValue && cellValue !== '') ||
-                (header === 'MissedPunch' && cellValue && cellValue !== '')) {
+              (header === 'MissedPunch' && cellValue && cellValue !== '')) {
               cell.font = { ...cell.font, color: { argb: 'FFFF0000' } };
             }
           });
@@ -455,13 +455,12 @@ export class ExcelExporter {
       });
 
       const rt = this.formValues.report_type || 'daily';
-      const filename = `report_${rt}_${
-        this.formValues.employee_ids?.length > 0
+      const filename = `report_${rt}_${this.formValues.employee_ids?.length > 0
           ? this.formValues.employee_ids.length === 1
             ? 'employee_' + this.formValues.employee_ids[0]
             : this.formValues.employee_ids.length + '_employees'
           : 'all'
-      }_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+        }_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
 
       this.onProgress?.(allData.length, allData.length, 'complete');
       saveAs(blob, filename);

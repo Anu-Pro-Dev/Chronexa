@@ -88,13 +88,14 @@ export class DashboardExcelExporter {
       );
     }
 
-    const [{ default: ExcelJS }, fileSaver] = await Promise.all([
-      import("exceljs"),
-      import("file-saver"),
-    ]);
-    const { saveAs } = fileSaver;
+    const excel = await import("exceljs");
+    const ExcelJS = excel.default ?? excel;
+
+    const fs = await import("file-saver");
+    const { saveAs } = fs.default ?? fs;
 
     const workbook = new ExcelJS.Workbook();
+    
     workbook.creator = "Chronexa Dashboard";
     workbook.created = new Date();
 
