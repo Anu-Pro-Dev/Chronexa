@@ -45,7 +45,7 @@ export default function Dashboard() {
           items={modules?.dashboard.items}
         />
         <div className="flex gap-4">
-          <CurrentDate interactive />
+          {/* <CurrentDate interactive /> */}
           <div className="h-9">
             {shouldShowPunchButton && <PunchButton />}
           </div>

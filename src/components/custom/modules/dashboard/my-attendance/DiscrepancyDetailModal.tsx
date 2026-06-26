@@ -52,9 +52,11 @@ function matchesFilter(rec: any, filter: DiscrepancyFilter): boolean {
   switch (filter) {
     case "late": return nonZeroTime(rec?.LateMinutes);
     case "early": return nonZeroTime(rec?.EarlyOutMinutes);
-    // Match on attendance status OR the MissedPunch label.
-    case "missedIn": return st === "MI" || /missed\s*in/i.test(mp);
-    case "missedOut": return st === "MO" || /missed\s*out/i.test(mp);
+    // Match on MissedPunch column only (consistent with SP logic):
+    //   Missed In  = MissedPunch = 'Missed IN'
+    //   Missed Out = MissedPunch = 'Missed OUT'
+    case "missedIn": return /missed\s*in/i.test(mp);
+    case "missedOut": return /missed\s*out/i.test(mp);
     default: return false;
   }
 }
