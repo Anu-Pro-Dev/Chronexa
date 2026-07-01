@@ -107,13 +107,9 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
     } else if (type === "IN") {
       shouldBePunchedIn = true;
 
-      const punchDateTime = new Date(date);
-      punchTime = punchDateTime.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-      startTimestamp = punchDateTime.getTime();
+      const match = String(date).match(/(\d{2}):(\d{2})/);
+      punchTime = match ? `${match[1]}:${match[2]}` : String(date);
+      startTimestamp = new Date(date).getTime();
     }
 
     return { shouldBePunchedIn, punchTime, startTimestamp };
@@ -228,11 +224,8 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
   const togglePunch = useCallback(() => {
     if (!isClient || !currentUserId) return;
 
-    const currentTime = new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+    const d = new Date();
+    const currentTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
     if (!isPunchedIn) {
       const now = Date.now();

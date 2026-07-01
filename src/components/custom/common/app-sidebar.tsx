@@ -130,7 +130,7 @@ export default function AppSidebar() {
       <SidebarHeader className="flex items-center justify-between px-4 py-4">
         {open && (
           <div className="flex items-center gap-2">
-            <Image width={125} height={71} alt="logo" src={getMainLogo()} />
+            <Image width={150} height={71} alt="logo" src={getMainLogo()} />
           </div>
         )}
         {open && isDesktop && (

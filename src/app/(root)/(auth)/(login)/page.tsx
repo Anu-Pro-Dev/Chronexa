@@ -60,8 +60,8 @@ export default function Login() {
             <div className="flex flex-col justify-center items-center gap-3">
               <div className="transition-all flex gap-2 items-center">
                 <Image
-                  width={150}
-                  height={84}
+                  width={175}
+                  height={108}
                   alt="logo"
                   src={getMainLogo()}
                   className="pb-6"
