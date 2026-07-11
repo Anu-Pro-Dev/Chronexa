@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
 import { Checkbox } from "@/src/components/ui/checkbox";
-import { apiRequest } from "@/src/lib/apiHandler";
+import { apiRequest, getAllBusinessUnits, getAllCostCentersMaster } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { PDFExporter } from './PDFExporter';
@@ -179,8 +179,18 @@ export default function EmployeeReports() {
 
   const { data: employees } = useFetchAllEntity("employee", getEmployeeSearchParams());
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
-  const { data: costCenters } = useFetchAllEntity("costCenter", { removeAll: true });
-  const { data: divisions } = useFetchAllEntity("division", { removeAll: true });
+
+  // Cost centers now come from the /cost-center master API.
+  const { data: costCenters } = useQuery({
+    queryKey: ["costCentersMaster"],
+    queryFn: () => getAllCostCentersMaster(),
+  });
+
+  // "Division" is backed by the /business-unit master API.
+  const { data: divisions } = useQuery({
+    queryKey: ["businessUnits"],
+    queryFn: () => getAllBusinessUnits(),
+  });
 
   const debouncedVerticalSearch = useCallback(debounce((v: string) => setVerticalSearchTerm(v), 300), []);
   const debouncedCompanySearch = useCallback(debounce((v: string) => setCompanySearchTerm(v), 300), []);
@@ -287,17 +297,23 @@ export default function EmployeeReports() {
     if (!costCenters?.data) return [];
     const centers = costCenters.data.filter((item: any) => item.cost_center_id);
     if (!costCenterSearchTerm) return centers;
+    const q = costCenterSearchTerm.toLowerCase();
     return centers.filter((item: any) =>
-      item.cost_center_name?.toLowerCase().includes(costCenterSearchTerm.toLowerCase())
+      item.cost_center_eng?.toLowerCase().includes(q) ||
+      item.cost_center_arb?.toLowerCase().includes(q) ||
+      item.cost_center_code?.toLowerCase().includes(q)
     );
   };
 
   const getDivisionData = () => {
     if (!divisions?.data) return [];
-    const divs = divisions.data.filter((item: any) => item.division_id);
-    if (!divisionSearchTerm) return divs;
-    return divs.filter((item: any) =>
-      item.division_name?.toLowerCase().includes(divisionSearchTerm.toLowerCase())
+    const units = divisions.data.filter((item: any) => item.business_unit_id);
+    if (!divisionSearchTerm) return units;
+    const q = divisionSearchTerm.toLowerCase();
+    return units.filter((item: any) =>
+      item.business_unit_name_eng?.toLowerCase().includes(q) ||
+      item.business_unit_name_arb?.toLowerCase().includes(q) ||
+      item.business_unit_code?.toLowerCase().includes(q)
     );
   };
 
@@ -1171,7 +1187,7 @@ export default function EmployeeReports() {
                       )}
                     />
 
-                    {/* ── DIVISION ──────────────────── */}
+                    {/* ── DIVISION (Business Unit) ──────────────────── */}
                     <FormField
                       control={form.control}
                       name="division"
@@ -1196,7 +1212,7 @@ export default function EmployeeReports() {
                                 </div>
                               )}
                               {getDivisionData().map((item: any) => {
-                                const divisionId = item.division_id.toString();
+                                const divisionId = item.business_unit_id.toString();
                                 const isChecked = selectedDivisions.includes(divisionId);
                                 return (
                                   <div
@@ -1205,7 +1221,9 @@ export default function EmployeeReports() {
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDivisionToggle(divisionId); }}
                                   >
                                     <Checkbox checked={isChecked} className="mr-2" />
-                                    <span>{item.division_name || divisionId}</span>
+                                    <span>{language === 'ar'
+                                      ? (item.business_unit_name_arb || item.business_unit_code)
+                                      : (item.business_unit_name_eng || item.business_unit_code)}</span>
                                   </div>
                                 );
                               })}
@@ -1250,7 +1268,9 @@ export default function EmployeeReports() {
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCostCenterToggle(costCenterId); }}
                                   >
                                     <Checkbox checked={isChecked} className="mr-2" />
-                                    <span>{item.cost_center_name || costCenterId}</span>
+                                    <span>{language === 'ar'
+                                      ? (item.cost_center_arb || item.cost_center_code)
+                                      : (item.cost_center_eng || item.cost_center_code)}</span>
                                   </div>
                                 );
                               })}

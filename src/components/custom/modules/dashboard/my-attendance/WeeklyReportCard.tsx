@@ -99,9 +99,10 @@ function WeeklyReportCard() {
 
   const weekStart = useMemo(() => {
     const d = new Date(yesterday);
-    d.setDate(d.getDate() - 9); // 10 days including yesterday
-    return d;
-  }, [yesterday]);
+    d.setDate(d.getDate() - 9);
+    const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return d < firstOfMonth ? firstOfMonth : d;
+  }, [yesterday, today]);
 
   const monthFromDate = toLocalDateStr(monthStart);
   const toDate = toLocalDateStr(yesterday);
@@ -145,13 +146,13 @@ function WeeklyReportCard() {
     return map;
   }, [records]);
 
-  // 10-day rows
   const weekRows = useMemo(() => {
     const days: Date[] = [];
-    for (let i = 0; i < 10; i++) {
-      const d = new Date(weekStart);
-      d.setDate(weekStart.getDate() + i);
-      days.push(d);
+    const d = new Date(weekStart);
+    const end = new Date(yesterday);
+    while (d <= end) {
+      days.push(new Date(d));
+      d.setDate(d.getDate() + 1);
     }
     return days.map((d) => {
       const key = toLocalDateStr(d);
@@ -164,7 +165,7 @@ function WeeklyReportCard() {
         rec,
       };
     });
-  }, [weekStart, recordByDate]);
+  }, [weekStart, yesterday, recordByDate]);
 
   // Export: month-to-date
   const currentMonth = today.getMonth() + 1;
@@ -186,7 +187,8 @@ function WeeklyReportCard() {
     { header: "Leave Status", key: "leaveStatus", width: 14 },
     { header: "Missed Hours Remark", key: "missedRemark", width: 18 },
     { header: "Entity", key: "entity", width: 14 },
-    // { header: "Location", key: "location", width: 14 },
+    { header: "LocationIn", key: "locationIn", width: 14 },
+    { header: "LocationOut", key: "locationOut", width: 14 },
   ];
 
   const exportData = useMemo(() => {
@@ -292,8 +294,10 @@ function WeeklyReportCard() {
                 <th className="pb-2 text-left font-regular">Missed</th>
                 <th className="pb-2 text-left font-regular">Extra</th>
                 <th className="pb-2 text-left font-regular">Status</th>
-                <th className="pb-2 text-left font-regular">Leave Status</th>
+                {/* <th className="pb-2 text-left font-regular">Leave Status</th> */}
                 <th className="pb-2 text-left font-regular">Entity</th>
+                <th className="pb-2 text-left font-regular">Location</th>
+
               </tr>
             </thead>
             <tbody>
@@ -344,11 +348,14 @@ function WeeklyReportCard() {
                         </Tooltip>
                       )}
                     </td>
-                    <td className="py-3 text-text-secondary whitespace-nowrap">
+                    {/* <td className="py-3 text-text-secondary whitespace-nowrap">
                       {raw(rec?.IsAbsent)}
-                    </td>
+                    </td> */}
                     <td className="py-3 text-text-secondary whitespace-nowrap truncate" title={rec?.Organization ?? ""}>
                       {raw(rec?.Organization)}
+                    </td>
+                    <td className="py-3 text-text-secondary whitespace-nowrap">
+                      {raw(rec?.LocationIn)} / {raw(rec?.LocationOut)}
                     </td>
                   </tr>
                 );
@@ -370,4 +377,4 @@ function WeeklyReportCard() {
   );
 }
 
-export default WeeklyReportCard;
+export default WeeklyReportCard; 

@@ -1471,3 +1471,10 @@ export const getLicenseByUserId = async (user_id: number, isAdLicense?: boolean)
   const prefix = isAdLicense ? "ad-license" : "license";
   return apiRequest(`/${prefix}/getbyuserid/${user_id}`, "GET");
 };
+
+export const getAllBusinessUnits = async () => {
+  return apiRequest("/business-unit", "GET");
+};
+export const getAllCostCentersMaster = async () => {
+  return apiRequest("/cost-center", "GET");
+};
