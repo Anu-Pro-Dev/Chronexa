@@ -1473,8 +1473,8 @@ export const getLicenseByUserId = async (user_id: number, isAdLicense?: boolean)
 };
 
 export const getAllBusinessUnits = async () => {
-  return apiRequest("/business-unit", "GET");
+  return apiRequest("/business-unit/all", "GET");
 };
 export const getAllCostCentersMaster = async () => {
-  return apiRequest("/cost-center", "GET");
+  return apiRequest("/cost-center/all", "GET");
 };
