@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
 import { Calendar } from "@/src/components/ui/calendar";
 import { Checkbox } from "@/src/components/ui/checkbox";
-import { apiRequest, getAllBusinessUnits, getAllCostCentersMaster } from "@/src/lib/apiHandler";
+import { apiRequest, getAllCostCentersMaster } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { PDFExporter } from './PDFExporter';
@@ -186,10 +186,30 @@ export default function EmployeeReports() {
     queryFn: () => getAllCostCentersMaster(),
   });
 
-  // "Division" is backed by the /business-unit master API.
+  // "Division" (business unit) is scoped to the selected department(s).
+  // /business-unit/by-department/:id returns the full business-unit records
+  // mapped to that department, so the dropdown only lists relevant divisions.
   const { data: divisions } = useQuery({
-    queryKey: ["businessUnits"],
-    queryFn: () => getAllBusinessUnits(),
+    queryKey: ["businessUnitsByDepartment", selectedDepartments],
+    queryFn: async () => {
+      if (selectedDepartments.length === 0) return { data: [] };
+      const results = await Promise.all(
+        selectedDepartments.map(departmentId =>
+          apiRequest(`/business-unit/by-department/${departmentId}`, "GET")
+        )
+      );
+      // Merge + dedupe across departments by business_unit_id.
+      const map = new Map<string, any>();
+      results.forEach(r => {
+        (r?.data || []).forEach((bu: any) => {
+          if (bu?.business_unit_id != null) {
+            map.set(bu.business_unit_id.toString(), bu);
+          }
+        });
+      });
+      return { data: Array.from(map.values()) };
+    },
+    enabled: selectedDepartments.length > 0,
   });
 
   const debouncedVerticalSearch = useCallback(debounce((v: string) => setVerticalSearchTerm(v), 300), []);
@@ -306,6 +326,9 @@ export default function EmployeeReports() {
   };
 
   const getDivisionData = () => {
+    // Division (business unit) cascades from the selected department(s):
+    // show nothing until at least one department is chosen.
+    if (selectedDepartments.length === 0) return [];
     if (!divisions?.data) return [];
     const units = divisions.data.filter((item: any) => item.business_unit_id);
     if (!divisionSearchTerm) return units;
@@ -356,6 +379,7 @@ export default function EmployeeReports() {
       : [...selectedVerticals, verticalId]);
     form.setValue("company", []);
     form.setValue("department", []);
+    form.setValue("division", []);
     form.setValue("manager_id", []);
     form.setValue("employee", []);
   };
@@ -366,6 +390,7 @@ export default function EmployeeReports() {
       : [...selectedCompanies, companyId];
     form.setValue("company", newCompanies);
     form.setValue("department", []);
+    form.setValue("division", []);
     form.setValue("manager_id", []);
     form.setValue("employee", []);
   };
@@ -375,6 +400,7 @@ export default function EmployeeReports() {
       ? selectedDepartments.filter(id => id !== departmentId)
       : [...selectedDepartments, departmentId];
     form.setValue("department", newDepartments);
+    form.setValue("division", []);
     form.setValue("manager_id", []);
     form.setValue("employee", []);
   };
@@ -816,6 +842,7 @@ export default function EmployeeReports() {
   };
 
   const getDivisionPlaceholderText = () => {
+    if (selectedDepartments.length === 0) return t.select_department_first || "Select a department first";
     if (selectedDivisions.length === 0) return t.placeholder_division || "Choose division";
     return `${selectedDivisions.length} ${t.division || 'division'}${selectedDivisions.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
@@ -1206,9 +1233,16 @@ export default function EmployeeReports() {
                               onSearchChange={debouncedDivisionSearch}
                               className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                             >
-                              {getDivisionData().length === 0 && divisionSearchTerm && (
+                              {selectedDepartments.length === 0 && (
                                 <div className="p-3 text-sm text-text-secondary">
-                                  {t.no_results || "No results found"}
+                                  {t.select_department_first || "Select a department first"}
+                                </div>
+                              )}
+                              {selectedDepartments.length > 0 && getDivisionData().length === 0 && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {divisionSearchTerm
+                                    ? (t.no_results || "No results found")
+                                    : (t.no_division_for_department || "No divisions mapped to the selected department")}
                                 </div>
                               )}
                               {getDivisionData().map((item: any) => {
