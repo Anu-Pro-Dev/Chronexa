@@ -27,7 +27,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange }) => {
     if (value && value !== selectedColor) {
       setSelectedColor(value);
     }
-  }, [value, selectedColor]);
+  }, [value]);
 
   return (
     <div className="w-full max-w-[350px] 3xl:max-w-[450px] flex flex-col items-center space-y-4">

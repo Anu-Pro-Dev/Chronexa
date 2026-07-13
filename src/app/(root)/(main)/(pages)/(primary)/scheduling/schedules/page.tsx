@@ -27,7 +27,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = useMemo(() => translations?.modules?.scheduling || {}, [translations]);
+  const t = translations?.modules?.scheduling || {};
 
   const offset = useMemo(() => {
     return currentPage;
@@ -109,7 +109,7 @@ export default function Page() {
       });
     }
     return [];
-  }, [scheduleData]);
+  }, [scheduleData, language]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);

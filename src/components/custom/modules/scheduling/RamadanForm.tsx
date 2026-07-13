@@ -95,13 +95,13 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
     }
   }
 
-  const ramadanInTime = form.watch("ramadan_in_time");
-  const ramadanOutTime = form.watch("ramadan_out_time");
-
   useEffect(() => {
-    if (ramadanInTime && ramadanOutTime) {
-      const inDate = ramadanInTime instanceof Date ? ramadanInTime : parseTimeString(ramadanInTime);
-      const outDate = ramadanOutTime instanceof Date ? ramadanOutTime : parseTimeString(ramadanOutTime);
+    const inTime = form.watch("ramadan_in_time");
+    const outTime = form.watch("ramadan_out_time");
+
+    if (inTime && outTime) {
+      const inDate = inTime instanceof Date ? inTime : parseTimeString(inTime);
+      const outDate = outTime instanceof Date ? outTime : parseTimeString(outTime);
 
       if (inDate && outDate) {
         let diff = differenceInMinutes(outDate, inDate);
@@ -117,7 +117,7 @@ export default function RamadanForm({ SetPage }: RamadanFormProps) {
     } else {
       form.setValue("ramadan_required_work_hours", "");
     }
-  }, [ramadanInTime, ramadanOutTime, form]);
+  }, [form.watch("ramadan_in_time"), form.watch("ramadan_out_time")]);
 
   return (
     <Form {...form}>

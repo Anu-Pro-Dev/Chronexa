@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 import { InlineLoading } from "@/src/app/loading";
@@ -8,11 +8,11 @@ export default function PermissionsRedirectPage() {
   const router = useRouter();
   const { privilegeMap, isLoading } = usePrivileges();
 
-  const tabPathMapping: Record<string, string> = useMemo(() => ({
+  const tabPathMapping: Record<string, string> = {
     'My Request': 'my-request',
     'Team Request': 'team-request', 
     'Manage': 'manage',
-  }), []);
+  };
 
   useEffect(() => {
     if (isLoading) return;
@@ -55,7 +55,7 @@ export default function PermissionsRedirectPage() {
         router.replace('/dashboard/user-insights');
       }
     }
-  }, [privilegeMap, isLoading, router, tabPathMapping]);
+  }, [privilegeMap, isLoading, router]);
 
   return (
     <div className="flex justify-center items-center min-h-screen">

@@ -123,7 +123,7 @@ export default function AddEmployeeGroups({
         reporting_person_id: undefined,
       });
     }
-  }, [selectedRowData, language, form]);
+  }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addEmployeeGroupRequest,

@@ -164,7 +164,7 @@ function WeeklyReportCard() {
         dayLabel: d.toLocaleDateString("en-US", { weekday: "short" }),
         rec,
       };
-    }).reverse();
+    });
   }, [weekStart, yesterday, recordByDate]);
 
   // Export: month-to-date

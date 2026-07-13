@@ -22,7 +22,7 @@ export default function Page() {
   const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = useMemo(() => translations?.modules?.scheduling || {}, [translations]);
+  const t = translations?.modules?.scheduling || {};
 
 
 
@@ -71,7 +71,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [currentPage, refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -80,7 +80,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [rowsPerPage, refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);

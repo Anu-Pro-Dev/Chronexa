@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
@@ -100,12 +100,12 @@ export default function AddRole({
   }, [selectedRowData, form]);
 
   // Debounced search handlers (same pattern as reports page)
-  const debouncedVerticalSearch = useMemo(
-    () => debounce((v: string) => setVerticalSearchTerm(v), 300),
+  const debouncedVerticalSearch = useCallback(
+    debounce((v: string) => setVerticalSearchTerm(v), 300),
     []
   );
-  const debouncedCompanySearch = useMemo(
-    () => debounce((v: string) => setCompanySearchTerm(v), 300),
+  const debouncedCompanySearch = useCallback(
+    debounce((v: string) => setCompanySearchTerm(v), 300),
     []
   );
 

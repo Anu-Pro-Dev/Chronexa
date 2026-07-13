@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { AgGridReact } from "ag-grid-react";
 import { PowerTablePagination } from "./power-table-pagination";
@@ -57,7 +57,7 @@ export default function PowerTableRoster({
     };
   }, []);
 
-  const FetchData = useCallback(async () => {
+  const FetchData = async () => {
     try {
       const response: any = await DynamicApi(api, {
         page: props?.CurrentPage,
@@ -71,13 +71,13 @@ export default function PowerTableRoster({
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-    }, [api, rows_per_page, props]);
+  };
 
   useEffect(() => {
     if (api) {
       FetchData();
     }
-  }, [props?.CurrentPage, rows_per_page, props?.SortField, props?.SortDirection, props?.SearchValue, FetchData, api, props]);
+  }, [props?.CurrentPage, rows_per_page, props?.SortField, props?.SortDirection, props?.SearchValue]);
 
   const onSortChanged = (event: any) => {
     const sortedColumn = event.columns?.find((column: any) => column.sort);

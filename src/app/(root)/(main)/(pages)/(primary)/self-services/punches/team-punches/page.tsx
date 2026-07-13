@@ -52,7 +52,7 @@ export default function Page() {
 
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
-  const t = useMemo(() => translations?.modules?.selfServices || {}, [translations]);
+  const t = translations?.modules?.selfServices || {};
 
   const offset = useMemo(() => currentPage, [currentPage]);
 

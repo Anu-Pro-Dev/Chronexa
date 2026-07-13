@@ -27,19 +27,6 @@ export default function Page() {
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.employeeMaster || {};
 
-  const handleCellClickPath = useCallback((row: any) => {
-    if (!row?.employee_group_id || !row?.group_code) {
-      console.error("Invalid group row", row);
-      return;
-    }
-
-    setGroup(row.employee_group_id, row.group_code);
-
-    router.push(
-      `/employee-master/employee-group/group-members?group=${row.group_code}&id=${row.employee_group_id}`
-    );
-  }, [router, setGroup]);
-
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
@@ -64,7 +51,7 @@ export default function Page() {
         headerName: t.reporting
       },
     ]);
-  }, [language, handleCellClickPath, t.group_code, t.group_end_date, t.group_name, t.group_start_date, t.grouping, t.reporting]);
+  }, [language]);
 
   const { data: employeeGroupData, isLoading, refetch } = useFetchAllEntity("employeeGroup", {
     searchParams: {
@@ -95,7 +82,7 @@ export default function Page() {
       }));
     }
     return [];
-  }, [employeeGroupData]);
+  }, [employeeGroupData, language]);
 
   useEffect(() => {
     if (!open) {
@@ -109,7 +96,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [currentPage, refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -118,12 +105,25 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [rowsPerPage, refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
     setCurrentPage(1);
   }, []);
+
+  const handleCellClickPath = useCallback((row: any) => {
+    if (!row?.employee_group_id || !row?.group_code) {
+      console.error("Invalid group row", row);
+      return;
+    }
+
+    setGroup(row.employee_group_id, row.group_code);
+
+    router.push(
+      `/employee-master/employee-group/group-members?group=${row.group_code}&id=${row.employee_group_id}`
+    );
+  }, [router, setGroup]);
 
   const props = {
     Data: data,

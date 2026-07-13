@@ -32,7 +32,7 @@ export default function Page() {
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const debouncedSearchValue = useDebounce(searchValue, 300);
 
-    const t = useMemo(() => translations?.modules?.scheduling || {}, [translations]);
+    const t = translations?.modules?.scheduling || {};
     const commonT = translations || {};
 
     const setSelectedRowData = useOrgScheduleEditStore((state) => state.setSelectedRowData);

@@ -23,9 +23,9 @@ interface LeaveAnalytic {
 
 function LeaveAnalyticsCard() {
   const { dir, translations } = useLanguage();
-  const t = useMemo(() => translations?.modules?.dashboard || {}, [translations]);
+  const t = translations?.modules?.dashboard || {};
 
-  const translationDefaults = useMemo(() => ({
+  const translationDefaults = {
     leave_analytics: t?.leave_analytics || "Leave Analytics",
     select_year: translations?.select_year || "Select year",
     leaves: t?.leaves || "Leaves",
@@ -42,7 +42,22 @@ function LeaveAnalyticsCard() {
     october: translations?.october || "October",
     november: translations?.november || "November",
     december: translations?.december || "December",
-  }), [t, translations]);
+  };
+
+  const monthNames = [
+    translationDefaults.january,
+    translationDefaults.february,
+    translationDefaults.march,
+    translationDefaults.april,
+    translationDefaults.may,
+    translationDefaults.june,
+    translationDefaults.july,
+    translationDefaults.august,
+    translationDefaults.september,
+    translationDefaults.october,
+    translationDefaults.november,
+    translationDefaults.december,
+  ];
 
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -56,22 +71,7 @@ function LeaveAnalyticsCard() {
     fetchLeaveAnalyticsForYear(selectedYear);
   }, [selectedYear, fetchLeaveAnalyticsForYear]);
 
-  const leaveAnalytics = useMemo(() => leaveAnalyticsCache[selectedYear] || [], [leaveAnalyticsCache, selectedYear]);
-
-  const monthNames = useMemo(() => [
-    translationDefaults.january,
-    translationDefaults.february,
-    translationDefaults.march,
-    translationDefaults.april,
-    translationDefaults.may,
-    translationDefaults.june,
-    translationDefaults.july,
-    translationDefaults.august,
-    translationDefaults.september,
-    translationDefaults.october,
-    translationDefaults.november,
-    translationDefaults.december,
-  ], [translationDefaults]);
+  const leaveAnalytics = leaveAnalyticsCache[selectedYear] || [];
 
   const chartData = useMemo(() => {
     const monthDataMap = new Map();
@@ -91,7 +91,7 @@ function LeaveAnalyticsCard() {
     }));
 
     return dir === "rtl" ? [...data].reverse() : data;
-  }, [dir, leaveAnalytics, monthNames]);
+  }, [dir, monthNames, leaveAnalytics]);
 
   const summaryStats = useMemo(() => {
     const totalLeaves = chartData.reduce((s, d) => s + d.leaves, 0);

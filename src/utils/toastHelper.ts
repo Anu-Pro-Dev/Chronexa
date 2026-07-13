@@ -1,16 +1,28 @@
 import toast from "react-hot-toast";
-import { useContext } from "react";
-import { LanguageContext } from "@/src/providers/LanguageProvider";
-import { LiteLanguageContext } from "@/src/providers/LiteLanguageProvider";
+import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider";
 
 type ToastType = "success" | "error" | "loading" | "default";
 
 export function useShowToast() {
-  const fullContext = useContext(LanguageContext);
-  const liteContext = useContext(LiteLanguageContext);
+  let translations: any = null;
+  let language: string = "en";
+  let isLiteProvider = false;
 
-  const translations = (fullContext?.translations ?? liteContext?.translations) || null;
-  const language = (fullContext?.language ?? liteContext?.language) || "en";
+  try {
+    const fullContext = useLanguage();
+    translations = fullContext.translations;
+    language = fullContext.language;
+  } catch (e) {
+    try {
+      const liteContext = useLiteLanguage();
+      translations = liteContext.translations;
+      language = liteContext.language;
+      isLiteProvider = true;
+    } catch (e2) {
+      console.warn('No language provider available for toast');
+    }
+  }
 
   const toastT = translations?.toastNotifications || {};
   const plurals = translations?.plurals || {};

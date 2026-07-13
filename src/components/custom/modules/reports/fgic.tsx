@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -87,8 +87,8 @@ export default function EmployeeReports() {
       : { searchParams: { limit: "1000", offset: "1" } }
   );
 
-  const debouncedEmployeeSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedEmployeeSearch = useCallback(
+    debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
     }, 300),
     []

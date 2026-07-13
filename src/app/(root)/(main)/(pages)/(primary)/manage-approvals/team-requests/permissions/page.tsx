@@ -42,7 +42,7 @@ export default function Page() {
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const [approveOpen, setApproveOpen] = useState<boolean>(false);
   const [rejectOpen, setRejectOpen] = useState<boolean>(false);
-  const t = useMemo(() => translations?.modules?.manageApprovals || {}, [translations]);
+  const t = translations?.modules?.manageApprovals || {};
 
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
@@ -105,7 +105,7 @@ export default function Page() {
       fullName: fullName || firstName || `Employee ${permission.employee_id}`,
       employee_id: permission.employee_id
     };
-  }, []);
+  }, [language]);
 
   const getPermissionTypeName = useCallback((permissionTypes: any) => {
     if (!permissionTypes) {

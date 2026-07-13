@@ -80,21 +80,21 @@ export default function AddOrganization({
     },
   });
 
-  const flattenOrganizations = useCallback((orgs: any[]): any[] =>
+  const flattenOrganizations = (orgs: any[]): any[] =>
     (orgs || []).reduce((acc: any[], org: any) => {
       const { children, ...rest } = org;
       acc.push(rest);
       if (children?.length) acc.push(...flattenOrganizations(children));
       return acc;
-    }, []), []);
+    }, []);
   const flatOrganizations = useMemo(
     () => flattenOrganizations(orgStructureData?.data || []),
-    [orgStructureData, flattenOrganizations]
+    [orgStructureData]
   );
 
-  const debouncedParentTypeSearch = useMemo(() => debounce((s) => setParentTypeSearch(s), 300), []);
-  const debouncedParentSearch = useMemo(() => debounce((s) => setParentSearch(s), 300), []);
-  const debouncedOrgTypeSearch = useMemo(() => debounce((s) => setOrgTypeSearch(s), 300), []);
+  const debouncedParentTypeSearch = useCallback(debounce((s) => setParentTypeSearch(s), 300), []);
+  const debouncedParentSearch = useCallback(debounce((s) => setParentSearch(s), 300), []);
+  const debouncedOrgTypeSearch = useCallback(debounce((s) => setOrgTypeSearch(s), 300), []);
 
   const getFilteredParentTypes = () => {
     let list = organizationTypesData?.data || [];

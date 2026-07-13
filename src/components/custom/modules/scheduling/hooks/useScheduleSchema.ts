@@ -153,7 +153,7 @@ export const useScheduleForm = () => {
     if (!selectedRowData?.schedule_id) {
       form.reset();
     }
-  }, [form, selectedRowData?.schedule_id]);
+  }, []);
 
   return { form, schema: scheduleFormSchema, selectedRowData };
 };

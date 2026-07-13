@@ -65,7 +65,7 @@ export default function AddOrganizationType({
         organization_type_name: "",
       });
     }
-  }, [selectedRowData, language, form]);
+  }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addOrganizationTypeRequest,

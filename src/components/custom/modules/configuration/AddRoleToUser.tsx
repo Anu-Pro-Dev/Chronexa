@@ -27,7 +27,7 @@ export default function AddRoleToUser({
   const { modules, language, translations } = useLanguage();
   const router = useRouter();
   const showToast = useShowToast();
-  const t = useMemo(() => translations?.modules?.configurations || {}, [translations]);
+  const t = translations?.modules?.configurations || {};
 
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);

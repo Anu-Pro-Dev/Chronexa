@@ -117,7 +117,7 @@ export default function AddLocations({
         geolocation: "",
       });
     }
-  }, [selectedRowData, language, form]);
+  }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addLocationRequest,

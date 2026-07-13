@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,19 +88,12 @@ export default function EmployeeReports() {
     searchParams: { limit: "1000" }
   });
 
-  const verticalValue = form.watch("vertical");
-  const companyValue = form.watch("company");
-  const departmentValue = form.watch("department");
-  const employeeTypeValue = form.watch("employee_type");
-  const managerIdValue = form.watch("manager_id");
-  const employeeValue = form.watch("employee");
-
-  const selectedVerticals = useMemo(() => verticalValue || [], [verticalValue]);
-  const selectedCompanies = useMemo(() => companyValue || [], [companyValue]);
-  const selectedDepartments = useMemo(() => departmentValue || [], [departmentValue]);
-  const selectedEmployeeTypes = useMemo(() => employeeTypeValue || [], [employeeTypeValue]);
-  const selectedManagerIds = useMemo(() => managerIdValue || [], [managerIdValue]);
-  const selectedEmployeeIds = useMemo(() => employeeValue || [], [employeeValue]);
+  const selectedVerticals = form.watch("vertical") || [];
+  const selectedCompanies = form.watch("company") || [];
+  const selectedDepartments = form.watch("department") || [];
+  const selectedEmployeeTypes = form.watch("employee_type") || [];
+  const selectedManagerIds = form.watch("manager_id") || [];
+  const selectedEmployeeIds = form.watch("employee") || [];
 
   const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
     queryKey: ["departmentsByOrg", selectedCompanies],
@@ -177,43 +170,43 @@ export default function EmployeeReports() {
 
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
-  const debouncedVerticalSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedVerticalSearch = useCallback(
+    debounce((searchTerm: string) => {
       setVerticalSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedCompanySearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedCompanySearch = useCallback(
+    debounce((searchTerm: string) => {
       setCompanySearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedDepartmentSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedDepartmentSearch = useCallback(
+    debounce((searchTerm: string) => {
       setDepartmentSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedEmployeeTypeSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedEmployeeTypeSearch = useCallback(
+    debounce((searchTerm: string) => {
       setEmployeeTypeSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedEmployeeSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedEmployeeSearch = useCallback(
+    debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedManagerSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedManagerSearch = useCallback(
+    debounce((searchTerm: string) => {
       setManagerSearchTerm(searchTerm);
     }, 300),
     []
@@ -824,15 +817,12 @@ export default function EmployeeReports() {
   }, [debouncedVerticalSearch, debouncedCompanySearch, debouncedDepartmentSearch,
     debouncedEmployeeTypeSearch, debouncedEmployeeSearch, debouncedManagerSearch]);
 
-  const fromDate = form.watch('from_date');
-  const toDate = form.watch('to_date');
-
   useEffect(() => {
     if (showReportView) {
       resetButtons();
       setShowReportView(false);
     }
-  }, [selectedVerticals, selectedCompanies, selectedDepartments, selectedManagerIds, selectedEmployeeIds, selectedEmployeeTypes, fromDate, toDate, showReportView]);
+  }, [selectedVerticals, selectedCompanies, selectedDepartments, selectedManagerIds, selectedEmployeeIds, selectedEmployeeTypes, form.watch('from_date'), form.watch('to_date')]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     return;

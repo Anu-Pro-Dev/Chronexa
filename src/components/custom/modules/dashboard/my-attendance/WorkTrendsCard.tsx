@@ -47,7 +47,7 @@ function WorkTrendsCard() {
     fetchWorkHourTrendsForMonth(selectedMonth);
   }, [selectedMonth, fetchWorkHourTrendsForMonth]);
 
-  const workHourTrends = useMemo(() => workHourTrendsCache[selectedMonth] || [], [workHourTrendsCache, selectedMonth]);
+  const workHourTrends = workHourTrendsCache[selectedMonth] || [];
 
   const monthKeys = [
     "january", "february", "march", "april", "may", "june",

@@ -66,7 +66,7 @@ export default function AddEmployeeTypes({
         employee_type_name: "",
       });
     }
-  }, [selectedRowData, language, form]);
+  }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addEmployeeTypeRequest,

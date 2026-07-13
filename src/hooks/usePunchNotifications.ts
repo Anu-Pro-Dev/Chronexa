@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface PunchNotificationOptions {
   minutesBefore?: number[];
@@ -47,7 +47,7 @@ export function usePunchNotifications(
     requestPermission();
   }, [enableBrowserNotifications]);
 
-  const playNotificationSound = useCallback(() => {
+  const playNotificationSound = () => {
     if (!enableSound) return;
 
     try {
@@ -69,9 +69,9 @@ export function usePunchNotifications(
     } catch (error) {
       console.error("Error playing notification sound:", error);
     }
-  }, [enableSound]);
+  };
 
-  const showBrowserNotification = useCallback((title: string, body: string, isOvertime: boolean = false) => {
+  const showBrowserNotification = (title: string, body: string, isOvertime: boolean = false) => {
     if (!enableBrowserNotifications || !hasPermission) return;
 
     try {
@@ -97,7 +97,7 @@ export function usePunchNotifications(
     } catch (error) {
       console.error("Error showing browser notification:", error);
     }
-  }, [enableBrowserNotifications, hasPermission, playNotificationSound]);
+  };
 
   useEffect(() => {
     if (!lastTransaction || lastTransaction.type !== "IN" || hasPunchedOut) {
@@ -187,7 +187,7 @@ export function usePunchNotifications(
     }, 30000);
 
     return () => clearInterval(checkInterval);
-  }, [lastTransaction, scheduleHours, minutesBefore, enableBrowserNotifications, enableSound, hasPermission, hasPunchedOut, showBrowserNotification]);
+  }, [lastTransaction, scheduleHours, minutesBefore, enableBrowserNotifications, enableSound, hasPermission, hasPunchedOut]);
 
   useEffect(() => {
     notifiedMinutes.current.clear();

@@ -28,7 +28,7 @@ type AuthGuardReturn = {
   isGeofenceEnabled: boolean;
 };
 
-export const LanguageContext = createContext<LanguageContextType | undefined>(
+const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined
 );
 

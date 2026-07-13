@@ -64,9 +64,9 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
 
   const getPunchStateKey = (userId: string) => `punchState_${userId}`;
 
-  const clearUserPunchState = useCallback((userId: string) => {
-    localStorage.removeItem(`punchState_${userId}`);
-  }, []);
+  const clearUserPunchState = (userId: string) => {
+    localStorage.removeItem(getPunchStateKey(userId));
+  };
 
   const getLastTransactionFromStorage = () => {
     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
@@ -202,7 +202,7 @@ export function PunchProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('storage', handleUserChange);
       window.removeEventListener(USER_CHANGE_EVENT, handleUserChange);
     };
-  }, [isClient, currentUserId, resetCurrentSessionState, loadUserPunchState, clearUserPunchState]);
+  }, [isClient, currentUserId, resetCurrentSessionState, loadUserPunchState]);
 
   // Persist punch state to localStorage
   useEffect(() => {

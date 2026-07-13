@@ -47,7 +47,7 @@ export default function Page() {
   });
   
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = useMemo(() => translations?.modules?.selfServices || {}, [translations]);
+  const t = translations?.modules?.selfServices || {};
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
@@ -155,7 +155,7 @@ export default function Page() {
         <span>Download</span>
       </button>
     );
-  }, [showToast]);
+  }, []);
 
   useEffect(() => {
     setColumns([

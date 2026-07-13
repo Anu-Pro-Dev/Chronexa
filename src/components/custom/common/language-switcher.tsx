@@ -9,14 +9,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/src/components/ui/select"
-import { LanguageContext } from "@/src/providers/LanguageProvider"
-import { LiteLanguageContext } from "@/src/providers/LiteLanguageProvider"
+import { useLanguage } from "@/src/providers/LanguageProvider"
+import { useLiteLanguage } from "@/src/providers/LiteLanguageProvider"
 
 export default function LanguageSwitcher() {
   const [languageContext, setLanguageContext] = React.useState<'full' | 'lite' | null>(null);
 
-  const fullContext = React.useContext(LanguageContext);
-  const liteContext = React.useContext(LiteLanguageContext);
+  let fullContext = null;
+  let liteContext = null;
+
+  try {
+    fullContext = useLanguage();
+  } catch (e) {
+  }
+
+  try {
+    liteContext = useLiteLanguage();
+  } catch (e) {
+  }
 
   React.useEffect(() => {
     if (fullContext) {

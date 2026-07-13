@@ -22,7 +22,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = useMemo(() => translations?.modules?.selfServices || {}, [translations]);
+  const t = translations?.modules?.selfServices || {};
   
   const offset = useMemo(() => {
     return currentPage;

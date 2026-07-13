@@ -77,7 +77,7 @@ const Table = <T extends Record<string, any>>({
     acc[column.key] = prevOffset + (column.width || 150);
     return acc;
   }, {} as Record<keyof T, number>);
-  const onFetchData: any = useCallback(() => {}, []);
+  const onFetchData: any = () => {};
   
   const fetchData = useCallback(async () => {
     if (!dynamic || !onFetchData) return;

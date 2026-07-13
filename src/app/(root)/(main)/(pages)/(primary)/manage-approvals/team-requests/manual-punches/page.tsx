@@ -43,7 +43,7 @@ export default function Page() {
   const debouncedLeaveTypeFilter = useDebounce(leaveTypeFilter, 300);
   const [approveOpen, setApproveOpen] = useState<boolean>(false);
   const [rejectOpen, setRejectOpen] = useState<boolean>(false);
-  const t = useMemo(() => translations?.modules?.manageApprovals || {}, [translations]);
+  const t = translations?.modules?.manageApprovals || {};
 
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
@@ -139,7 +139,7 @@ export default function Page() {
         <span>Download</span>
       </button>
     );
-  }, [showToast]);
+  }, []);
 
   useEffect(() => {
     setColumns([

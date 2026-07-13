@@ -75,7 +75,7 @@ export default function ScheduleGrid({ groupFilter, filterData, onSelectionChang
     if (onSelectionChange) {
       onSelectionChange(selectedRows);
     }
-  }, [selectedRows, onSelectionChange]);
+  }, [selectedRows]);
 
   const { data: scheduleListData } = useFetchAllEntity("schedule");
   const { data: employeeListData } = useFetchAllEntity("employee");

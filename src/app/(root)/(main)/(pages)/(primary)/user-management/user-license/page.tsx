@@ -14,7 +14,7 @@ type Column = {
 };
 
 export default function Page() {
-  const { modules, language, translations } = useLanguage();
+  const { modules, translations } = useLanguage();
   const [activeTab, setActiveTab] = useState<"local-license" | "ad-license">("local-license");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState("");
@@ -26,7 +26,7 @@ export default function Page() {
 
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  const t = useMemo(() => translations?.modules?.userManagement || {}, [translations]);
+  const t = translations?.modules?.userManagement || {};
 
   useEffect(() => {
     setCurrentPage(1);

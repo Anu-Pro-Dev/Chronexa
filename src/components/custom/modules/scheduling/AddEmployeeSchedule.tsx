@@ -199,7 +199,7 @@ export default function AddEmployeeSchedule({
         sunday_schedule_id: selectedRowData.sunday_schedule_id,
       });
     }
-  }, [selectedRowData, form]);
+  }, [selectedRowData]);
 
   useEffect(() => {
     if (!scheduleId || selectedRowData) return;

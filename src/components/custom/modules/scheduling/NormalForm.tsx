@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { debounce } from "lodash";
 import { cn } from "@/src/lib/utils";
@@ -72,15 +72,15 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
     removeAll: true
   });
 
-  const debouncedOrganizationSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedOrganizationSearch = useCallback(
+    debounce((searchTerm: string) => {
       setOrganizationSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedLocationSearch = useMemo(
-    () => debounce((searchTerm: string) => {
+  const debouncedLocationSearch = useCallback(
+    debounce((searchTerm: string) => {
       setLocationSearchTerm(searchTerm);
     }, 300),
     []
@@ -137,10 +137,10 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
     }
   }
 
-  const inTime = form.watch("in_time");
-  const outTime = form.watch("out_time");
-
   useEffect(() => {
+    const inTime = form.watch("in_time");
+    const outTime = form.watch("out_time");
+
     if (inTime && outTime) {
       const inDate = inTime instanceof Date ? inTime : parseTimeString(inTime);
       const outDate = outTime instanceof Date ? outTime : parseTimeString(outTime);
@@ -159,7 +159,7 @@ export default function NormalForm({ SetPage }: NormalFormProps) {
     } else {
       form.setValue("required_work_hours", "");
     }
-  }, [inTime, outTime, form]);
+  }, [form.watch("in_time"), form.watch("out_time")]);
 
   return (
     <Form {...form}>

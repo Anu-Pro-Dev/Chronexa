@@ -35,7 +35,7 @@ export default function Page() {
         headerName: t.grade_name,
       },
     ]);
-  }, [language, t.grade_code, t.grade_name]);
+  }, [language]);
 
   const { data: gradeData, isLoading, refetch } = useFetchAllEntity("grade", {
     searchParams: {
@@ -66,7 +66,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [currentPage, refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -74,7 +74,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [rowsPerPage, refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);

@@ -209,7 +209,7 @@ export default function GroupApplyPunch({
   useEffect(() => {
     const validIds = new Set(getFilteredEmployees().map((e: any) => e.employee_id?.toString()));
     setSelectedEmployees((prev) => prev.filter((id) => validIds.has(id)));
-  }, [selectedEmployeeTypes, selectedDepartment, selectedCostCode, getFilteredEmployees]);
+  }, [selectedEmployeeTypes, selectedDepartment, selectedCostCode]);
 
   const handleEmployeeTypeToggle = (typeId: string) =>
     setSelectedEmployeeTypes((prev) =>

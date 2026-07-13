@@ -110,10 +110,20 @@ function buildExportRow(rec: any): Record<string, string> {
   };
 }
 
-function triggerDownload(buffer: ArrayBuffer, filename: string) {
-  const blob = new Blob([buffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
+// Build a CSV string from columns + rows (RFC-4180 escaping).
+function toCsv(columns: { header: string; key: string }[], rows: Record<string, string>[]): string {
+  const esc = (v: unknown) => {
+    const s = v == null ? "" : String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const head = columns.map((c) => esc(c.header)).join(",");
+  const body = rows.map((r) => columns.map((c) => esc(r[c.key])).join(","));
+  return [head, ...body].join("\r\n");
+}
+
+function triggerDownload(content: string, filename: string) {
+  // BOM so Excel reads UTF-8 (status glyphs etc.) correctly.
+  const blob = new Blob(["\uFEFF" + content], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -201,28 +211,11 @@ function TeamReportCard() {
       });
       const data: any[] = res?.data || [];
       const rows = data.map(buildExportRow);
-
-      const ExcelJS = (await import("exceljs")).default;
-      const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet("Team Attendance");
-
-      sheet.columns = CSV_COLUMNS.map((c) => ({ header: c.header, key: c.key, width: 18 }));
-
-      const headerRow = sheet.getRow(1);
-      headerRow.font = { bold: true };
-      headerRow.eachCell((cell) => {
-        // cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0078D4" } };
-        // cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-        cell.alignment = { vertical: "middle", horizontal: "center" };
-      });
-
-      rows.forEach((r) => sheet.addRow(r));
-
-      const buffer = await workbook.xlsx.writeBuffer();
+      const csv = toCsv(CSV_COLUMNS, rows);
       const dd = String(yesterday.getDate()).padStart(2, "0");
-      triggerDownload(buffer, `Team_Attendance_${months[currentMonth - 1]}_${currentYear}_to_${dd}.xlsx`);
+      triggerDownload(csv, `Team_Attendance_${months[currentMonth - 1]}_${currentYear}_to_${dd}.csv`);
     } catch (err: any) {
-      console.error("Failed to download team Excel:", err);
+      console.error("Failed to download team CSV:", err);
       setError(err?.message || "Failed to download report");
     } finally {
       setDownloading(false);
@@ -245,13 +238,13 @@ function TeamReportCard() {
         </h5>
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-text-secondary hidden sm:inline">
-            Current Month XLSX
+            Current Month CSV
           </span>
           <button
             type="button"
             onClick={handleDownloadCsv}
             disabled={downloading}
-            title="Download full month (XLSX)"
+            title="Download full month (CSV)"
             className="flex items-center justify-center h-9 w-9 rounded-lg border border-border-accent shadow-button text-text-secondary hover:text-primary hover:bg-backdrop transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {downloading ? (

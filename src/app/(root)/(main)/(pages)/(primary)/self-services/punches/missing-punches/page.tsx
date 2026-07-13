@@ -78,7 +78,7 @@ export default function Page() {
 
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedEmployeeFilter = useDebounce(employeeFilter, 300);
-  const t = useMemo(() => translations?.modules?.selfServices || {}, [translations]);
+  const t = translations?.modules?.selfServices || {};
 
   const minToDate = useMemo(() => {
     return fromDate ? startOfDay(fromDate) : undefined;
@@ -237,6 +237,7 @@ export default function Page() {
     debouncedSearchValue,
     fromDate,
     toDate,
+    debouncedEmployeeFilter,
     selectedDepartment,
     selectedStatus,
     formatDateForAPI,
@@ -308,7 +309,7 @@ export default function Page() {
       );
     }
     return <span>{value}</span>;
-  }, [handleCellClick]);
+  }, [handleCellClick, t]);
 
   useEffect(() => {
     setColumns([
@@ -448,13 +449,13 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [closePopover, refetch]);
+  }, [refetch, closePopover]);
 
   const handleDepartmentChange = useCallback((value: string) => {
     setSelectedDepartment(value);
     setCurrentPage(1);
     closePopover('department');
-  }, [closePopover]);
+  }, [refetch, closePopover]);
 
   const handleStatusChange = useCallback((value: string) => {
     setSelectedStatus(value);

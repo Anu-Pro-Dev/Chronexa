@@ -71,7 +71,7 @@ export default function AddGrades({
         overtime_eligible_flag: false,
       });
     }
-  }, [selectedRowData, language, form]);
+  }, [selectedRowData, language]);
 
   const addMutation = useMutation({
     mutationFn: addGradeRequest,

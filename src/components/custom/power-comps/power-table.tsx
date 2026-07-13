@@ -1,7 +1,7 @@
 "use client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { AgGridReact } from "ag-grid-react";
-import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { PowerTablePagination } from "./power-table-pagination";
 import { DynamicApi } from "@/src/lib/dynamicApi";
@@ -114,7 +114,7 @@ export default function PowerTable({
     }
   };
 
-  const FetchData = useCallback(async () => {
+  const FetchData = async () => {
     if (!api) return;
 
     try {
@@ -131,13 +131,13 @@ export default function PowerTable({
       console.error("Error fetching data:", error);
       setTableData([]);
     }
-  }, [api, currentPage, pageSize, props?.SortField, props?.SortDirection, props?.SearchValue, setTableData]);
+  };
 
   useEffect(() => {
     if (api) {
       FetchData();
     }
-  }, [api, currentPage, pageSize, props?.SortField, props?.SortDirection, props?.SearchValue, FetchData]);
+  }, [api, currentPage, pageSize, props?.SortField, props?.SortDirection, props?.SearchValue]);
 
   const handleRowsPerPageChange = (newValue: string) => {
     const newPageSize = parseInt(newValue);

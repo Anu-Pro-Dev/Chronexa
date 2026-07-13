@@ -216,7 +216,7 @@ export default function Page() {
     setCurrentPage(1);
   }, [activeTab]);
 
-  const t = useMemo(() => translations?.modules?.userManagement || {}, [translations]);
+  const t = translations?.modules?.userManagement || {};
 
   const orgSearchParams = useMemo(() => ({ limit: "1000" }), []);
 
@@ -239,7 +239,7 @@ export default function Page() {
   const licenseStatusFilter = useMemo(() => {
     const status = licenseToStatus[selectedLicense];
     return status ? { status } : undefined;
-  }, [selectedLicense, licenseToStatus]);
+  }, [selectedLicense]);
 
   const showLicenseColumn = activeTab === "ad-user" ? true : selectedOrganization === "27";
 
@@ -433,7 +433,7 @@ export default function Page() {
 
       return cols;
     },
-    [language, t, handleResetSuccess, handleLicenseToggle, licenseMap, showLicenseColumn, handleActivateClick, activeTab, handleListRefresh]
+    [language, t, handleResetSuccess, handleLicenseToggle, licenseMap, showLicenseColumn, handleActivateClick, activeTab]
   );
 
   const data = useMemo(() => {
@@ -529,7 +529,7 @@ export default function Page() {
       data, columns, open, selectedRows, isLoading, sortField, currentPage,
       sortDirection, searchValue, userData, rowsPerPage,
       handlePageChange, handleRowsPerPageChange, handleSearchChange,
-      handleOpenChange, validLicenseUserIds, licenseData,
+      handleOpenChange, licenseOverrides, validLicenseUserIds, licenseData,
     ]
   );
 

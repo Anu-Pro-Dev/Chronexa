@@ -24,7 +24,7 @@ interface LiteLanguageContextType {
   translations: any;
 }
 
-export const LiteLanguageContext = createContext<LiteLanguageContextType | null>(null);
+const LiteLanguageContext = createContext<LiteLanguageContextType | null>(null);
 
 export function LiteLanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<'en' | 'ar'>('en');

@@ -30,7 +30,7 @@ function ViolationsCard() {
   const fetchTeamViolations = useDashboardStore((s) => s.fetchTeamViolationAnalyticsForYear);
   const teamViolationAnalyticsCache = useDashboardStore((s) => s.teamViolationAnalyticsCache);
 
-  const violationsData: ViolationAnalytic[] = useMemo(() => teamViolationAnalyticsCache[selectedYear] || [], [teamViolationAnalyticsCache, selectedYear]);
+  const violationsData: ViolationAnalytic[] = teamViolationAnalyticsCache[selectedYear] || [];
 
   const formatValue = (value: any): number => {
     if (value === null || value === undefined) return 0;

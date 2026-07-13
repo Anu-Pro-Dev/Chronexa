@@ -28,7 +28,7 @@ export default function MembersTable() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = useMemo(() => translations?.modules?.employeeMaster || {}, [translations]);
+  const t = translations?.modules?.employeeMaster || {};
 
   const group = searchParams.get("group");
   const groupIdFromUrl = searchParams.get("id")
@@ -69,7 +69,7 @@ export default function MembersTable() {
         .getState()
         .setGroup(groupIdFromUrl, group || "");
     }
-  }, [groupIdFromUrl, group, groupId]);
+  }, [groupIdFromUrl, group]);
 
   const handleDelete = useCallback(() => {
     if (!selectedRows || selectedRows.length === 0) {
@@ -179,7 +179,7 @@ export default function MembersTable() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [currentPage, refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -188,7 +188,7 @@ export default function MembersTable() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [rowsPerPage, refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);

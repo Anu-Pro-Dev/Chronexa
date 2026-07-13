@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -113,14 +113,14 @@ export default function EmployeeOnboardingPage({
     }
   };
 
-  const resetAllForms = useCallback(() => {
+  const resetAllForms = () => {
     personalForm.reset();
     credentialsForm.reset();
     officialForm.reset();
     flagsForm.reset();
     setActiveStep("personal-form");
     setCompletedSteps([]);
-  }, [personalForm, credentialsForm, officialForm, flagsForm, setActiveStep, setCompletedSteps]);
+  };
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -133,7 +133,7 @@ export default function EmployeeOnboardingPage({
       resetAllForms();
       initializedRef.current = true;
     }
-  }, [mode, id, clearSelectedRowData, resetAllForms]);
+  }, [mode, id]);
 
   useEffect(() => {
     if (mode !== "edit" || !selectedRowData) return;
@@ -226,7 +226,7 @@ export default function EmployeeOnboardingPage({
     }
 
     initializedRef.current = true;
-  }, [selectedRowData, language, mode, activeStep, credentialsForm, flagsForm, officialForm, personalForm]);
+  }, [selectedRowData, language, mode]);
 
   const validateAndNavigate = async (targetStep: string) => {
     const stepOrder = ["personal-form", "credentials-form", "official-form", "flags-form"];

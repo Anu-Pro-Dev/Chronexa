@@ -53,7 +53,7 @@ export default function Page() {
     { field: "to_date", headerName: "To Date" },
     { field: "active", headerName: "Active" },
 
-  ], []);
+  ], [language, t]);
 
   useEffect(() => {
     if (!open) setSelectedRowData(null);
@@ -77,7 +77,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [currentPage, refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -85,7 +85,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [rowsPerPage, refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
@@ -112,7 +112,7 @@ export default function Page() {
     hasNext: delegateData?.hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
-  }), [delegateData, columns, open, selectedRows, isLoading, sortField, currentPage, sortDirection, searchValue, handlePageChange, handleRowsPerPageChange, handleSearchChange, rowsPerPage]);
+  }), [delegateData, columns, open, selectedRows, isLoading, sortField, currentPage, sortDirection, searchValue]);
 
   return (
     <div className="flex flex-col gap-4">

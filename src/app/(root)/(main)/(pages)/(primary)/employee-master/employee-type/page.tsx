@@ -21,7 +21,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = useMemo(() => translations?.modules?.employeeMaster || {}, [translations]);
+  const t = translations?.modules?.employeeMaster || {};
   
   const offset = useMemo(() => {
     return currentPage;
@@ -35,7 +35,7 @@ export default function Page() {
         headerName: t.employee_type,
       },
     ]);
-  }, [language, t.emp_code, t.employee_type]);
+  }, [language]);
 
   const { data: employeeTypeData, isLoading, refetch } = useFetchAllEntity("employeeType", {
     searchParams: {
@@ -69,7 +69,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [currentPage, refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -78,7 +78,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [refetch]);
+  }, [rowsPerPage, refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);
