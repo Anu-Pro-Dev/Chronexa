@@ -1,24 +1,14 @@
 "use client";
 
 import React from 'react';
-import { useLanguage } from '@/src/providers/LanguageProvider';
-import { useLiteLanguage } from '@/src/providers/LiteLanguageProvider';
+import { LanguageContext } from '@/src/providers/LanguageProvider';
+import { LiteLanguageContext } from '@/src/providers/LiteLanguageProvider';
 
 export default function TextLanguageSwitcher() {
   const [languageContext, setLanguageContext] = React.useState<'full' | 'lite' | null>(null);
 
-  let fullContext = null;
-  let liteContext = null;
-
-  try {
-    fullContext = useLanguage();
-  } catch (e) {
-  }
-
-  try {
-    liteContext = useLiteLanguage();
-  } catch (e) {
-  }
+  const fullContext = React.useContext(LanguageContext);
+  const liteContext = React.useContext(LiteLanguageContext);
 
   React.useEffect(() => {
     if (fullContext) {

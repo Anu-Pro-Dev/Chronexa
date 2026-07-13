@@ -66,7 +66,7 @@ export default function AddDepartments({
         department_name: "",
       });
     }
-  }, [selectedRowData, language]);
+  }, [selectedRowData, language, form]);
 
   const addMutation = useMutation({
     mutationFn: addDepartmentRequest,

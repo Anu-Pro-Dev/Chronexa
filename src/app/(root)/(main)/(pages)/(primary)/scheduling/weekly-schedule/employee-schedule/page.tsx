@@ -31,7 +31,7 @@ export default function Page() {
     const queryClient = useQueryClient();
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const debouncedSearchValue = useDebounce(searchValue, 300);
-    const t = translations?.modules?.scheduling || {};
+    const t = useMemo(() => translations?.modules?.scheduling || {}, [translations]);
     const commonT = translations?.common || {};
     const buttonsT = translations?.buttons || {};
 

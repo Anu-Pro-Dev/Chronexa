@@ -44,7 +44,7 @@ export default function Page() {
   });
   
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.selfServices || {};
+  const t = useMemo(() => translations?.modules?.selfServices || {}, [translations]);
 
   const offset = useMemo(() => currentPage, [currentPage]);
 

@@ -41,7 +41,7 @@ export default function AddGroupMembers({
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.employeeMaster || {};
+  const t = useMemo(() => translations?.modules?.employeeMaster || {}, [translations]);
 
   const currentGroupCode = groupCode || searchParams.get("group");
 

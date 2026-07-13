@@ -72,7 +72,7 @@ export default function ActivateLicenseModal({
     return () => {
       cancelled = true;
     };
-  }, [open, userId]);
+  }, [open, userId, isAdLicense, showToast]);
 
   const activateMutation = useMutation({
     mutationFn: () => licenseActivateRequest(licenseId!, keyValue),

@@ -190,7 +190,7 @@ export default function AddMonthlySchedule({
         finalize_flag: selectedRowData.finalize_flag ?? false,
       });
     }
-  }, [selectedRowData]);
+  }, [selectedRowData, form]);
 
   const addMutation = useMutation({
   mutationFn: addMonthlyScheduleRequest,

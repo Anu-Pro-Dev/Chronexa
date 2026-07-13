@@ -121,14 +121,14 @@ function getColConfig(filter: DrillDownFilter): ColConfig {
       return {
         headers: ["Check-In"],
         cells:   (emp) => [
-          <span className="tabular-nums">{formatTime(emp.checkInTime)}</span>,
+          <span key="check-in" className="tabular-nums">{formatTime(emp.checkInTime)}</span>,
         ],
       };
     case "checkOutList":
       return {
         headers: ["Check-Out"],
         cells:   (emp) => [
-          <span className="tabular-nums">{formatTime(emp.checkOutTime)}</span>,
+          <span key="check-out" className="tabular-nums">{formatTime(emp.checkOutTime)}</span>,
         ],
       };
     case "absentList":
@@ -137,7 +137,7 @@ function getColConfig(filter: DrillDownFilter): ColConfig {
       return {
         headers: ["Status"],
         cells:   (_emp) => [
-          <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FDEAEA] text-destructive border-[#F5BABA]">
+          <span key="status" className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FDEAEA] text-destructive border-[#F5BABA]">
             {filter === "absentList" ? "Absent" : filter === "missedIn" ? "Missed Check-In" : "Missed Check-Out"}
           </span>,
         ],
@@ -146,20 +146,20 @@ function getColConfig(filter: DrillDownFilter): ColConfig {
       return {
         headers: ["Status", "Check-In"],
         cells:   (emp) => [
-          <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FDEAEA] text-destructive border-[#F5BABA]">
+          <span key="status" className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FDEAEA] text-destructive border-[#F5BABA]">
             Missed Check-Out
           </span>,
-          <span className="tabular-nums">{formatTime(emp.checkInTime)}</span>,
+          <span key="check-in" className="tabular-nums">{formatTime(emp.checkInTime)}</span>,
         ],
       };
     case "leaveList":
       return {
         headers: ["Leave Type", "Days"],
         cells:   (emp) => [
-          <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FFFBEB] text-[#B45309] border-[#FDE68A] truncate max-w-[168px]">
+          <span key="leave-type" className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-md border bg-[#FFFBEB] text-[#B45309] border-[#FDE68A] truncate max-w-[168px]">
             {emp.leaveType ?? "—"}
           </span>,
-          <span className="tabular-nums font-semibold text-text-primary">
+          <span key="days" className="tabular-nums font-semibold text-text-primary">
             {emp.leaveDays != null ? `${emp.leaveDays}d` : "—"}
           </span>,
         ],
@@ -168,7 +168,7 @@ function getColConfig(filter: DrillDownFilter): ColConfig {
       return {
         headers: ["App Username"],
         cells:   (emp) => [
-          <span className="text-text-secondary tabular-nums truncate max-w-[160px]">
+          <span key="app-username" className="text-text-secondary tabular-nums truncate max-w-[160px]">
             {emp.appUsername ?? "—"}
           </span>,
         ],
@@ -177,7 +177,7 @@ function getColConfig(filter: DrillDownFilter): ColConfig {
       return {
         headers: ["Last Login"],
         cells:   (emp) => [
-          <span className="tabular-nums text-text-secondary">
+          <span key="last-login" className="tabular-nums text-text-secondary">
             {formatDateOnly(emp.lastLogin)}
           </span>,
         ],

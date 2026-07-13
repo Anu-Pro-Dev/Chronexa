@@ -27,7 +27,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.organization || {};
+  const t = useMemo(() => translations?.modules?.organization || {}, [translations]);
 
   const offset = useMemo(() => {
     return currentPage;
@@ -43,7 +43,7 @@ export default function Page() {
         (row[language === "ar" ? "organization_type_arb" : "organization_type_eng"] || "").toUpperCase(),
       },
     ]);
-  }, [language]);
+  }, [language, t.hierarchy, t.organization_types]);
 
   const { data: orgTypeData, isLoading, refetch } = useFetchAllEntity("organizationType",{
     searchParams: {
@@ -72,7 +72,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -80,7 +80,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);

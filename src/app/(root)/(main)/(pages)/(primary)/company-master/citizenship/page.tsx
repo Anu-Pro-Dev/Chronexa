@@ -38,7 +38,7 @@ export default function Page() {
         headerName: t.citizenship,
       },
     ]);
-  }, [language]);
+  }, [language, t.citizenship_code, t.citizenship]);
 
     const { data: citizenshipData, isLoading, refetch } = useFetchAllEntity("citizenship", {
       searchParams: {
@@ -70,7 +70,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -79,7 +79,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);

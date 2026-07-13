@@ -48,7 +48,7 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [ready, targetStr]);
+  }, [ready, target, targetStr, keys]);
 
   return values;
 }

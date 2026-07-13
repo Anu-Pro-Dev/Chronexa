@@ -66,7 +66,7 @@ export default function AddDesignations({
         designation_name: "",
       });
     }
-  }, [selectedRowData, language]);
+  }, [selectedRowData, language, form]);
 
   const addMutation = useMutation({
     mutationFn: addDesignationRequest,
