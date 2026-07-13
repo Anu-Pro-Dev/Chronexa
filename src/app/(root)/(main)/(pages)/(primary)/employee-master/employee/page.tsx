@@ -38,7 +38,7 @@ export default function Page() {
     organization: false,
     employeeType: false,
   });
-  const t = translations?.modules?.employeeMaster || {};
+  const t = useMemo(() => translations?.modules?.employeeMaster || {}, [translations]);
 
   const offset = useMemo(() => currentPage, [currentPage]);
 

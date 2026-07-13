@@ -252,7 +252,7 @@ export default function AddOrganizationSchedule({
         sunday_schedule_id: selectedRowData.sunday_schedule_id,
       });
     }
-  }, [selectedRowData]);
+  }, [selectedRowData, form]);
 
   useEffect(() => {
     if (!scheduleId || selectedRowData) return;

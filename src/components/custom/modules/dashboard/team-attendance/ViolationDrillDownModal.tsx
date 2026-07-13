@@ -56,31 +56,31 @@ function getColConfig(filter: string): ColConfig {
       return {
         headers: ["Total Late", "Late Minutes"],
         cells: (emp) => [
-          <span className="font-semibold text-text-primary">{emp.TotalLate}</span>,
-          <span className="tabular-nums text-text-secondary">{emp.TotalLateMinutes}m</span>,
+          <span key="value" className="font-semibold text-text-primary">{emp.TotalLate}</span>,
+          <span key="minutes" className="tabular-nums text-text-secondary">{emp.TotalLateMinutes}m</span>,
         ],
       };
     case "early":
       return {
         headers: ["Total Early Out", "Early Minutes"],
         cells: (emp) => [
-          <span className="font-semibold text-text-primary">{emp.TotalEarlyOut}</span>,
-          <span className="tabular-nums text-text-secondary">{emp.TotalEarlyOutMinutes}m</span>,
+          <span key="value" className="font-semibold text-text-primary">{emp.TotalEarlyOut}</span>,
+          <span key="minutes" className="tabular-nums text-text-secondary">{emp.TotalEarlyOutMinutes}m</span>,
         ],
       };
     case "missed_punch":
       return {
         headers: ["Missed Punches"],
         cells: (emp) => [
-          <span className="font-semibold text-text-primary">{emp.TotalMissedPunch}</span>,
+          <span key="value" className="font-semibold text-text-primary">{emp.TotalMissedPunch}</span>,
         ],
       };
     case "incomplete_duty":
       return {
         headers: ["Incomplete Duty", "Duty Minutes"],
         cells: (emp) => [
-          <span className="font-semibold text-text-primary">{emp.TotalIncompleteDuty}</span>,
-          <span className="tabular-nums text-text-secondary">{emp.TotalIncompleteDutyMinutes}m</span>,
+          <span key="value" className="font-semibold text-text-primary">{emp.TotalIncompleteDuty}</span>,
+          <span key="minutes" className="tabular-nums text-text-secondary">{emp.TotalIncompleteDutyMinutes}m</span>,
         ],
       };
     default:
@@ -117,7 +117,7 @@ function ViolationDrillDownModal({ open, onOpenChange, type, filter, count, colo
   const cacheKey = `${summaryId}_${filter}_10000`;
   const detailData: any = weeklyViolationDetailCache[cacheKey];
 
-  const employees: EmployeeRow[] = detailData?.employees || [];
+  const employees: EmployeeRow[] = useMemo(() => detailData?.employees || [], [detailData]);
   const activeFilter: string = detailData?.activeFilter || filter;
   const total = detailData?.total ?? employees.length;
 

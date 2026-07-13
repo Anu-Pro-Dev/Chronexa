@@ -63,12 +63,12 @@
 //     };
 //   }, [userInfo, userRole, setRole]);
 
-//   const getCacheKey = () => {
+//   const getCacheKey = useCallback(() => {
 //     const formattedDate = formatLocalDate(selectedDate);
 //     const month = selectedDate.getMonth() + 1;
 //     const year = selectedDate.getFullYear();
 //     return `date-${formattedDate}`;
-//   };
+//   }, [selectedDate]);
 
 //   useEffect(() => {
 //     if (!mountedRef.current) return;
@@ -202,12 +202,12 @@ export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
     };
   }, [userInfo, userRole, setRole]);
 
-  const getCacheKey = () => {
+  const getCacheKey = useCallback(() => {
     const formattedDate = formatLocalDate(selectedDate);
     const month = selectedDate.getMonth() + 1;
     const year = selectedDate.getFullYear();
     return `date-${formattedDate}`;
-  };
+  }, [selectedDate]);
 
   useEffect(() => {
     if (!mountedRef.current) return;
@@ -239,7 +239,7 @@ export const TeamAttendanceDataProvider = ({ children }: ProviderProps) => {
     } else {
       setTeamAttendanceDetails(null);
     }
-  }, [teamAttendanceCache, selectedDate]);
+  }, [teamAttendanceCache, selectedDate, getCacheKey]);
 
   useEffect(() => {
     if (!didInit.current || !mountedRef.current) return;

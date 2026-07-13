@@ -83,15 +83,15 @@ export default function OfficialForm({
     }
   );
 
-  const debouncedVerticalSearch = useCallback(
-    debounce((searchTerm: string) => {
+  const debouncedVerticalSearch = useMemo(
+    () => debounce((searchTerm: string) => {
       setVerticalSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedOrganizationSearch = useCallback(
-    debounce((searchTerm: string) => {
+  const debouncedOrganizationSearch = useMemo(
+    () => debounce((searchTerm: string) => {
       setOrganizationSearchTerm(searchTerm);
     }, 300),
     []

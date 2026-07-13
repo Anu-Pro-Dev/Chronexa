@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -127,14 +127,23 @@ export default function EmployeeReports() {
     return format(date, 'MMMM yyyy');
   };
 
-  const selectedVerticals = form.watch("vertical") || [];
-  const selectedCompanies = form.watch("company") || [];
-  const selectedDepartments = form.watch("department") || [];
-  const selectedManagerIds = form.watch("manager_id") || [];
-  const selectedEmployeeIds = form.watch("employee") || [];
-  const selectedDivisions = form.watch("division") || [];
-  const selectedCostCenters = form.watch("cost_center") || [];
-  const selectedEmployeeTypes = form.watch("employee_type") || [];
+  const verticalValue = form.watch("vertical");
+  const companyValue = form.watch("company");
+  const departmentValue = form.watch("department");
+  const managerIdValue = form.watch("manager_id");
+  const employeeValue = form.watch("employee");
+  const divisionValue = form.watch("division");
+  const costCenterValue = form.watch("cost_center");
+  const employeeTypeValue = form.watch("employee_type");
+
+  const selectedVerticals = useMemo(() => verticalValue || [], [verticalValue]);
+  const selectedCompanies = useMemo(() => companyValue || [], [companyValue]);
+  const selectedDepartments = useMemo(() => departmentValue || [], [departmentValue]);
+  const selectedManagerIds = useMemo(() => managerIdValue || [], [managerIdValue]);
+  const selectedEmployeeIds = useMemo(() => employeeValue || [], [employeeValue]);
+  const selectedDivisions = useMemo(() => divisionValue || [], [divisionValue]);
+  const selectedCostCenters = useMemo(() => costCenterValue || [], [costCenterValue]);
+  const selectedEmployeeTypes = useMemo(() => employeeTypeValue || [], [employeeTypeValue]);
 
   const { data: organizations } = useFetchAllEntity("organization", {
     searchParams: { limit: "1000" },
@@ -212,14 +221,14 @@ export default function EmployeeReports() {
     enabled: selectedDepartments.length > 0,
   });
 
-  const debouncedVerticalSearch = useCallback(debounce((v: string) => setVerticalSearchTerm(v), 300), []);
-  const debouncedCompanySearch = useCallback(debounce((v: string) => setCompanySearchTerm(v), 300), []);
-  const debouncedDepartmentSearch = useCallback(debounce((v: string) => setDepartmentSearchTerm(v), 300), []);
-  const debouncedDivisionSearch = useCallback(debounce((v: string) => setDivisionSearchTerm(v), 300), []);
-  const debouncedCostCenterSearch = useCallback(debounce((v: string) => setCostCenterSearchTerm(v), 300), []);
-  const debouncedEmployeeTypeSearch = useCallback(debounce((v: string) => setEmployeeTypeSearchTerm(v), 300), []);
-  const debouncedEmployeeSearch = useCallback(debounce((v: string) => setEmployeeSearchTerm(v), 300), []);
-  const debouncedManagerSearch = useCallback(debounce((v: string) => setManagerSearchTerm(v), 300), []);
+  const debouncedVerticalSearch = useMemo(() => debounce((v: string) => setVerticalSearchTerm(v), 300), []);
+  const debouncedCompanySearch = useMemo(() => debounce((v: string) => setCompanySearchTerm(v), 300), []);
+  const debouncedDepartmentSearch = useMemo(() => debounce((v: string) => setDepartmentSearchTerm(v), 300), []);
+  const debouncedDivisionSearch = useMemo(() => debounce((v: string) => setDivisionSearchTerm(v), 300), []);
+  const debouncedCostCenterSearch = useMemo(() => debounce((v: string) => setCostCenterSearchTerm(v), 300), []);
+  const debouncedEmployeeTypeSearch = useMemo(() => debounce((v: string) => setEmployeeTypeSearchTerm(v), 300), []);
+  const debouncedEmployeeSearch = useMemo(() => debounce((v: string) => setEmployeeSearchTerm(v), 300), []);
+  const debouncedManagerSearch = useMemo(() => debounce((v: string) => setManagerSearchTerm(v), 300), []);
 
   const { data: searchedEmployees, isLoading: isSearchingEmployees } = useQuery({
     queryKey: ["employeeSearch", employeeSearchTerm, selectedVerticals, selectedCompanies, selectedDepartments, selectedDivisions, selectedCostCenters, selectedManagerIds, selectedEmployeeTypes],
@@ -767,16 +776,18 @@ export default function EmployeeReports() {
     debouncedEmployeeSearch, debouncedManagerSearch,
   ]);
 
+  const fromDate = form.watch('from_date');
+  const toDate = form.watch('to_date');
+
   useEffect(() => {
     if (showReportView) {
       resetButtons();
       setShowReportView(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedVerticals, selectedCompanies, selectedDepartments, selectedManagerIds,
     selectedEmployeeIds, selectedEmployeeTypes,
-    form.watch('from_date'), form.watch('to_date'), reportType, weekDate, monthDate,
+    fromDate, toDate, reportType, weekDate, monthDate, showReportView,
   ]);
 
   function onSubmit(_values: z.infer<typeof formSchema>) { return; }

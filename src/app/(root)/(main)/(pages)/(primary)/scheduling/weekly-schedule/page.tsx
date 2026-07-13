@@ -13,10 +13,10 @@ export default function SchedulesRedirectPage() {
   const t = translations?.modules?.scheduling || {};
   const commonT = translations?.buttons || {};
 
-  const staticTabPathMapping: Record<string, string> = {
+  const staticTabPathMapping: Record<string, string> = useMemo(() => ({
     'Organization Schedule': 'organization-schedule',
     'Employee Schedule': 'employee-schedule',
-  };
+  }), []);
 
   const translatedTabPathMapping = useMemo(() => {
     const mapping: Record<string, string> = {};
@@ -57,7 +57,7 @@ export default function SchedulesRedirectPage() {
     }
     
     return tabName.toLowerCase().replace(/\s+/g, "-");
-  }, [translatedTabPathMapping]);
+  }, [translatedTabPathMapping, staticTabPathMapping]);
 
   useEffect(() => {
     if (isLoading) return;

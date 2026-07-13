@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface ToastNotification {
   id: string;
@@ -37,6 +37,11 @@ function Toast({
 }) {
   const [isVisible, setIsVisible] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(onDismiss, 300);
+  }, [onDismiss]);
+
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 10);
 
@@ -47,12 +52,7 @@ function Toast({
 
       return () => clearTimeout(timer);
     }
-  }, [notification.duration]);
-
-  const handleDismiss = () => {
-    setIsVisible(false);
-    setTimeout(onDismiss, 300);
-  };
+  }, [notification.duration, handleDismiss]);
 
   const getStyles = () => {
     switch (notification.type) {

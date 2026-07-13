@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from "lodash";
@@ -75,15 +75,15 @@ export default function AddHoliday({
 
   const { data: employees } = useFetchAllEntity("employee");
 
-  const debouncedEmployeeSearch = useCallback(
-    debounce((searchTerm: string) => {
+  const debouncedEmployeeSearch = useMemo(
+    () => debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedDelegatedEmployeeSearch = useCallback(
-    debounce((searchTerm: string) => {
+  const debouncedDelegatedEmployeeSearch = useMemo(
+    () => debounce((searchTerm: string) => {
       setDelegatedEmployeeSearchTerm(searchTerm);
     }, 300),
     []
@@ -136,7 +136,7 @@ export default function AddHoliday({
     } else {
       form.reset();
     }
-  }, [selectedRowData, language]);
+  }, [selectedRowData, language, form]);
 
   useEffect(() => {
     return () => {

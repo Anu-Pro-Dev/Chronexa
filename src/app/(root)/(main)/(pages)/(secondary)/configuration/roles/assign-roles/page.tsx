@@ -15,7 +15,7 @@ export default function MembersTable() {
   const { modules, language, translations } = useLanguage();
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
-  const t = translations?.modules?.configurations || {};
+  const t = useMemo(() => translations?.modules?.configurations || {}, [translations]);
 
   const [columns, setColumns] = useState([
     { field: "user_id", headerName: t.user_id || "User ID" },

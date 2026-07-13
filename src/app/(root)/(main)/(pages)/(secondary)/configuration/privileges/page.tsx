@@ -57,7 +57,7 @@ export default function Page() {
       }));
     }
     return [];
-  }, [secPrivilegeData]);
+  }, [secPrivilegeData, secModuleData]);
 
   useEffect(() => {
     if (!open) setSelectedRowData(null);

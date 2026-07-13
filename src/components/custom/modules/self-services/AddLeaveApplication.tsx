@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -124,8 +124,8 @@ export default function AddLeaveApplication({
     },
   });
 
-  const debouncedLeaveTypeSearch = useCallback(
-    debounce((searchTerm: string) => {
+  const debouncedLeaveTypeSearch = useMemo(
+    () => debounce((searchTerm: string) => {
       setLeaveTypeSearchTerm(searchTerm);
     }, 300),
     []
@@ -248,6 +248,47 @@ export default function AddLeaveApplication({
     }
   }, [selectedRowData, leaveTypesData?.data, form]);
 
+  const getEmployeeDisplayInfoWithLanguage = useCallback(() => {
+    if (userInfo && userInfo.employeename) {
+      let employeeName = "Unknown Employee";
+      let employeeCode = userInfo.employeenumber?.toString() || employeeId?.toString() || "Unknown Code";
+
+      if (language === "ar") {
+        if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
+          employeeName = `${userInfo.employeename.firstarb}`.trim();
+        } else if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
+          employeeName = `${userInfo.employeename.firsteng}`.trim();
+        } else if (userInfo.employeename.firstarb) {
+          employeeName = userInfo.employeename.firstarb;
+        } else if (userInfo.employeename.firsteng) {
+          employeeName = userInfo.employeename.firsteng;
+        }
+      } else {
+        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
+          employeeName = `${userInfo.employeename.firsteng}`.trim();
+        } else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
+          employeeName = `${userInfo.employeename.firstarb}`.trim();
+        } else if (userInfo.employeename.firsteng) {
+          employeeName = userInfo.employeename.firsteng;
+        } else if (userInfo.employeename.firstarb) {
+          employeeName = userInfo.employeename.firstarb;
+        }
+      }
+
+      return {
+        displayName: `${employeeName} (${employeeCode})`,
+        name: employeeName,
+        code: employeeCode
+      };
+    }
+
+    return {
+      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
+      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
+      code: employeeId ? employeeId.toString() : "Unknown"
+    };
+  }, [userInfo, employeeId, language]);
+
   useEffect(() => {
     if (userInfo && employeeId) {
       const employeeDisplayInfo = getEmployeeDisplayInfoWithLanguage();
@@ -256,7 +297,7 @@ export default function AddLeaveApplication({
       const fallbackName = `Employee ${employeeId}`;
       form.setValue("employee", fallbackName);
     }
-  }, [userInfo, employeeId, form, language]);
+  }, [userInfo, employeeId, form, language, getEmployeeDisplayInfoWithLanguage]);
 
   useEffect(() => {
     return () => {
@@ -312,47 +353,6 @@ export default function AddLeaveApplication({
     };
 
     return fallbackResult;
-  };
-
-  const getEmployeeDisplayInfoWithLanguage = () => {
-    if (userInfo && userInfo.employeename) {
-      let employeeName = "Unknown Employee";
-      let employeeCode = userInfo.employeenumber?.toString() || employeeId?.toString() || "Unknown Code";
-
-      if (language === "ar") {
-        if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
-          employeeName = `${userInfo.employeename.firstarb}`.trim();
-        } else if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
-          employeeName = `${userInfo.employeename.firsteng}`.trim();
-        } else if (userInfo.employeename.firstarb) {
-          employeeName = userInfo.employeename.firstarb;
-        } else if (userInfo.employeename.firsteng) {
-          employeeName = userInfo.employeename.firsteng;
-        }
-      } else {
-        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
-          employeeName = `${userInfo.employeename.firsteng}`.trim();
-        } else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
-          employeeName = `${userInfo.employeename.firstarb}`.trim();
-        } else if (userInfo.employeename.firsteng) {
-          employeeName = userInfo.employeename.firsteng;
-        } else if (userInfo.employeename.firstarb) {
-          employeeName = userInfo.employeename.firstarb;
-        }
-      }
-
-      return {
-        displayName: `${employeeName} (${employeeCode})`,
-        name: employeeName,
-        code: employeeCode
-      };
-    }
-
-    return {
-      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
-      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
-      code: employeeId ? employeeId.toString() : "Unknown"
-    };
   };
 
   const employeeDisplayInfo = getEmployeeDisplayInfo();

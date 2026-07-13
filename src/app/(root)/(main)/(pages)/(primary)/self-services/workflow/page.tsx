@@ -21,7 +21,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.selfServices || {};
+  const t = useMemo(() => translations?.modules?.selfServices || {}, [translations]);
 
   const offset = useMemo(() => {
     return currentPage;
@@ -40,7 +40,7 @@ export default function Page() {
       },
       { field: "steps", headerName: t.steps },
     ]);
-  }, [language]);
+  }, [language, t.code, t.steps, t.workflow_name, t.category]);
 
   const { data: workflowTypeData, isLoading, refetch } = useFetchAllEntity("workflowType", {
     searchParams: {
@@ -68,7 +68,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [currentPage, refetch]);
+  }, [refetch]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
@@ -76,7 +76,7 @@ export default function Page() {
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
-  }, [rowsPerPage, refetch]);
+  }, [refetch]);
 
   const handleSearchChange = useCallback((newSearchValue: string) => {
     setSearchValue(newSearchValue);

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from "lodash";
@@ -155,15 +155,15 @@ export default function AddPermissionApplication({
 
   const { watch, setValue } = form;
 
-  const debouncedPermissionTypeSearch = useCallback(
-    debounce((searchTerm: string) => {
+  const debouncedPermissionTypeSearch = useMemo(
+    () => debounce((searchTerm: string) => {
       setPermissionTypeSearchTerm(searchTerm);
     }, 300),
     []
   );
 
-  const debouncedEmployeeSearch = useCallback(
-    debounce((searchTerm: string) => {
+  const debouncedEmployeeSearch = useMemo(
+    () => debounce((searchTerm: string) => {
       setEmployeeSearchTerm(searchTerm);
     }, 300),
     []
@@ -289,70 +289,7 @@ export default function AddPermissionApplication({
     }
   }, [selectedRowData, permissionTypesData?.data, form]);
 
-  useEffect(() => {
-    if (prefillEmployee && userInfo && employeeId) {
-      const employeeDisplayInfo = getEmployeeDisplayInfoWithLanguage();
-      form.setValue("employee", employeeDisplayInfo.displayName);
-    } else if (prefillEmployee && employeeId) {
-      const fallbackName = `Employee ${employeeId}`;
-      form.setValue("employee", fallbackName);
-    }
-  }, [userInfo, employeeId, form, language, prefillEmployee]);
-
-  useEffect(() => {
-    return () => {
-      debouncedPermissionTypeSearch.cancel();
-      debouncedEmployeeSearch.cancel();
-    };
-  }, [debouncedPermissionTypeSearch, debouncedEmployeeSearch]);
-
-  if (isChecking && prefillEmployee) {
-    return <InlineLoading message={translations?.buttons?.loading || "Loading..."} />;
-  }
-
-  if (prefillEmployee && (!isAuthenticated || !employeeId)) {
-    return <InlineLoading message={translations?.buttons?.loading || "Loading..."} />;
-  }
-
-  const getEmployeeDisplayInfo = () => {
-    if (userInfo) {
-      let employeeName = "Unknown Employee";
-      let employeeCode = employeeId?.toString() || "Unknown Code";
-
-      if (userInfo.employeename) {
-        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
-          employeeName = `${userInfo.employeename.firsteng} ${userInfo.employeename.lasteng}`.trim();
-        }
-        else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
-          employeeName = `${userInfo.employeename.firstarb} ${userInfo.employeename.lastarb}`.trim();
-        }
-        else if (userInfo.employeename.firsteng) {
-          employeeName = userInfo.employeename.firsteng;
-        }
-        else if (userInfo.employeename.firstarb) {
-          employeeName = userInfo.employeename.firstarb;
-        }
-      }
-
-      if (userInfo.employeenumber) {
-        employeeCode = userInfo.employeenumber.toString();
-      }
-
-      return {
-        displayName: `${employeeName} (${employeeCode})`,
-        name: employeeName,
-        code: employeeCode
-      };
-    }
-
-    return {
-      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
-      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
-      code: employeeId ? employeeId.toString() : "Unknown"
-    };
-  };
-
-  const getEmployeeDisplayInfoWithLanguage = () => {
+  const getEmployeeDisplayInfoWithLanguage = useCallback(() => {
     if (userInfo) {
       let employeeName = "Unknown Employee";
       let employeeCode = employeeId?.toString() || "Unknown Code";
@@ -394,6 +331,69 @@ export default function AddPermissionApplication({
         } else if (userInfo.first_name) {
           employeeName = userInfo.first_name;
         }
+      }
+
+      return {
+        displayName: `${employeeName} (${employeeCode})`,
+        name: employeeName,
+        code: employeeCode
+      };
+    }
+
+    return {
+      displayName: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
+      name: employeeId ? `Employee ${employeeId}` : "Unknown Employee",
+      code: employeeId ? employeeId.toString() : "Unknown"
+    };
+  }, [userInfo, employeeId, language]);
+
+  useEffect(() => {
+    if (prefillEmployee && userInfo && employeeId) {
+      const employeeDisplayInfo = getEmployeeDisplayInfoWithLanguage();
+      form.setValue("employee", employeeDisplayInfo.displayName);
+    } else if (prefillEmployee && employeeId) {
+      const fallbackName = `Employee ${employeeId}`;
+      form.setValue("employee", fallbackName);
+    }
+  }, [userInfo, employeeId, form, language, prefillEmployee, getEmployeeDisplayInfoWithLanguage]);
+
+  useEffect(() => {
+    return () => {
+      debouncedPermissionTypeSearch.cancel();
+      debouncedEmployeeSearch.cancel();
+    };
+  }, [debouncedPermissionTypeSearch, debouncedEmployeeSearch]);
+
+  if (isChecking && prefillEmployee) {
+    return <InlineLoading message={translations?.buttons?.loading || "Loading..."} />;
+  }
+
+  if (prefillEmployee && (!isAuthenticated || !employeeId)) {
+    return <InlineLoading message={translations?.buttons?.loading || "Loading..."} />;
+  }
+
+  const getEmployeeDisplayInfo = () => {
+    if (userInfo) {
+      let employeeName = "Unknown Employee";
+      let employeeCode = employeeId?.toString() || "Unknown Code";
+
+      if (userInfo.employeename) {
+        if (userInfo.employeename.firsteng && userInfo.employeename.lasteng) {
+          employeeName = `${userInfo.employeename.firsteng} ${userInfo.employeename.lasteng}`.trim();
+        }
+        else if (userInfo.employeename.firstarb && userInfo.employeename.lastarb) {
+          employeeName = `${userInfo.employeename.firstarb} ${userInfo.employeename.lastarb}`.trim();
+        }
+        else if (userInfo.employeename.firsteng) {
+          employeeName = userInfo.employeename.firsteng;
+        }
+        else if (userInfo.employeename.firstarb) {
+          employeeName = userInfo.employeename.firstarb;
+        }
+      }
+
+      if (userInfo.employeenumber) {
+        employeeCode = userInfo.employeenumber.toString();
       }
 
       return {

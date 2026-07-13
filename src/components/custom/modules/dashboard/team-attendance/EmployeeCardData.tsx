@@ -26,12 +26,13 @@ function useCountUp(target: Record<string, number>, ready: boolean) {
   const targetStr = JSON.stringify(target);
 
   React.useEffect(() => {
-    setValues(Object.fromEntries(keys.map((k) => [k, 0])));
+    const snapshot = JSON.parse(targetStr) as Record<string, number>;
+    const snapshotKeys = Object.keys(snapshot);
+    setValues(Object.fromEntries(snapshotKeys.map((k) => [k, 0])));
     if (!ready) return;
 
     const startTime = Date.now();
     const duration = 800;
-    const snapshot = { ...target };
 
     const tick = () => {
       const elapsed = Date.now() - startTime;

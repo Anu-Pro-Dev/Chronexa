@@ -48,34 +48,34 @@ export default function LeaveAnalyticsCard() {
     peak_month: "Peak Month",
   };
 
-  const monthNames = [
-    translations?.january || "January",
-    translations?.february || "February",
-    translations?.march || "March",
-    translations?.april || "April",
-    translations?.may || "May",
-    translations?.june || "June",
-    translations?.july || "July",
-    translations?.august || "August",
-    translations?.september || "September",
-    translations?.october || "October",
-    translations?.november || "November",
-    translations?.december || "December",
-  ];
-
   const fetchTeamLeaveAnalytics = useDashboardStore((s) => s.fetchTeamLeaveAnalyticsForYear);
   const teamLeaveAnalyticsCache = useDashboardStore((s) => s.teamLeaveAnalyticsCache);
 
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
-  const leaveAnalytics: LeaveAnalytic[] = teamLeaveAnalyticsCache[selectedYear] || [];
+  const leaveAnalytics: LeaveAnalytic[] = useMemo(() => teamLeaveAnalyticsCache[selectedYear] || [], [teamLeaveAnalyticsCache, selectedYear]);
 
   const employees = useMemo(() => {
     return [...new Set(leaveAnalytics.map(e => e.employeeid))];
   }, [leaveAnalytics]);
 
   const chartData = useMemo(() => {
+    const monthNames = [
+      translations?.january || "January",
+      translations?.february || "February",
+      translations?.march || "March",
+      translations?.april || "April",
+      translations?.may || "May",
+      translations?.june || "June",
+      translations?.july || "July",
+      translations?.august || "August",
+      translations?.september || "September",
+      translations?.october || "October",
+      translations?.november || "November",
+      translations?.december || "December",
+    ];
+
     const data = monthNames.map((month, index) => {
       const monthData = leaveAnalytics.filter(item => item.LVMonth === index + 1);
 
@@ -98,7 +98,7 @@ export default function LeaveAnalyticsCard() {
     });
 
     return dir === "rtl" ? [...data].reverse() : data;
-  }, [leaveAnalytics, monthNames, dir]);
+  }, [leaveAnalytics, dir, translations]);
 
   const chartConfig: ChartConfig = {
     totalLeaves: {

@@ -35,7 +35,7 @@ export default function Page() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const debouncedRecipient = useDebounce(recipient, 300);
-  const t = translations?.modules?.alerts || {};
+  const t = useMemo(() => translations?.modules?.alerts || {}, [translations]);
   const [popoverStates, setPopoverStates] = useState({
     fromDate: false,
     toDate: false,
@@ -252,7 +252,7 @@ export default function Page() {
     },
   }), []);
 
-  const props = {
+  const props = useMemo(() => ({
     Data: data,
     Columns: columns,
     open,
@@ -300,7 +300,7 @@ export default function Page() {
       },
     },
 
-  };
+  }), [data, columns, open, setOpen, selectedRows, setSelectedRows, isLoading, isChecking, sortField, handlePageChange, setSortField, sortDirection, setSortDirection, searchValue, handleSearchChange, taEmailData, rowsPerPage, handleRowsPerPageChange, status, recipient, handleStatusChange, handleRecipientChange]);
 
   const handleSave = () => {
     queryClient.invalidateQueries({ queryKey: ["taEmail"] });
