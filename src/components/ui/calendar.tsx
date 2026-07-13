@@ -7,9 +7,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import * as React from "react"
 import {
   DayPicker,
-  labelNext,
-  labelPrevious,
-  useDayPicker,
   type DayPickerProps,
 } from "react-day-picker"
 

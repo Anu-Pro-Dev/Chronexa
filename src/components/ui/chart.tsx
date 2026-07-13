@@ -1,12 +1,7 @@
   "use client"
 
 import * as React from "react"
-import * as RechartsPrimitive from "recharts"
-import {
-  NameType,
-  Payload,
-  ValueType,
-} from "recharts/types/component/DefaultTooltipContent"
+import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/src/lib/utils";
 

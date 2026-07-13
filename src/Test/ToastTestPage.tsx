@@ -1,8 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import { ToastContainer } from "@/src/components/custom/modules/dashboard/user-insights/ToastNotification";
+import { ToastContainer } from "@/src/components/custom/modules/dashboard/my-attendance/ToastNotification";
 
 interface ToastNotification {
+  id: string;
   title: string;
   message: string;
   type: "info" | "warning" | "success" | "error";

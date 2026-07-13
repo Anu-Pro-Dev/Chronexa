@@ -4,7 +4,7 @@ import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
 
 export function useRBAC() {
-  const { userRole } = useAuthGuard();
+  // const { userRole } = useAuthGuard();
 
   const roleId            = useDashboardStore((s) => s.roleId);
   const privileges        = useDashboardStore((s) => s.privileges);

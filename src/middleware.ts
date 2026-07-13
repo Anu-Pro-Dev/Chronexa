@@ -58,7 +58,7 @@ export function middleware(req: NextRequest) {
   /* ---------------- AUTH PROTECT ---------------- */
   const token = req.cookies.get("userToken")?.value;
   const tokenExpiration = req.cookies.get("tokenExpiration")?.value;
-  const rememberMe = req.cookies.get("rememberMe")?.value;
+  // const rememberMe = req.cookies.get("rememberMe")?.value;
 
   const isLoginPage = pathname === "/" || pathname === "/login";
   const isForgotPassword = pathname === "/forgot-password";
