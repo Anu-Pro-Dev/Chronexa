@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { getFirstAccessibleRoute } from "@/src/lib/getFirstAccessibleRoute";
 import { useDashboardStore } from "@/src/store/useDashboardStore";
+import { useAuthStore } from "@/src/store/useAuthStore";
 
 interface AuthMeResponse {
   user: {
@@ -58,6 +59,26 @@ function Page() {
         if (res.status === 200 && res.data?.user) {
           localStorage.setItem("user", JSON.stringify(res.data.user));
           useUserStore.getState().setUser(res.data.user);
+
+          // ── Mark auth store as authenticated BEFORE navigating ──────────
+          // Mirrors usePostLoginRedirect (password login). Without this the
+          // useAuthGuard on the dashboard sees isAuthenticated=false on first
+          // landing and the page renders unauthenticated until a manual
+          // refresh re-runs initialize() from the stored token.
+          const authUser = res.data.user;
+          useAuthStore.setState({
+            isAuthenticated: true,
+            isChecking: false,
+            employeeId: authUser.employeenumber
+              ? Number(authUser.employeenumber)
+              : (authUser.id ? Number(authUser.id) : null),
+            userInfo: authUser,
+            userRole: authUser.role
+              ? String(authUser.role)
+              : (authUser.roleId ? String(authUser.roleId) : (authUser.role_id ? String(authUser.role_id) : '')),
+            isGeofenceEnabled: Boolean(authUser.isGeofence),
+            _initialized: true,
+          });
 
           setStatus("success");
 
