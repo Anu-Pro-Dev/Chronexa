@@ -65,6 +65,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   "L&M": { label: "Late & Missed", color: "#EC4899" },
   "MI": { label: "Missed In", color: "#F97316" },
   "MO": { label: "Missed Out", color: "#06B6D4" },
+  "E": { label: "Early Out", color: "#fa7b7b" },
 };
 
 // CSV column order (header + record key).
