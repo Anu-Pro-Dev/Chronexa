@@ -42,7 +42,7 @@ export class CSVExporter {
     // daily (default)
     return [
       'EmployeeNo', 'Name', 'ParentOrganization', 'Organization', 'Department',
-      'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
+      'BusinessUnit', 'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
       'PunchOut', 'GeoLocationOut', 'DailyWorkedHrs', 'DailyMissedHrs',
       'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
     ];

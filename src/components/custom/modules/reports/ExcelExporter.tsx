@@ -58,7 +58,7 @@ export class ExcelExporter {
     }
     return [
       'EmployeeNo', 'Name', 'ParentOrganization', 'Organization', 'Department',
-      'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
+      'BusinessUnit', 'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
       'PunchOut', 'GeoLocationOut', 'DailyWorkedHrs', 'DailyMissedHrs',
       'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
     ];
@@ -298,27 +298,41 @@ export class ExcelExporter {
       currentRow += 2;
 
       // Meta row
-      worksheet.getCell(`A${currentRow}`).value = `Employee ID: ${employeeId}`;
+      const metaEmployeeLabel =
+        Array.isArray(this.formValues.employee_ids) &&
+        this.formValues.employee_ids.length === 1
+          ? `Employee ID: ${employeeId}`
+          : this.formValues.employee_ids && this.formValues.employee_ids.length > 1
+          ? `Employees: ${this.formValues.employee_ids.length} selected`
+          : `Employee: All`;
+      worksheet.getCell(`A${currentRow}`).value = metaEmployeeLabel;
       worksheet.getCell(`A${currentRow}`).font = { name: "Nunito Sans", size: 10 };
       worksheet.getCell(`${lastCol}${currentRow}`).value = `Generated On: ${format(new Date(), "dd/MM/yyyy")}`;
       worksheet.getCell(`${lastCol}${currentRow}`).font = { name: "Nunito Sans", size: 10 };
       worksheet.getCell(`${lastCol}${currentRow}`).alignment = { horizontal: "right" };
       currentRow += 2;
 
-      // Employee name / no
-      const nameCell = worksheet.getCell(`A${currentRow}`);
-      nameCell.value = 'EMPLOYEE NAME';
-      this.applyCellStyle(nameCell, 'label');
-      const nameValueCell = worksheet.getCell(`B${currentRow}`);
-      nameValueCell.value = employeeName;
-      this.applyCellStyle(nameValueCell, 'value');
-      const empNoCell = worksheet.getCell(`${noLabelCol}${currentRow}`);
-      empNoCell.value = 'EMPLOYEE NO';
-      this.applyCellStyle(empNoCell, 'label');
-      const empNoValueCell = worksheet.getCell(`${noValueCol}${currentRow}`);
-      empNoValueCell.value = employeeNo;
-      this.applyCellStyle(empNoValueCell, 'value');
-      currentRow++;
+      // Employee name / no — only meaningful for a single selected employee.
+      // For multiple specific employees (or all), skip this block.
+      const isSingleEmployee =
+        Array.isArray(this.formValues.employee_ids) &&
+        this.formValues.employee_ids.length === 1;
+
+      if (isSingleEmployee) {
+        const nameCell = worksheet.getCell(`A${currentRow}`);
+        nameCell.value = 'EMPLOYEE NAME';
+        this.applyCellStyle(nameCell, 'label');
+        const nameValueCell = worksheet.getCell(`B${currentRow}`);
+        nameValueCell.value = employeeName;
+        this.applyCellStyle(nameValueCell, 'value');
+        const empNoCell = worksheet.getCell(`${noLabelCol}${currentRow}`);
+        empNoCell.value = 'EMPLOYEE NO';
+        this.applyCellStyle(empNoCell, 'label');
+        const empNoValueCell = worksheet.getCell(`${noValueCol}${currentRow}`);
+        empNoValueCell.value = employeeNo;
+        this.applyCellStyle(empNoValueCell, 'value');
+        currentRow++;
+      }
 
       // From / To
       if (this.formValues.from_date || this.formValues.to_date) {
@@ -409,23 +423,19 @@ export class ExcelExporter {
         currentRow++;
       });
 
-      // Column widths
-      worksheet.columns = filteredHeaders.map(header => ({
-        header: this.headerMap[header] || header,
-        key: header,
-        width: 10,
-      }));
-
-      worksheet.columns.forEach((column, index) => {
+      // Column widths — set width per column WITHOUT reassigning worksheet.columns
+      // (reassigning .columns after merges/data can shift the merged title rows).
+      filteredHeaders.forEach((_header, index) => {
+        const colIndex = index + 1;
         let maxWidth = 0;
         for (let rowIndex = 1; rowIndex <= currentRow; rowIndex++) {
-          const cell = worksheet.getCell(rowIndex, index + 1);
+          const cell = worksheet.getCell(rowIndex, colIndex);
           if (cell.value) {
             const textWidth = this.getTextWidth(String(cell.value));
             maxWidth = Math.max(maxWidth, textWidth);
           }
         }
-        column.width = Math.min(Math.max(maxWidth + 1, 6), 40);
+        worksheet.getColumn(colIndex).width = Math.min(Math.max(maxWidth + 1, 6), 40);
       });
 
       // Row heights

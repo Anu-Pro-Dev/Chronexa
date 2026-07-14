@@ -158,7 +158,7 @@ export default function EmployeeReports() {
     const params: any = { manager_flag: "true", limit: "1000", offset: "1" };
     if (selectedCompanies.length > 0) params.organization_ids = selectedCompanies.join(',');
     if (selectedDepartments.length > 0) params.department_ids = selectedDepartments.join(',');
-    if (selectedDivisions.length > 0) params.division_ids = selectedDivisions.join(',');
+    if (selectedDivisions.length > 0) params.business_unit_ids = selectedDivisions.join(',');
     if (selectedCostCenters.length > 0) params.cost_center_ids = selectedCostCenters.join(',');
     return { searchParams: params };
   };
@@ -171,7 +171,7 @@ export default function EmployeeReports() {
     if (selectedCompanies.length > 0) params.organization_ids = selectedCompanies.join(',');
     if (selectedDepartments.length > 0) params.department_ids = selectedDepartments.join(',');
     if (selectedManagerIds.length > 0) params.manager_ids = selectedManagerIds.join(',');
-    if (selectedDivisions.length > 0) params.division_ids = selectedDivisions.join(',');
+    if (selectedDivisions.length > 0) params.business_unit_ids = selectedDivisions.join(',');
     if (selectedCostCenters.length > 0) params.cost_center_ids = selectedCostCenters.join(',');
     if (selectedEmployeeTypes.length > 0) params.employee_type_ids = selectedEmployeeTypes.join(',');
     return { searchParams: params };
@@ -229,7 +229,7 @@ export default function EmployeeReports() {
       if (selectedCompanies.length > 0) url += `&organization_ids=${selectedCompanies.join(',')}`;
       if (selectedDepartments.length > 0) url += `&department_ids=${selectedDepartments.join(',')}`;
       if (selectedManagerIds.length > 0) url += `&manager_ids=${selectedManagerIds.join(',')}`;
-      if (selectedDivisions.length > 0) url += `&division_ids=${selectedDivisions.join(',')}`;
+      if (selectedDivisions.length > 0) url += `&business_unit_ids=${selectedDivisions.join(',')}`;
       if (selectedCostCenters.length > 0) url += `&cost_center_ids=${selectedCostCenters.join(',')}`;
       if (selectedEmployeeTypes.length > 0) url += `&employee_type_ids=${selectedEmployeeTypes.join(',')}`;
       return apiRequest(url, "GET");
@@ -243,7 +243,7 @@ export default function EmployeeReports() {
       let url = `/employee/search?search=${encodeURIComponent(managerSearchTerm)}&manager_flag=true`;
       if (selectedCompanies.length > 0) url += `&organization_ids=${selectedCompanies.join(',')}`;
       if (selectedDepartments.length > 0) url += `&department_ids=${selectedDepartments.join(',')}`;
-      if (selectedDivisions.length > 0) url += `&division_ids=${selectedDivisions.join(',')}`;
+      if (selectedDivisions.length > 0) url += `&business_unit_ids=${selectedDivisions.join(',')}`;
       if (selectedCostCenters.length > 0) url += `&cost_center_ids=${selectedCostCenters.join(',')}`;
       return apiRequest(url, "GET");
     },
@@ -447,6 +447,7 @@ export default function EmployeeReports() {
     ParentOrganization: "Parent Organization",
     Organization: "Organization",
     Department: "Department",
+    BusinessUnit: "Division",
     EmployeeType: "Employee Type",
     WorkDate: "Work Date",
     WorkDay: "Work Day",
@@ -504,7 +505,7 @@ export default function EmployeeReports() {
     }
     return [
       'EmployeeNo', 'Name', 'ParentOrganization', 'Organization',
-      'Department', 'EmployeeType', 'WorkDate', 'WorkDay', 'Shift',
+      'Department', 'BusinessUnit', 'EmployeeType', 'WorkDate', 'WorkDay', 'Shift',
       'PunchIn', 'PunchOut', 'DailyWorkedHrs', 'DailyMissedHrs',
       'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
     ];
@@ -595,7 +596,7 @@ export default function EmployeeReports() {
     if (values.vertical && values.vertical.length > 0) params.parent_orgids = values.vertical.join(',');
     if (values.company && values.company.length > 0) params.organization_ids = values.company.join(',');
     if (values.department && values.department.length > 0) params.department_ids = values.department.join(',');
-    if (values.division && values.division.length > 0) params.division_ids = values.division.join(',');
+    if (values.division && values.division.length > 0) params.business_unit_ids = values.division.join(',');
     if (values.cost_center && values.cost_center.length > 0) params.cost_center_ids = values.cost_center.join(',');
     if (values.manager_id && values.manager_id.length > 0) params.manager_id = values.manager_id.join(',');
     if (reportType === 'weekly' && weekDate) {
@@ -617,7 +618,7 @@ export default function EmployeeReports() {
   const buildUrl = (params: Record<string, string>, page?: number): string => {
     const queryParts: string[] = [];
     if (selectedDivisions.length > 0) {
-      queryParts.push(`division_ids=${selectedDivisions.join(',')}`);
+      queryParts.push(`business_unit_ids=${selectedDivisions.join(',')}`);
     }
     if (selectedCostCenters.length > 0) {
       queryParts.push(`cost_center_ids=${selectedCostCenters.join(',')}`);
@@ -871,6 +872,7 @@ export default function EmployeeReports() {
       company: reportData[0]?.ParentOrganizationDisplayName || reportData[0]?.ParentOrganization,
       division: reportData[0]?.OrganizationDisplayName || reportData[0]?.Organization,
       department: reportData[0]?.Department,
+      businessUnit: reportData[0]?.BusinessUnit,
       type: reportData[0]?.EmployeeType,
       status: reportData[0]?.EmployeeStatus,
     }
@@ -1616,6 +1618,10 @@ export default function EmployeeReports() {
                       <div>
                         <p className="text-xs text-text-secondary">{t.department || "Department"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.department}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-secondary">{t.division || "Division"}</p>
+                        <p className="font-semibold text-primary">{singleEmployeeInfo.businessUnit || "-"}</p>
                       </div>
                     </div>
                   </div>

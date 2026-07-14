@@ -84,7 +84,7 @@ export class PDFExporter {
     }
     return [
       'EmployeeNo', 'Name', 'ParentOrganization', 'Organization', 'Department',
-      'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
+      'BusinessUnit', 'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
       'PunchOut', 'GeoLocationOut', 'DailyWorkedHrs', 'DailyMissedHrs',
       'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
     ];
@@ -95,6 +95,7 @@ export class PDFExporter {
       // daily
       'EmployeeNo': '4%', 'Name': '7%', 'ParentOrganization': '6%', 'Organization': '6%',
       'Department': '6%', 'EmployeeType': '5%', 'WorkDate': '5%', 'WorkDay': '4%',
+      'BusinessUnit': '6%',
       'Shift': '4%', 'PunchIn': '5%', 'GeoLocationIn': '7%', 'PunchOut': '5%',
       'GeoLocationOut': '7%', 'DailyWorkedHrs': '5%', 'DailyMissedHrs': '5%',
       'DailyExtraWork': '5%', 'IsAbsent': '5%', 'MissedPunch': '5%', 'EmployeeStatus': '5%',
@@ -251,6 +252,17 @@ export class PDFExporter {
     const showingLimitedData = allData && allData.length > MAX_PDF_ROWS;
     const dataArray = [...displayData];
 
+    // Only show the employee name/no block for a single selected employee.
+    const isSingleEmployee =
+      Array.isArray(this.formValues.employee_ids) &&
+      this.formValues.employee_ids.length === 1;
+
+    const metaEmployeeLabel = isSingleEmployee
+      ? `<strong>Employee ID:</strong> ${employeeId}`
+      : this.formValues.employee_ids && this.formValues.employee_ids.length > 1
+      ? `<strong>Employees:</strong> ${this.formValues.employee_ids.length} selected`
+      : `<strong>Employee:</strong> All`;
+
     return `
       <div style="padding: 10px; font-family: Arial, sans-serif; width: 100%; font-size: 7px;">
         ${showingLimitedData ? `
@@ -272,11 +284,12 @@ export class PDFExporter {
 
         <table style="width: 100%; margin-bottom: 8px; font-size: 9px;">
           <tr>
-            <td><strong>Employee ID:</strong> ${employeeId}</td>
+            <td>${metaEmployeeLabel}</td>
             <td style="text-align: right;"><strong>Generated On:</strong> ${format(new Date(), 'dd/MM/yyyy')}</td>
           </tr>
         </table>
 
+        ${isSingleEmployee ? `
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px;">
           <tr>
             <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; width: 25%; text-align: center;">EMPLOYEE NAME</td>
@@ -293,6 +306,16 @@ export class PDFExporter {
             </tr>`
           : ''}
         </table>
+        ` : (this.formValues.from_date || this.formValues.to_date ? `
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px;">
+          <tr>
+            <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 25%;">FROM DATE</td>
+            <td style="border: 1px solid black; padding: 5px; width: 25%;">${this.formValues.from_date ? format(this.formValues.from_date, 'dd/MM/yyyy') : '-'}</td>
+            <td style="border: 1px solid black; padding: 5px; background-color: #0078D4; color: white; font-weight: bold; text-align: center; width: 25%;">TO DATE</td>
+            <td style="border: 1px solid black; padding: 5px; width: 25%;">${this.formValues.to_date ? format(this.formValues.to_date, 'dd/MM/yyyy') : '-'}</td>
+          </tr>
+        </table>
+        ` : '')}
 
         <table style="width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed;">
           <thead>
