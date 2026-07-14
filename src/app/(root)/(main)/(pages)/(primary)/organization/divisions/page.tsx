@@ -2,44 +2,43 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
-import AddRole from "@/src/components/custom/modules/configuration/AddRole";
-import AssignPrivileges from "@/src/components/custom/modules/configuration/AssignPrivileges";
+import AddDivision from "@/src/components/custom/modules/organization/AddDivision";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
-  const router = useRouter();
-  
-  type Columns = {
-    field: string;
-    headerName?: string;
-    clickable?: boolean;
-    onCellClick?: (data: any) => void;
-  };
-  
-  const [columns, setColumns] = useState<Columns[]>([]);
+  const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchValue, setSearchValue] = useState<string>("");
-  const [selectedRowData, setSelectedRowData] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [open, setOpen] = useState<boolean>(false);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.configurations || {};
+  const t = translations?.modules?.companyMaster || {};
 
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
-  const { data: rolesData, isLoading, refetch } = useFetchAllEntity("secRole", {
+  useEffect(() => {
+    setColumns([
+      { field: "business_unit_id", headerName: t.division_id || "Division ID" },
+      { field: "business_unit_code", headerName: t.division_code || "Division Code" },
+      {
+        field: language === "ar" ? "business_unit_name_arb" : "business_unit_name_eng",
+        headerName: t.division_name || "Division Name",
+      },
+    ]);
+  }, [t, language]);
+
+  const { data: divisionData, isLoading, refetch } = useFetchAllEntity("business-unit", {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -47,32 +46,17 @@ export default function Page() {
     },
   });
 
-  const handleCellClick = useCallback((data: any) => {
-    setSelectedRowData(data);
-    setIsModalOpen(true);
-  }, []);
-  
-  const handleCellClickPath = useCallback((data: any) => {
-    if (data?.role_name) {
-      router.push(`/configuration/roles/assign-roles?role=${data.role_name}`);
-    } else {
-      console.error("Error: No code found for this row", data);
-    }
-  }, [router]);
-
   const data = useMemo(() => {
-    if (Array.isArray(rolesData?.data)) {
-      return rolesData.data.map((role: any) => {
+    if (Array.isArray(divisionData?.data)) {
+      return divisionData.data.map((item: any) => {
         return {
-          ...role,
-          id: role.id || role.role_id,
-          privileges: "View",
-          assign_role: "Users",
+          ...item,
+          id: item.business_unit_id,
         };
       });
     }
     return [];
-  }, [rolesData, t]);
+  }, [divisionData]);
 
   useEffect(() => {
     if (!open) {
@@ -80,34 +64,8 @@ export default function Page() {
     }
   }, [open]);
 
-  useEffect(() => {
-    setColumns([
-      {
-        field: "role_name",
-        headerName: t.role_name || "Role Name",
-      },
-      // { 
-      //   field: "privileges", 
-      //   headerName: t.privileges || "Privileges",
-      //   clickable: true, 
-      //   onCellClick: handleCellClick 
-      // },
-      { 
-        field: "assign_role", 
-        headerName: t.assign_role || "Assign Role", 
-        clickable: true, 
-        onCellClick: handleCellClickPath 
-      },
-      { 
-        field: "_count.sec_user_roles", 
-        headerName: t.users || "Users" 
-      },
-    ]);
-  }, [t, language, handleCellClick, handleCellClickPath]);
-
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
-    
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
@@ -116,7 +74,6 @@ export default function Page() {
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1);
-    
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
@@ -143,24 +100,20 @@ export default function Page() {
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: rolesData?.total || 0,
-    hasNext: rolesData?.hasNext,
+    total: divisionData?.total || 0,
+    hasNext: divisionData?.hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
   };
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["business-unit"] });
   };
 
-  const handleEditClick = useCallback((data: any) => {
-    setSelectedRowData(data);
+  const handleEditClick = useCallback((row: any) => {
+    setSelectedRowData(row);
     setOpen(true);
   }, []);
-
-  const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["secRole"] });
-  };
 
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
@@ -171,33 +124,23 @@ export default function Page() {
       <PowerHeader
         props={props}
         selectedRows={selectedRows}
-        items={modules?.configuration?.items}
-        entityName="secRole"
-        modal_title={t.roles || "Roles"}
+        items={modules?.organization?.items}
+        entityName="business-unit"
+        modal_title={t.divisions || "Division"}
         modal_component={
-          <AddRole 
+          <AddDivision
             on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
           />
         }
       />
-      <PowerTable 
+      <PowerTable
         props={props}
         onEditClick={handleEditClick}
         onRowSelection={handleRowSelection}
         isLoading={isLoading}
       />
-      {isModalOpen && selectedRowData && (
-        <AssignPrivileges
-          modal_props={{
-            open: isModalOpen,
-            on_open_change: setIsModalOpen,
-          }}
-          roleName={selectedRowData?.role_name ?? ""}
-          roleId={selectedRowData?.role_id || selectedRowData?.id}
-        />
-      )}
     </div>
   );
 }

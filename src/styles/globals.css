@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Arabic font: apply Cairo whenever the document is in Arabic (lang="ar" is
+   set on <html> by the language provider). Falls back to the Latin font for
+   English. Covers descendants and common UI elements. */
+html[lang="ar"],
+html[lang="ar"] body,
+html[lang="ar"] button,
+html[lang="ar"] input,
+html[lang="ar"] textarea,
+html[lang="ar"] select {
+  font-family: var(--font-arabic), "Cairo", sans-serif;
+}
+
 *,
 html,
 body {

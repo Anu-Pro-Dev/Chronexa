@@ -104,6 +104,7 @@ export default function PowerHeader({
       'secRole': 'role_id',
       'secUserRole': 'user_role_id',
       'employeeManualTransaction': 'employee_manual_transaction_id',
+      'business-unit': 'business_unit_id',
     };
     
     if (specialMappings[entityName]) {

@@ -1478,3 +1478,22 @@ export const getAllBusinessUnits = async () => {
 export const getAllCostCentersMaster = async () => {
   return apiRequest("/cost-center/all", "GET");
 };
+
+export const addBusinessUnitRequest = async (data: {
+  business_unit_id?: number;
+  business_unit_code?: string;
+  business_unit_name_eng?: string;
+  business_unit_name_arb?: string;
+}) => {
+  return apiRequest("/business-unit/add", "POST", data);
+};
+
+export const editBusinessUnitRequest = async (data: {
+  business_unit_id: number;
+  business_unit_code?: string;
+  business_unit_name_eng?: string;
+  business_unit_name_arb?: string;
+}) => {
+  const { business_unit_id, ...payload } = data;
+  return apiRequest(`/business-unit/edit/${business_unit_id}`, "PUT", payload);
+};

@@ -18,6 +18,16 @@ export default {
 				plusJakartaSans: [
 					'Plus Jakarta Sans',
 					'sans-serif'
+				],
+				latin: [
+					'var(--font-latin)',
+					'Plus Jakarta Sans',
+					'sans-serif'
+				],
+				arabic: [
+					'var(--font-arabic)',
+					'Cairo',
+					'sans-serif'
 				]
 			},
 			colors: {
