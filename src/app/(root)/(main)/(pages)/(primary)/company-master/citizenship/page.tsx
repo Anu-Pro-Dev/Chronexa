@@ -30,6 +30,10 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
+        field: "citizenship_id",
+        headerName: t.citizenship_id,
+      },
+      {
         field: "citizenship_code",
         headerName: t.citizenship_code,
       },

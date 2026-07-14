@@ -29,6 +29,7 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+      { field: "department_id", headerName: t.department_id || "Department ID" },
       { field: "department_code", headerName: t.department_code || "Department Code" },
       {
         field: language === "ar" ? "department_name_arb" : "department_name_eng",
