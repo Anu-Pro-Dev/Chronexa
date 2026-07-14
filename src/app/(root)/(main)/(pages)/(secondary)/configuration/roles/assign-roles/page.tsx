@@ -10,12 +10,21 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/src/lib/apiHandler";
 import { useDebounce } from "@/src/hooks/useDebounce";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
+import PowerAdd from "@/src/components/custom/power-comps/power-add";
 
 export default function MembersTable() {
   const { modules, language, translations } = useLanguage();
+  const { userInfo } = useAuthGuard();
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
   const t = useMemo(() => translations?.modules?.configurations || {}, [translations]);
+
+  const isAdmin = useMemo(
+    () => userInfo?.role?.toLowerCase() === "admin",
+    [userInfo?.role]
+  );
+  
 
   const [columns, setColumns] = useState([
     { field: "user_id", headerName: t.user_id || "User ID" },
@@ -239,14 +248,26 @@ export default function MembersTable() {
         selectedRows={selectedRows}
         items={modules?.configuration?.items}
         entityName="secUserRole"
-        modal_title={`${t.add_user_to || "Add User to"} ${currentRoleName}`}
-        modal_component={
-          <AddRoleToUser
-            on_open_change={setOpen}
-            selectedRowData={selectedRowData}
-            onSave={handleSave}
-            props={props}
-          />
+        disableAdd={true}
+        customButtons={
+          isAdmin ? (
+            <PowerAdd
+              modal_title={`${t.add_user_to || "Add User to"} ${currentRoleName}`}
+              modal_component={
+                <AddRoleToUser
+                  on_open_change={setOpen}
+                  selectedRowData={selectedRowData}
+                  onSave={handleSave}
+                  props={props}
+                />
+              }
+              modal_props={{
+                open,
+                on_open_change: setOpen,
+              }}
+              size="extraLarge"
+            />
+          ) : undefined
         }
         size="extraLarge"
       />
