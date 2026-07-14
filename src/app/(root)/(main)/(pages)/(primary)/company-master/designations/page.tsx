@@ -29,6 +29,10 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+      {
+        field: "designation_id",
+        headerName: t.designation_id || "Designation ID",
+      },
       { field: "designation_code", headerName: t.designation_code || "Designation Code" },
       {
         field: language === "ar" ? "designation_arb" : "designation_eng",

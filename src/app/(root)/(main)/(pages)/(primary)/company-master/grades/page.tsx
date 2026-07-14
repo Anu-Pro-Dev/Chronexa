@@ -29,6 +29,10 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+      {
+        field: "grade_id",
+        headerName: t.grade_id || "Grade ID",
+      },
       { field: "grade_code", headerName: t.grade_code },
       {
         field: language === "ar" ? "grade_arb" : "grade_eng",

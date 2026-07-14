@@ -302,6 +302,7 @@
         "radius": "نصف القطر",
         "country_code": "رمز الدولة",
         "citizenship_code": "رمز الجنسية",
+        "citizenship_id": "معرف الجنسية",
         "designation_code": "رمز التعيين",
         "grade_code": "رمز الدرجة",
         "grade_name": "اسم الدرجة",
