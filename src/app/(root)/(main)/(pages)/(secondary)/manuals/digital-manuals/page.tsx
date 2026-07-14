@@ -9,7 +9,7 @@ const allManuals = [
   { fileName: "Chronexa_TimePro_Manager_Guide.pdf", label: "manager_label", defaultLabel: "Manager Manual", role: "manager" },
   { fileName: "Chronexa_TimePro_Employee_Guide.pdf", label: "employee_label", defaultLabel: "Employee Manual", role: "employee" },
   { fileName: "Chronexa_TimePro_Timekeeper_Guide.pdf", label: "timekeeper_label", defaultLabel: "Timekeeper Manual", role: "timekeeper" },
-  { fileName: "Chronexa_TimePro_User_Admin_Guide.pdf", label: "user_admin_label", defaultLabel: "User Admin Manual", role: "user_admin" },
+  // { fileName: "Chronexa_TimePro_User_Admin_Guide.pdf", label: "user_admin_label", defaultLabel: "User Admin Manual", role: "user_admin" },
 ];
 
 export default function Page() {
