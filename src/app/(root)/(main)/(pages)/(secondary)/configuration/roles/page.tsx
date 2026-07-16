@@ -82,6 +82,10 @@ export default function Page() {
 
   useEffect(() => {
     setColumns([
+       {
+        field: "role_id",
+        headerName: t.role_id || "Role ID",
+      },
       {
         field: "role_name",
         headerName: t.role_name || "Role Name",

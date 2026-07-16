@@ -320,6 +320,7 @@ export default function AddRoleToUser({
           ispageValue5={true}
           onRowSelection={handleRowSelection}
           overrideEditIcon={false}
+          overrideCheckbox={true}
         />
       </div>
     </>
