@@ -95,6 +95,19 @@ function parseRawTime(value: string | null | undefined): Date | undefined {
   return undefined;
 }
 
+// ─── Helper ───────────────────────────────────────────────────────────────────
+// Pull a human-readable message out of an API error response, regardless of
+// which shape the underlying HTTP client attached it to (axios error.response.data,
+// a raw error.data, or a plain error.message thrown by apiRequest).
+function getApiErrorMessage(error: any): string | undefined {
+  return (
+    error?.response?.data?.message ??
+    error?.data?.message ??
+    error?.message ??
+    undefined
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function ApplyMissingPunch({
   on_open_change,
@@ -181,7 +194,16 @@ export default function ApplyMissingPunch({
       isEditMode
         ? editManualPunchRequest(payload)
         : addManualPunchRequest(payload),
-    onSuccess: () => {
+    onSuccess: (data: any) => {
+      // Some APIs resolve with { success: false, message: "..." } instead of
+      // rejecting — guard against that so a "failure" response doesn't show
+      // a success toast.
+      if (data && data.success === false) {
+        showToast("error", data.message || "apply_missing_punch_error", null, !data.message);
+        setIsSubmitting(false);
+        return;
+      }
+
       showToast(
         "success",
         isEditMode
@@ -199,7 +221,16 @@ export default function ApplyMissingPunch({
     },
     onError: (error: any) => {
       console.error("API Error:", error);
-      showToast("error", "apply_missing_punch_error");
+
+      const apiMessage = getApiErrorMessage(error);
+
+      showToast(
+        "error",
+        apiMessage || "apply_missing_punch_error",
+        null,
+        !apiMessage // use translation key only when no literal API message is available
+      );
+
       setIsSubmitting(false);
     },
     onSettled: () => {
