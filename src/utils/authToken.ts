@@ -1,13 +1,46 @@
 import { USER_TOKEN, REMEMBER_ME_FLAG, TOKEN_EXPIRATION, REMEMBER_ME_DAYS, SESSION_ONLY_DAYS } from "@/src/utils/constants";
 
-export const getAuthToken = (): string | null => {
-    if (typeof window === "undefined") return null;
+/**
+ * The middleware gate (src/middleware.ts) authenticates requests using the
+ * `userToken` cookie, which is SHARED across all tabs of the same browser.
+ * However, session-only logins store the token in `sessionStorage`, which is
+ * PER-TAB — a freshly opened tab gets an empty sessionStorage. That mismatch
+ * caused a new tab to pass the middleware but fail client-side auth, producing
+ * the infinite redirect loop / blank white screen.
+ *
+ * To keep the client and the middleware on a single source of truth, token
+ * lookups now fall back to the (tab-shared) cookie when storage is empty.
+ */
 
-    const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);
+const isBrowser = (): boolean => typeof window !== "undefined";
+
+const readCookie = (name: string): string | null => {
+    if (!isBrowser()) return null;
+    const match = document.cookie
+        .split(";")
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${name}=`));
+    return match ? match.slice(name.length + 1) : null;
+};
+
+const isProduction = (): boolean => process.env.NODE_ENV === "production";
+
+/** Attributes shared by every auth cookie. `Secure` only in production (HTTPS). */
+const cookieAttributes = (maxAge?: number): string => {
+    const attrs = `path=/; samesite=lax${isProduction() ? "; secure" : ""}`;
+    return maxAge === undefined ? attrs : `${attrs}; max-age=${maxAge}`;
+};
+
+export const getAuthToken = (): string | null => {
+    if (!isBrowser()) return null;
+
+    // 1. Per-tab storage (original login tab)
+    // 2. Tab-shared cookie (new tabs / page reloads)
+    const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN) || readCookie(USER_TOKEN);
 
     if (!token) return null;
 
-    const expiration = localStorage.getItem(TOKEN_EXPIRATION) || sessionStorage.getItem(TOKEN_EXPIRATION);
+    const expiration = localStorage.getItem(TOKEN_EXPIRATION) || sessionStorage.getItem(TOKEN_EXPIRATION) || readCookie(TOKEN_EXPIRATION);
     if (expiration && Date.now() > parseInt(expiration)) {
         clearAuthToken();
         return null;
@@ -39,15 +72,17 @@ export const setAuthToken = (token: string | null, rememberMe: boolean): void =>
             localStorage.setItem(TOKEN_EXPIRATION, expirationTime.toString());
 
             const maxAge = REMEMBER_ME_DAYS * 24 * 60 * 60;
-            document.cookie = `userToken=${token}; path=/; max-age=${maxAge}; samesite=lax`;
-            document.cookie = `tokenExpiration=${expirationTime}; path=/; max-age=${maxAge}; samesite=lax`;
-            document.cookie = `rememberMe=true; path=/; max-age=${maxAge}; samesite=lax`;
+            document.cookie = `userToken=${token}; ${cookieAttributes(maxAge)}`;
+            document.cookie = `tokenExpiration=${expirationTime}; ${cookieAttributes(maxAge)}`;
+            document.cookie = `rememberMe=true; ${cookieAttributes(maxAge)}`;
         } else {
             sessionStorage.setItem(USER_TOKEN, token);
             sessionStorage.setItem(TOKEN_EXPIRATION, expirationTime.toString());
 
-            document.cookie = `userToken=${token}; path=/; samesite=lax`;
-            document.cookie = `tokenExpiration=${expirationTime}; path=/; samesite=lax`;
+            // Session cookies (no max-age) — shared across tabs in this browser
+            // session, which is what lets a new tab resume the same login.
+            document.cookie = `userToken=${token}; ${cookieAttributes()}`;
+            document.cookie = `tokenExpiration=${expirationTime}; ${cookieAttributes()}`;
         }
     } else {
         clearAuthToken();
@@ -77,6 +112,6 @@ export const isRemembered = (): boolean => {
 export const getTokenExpiration = (): number | null => {
     if (typeof window === "undefined") return null;
 
-    const expiration = localStorage.getItem(TOKEN_EXPIRATION) || sessionStorage.getItem(TOKEN_EXPIRATION);
+    const expiration = localStorage.getItem(TOKEN_EXPIRATION) || sessionStorage.getItem(TOKEN_EXPIRATION) || readCookie(TOKEN_EXPIRATION);
     return expiration ? parseInt(expiration) : null;
 };

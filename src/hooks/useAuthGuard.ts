@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import { getAuthToken } from "@/src/utils/authToken";
 
 export function useAuthGuard() {
   const router = useRouter();
@@ -36,7 +37,18 @@ export function useAuthGuard() {
     );
 
     if (!isPublicRoute && !isAuthenticated) {
-      router.replace("/");
+      // NEVER bounce to "/" while a usable token still exists in storage OR in
+      // the tab-shared session cookie. If we redirect while the cookie is
+      // valid, the middleware redirects straight back to the dashboard, and
+      // the two layers fight each other in an infinite loop → blank white
+      // screen (e.g. opening the dashboard URL in a new tab after a
+      // session-only login). The async initialize() will finish rehydrating
+      // the session and flip isAuthenticated; only a genuinely token-less
+      // state should redirect to login.
+      const hasToken = typeof window !== "undefined" && !!getAuthToken();
+      if (!hasToken) {
+        router.replace("/");
+      }
     }
   }, [isChecking, isAuthenticated, pathname, router]);
 

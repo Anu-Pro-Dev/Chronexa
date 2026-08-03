@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { USER_TOKEN } from "@/src/utils/constants";
+import { getAuthToken, clearAuthToken } from "@/src/utils/authToken";
+import { apiRequest } from "@/src/lib/apiHandler";
 
 const decodeJWT = (token: string) => {
   try {
@@ -25,8 +26,25 @@ interface AuthState {
   userRole: string;
   isGeofenceEnabled: boolean;
   _initialized: boolean;
-  initialize: () => void;
+  initialize: () => Promise<void>;
 }
+
+const STORAGE_KEYS = [
+  'loginResponse',
+  'userData',
+  'user',
+  'currentUser',
+  'authUser',
+  'employee',
+  'userProfile'
+];
+
+const resolveUserRole = (data: Record<string, any>): string => {
+  if (typeof data.role === 'string') return data.role;
+  if (typeof data.roleId === 'number') return String(data.roleId);
+  if (typeof data.role_id === 'number') return String(data.role_id);
+  return '';
+};
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
@@ -37,7 +55,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isGeofenceEnabled: false,
   _initialized: false,
 
-  initialize: () => {
+  initialize: async () => {
     if (get()._initialized) return;
     set({ _initialized: true });
 
@@ -46,7 +64,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    const token = localStorage.getItem(USER_TOKEN) || sessionStorage.getItem(USER_TOKEN);
+    // getAuthToken() reads localStorage → sessionStorage → the tab-shared
+    // `userToken` cookie. This mirrors the middleware gate so a session-only
+    // login (token lives only in the original tab's sessionStorage) can be
+    // resumed in a newly opened tab, where the cookie is the only copy.
+    const token = getAuthToken();
 
     if (!token) {
       set({ isChecking: false, isAuthenticated: false });
@@ -69,17 +91,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (!finalUserRole && decodedToken.role_id)  finalUserRole = String(decodedToken.role_id);
       }
 
-      const storageKeys = [
-        'loginResponse',
-        'userData',
-        'user',
-        'currentUser',
-        'authUser',
-        'employee',
-        'userProfile'
-      ];
-
-      for (const key of storageKeys) {
+      for (const key of STORAGE_KEYS) {
         const data = localStorage.getItem(key) || sessionStorage.getItem(key);
 
         if (data) {
@@ -93,9 +105,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             // stores the user object with `roleId` (number), not `role` (string),
             // so the original code left userRole='' after every page reload.
             if (!finalUserRole) {
-              if (userData.role)        finalUserRole = String(userData.role);
-              else if (userData.roleId)   finalUserRole = String(userData.roleId);
-              else if (userData.role_id)  finalUserRole = String(userData.role_id);
+              finalUserRole = resolveUserRole(userData);
             }
 
             if (!finalUserInfo || (userData.employeename && Object.keys(userData).length >= Object.keys(finalUserInfo).length)) {
@@ -106,6 +116,49 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             // Skip unparseable key
           }
         }
+      }
+
+      // A new tab (or page reload after a session-only login) has no user
+      // profile in storage. Rehydrate the authoritative profile from the
+      // server so roleId/privileges resolve exactly as they do post-login.
+      if (!finalUserInfo) {
+        try {
+          const me = await apiRequest("/auth/me", "POST", {});
+          const profile = me?.user;
+
+          if (profile) {
+            finalUserInfo = profile;
+            localStorage.setItem("user", JSON.stringify(profile));
+
+            if (profile.employeenumber && !finalEmployeeId)
+              finalEmployeeId = Number(profile.employeenumber);
+            if (!finalUserRole)
+              finalUserRole = resolveUserRole(profile);
+          }
+        } catch (err: any) {
+          // Token expired/invalid server-side → wipe auth and return to login.
+          if (err?.response?.status === 401) {
+            clearAuthToken();
+            localStorage.removeItem("user");
+            set({ isChecking: false, isAuthenticated: false });
+            if (window.location.pathname !== "/") {
+              window.location.href = "/";
+            }
+            return;
+          }
+          console.error("Auth rehydration via /auth/me failed:", err);
+        }
+      }
+
+      // Last-resort fallback: never leave userInfo null while a valid token
+      // exists (null userInfo makes ProtectedLayout render a blank page).
+      if (!finalUserInfo) {
+        finalUserInfo = {
+          employeenumber: finalEmployeeId ?? undefined,
+          role: finalUserRole || decodedToken?.role || undefined,
+          ...(decodedToken?.roleId ? { roleId: decodedToken.roleId } : {}),
+          ...(decodedToken?.role_id ? { role_id: decodedToken.role_id } : {}),
+        };
       }
 
       const geofenceData = localStorage.getItem('isGeofence') || sessionStorage.getItem('isGeofence');
