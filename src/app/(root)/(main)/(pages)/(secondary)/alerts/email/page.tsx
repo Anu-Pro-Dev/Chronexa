@@ -261,6 +261,7 @@ export default function Page() {
     setSelectedRows,
     isLoading: isLoading || isChecking,
     SortField: sortField,
+    CurrentPage: currentPage,
     SetCurrentPage: handlePageChange,
     SetSortField: setSortField,
     SortDirection: sortDirection,

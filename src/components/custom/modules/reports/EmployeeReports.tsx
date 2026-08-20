@@ -180,11 +180,59 @@ export default function EmployeeReports() {
   const { data: employees } = useFetchAllEntity("employee", getEmployeeSearchParams());
   const { data: employeeTypes } = useFetchAllEntity("employeeType", { removeAll: true });
 
-  // Cost centers now come from the /cost-center master API.
-  const { data: costCenters } = useQuery({
+  // Cost Center is scoped the same way as the other cascading filters:
+  //  - if a company is selected, use those company org IDs directly
+  //  - else if only a vertical is selected, resolve the companies under that
+  //    vertical (organization-cost-center only filters by a single organization_id,
+  //    which maps to a company, not a vertical) and use those
+  //  - if neither is selected, fall back to the full unscoped master list
+  const costCenterOrgIds = selectedCompanies.length > 0
+    ? selectedCompanies
+    : (organizations?.data || [])
+        .filter((item: any) => selectedVerticals.includes(String(item.parent_id)))
+        .map((item: any) => item.organization_id?.toString())
+        .filter(Boolean);
+
+  const { data: costCentersMaster } = useQuery({
     queryKey: ["costCentersMaster"],
     queryFn: () => getAllCostCentersMaster(),
+    enabled: costCenterOrgIds.length === 0,
   });
+
+  const { data: costCentersByOrg, isLoading: isCostCentersByOrgLoading } = useQuery({
+    queryKey: ["costCentersByOrg", costCenterOrgIds],
+    queryFn: async () => {
+      const results = await Promise.all(
+        costCenterOrgIds.map((orgId: string) =>
+          apiRequest(`/organization-cost-center/?organization_id=${orgId}`, "GET")
+        )
+      );
+      // Merge + dedupe across organizations by cost_center_id, and normalize
+      // field names to match the shape the rest of this component expects
+      // (the org-scoped API returns cost_code/cost_center rather than the
+      // bilingual cost_center_eng/cost_center_arb/cost_center_code fields the
+      // master API uses; it has no separate Arabic name, so we reuse the
+      // single name for both).
+      const map = new Map<string, any>();
+      results.forEach(r => {
+        (r?.data || []).forEach((cc: any) => {
+          if (cc?.cost_center_id != null) {
+            map.set(cc.cost_center_id.toString(), {
+              cost_center_id: cc.cost_center_id,
+              cost_center_code: cc.cost_code,
+              cost_center_eng: cc.cost_center,
+              cost_center_arb: cc.cost_center,
+              active_flag: cc.active_flag,
+            });
+          }
+        });
+      });
+      return { data: Array.from(map.values()) };
+    },
+    enabled: costCenterOrgIds.length > 0,
+  });
+
+  const costCenters = costCenterOrgIds.length > 0 ? costCentersByOrg : costCentersMaster;
 
   // "Division" (business unit) is scoped to the selected department(s).
   // /business-unit/by-department/:id returns the full business-unit records
@@ -380,6 +428,7 @@ export default function EmployeeReports() {
     form.setValue("company", []);
     form.setValue("department", []);
     form.setValue("division", []);
+    form.setValue("cost_center", []);
     form.setValue("manager_id", []);
     form.setValue("employee", []);
   };
@@ -391,6 +440,7 @@ export default function EmployeeReports() {
     form.setValue("company", newCompanies);
     form.setValue("department", []);
     form.setValue("division", []);
+    form.setValue("cost_center", []);
     form.setValue("manager_id", []);
     form.setValue("employee", []);
   };
@@ -1280,7 +1330,11 @@ export default function EmployeeReports() {
                           <Select>
                             <FormControl>
                               <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
-                                <SelectValue placeholder={getCostCenterPlaceholderText()} />
+                                <SelectValue placeholder={
+                                  isCostCentersByOrgLoading
+                                    ? (t.loading_cost_centers || "Loading cost centers...")
+                                    : getCostCenterPlaceholderText()
+                                } />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent
@@ -1304,9 +1358,9 @@ export default function EmployeeReports() {
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCostCenterToggle(costCenterId); }}
                                   >
                                     <Checkbox checked={isChecked} className="mr-2" />
-                                    <span>{language === 'ar'
-                                      ? (item.cost_center_arb || item.cost_center_code)
-                                      : (item.cost_center_eng || item.cost_center_code)}</span>
+                                    <span>{item.cost_center_code || (language === 'ar'
+                                      ? item.cost_center_arb
+                                      : item.cost_center_eng)}</span>
                                   </div>
                                 );
                               })}
