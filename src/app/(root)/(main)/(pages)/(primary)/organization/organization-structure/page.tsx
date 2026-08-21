@@ -39,8 +39,8 @@ const LEVEL_META: Record<NodeLevel, { en: string; ar: string; pill: string }> = 
   root: { en: "", ar: "", pill: "" },
   vertical: { en: "Vertical", ar: "القطاع", pill: "bg-indigo-100 text-indigo-700" },
   organization: { en: "Company", ar: "الشركة", pill: "bg-blue-100 text-blue-700" },
-  department: { en: "Department", ar: "القسم", pill: "bg-emerald-100 text-emerald-700" },
-  businessUnit: { en: "Business Unit", ar: "وحدة العمل", pill: "bg-amber-100 text-amber-700" },
+  department: { en: "Division", ar: "قسم", pill: "bg-emerald-100 text-emerald-700" },
+  businessUnit: { en: "Department", ar: "القسم", pill: "bg-amber-100 text-amber-700" },
 };
 
 const keyOf = (node: HierarchyNode, index: number) =>

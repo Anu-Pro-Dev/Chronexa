@@ -316,13 +316,13 @@ export default function Page() {
                 className={`w-full bg-accent px-4 flex justify-between border-grey ${language === "ar" ? "flex-row-reverse" : ""}`}
               >
                 <p className={`truncate w-64 ${language === "ar" ? "text-right" : "text-left"}`}>
-                  <Label className="font-normal text-secondary">{t.organization} :</Label>
+                  <Label className="font-normal text-secondary">{t.company} :</Label>
                   <span className="px-1 text-sm text-text-primary">
                     {selectedOrganization
                       ? organizationsData.find(
                         (item: any) => String(item.organization_id) === selectedOrganization
                       )?.display_name
-                      : t.placeholder_organization}
+                      : t.placeholder_company}
                   </span>
                 </p>
                 <ChevronDown className="ml-2 h-4 w-4 text-text-primary" />
@@ -330,7 +330,7 @@ export default function Page() {
             </PopoverTrigger>
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border-none shadow-dropdown">
               <Command>
-                <CommandInput placeholder={`${translations?.search || "Search"} ${t.organization}...`} />
+                <CommandInput placeholder={`${translations?.search || "Search"} ${t.company}...`} />
                 <CommandGroup className="max-h-64 overflow-auto">
                   {organizationsData.map((item: any) => (
                     <CommandItem

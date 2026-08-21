@@ -496,8 +496,8 @@ export default function EmployeeReports() {
     Name: "Employee Name",
     ParentOrganization: "Parent Organization",
     Organization: "Organization",
-    Department: "Department",
-    BusinessUnit: "Division",
+    Department: "Division",
+    BusinessUnit: "Department",
     EmployeeType: "Employee Type",
     WorkDate: "Work Date",
     WorkDay: "Work Day",
@@ -888,14 +888,14 @@ export default function EmployeeReports() {
   };
 
   const getDepartmentPlaceholderText = () => {
-    if (selectedDepartments.length === 0) return t.placeholder_department || "Choose department";
-    return `${selectedDepartments.length} ${t.department || 'department'}${selectedDepartments.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+    if (selectedDepartments.length === 0) return t.placeholder_division || "Choose division";
+    return `${selectedDepartments.length} ${t.division || 'division'}${selectedDepartments.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
   const getDivisionPlaceholderText = () => {
-    if (selectedDepartments.length === 0) return t.select_department_first || "Select a department first";
-    if (selectedDivisions.length === 0) return t.placeholder_division || "Choose division";
-    return `${selectedDivisions.length} ${t.division || 'division'}${selectedDivisions.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
+    if (selectedDepartments.length === 0) return t.select_division_first || "Select a division first";
+    if (selectedDivisions.length === 0) return t.placeholder_department || "Choose department";
+    return `${selectedDivisions.length} ${t.department || 'department'}${selectedDivisions.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
 
   const getCostCenterPlaceholderText = () => {
@@ -1221,26 +1221,26 @@ export default function EmployeeReports() {
                       name="department"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
+                          <FormLabel className="flex gap-1">{t.division || 'Division'}</FormLabel>
                           <Select>
                             <FormControl>
                               <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
                                 <SelectValue placeholder={
                                   isDepartmentsLoading
-                                    ? (t.loading_departments || "Loading departments...")
+                                    ? (t.loading_divisions || "Loading divisions...")
                                     : getDepartmentPlaceholderText()
                                 } />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent
                               showSearch={true}
-                              searchPlaceholder={t.search_departments || "Search departments..."}
+                              searchPlaceholder={t.search_divisions || "Search divisions..."}
                               onSearchChange={debouncedDepartmentSearch}
                               className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                             >
                               {getDepartmentData().length === 0 && departmentSearchTerm && (
                                 <div className="p-3 text-sm text-text-secondary">
-                                  {t.no_departments_found || "No departments found"}
+                                  {t.no_divisions_found || "No divisions found"}
                                 </div>
                               )}
                               {getDepartmentData().map((item: any) => {
@@ -1272,7 +1272,7 @@ export default function EmployeeReports() {
                       name="division"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex gap-1">{t.division || 'Division'}</FormLabel>
+                          <FormLabel className="flex gap-1">{t.department || 'Department'}</FormLabel>
                           <Select>
                             <FormControl>
                               <SelectTrigger className="w-full max-w-[350px] 3xl:max-w-[450px]">
@@ -1281,20 +1281,20 @@ export default function EmployeeReports() {
                             </FormControl>
                             <SelectContent
                               showSearch={true}
-                              searchPlaceholder={t.search_division || "Search division..."}
+                              searchPlaceholder={t.search_department || "Search department..."}
                               onSearchChange={debouncedDivisionSearch}
                               className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                             >
                               {selectedDepartments.length === 0 && (
                                 <div className="p-3 text-sm text-text-secondary">
-                                  {t.select_department_first || "Select a department first"}
+                                  {t.select_division_first || "Select a division first"}
                                 </div>
                               )}
                               {selectedDepartments.length > 0 && getDivisionData().length === 0 && (
                                 <div className="p-3 text-sm text-text-secondary">
                                   {divisionSearchTerm
                                     ? (t.no_results || "No results found")
-                                    : (t.no_division_for_department || "No divisions mapped to the selected department")}
+                                    : (t.no_department_for_division || "No departments mapped to the selected division")}
                                 </div>
                               )}
                               {getDivisionData().map((item: any) => {
@@ -1670,11 +1670,11 @@ export default function EmployeeReports() {
                         <p className="font-semibold text-primary">{singleEmployeeInfo.division}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-text-secondary">{t.department || "Department"}</p>
+                        <p className="text-xs text-text-secondary">{t.division || "Division"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.department}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-text-secondary">{t.division || "Division"}</p>
+                        <p className="text-xs text-text-secondary">{t.department || "Department"}</p>
                         <p className="font-semibold text-primary">{singleEmployeeInfo.businessUnit || "-"}</p>
                       </div>
                     </div>

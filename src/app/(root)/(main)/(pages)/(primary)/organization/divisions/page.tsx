@@ -2,11 +2,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
-import AddDivision from "@/src/components/custom/modules/organization/AddDivision";
+import AddDepartments from "@/src/components/custom/modules/organization/AddDepartment";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { useDebounce } from "@/src/hooks/useDebounce";
+import { useDebounce } from "@/src/hooks/useDebounce"; 
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -22,23 +22,23 @@ export default function Page() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.companyMaster || {};
-
+  
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "business_unit_id", headerName: t.division_id || "Division ID" },
-      { field: "business_unit_code", headerName: t.division_code || "Division Code" },
+      { field: "department_id", headerName: t.division_id || "Division ID" },
+      { field: "department_code", headerName: t.division_code || "Division Code" },
       {
-        field: language === "ar" ? "business_unit_name_arb" : "business_unit_name_eng",
+        field: language === "ar" ? "department_name_arb" : "department_name_eng",
         headerName: t.division_name || "Division Name",
       },
     ]);
   }, [t, language]);
 
-  const { data: divisionData, isLoading, refetch } = useFetchAllEntity("business-unit", {
+  const { data: departmentData, isLoading, refetch } = useFetchAllEntity("department", {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -47,16 +47,16 @@ export default function Page() {
   });
 
   const data = useMemo(() => {
-    if (Array.isArray(divisionData?.data)) {
-      return divisionData.data.map((item: any) => {
+    if (Array.isArray(departmentData?.data)) {
+      return departmentData.data.map((desi: any) => {
         return {
-          ...item,
-          id: item.business_unit_id,
+          ...desi,
+          id: desi.department_id,
         };
       });
     }
     return [];
-  }, [divisionData]);
+  }, [departmentData]);
 
   useEffect(() => {
     if (!open) {
@@ -66,6 +66,7 @@ export default function Page() {
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
+    
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
@@ -74,6 +75,7 @@ export default function Page() {
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1);
+    
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
@@ -100,21 +102,21 @@ export default function Page() {
     SetSortDirection: setSortDirection,
     SearchValue: searchValue,
     SetSearchValue: handleSearchChange,
-    total: divisionData?.total || 0,
-    hasNext: divisionData?.hasNext,
+    total: departmentData?.total || 0,
+    hasNext: departmentData?.hasNext,
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
   };
-
+ 
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["business-unit"] });
+    queryClient.invalidateQueries({ queryKey: ["department"] });
   };
-
+ 
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
     setOpen(true);
   }, []);
-
+ 
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -124,11 +126,11 @@ export default function Page() {
       <PowerHeader
         props={props}
         selectedRows={selectedRows}
-        items={modules?.organization?.items}
-        entityName="business-unit"
-        modal_title={t.divisions || "Division"}
+        items={modules?.companyMaster.items}
+        entityName="department"
+        modal_title={t.divisions || "Divisions"}
         modal_component={
-          <AddDivision
+          <AddDepartments
             on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}

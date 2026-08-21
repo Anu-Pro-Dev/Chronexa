@@ -3,6 +3,75 @@ import Papa from "papaparse";
 import { getAuthToken } from "@/src/utils/authToken";
 import { DEFAULT_API_URL } from "@/src/utils/constants";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Policy constants — kept in step with ExcelExporter and the backend cron job
+// (jobs/dailyAttendanceReportExcelJob). Change all three together.
+// ─────────────────────────────────────────────────────────────────────────────
+const LATE_CHECKIN_HOUR = 8;
+const LATE_CHECKIN_MINUTE = 30;
+const EARLY_CHECKOUT_HOUR = 17;
+const EARLY_CHECKOUT_MINUTE = 30;
+
+/** Technical employees are excluded from Late/Early tracking. */
+const TECHNICAL_EMPLOYEE_TYPE_ID = 26;
+
+/**
+ * Header label overrides. These rename COLUMN TITLES ONLY — the underlying
+ * data keys are unchanged, so no lookup or filter logic is affected:
+ *
+ *   BusinessUnit  -> "Department"  (business-unit values sit under Department)
+ *   Department    -> "Division"    (department values sit under Division)
+ *   LocationIn/Out-> "Location In/Out"
+ */
+const HEADER_OVERRIDES: Record<string, string> = {
+  BusinessUnit: "Department",
+  Department: "Division",
+  LocationIn: "Location In",
+  LocationOut: "Location Out",
+};
+
+function parseTimeHM(value: any): { h: number; m: number } | null {
+  if (!value) return null;
+  const s = String(value).trim();
+  const m = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (m) return { h: +m[1], m: +m[2] };
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return { h: d.getHours(), m: d.getMinutes() };
+  return null;
+}
+
+function getMinutesLate(punchIn: any): number {
+  const t = parseTimeHM(punchIn);
+  if (!t) return 0;
+  const diff = (t.h * 60 + t.m) - (LATE_CHECKIN_HOUR * 60 + LATE_CHECKIN_MINUTE);
+  return diff > 0 ? diff : 0;
+}
+
+function getMinutesEarly(punchOut: any): number {
+  const t = parseTimeHM(punchOut);
+  if (!t) return 0;
+  const diff = (EARLY_CHECKOUT_HOUR * 60 + EARLY_CHECKOUT_MINUTE) - (t.h * 60 + t.m);
+  return diff > 0 ? diff : 0;
+}
+
+function formatMinutesToHHMM(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/** The API returns the type id under several casings — check them all. */
+function getEmployeeTypeId(row: any): number {
+  return Number(
+    row?.EmployeeTypeID ?? row?.EmployeeTypeId ?? row?.employee_type_id ?? row?.EmployeeType_ID
+  );
+}
+
+function isProfessional(row: any): boolean {
+  // Unknown id -> Professional, matching the job's `id !== 26` rule.
+  return getEmployeeTypeId(row) !== TECHNICAL_EMPLOYEE_TYPE_ID;
+}
+
 export interface CSVExporterProps {
   formValues: any;
   headerMap: Record<string, string>;
@@ -26,6 +95,11 @@ export class CSVExporter {
     this.showToast = showToast;
   }
 
+  /** Display label for a column key: override first, then headerMap, then key. */
+  private headerLabel(key: string): string {
+    return HEADER_OVERRIDES[key] ?? this.headerMap[key] ?? key;
+  }
+
   // ── Columns per report type (must mirror the on-screen view headers) ──
   private getFilteredHeaders(): string[] {
     const rt = this.formValues.report_type;
@@ -41,14 +115,29 @@ export class CSVExporter {
     }
     // daily (default)
     return [
-      'EmployeeNo', 'Name', 'ParentOrganization', 'Organization', 'Department',
-      'BusinessUnit', 'EmployeeType', 'WorkDate', 'WorkDay', 'Shift', 'PunchIn', 'GeoLocationIn',
-      'PunchOut', 'GeoLocationOut', 'DailyWorkedHrs', 'DailyMissedHrs',
-      'DailyExtraWork', 'IsAbsent', 'MissedPunch', 'EmployeeStatus',
+      'EmployeeNo', 'Name',
+      // Vertical, Company, Division, Department — Department/BusinessUnit are
+      // ordered so the labels read that way (see HEADER_OVERRIDES).
+      'ParentOrganization', 'Organization', 'Department', 'BusinessUnit',
+      'EmployeeType', 'WorkDate', 'WorkDay', 'Shift',
+      'PunchIn', 'LocationIn', 'PunchOut', 'LocationOut',
+      'DailyWorkedHrs', 'DailyMissedHrs',
+      // DailyExtraWork is intentionally excluded, matching the cron job.
+      'LateCheckIn', 'EarlyCheckOut',
+      'IsAbsent', 'MissedPunch', 'EmployeeStatus',
     ];
   }
 
-  private formatCellValue(header: string, value: any): string {
+  private formatCellValue(header: string, row: Record<string, any>): string {
+    // Derived columns are computed, not read off the row.
+    if (header === 'LateCheckIn') {
+      return isProfessional(row) ? formatMinutesToHHMM(getMinutesLate(row.PunchIn)) : '';
+    }
+    if (header === 'EarlyCheckOut') {
+      return isProfessional(row) ? formatMinutesToHHMM(getMinutesEarly(row.PunchOut)) : '';
+    }
+
+    const value = row[header];
     if (value === null || value === undefined || value === '') return '';
 
     // Date columns — format from the date part to avoid timezone day-shift
@@ -87,7 +176,7 @@ export class CSVExporter {
       if (h === 'EmployeeNo') return 'SUMMARY TOTALS';
       if (h === 'TotalWorkedHrs' || h === 'DailyWorkedHrs') return totals.totalWorkedHours;
       if (h === 'TotalMissedHrs' || h === 'DailyMissedHrs') return totals.totalMissedHours;
-      if (h === 'TotalExtraHrs' || h === 'DailyExtraWork') return totals.totalExtraHours;
+      if (h === 'TotalExtraHrs') return totals.totalExtraHours;
       if (h === 'TotalAbsents') return totals.totalAbsents;
       return '';
     });
@@ -197,7 +286,7 @@ export class CSVExporter {
       this.onProgress?.(0, 0, 'initializing');
 
       const filteredHeaders = this.getFilteredHeaders();
-      const displayHeaders = filteredHeaders.map(h => this.headerMap[h] || h);
+      const displayHeaders = filteredHeaders.map(h => this.headerLabel(h));
 
       let allData: any[];
       try {
@@ -226,7 +315,7 @@ export class CSVExporter {
       for (let i = 0; i < allData.length; i += CHUNK) {
         const chunk = allData.slice(i, i + CHUNK);
         const formatted = chunk.map((row: any) =>
-          filteredHeaders.map(header => this.formatCellValue(header, row[header]))
+          filteredHeaders.map(header => this.formatCellValue(header, row))
         );
         csvContent += Papa.unparse(formatted, { header: false }) + '\n';
 
@@ -286,8 +375,8 @@ export class CSVExporter {
       const formattedData: any[] = allData.map((row: any) => {
         const formattedRow: any = {};
         filteredHeaders.forEach(header => {
-          const displayHeader = this.headerMap[header] || header;
-          formattedRow[displayHeader] = this.formatCellValue(header, row[header]);
+          const displayHeader = this.headerLabel(header);
+          formattedRow[displayHeader] = this.formatCellValue(header, row);
         });
         return formattedRow;
       });
@@ -300,7 +389,7 @@ export class CSVExporter {
       const summaryRowObj: any = {};
       const summaryRow = this.buildSummaryRow(filteredHeaders, totals);
       filteredHeaders.forEach((h, idx) => {
-        const displayHeader = this.headerMap[h] || h;
+        const displayHeader = this.headerLabel(h);
         summaryRowObj[displayHeader] = summaryRow[idx];
       });
       formattedData.push(summaryRowObj);

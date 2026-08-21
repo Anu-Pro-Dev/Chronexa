@@ -2,11 +2,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
-import AddDepartments from "@/src/components/custom/modules/organization/AddDepartment";
+import AddDepartment from "@/src/components/custom/modules/organization/AddDepartment";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
-import { useDebounce } from "@/src/hooks/useDebounce"; 
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function Page() {
   const { modules, language, translations } = useLanguage();
@@ -22,23 +22,23 @@ export default function Page() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.companyMaster || {};
-  
+
   const offset = useMemo(() => {
     return currentPage;
   }, [currentPage]);
 
   useEffect(() => {
     setColumns([
-      { field: "department_id", headerName: t.department_id || "Department ID" },
-      { field: "department_code", headerName: t.department_code || "Department Code" },
+      { field: "business_unit_id", headerName: t.department_id || "Department ID" },
+      { field: "business_unit_code", headerName: t.department_code || "Department Code" },
       {
-        field: language === "ar" ? "department_name_arb" : "department_name_eng",
+        field: language === "ar" ? "business_unit_name_arb" : "business_unit_name_eng",
         headerName: t.department_name || "Department Name",
       },
     ]);
   }, [t, language]);
 
-  const { data: departmentData, isLoading, refetch } = useFetchAllEntity("department", {
+  const { data: departmentData, isLoading, refetch } = useFetchAllEntity("business-unit", {
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -48,10 +48,10 @@ export default function Page() {
 
   const data = useMemo(() => {
     if (Array.isArray(departmentData?.data)) {
-      return departmentData.data.map((desi: any) => {
+      return departmentData.data.map((item: any) => {
         return {
-          ...desi,
-          id: desi.department_id,
+          ...item,
+          id: item.business_unit_id,
         };
       });
     }
@@ -66,7 +66,6 @@ export default function Page() {
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
-    
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
@@ -75,7 +74,6 @@ export default function Page() {
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1);
-    
     if (refetch) {
       setTimeout(() => refetch(), 100);
     }
@@ -107,16 +105,16 @@ export default function Page() {
     rowsPerPage,
     setRowsPerPage: handleRowsPerPageChange,
   };
- 
+
   const handleSave = () => {
-    queryClient.invalidateQueries({ queryKey: ["department"] });
+    queryClient.invalidateQueries({ queryKey: ["business-unit"] });
   };
- 
+
   const handleEditClick = useCallback((row: any) => {
     setSelectedRowData(row);
     setOpen(true);
   }, []);
- 
+
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
@@ -126,11 +124,11 @@ export default function Page() {
       <PowerHeader
         props={props}
         selectedRows={selectedRows}
-        items={modules?.companyMaster.items}
-        entityName="department"
-        modal_title={t.departments || "Departments"}
+        items={modules?.organization?.items}
+        entityName="business-unit"
+        modal_title={t.departments || "Department"}
         modal_component={
-          <AddDepartments
+          <AddDepartment
             on_open_change={setOpen}
             selectedRowData={selectedRowData}
             onSave={handleSave}
