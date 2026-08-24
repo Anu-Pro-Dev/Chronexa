@@ -10,8 +10,16 @@ const LATE_CHECKIN_MINUTE = 30;
 const EARLY_CHECKOUT_HOUR = 17;
 const EARLY_CHECKOUT_MINUTE = 30;
 
-/** Technical employees are excluded from Late/Early tracking. */
-const TECHNICAL_EMPLOYEE_TYPE_ID = 26;
+/**
+ * Employee type ids as they exist in sp_employee_daily_report:
+ *   23 Professional Direct | 25 Professional Indirect
+ *   26 Technical           | 29 Outsource
+ *
+ * Classification is by EXPLICIT membership. The previous rule was
+ * `id !== 26`, which silently swept Outsource (29) in with Professional and
+ * gave those employees Late/Early values they should not have.
+ */
+const PROFESSIONAL_EMPLOYEE_TYPE_IDS = [23, 25];
 
 /**
  * Header label overrides. These rename COLUMN TITLES ONLY — the underlying
@@ -24,6 +32,8 @@ const TECHNICAL_EMPLOYEE_TYPE_ID = 26;
 const HEADER_OVERRIDES: Record<string, string> = {
   BusinessUnit: "Department",
   Department: "Division",
+  LateCheckIn: "Late Check-In",
+  EarlyCheckOut: "Early Check-Out",
   LocationIn: "Location In",
   LocationOut: "Location Out",
 };
@@ -66,8 +76,13 @@ function getEmployeeTypeId(row: any): number {
 }
 
 function isProfessional(row: any): boolean {
-  // Unknown id -> Professional, matching the job's `id !== 26` rule.
-  return getEmployeeTypeId(row) !== TECHNICAL_EMPLOYEE_TYPE_ID;
+  const id = getEmployeeTypeId(row);
+  if (!Number.isNaN(id) && id !== 0) {
+    return PROFESSIONAL_EMPLOYEE_TYPE_IDS.includes(id);
+  }
+  // Fall back to the text field when the id is missing, otherwise every
+  // unmatched row lands on one sheet.
+  return String(row?.EmployeeType ?? "").toLowerCase().startsWith("professional");
 }
 
 interface PDFExporterProps {
@@ -190,11 +205,15 @@ export class PDFExporter {
 
   private formatCellValue(header: string, row: Record<string, any>): string {
     // Derived columns are computed, not read off the row.
+    // No punch -> blank, not "00:00". A missing punch is not "on time", and
+    // showing 00:00 made absent employees look present.
     if (header === 'LateCheckIn') {
-      return isProfessional(row) ? formatMinutesToHHMM(getMinutesLate(row.PunchIn)) : '';
+      if (!isProfessional(row) || !row.PunchIn) return '';
+      return formatMinutesToHHMM(getMinutesLate(row.PunchIn));
     }
     if (header === 'EarlyCheckOut') {
-      return isProfessional(row) ? formatMinutesToHHMM(getMinutesEarly(row.PunchOut)) : '';
+      if (!isProfessional(row) || !row.PunchOut) return '';
+      return formatMinutesToHHMM(getMinutesEarly(row.PunchOut));
     }
 
     const value = row[header];

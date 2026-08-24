@@ -18,8 +18,16 @@ const LATE_CHECKIN_MINUTE = 30;
 const EARLY_CHECKOUT_HOUR = 17;
 const EARLY_CHECKOUT_MINUTE = 30;
 
-/** Technical employees are excluded from Late/Early tracking. */
-const TECHNICAL_EMPLOYEE_TYPE_ID = 26;
+/**
+ * Employee type ids as they exist in sp_employee_daily_report:
+ *   23 Professional Direct | 25 Professional Indirect
+ *   26 Technical           | 29 Outsource
+ *
+ * Classification is by EXPLICIT membership. The previous rule was
+ * `id !== 26`, which silently swept Outsource (29) in with Professional and
+ * gave those employees Late/Early values they should not have.
+ */
+const PROFESSIONAL_EMPLOYEE_TYPE_IDS = [23, 25];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Styling palette — same ARGB values the job uses, so a report exported from
@@ -95,8 +103,12 @@ function getEmployeeTypeId(row: any): number {
 
 function isProfessional(row: any): boolean {
   const id = getEmployeeTypeId(row);
-  // Unknown id -> treat as Professional, matching the job's `id !== 26` rule.
-  return id !== TECHNICAL_EMPLOYEE_TYPE_ID;
+  if (!Number.isNaN(id) && id !== 0) {
+    return PROFESSIONAL_EMPLOYEE_TYPE_IDS.includes(id);
+  }
+  // Fall back to the text field when the id is missing, otherwise every
+  // unmatched row lands on one sheet.
+  return String(row?.EmployeeType ?? "").toLowerCase().startsWith("professional");
 }
 
 /**
@@ -149,6 +161,8 @@ const DEFAULT_WIDTH = 16
 const HEADER_OVERRIDES: Record<string, string> = {
   BusinessUnit: "Department",
   Department: "Division",
+  LateCheckIn: "Late Check-In",
+  EarlyCheckOut: "Early Check-Out",
   LocationIn: "Location In",
   LocationOut: "Location Out",
 }
@@ -157,6 +171,10 @@ interface Summary {
   totalEmployees: number;
   present: number;
   absent: number;
+  /** Any non-Absent status: Annual/Maternity/Paternity/Unpaid Leave, WFH, Business Trip */
+  leave: number;
+  /** No status AND no punches — neither present nor explained */
+  unaccounted: number;
   lateCheckins: number;
   earlyCheckouts: number;
   missedPunches: number;
@@ -165,13 +183,24 @@ interface Summary {
 }
 
 function computeJobSummary(rows: any[]): Summary {
-  let present = 0, absent = 0, late = 0, early = 0, missed = 0;
+  let present = 0, absent = 0, leave = 0, unaccounted = 0, late = 0, early = 0, missed = 0;
   let workedMins = 0, missedMins = 0;
 
   for (const r of rows) {
     const status = String(r.IsAbsent ?? "").trim().toLowerCase();
-    if (status === "") present++;
-    else if (status === "absent" || status === "1" || status === "true") absent++;
+    const hasAnyPunch = Boolean(r.PunchIn) || Boolean(r.PunchOut);
+
+    // IsAbsent is a STATUS string, not a flag. Observed values include
+    // 'Absent', 'Annual Leave W/O Advance', 'Work From Home', 'Maternity
+    // Leave', 'Unpaid Leave', 'Business Trip-Outside UAE', '' and NULL.
+    //
+    // Leave is NOT absence — counting a leave day as absent overstates the
+    // figure, and counting it as present is equally wrong. Rows with no status
+    // and no punches are reported separately rather than being guessed at.
+    if (status === "absent") absent++;
+    else if (status !== "" && status !== "null") leave++;
+    else if (hasAnyPunch) present++;
+    else unaccounted++;
 
     if (isProfessional(r)) {
       if (getMinutesLate(r.PunchIn) > 0) late++;
@@ -187,6 +216,8 @@ function computeJobSummary(rows: any[]): Summary {
     totalEmployees: rows.length,
     present,
     absent,
+    leave,
+    unaccounted,
     lateCheckins: late,
     earlyCheckouts: early,
     missedPunches: missed,
@@ -293,11 +324,15 @@ export class ExcelExporter {
 
   private formatCellValue(header: string, row: Record<string, any>): string {
     // Derived columns are computed, not read off the row.
+    // No punch -> blank, not "00:00". A missing punch is not "on time", and
+    // showing 00:00 made absent employees look present.
     if (header === 'LateCheckIn') {
-      return isProfessional(row) ? formatMinutesToHHMM(getMinutesLate(row.PunchIn)) : '';
+      if (!isProfessional(row) || !row.PunchIn) return '';
+      return formatMinutesToHHMM(getMinutesLate(row.PunchIn));
     }
     if (header === 'EarlyCheckOut') {
-      return isProfessional(row) ? formatMinutesToHHMM(getMinutesEarly(row.PunchOut)) : '';
+      if (!isProfessional(row) || !row.PunchOut) return '';
+      return formatMinutesToHHMM(getMinutesEarly(row.PunchOut));
     }
 
     // Location In/Out read ONLY the LocationIn/LocationOut keys. The previous
@@ -476,6 +511,8 @@ export class ExcelExporter {
       ["Total Employees", summary.totalEmployees],
       ["Present", summary.present],
       ["Absent", summary.absent],
+      ["On Leave / WFH", summary.leave],
+      ["Unaccounted (no status, no punch)", summary.unaccounted],
       ["Late Check-Ins", summary.lateCheckins],
       ["Early Check-Outs", summary.earlyCheckouts],
       ["Missed Punches", summary.missedPunches],
