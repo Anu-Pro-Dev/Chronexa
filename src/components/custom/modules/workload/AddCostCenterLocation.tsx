@@ -72,6 +72,31 @@ const formatTimeToString = (date: Date): string => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
+const parseDateString = (dateVal: string | null | undefined): Date | undefined => {
+  if (!dateVal) return undefined;
+  try {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+      const [year, month, day] = dateVal.split("-").map(Number);
+      const d = new Date(year, month - 1, day);
+      return isNaN(d.getTime()) ? undefined : d;
+    }
+    const d = new Date(dateVal);
+    return isNaN(d.getTime()) ? undefined : d;
+  } catch {
+    return undefined;
+  }
+};
+
+const formatDateDisplay = (dateVal: string | null | undefined): string | null => {
+  const d = parseDateString(dateVal);
+  if (!d) return null;
+  try {
+    return format(d, "dd/MM/yyyy");
+  } catch {
+    return null;
+  }
+};
+
 export default function AddCostCenterLocation({
   on_open_change,
   selectedRowData,
@@ -141,7 +166,10 @@ export default function AddCostCenterLocation({
     try {
       const d = new Date(dateVal);
       if (isNaN(d.getTime())) return dateVal;
-      return d.toISOString().split("T")[0];
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
     } catch {
       return dateVal;
     }
@@ -389,18 +417,14 @@ export default function AddCostCenterLocation({
                             variant="outline"
                             size="lg"
                             className={cn(
-                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              "w-full bg-accent px-3 flex justify-between items-center text-text-primary text-sm font-normal overflow-hidden",
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value ? (
-                              field.value
-                            ) : (
-                              <span className="text-text-secondary">
-                                {t.placeholder_start_time || "Choose start time"}
-                              </span>
-                            )}
-                            <ClockIcon />
+                            <span className="truncate">
+                              {field.value ? field.value : (t.placeholder_time || "Choose time")}
+                            </span>
+                            <ClockIcon className="shrink-0" />
                           </Button>
                         </PopoverTrigger>
                       </FormControl>
@@ -439,18 +463,14 @@ export default function AddCostCenterLocation({
                             variant="outline"
                             size="lg"
                             className={cn(
-                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              "w-full bg-accent px-3 flex justify-between items-center text-text-primary text-sm font-normal overflow-hidden",
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value ? (
-                              field.value
-                            ) : (
-                              <span className="text-text-secondary">
-                                {t.placeholder_end_time || "Choose end time"}
-                              </span>
-                            )}
-                            <ClockIcon />
+                            <span className="truncate">
+                              {field.value ? field.value : (t.placeholder_time || "Choose time")}
+                            </span>
+                            <ClockIcon className="shrink-0" />
                           </Button>
                         </PopoverTrigger>
                       </FormControl>
@@ -472,112 +492,122 @@ export default function AddCostCenterLocation({
             <FormField
               control={form.control}
               name="effective_from"
-              render={({ field }) => (
-                <FormItem className="min-w-0">
-                  <FormLabel>{t.effective_from || "Effective From"}</FormLabel>
-                  <Popover
-                    open={popoverStates.effectiveFrom}
-                    onOpenChange={(open) =>
-                      setPopoverStates((prev) => ({ ...prev, effectiveFrom: open }))
-                    }
-                  >
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className={cn(
-                            "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(new Date(field.value), "dd/MM/yyyy")
-                          ) : (
-                            <span className="font-normal text-sm text-text-secondary">
-                              {t.placeholder_date || "Choose date"}
+              render={({ field }) => {
+                const formattedDate = formatDateDisplay(field.value);
+                const selectedDate = parseDateString(field.value);
+
+                return (
+                  <FormItem className="min-w-0">
+                    <FormLabel>{t.effective_from || "Effective From"}</FormLabel>
+                    <Popover
+                      open={popoverStates.effectiveFrom}
+                      onOpenChange={(open) =>
+                        setPopoverStates((prev) => ({ ...prev, effectiveFrom: open }))
+                      }
+                    >
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className={cn(
+                              "w-full bg-accent px-3 flex justify-between items-center text-text-primary text-sm font-normal overflow-hidden",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <span className="truncate">
+                              {formattedDate ? (
+                                formattedDate
+                              ) : (
+                                (t.placeholder_date || "Choose date")
+                              )}
                             </span>
-                          )}
-                          <CalendarIcon />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            const yyyy = date.getFullYear();
-                            const mm = String(date.getMonth() + 1).padStart(2, "0");
-                            const dd = String(date.getDate()).padStart(2, "0");
-                            field.onChange(`${yyyy}-${mm}-${dd}`);
-                          } else {
-                            field.onChange("");
-                          }
-                          setPopoverStates((prev) => ({ ...prev, effectiveFrom: false }));
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormItem>
-              )}
+                            <CalendarIcon className="shrink-0" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) => {
+                            if (date) {
+                              const yyyy = date.getFullYear();
+                              const mm = String(date.getMonth() + 1).padStart(2, "0");
+                              const dd = String(date.getDate()).padStart(2, "0");
+                              field.onChange(`${yyyy}-${mm}-${dd}`);
+                            } else {
+                              field.onChange("");
+                            }
+                            setPopoverStates((prev) => ({ ...prev, effectiveFrom: false }));
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Effective To (Calendar Component) */}
             <FormField
               control={form.control}
               name="effective_to"
-              render={({ field }) => (
-                <FormItem className="min-w-0">
-                  <FormLabel>{t.effective_to || "Effective To"}</FormLabel>
-                  <Popover
-                    open={popoverStates.effectiveTo}
-                    onOpenChange={(open) =>
-                      setPopoverStates((prev) => ({ ...prev, effectiveTo: open }))
-                    }
-                  >
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className={cn(
-                            "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(new Date(field.value), "dd/MM/yyyy")
-                          ) : (
-                            <span className="font-normal text-sm text-text-secondary">
-                              {t.placeholder_date || "Choose date"}
+              render={({ field }) => {
+                const formattedDate = formatDateDisplay(field.value);
+                const selectedDate = parseDateString(field.value);
+
+                return (
+                  <FormItem className="min-w-0">
+                    <FormLabel>{t.effective_to || "Effective To"}</FormLabel>
+                    <Popover
+                      open={popoverStates.effectiveTo}
+                      onOpenChange={(open) =>
+                        setPopoverStates((prev) => ({ ...prev, effectiveTo: open }))
+                      }
+                    >
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className={cn(
+                              "w-full bg-accent px-3 flex justify-between items-center text-text-primary text-sm font-normal overflow-hidden",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <span className="truncate">
+                              {formattedDate ? (
+                                formattedDate
+                              ) : (
+                                (t.placeholder_date || "Choose date")
+                              )}
                             </span>
-                          )}
-                          <CalendarIcon />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            const yyyy = date.getFullYear();
-                            const mm = String(date.getMonth() + 1).padStart(2, "0");
-                            const dd = String(date.getDate()).padStart(2, "0");
-                            field.onChange(`${yyyy}-${mm}-${dd}`);
-                          } else {
-                            field.onChange("");
-                          }
-                          setPopoverStates((prev) => ({ ...prev, effectiveTo: false }));
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormItem>
-              )}
+                            <CalendarIcon className="shrink-0" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) => {
+                            if (date) {
+                              const yyyy = date.getFullYear();
+                              const mm = String(date.getMonth() + 1).padStart(2, "0");
+                              const dd = String(date.getDate()).padStart(2, "0");
+                              field.onChange(`${yyyy}-${mm}-${dd}`);
+                            } else {
+                              field.onChange("");
+                            }
+                            setPopoverStates((prev) => ({ ...prev, effectiveTo: false }));
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Break Start (TimePicker Component) */}
@@ -601,18 +631,14 @@ export default function AddCostCenterLocation({
                             variant="outline"
                             size="lg"
                             className={cn(
-                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              "w-full bg-accent px-3 flex justify-between items-center text-text-primary text-sm font-normal overflow-hidden",
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value ? (
-                              field.value
-                            ) : (
-                              <span className="text-text-secondary">
-                                {t.placeholder_start_time || "Choose break start time"}
-                              </span>
-                            )}
-                            <ClockIcon />
+                            <span className="truncate">
+                              {field.value ? field.value : (t.placeholder_time || "Choose time")}
+                            </span>
+                            <ClockIcon className="shrink-0" />
                           </Button>
                         </PopoverTrigger>
                       </FormControl>
@@ -651,18 +677,14 @@ export default function AddCostCenterLocation({
                             variant="outline"
                             size="lg"
                             className={cn(
-                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              "w-full bg-accent px-3 flex justify-between items-center text-text-primary text-sm font-normal overflow-hidden",
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value ? (
-                              field.value
-                            ) : (
-                              <span className="text-text-secondary">
-                                {t.placeholder_end_time || "Choose break end time"}
-                              </span>
-                            )}
-                            <ClockIcon />
+                            <span className="truncate">
+                              {field.value ? field.value : (t.placeholder_time || "Choose time")}
+                            </span>
+                            <ClockIcon className="shrink-0" />
                           </Button>
                         </PopoverTrigger>
                       </FormControl>

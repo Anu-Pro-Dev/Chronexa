@@ -1104,8 +1104,9 @@
         "placeholder_cost_code": "أدخل كود التكلفة",
         "placeholder_cost_center": "أدخل مركز التكلفة",
         "placeholder_geocoordinates": "أدخل الإحداثيات الجغرافية",
-        "placeholder_start_time": "اختر وقت البدء",
-        "placeholder_end_time": "اختر وقت الانتهاء",
+        "placeholder_start_time": "اختر الوقت",
+        "placeholder_end_time": "اختر الوقت",
+        "placeholder_time": "اختر الوقت",
         "placeholder_extra_hours": "أدخل الساعات الإضافية",
         "placeholder_week_off": "اختر العطلة الأسبوعية"
       }

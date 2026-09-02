@@ -1108,8 +1108,9 @@
         "placeholder_cost_code": "Enter cost code (e.g. CC-1001)",
         "placeholder_cost_center": "Enter cost center",
         "placeholder_geocoordinates": "Enter geocoordinates (e.g. 24.4539,54.3773)",
-        "placeholder_start_time": "Select or enter start time (e.g. 08:00:00)",
-        "placeholder_end_time": "Select or enter end time (e.g. 17:00:00)",
+        "placeholder_start_time": "Choose time",
+        "placeholder_end_time": "Choose time",
+        "placeholder_time": "Choose time",
         "placeholder_extra_hours": "Enter extra hours (e.g. 2)",
         "placeholder_week_off": "Select or enter week off (e.g. Friday,Saturday)"
       }
