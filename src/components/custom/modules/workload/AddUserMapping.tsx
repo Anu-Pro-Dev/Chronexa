@@ -17,6 +17,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/src/components/ui/command";
 import {
   Form,
@@ -298,6 +299,8 @@ export default function AddUserMapping({
                       <PopoverContent
                         className="w-[300px] sm:w-[380px] p-0 border-none shadow-dropdown bg-accent z-[100]"
                         align="start"
+                        onWheel={(e) => e.stopPropagation()}
+                        onTouchMove={(e) => e.stopPropagation()}
                       >
                         <Command shouldFilter={false} className="w-full">
                           <CommandInput
@@ -306,37 +309,43 @@ export default function AddUserMapping({
                             placeholder={t.placeholder_search_employee || "Search employee name or number..."}
                             className="border-none"
                           />
-                          <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
-                            {isLoadingEmployees ? "Searching..." : (t.no_employees_found || "No employees found.")}
-                          </CommandEmpty>
-                          <CommandGroup className="max-h-60 overflow-y-auto pr-1">
-                            {employeesList.map((emp: any) => {
-                              const empNo = emp.emp_no || emp.employee_number || "";
-                              const displayLabel = getEmployeeDisplay(emp, language);
-                              const isSelected = field.value === empNo;
-                              return (
-                                <CommandItem
-                                  key={emp.employee_id || empNo}
-                                  value={empNo}
-                                  onSelect={() => {
-                                    field.onChange(empNo);
-                                    setEmpOpen(false);
-                                  }}
-                                  className="cursor-pointer flex items-center justify-between py-2 px-3 hover:bg-backdrop"
-                                >
-                                  <div className="flex items-center gap-2 truncate">
-                                    <Check
-                                      className={cn(
-                                        "h-4 w-4 text-primary shrink-0",
-                                        isSelected ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    <span className="truncate font-medium">{displayLabel}</span>
-                                  </div>
-                                </CommandItem>
-                              );
-                            })}
-                          </CommandGroup>
+                          <CommandList
+                            className="max-h-60 overflow-y-auto [scrollbar-width:auto] pr-1"
+                            onWheel={(e) => e.stopPropagation()}
+                            onTouchMove={(e) => e.stopPropagation()}
+                          >
+                            <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
+                              {isLoadingEmployees ? "Searching..." : (t.no_employees_found || "No employees found.")}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {employeesList.map((emp: any) => {
+                                const empNo = emp.emp_no || emp.employee_number || "";
+                                const displayLabel = getEmployeeDisplay(emp, language);
+                                const isSelected = field.value === empNo;
+                                return (
+                                  <CommandItem
+                                    key={emp.employee_id || empNo}
+                                    value={empNo}
+                                    onSelect={() => {
+                                      field.onChange(empNo);
+                                      setEmpOpen(false);
+                                    }}
+                                    className="cursor-pointer flex items-center justify-between py-2 px-3 hover:bg-backdrop"
+                                  >
+                                    <div className="flex items-center gap-2 truncate">
+                                      <Check
+                                        className={cn(
+                                          "h-4 w-4 text-primary shrink-0",
+                                          isSelected ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      <span className="truncate font-medium">{displayLabel}</span>
+                                    </div>
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
                         </Command>
                       </PopoverContent>
                     </Popover>
@@ -404,6 +413,8 @@ export default function AddUserMapping({
                       <PopoverContent
                         className="w-[300px] sm:w-[380px] p-0 border-none shadow-dropdown bg-accent z-[100]"
                         align="start"
+                        onWheel={(e) => e.stopPropagation()}
+                        onTouchMove={(e) => e.stopPropagation()}
                       >
                         <Command shouldFilter={false} className="w-full">
                           <CommandInput
@@ -412,30 +423,36 @@ export default function AddUserMapping({
                             placeholder={t.placeholder_search_location || "Search project or location..."}
                             className="border-none"
                           />
-                          <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
-                            {isLoadingLocations ? "Searching..." : (t.no_locations_found || "No locations found.")}
-                          </CommandEmpty>
-                          <CommandGroup className="max-h-60 overflow-y-auto pr-1">
-                            {locationsList.map((loc: any) => {
-                              const locIdStr = String(loc.location_id);
-                              const label = `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
-                              const isSelected = selectedIds.includes(locIdStr);
-                              return (
-                                <CommandItem
-                                  key={loc.location_id}
-                                  value={locIdStr}
-                                  onSelect={() => toggleLocation(locIdStr)}
-                                  className="cursor-pointer flex items-center gap-3 py-2 px-3 hover:bg-backdrop"
-                                >
-                                  <Checkbox
-                                    checked={isSelected}
-                                    onCheckedChange={() => toggleLocation(locIdStr)}
-                                  />
-                                  <span className="truncate font-medium">{label}</span>
-                                </CommandItem>
-                              );
-                            })}
-                          </CommandGroup>
+                          <CommandList
+                            className="max-h-60 overflow-y-auto [scrollbar-width:auto] pr-1"
+                            onWheel={(e) => e.stopPropagation()}
+                            onTouchMove={(e) => e.stopPropagation()}
+                          >
+                            <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
+                              {isLoadingLocations ? "Searching..." : (t.no_locations_found || "No locations found.")}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {locationsList.map((loc: any) => {
+                                const locIdStr = String(loc.location_id);
+                                const label = `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
+                                const isSelected = selectedIds.includes(locIdStr);
+                                return (
+                                  <CommandItem
+                                    key={loc.location_id}
+                                    value={locIdStr}
+                                    onSelect={() => toggleLocation(locIdStr)}
+                                    className="cursor-pointer flex items-center gap-3 py-2 px-3 hover:bg-backdrop"
+                                  >
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onCheckedChange={() => toggleLocation(locIdStr)}
+                                    />
+                                    <span className="truncate font-medium">{label}</span>
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
                         </Command>
                       </PopoverContent>
                     </Popover>
