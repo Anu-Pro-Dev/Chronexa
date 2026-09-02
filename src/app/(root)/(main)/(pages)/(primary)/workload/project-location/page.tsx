@@ -79,16 +79,8 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: "location_id",
-        headerName: "ID",
-      },
-      {
         field: "project_name",
         headerName: t.project_name || "Project Name",
-      },
-      {
-        field: "location_code",
-        headerName: t.location_code || "Location Code",
       },
       {
         field: "location_name",
@@ -113,10 +105,6 @@ export default function Page() {
       {
         field: "entity",
         headerName: t.entity || "Entity",
-      },
-      {
-        field: "active_status_text",
-        headerName: t.active_flag || "Active Status",
       },
     ]);
   }, [t, language]);
