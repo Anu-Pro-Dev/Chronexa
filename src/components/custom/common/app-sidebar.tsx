@@ -23,6 +23,7 @@ import {
   SelfServicesIcon,
   SettingsIcon,
   TAMasterIcon,
+  WorkloadIcon,
   MenuFold,
 } from "@/src/icons/icons";
 import { Button } from "@/src/components/ui/button";
@@ -48,13 +49,13 @@ const getModuleIcon = (moduleKey: string) => {
     "Scheduling": SchedulingIcon,
     "Self Services": SelfServicesIcon,
     "Manage Approvals": TAMasterIcon,
+    "Workload": WorkloadIcon,
     "Devices": DevicesIcon,
     "Reports": ReportsIcon,
     "Configuration": ConfigurationIcon,
     "Settings": SettingsIcon,
     "Alerts": AlertsIcon,
     "Manuals": ManualsIcon,
-    "Workload": MenuFold,
   };
   return iconMap[moduleKey] || DashboardIcon;
 };
