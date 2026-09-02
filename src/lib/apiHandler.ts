@@ -1664,6 +1664,10 @@ export const deleteCostCodeMasterRequest = async (id: number) => {
   return apiRequest(`/cost-code-master/delete/${id}`, "DELETE");
 };
 
+export const deleteBulkCostCodeMasterRequest = async (ids: number[]) => {
+  return apiRequest("/cost-code-master/delete-many", "POST", { ids });
+};
+
 export const getAllCostCodeMasterUnpaginated = async () => {
   return apiRequest("/cost-code-master", "GET");
 };

@@ -22,6 +22,18 @@ import { addIfmLocationMasterRequest, editIfmLocationMasterRequest } from "@/src
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
 
+const sanitizeCoordinateInput = (val: string) => {
+  let cleaned = val.replace(/[^0-9.-]/g, "");
+  const isNegative = cleaned.startsWith("-");
+  cleaned = cleaned.replace(/-/g, "");
+  if (isNegative) cleaned = "-" + cleaned;
+  const parts = cleaned.split(".");
+  if (parts.length > 2) {
+    cleaned = parts[0] + "." + parts.slice(1).join("");
+  }
+  return cleaned;
+};
+
 const formSchema = z.object({
   project_name: z.string().min(1, { message: "project_name_required" }),
   location_code: z.string().optional(),
@@ -38,7 +50,7 @@ const formSchema = z.object({
     .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= -180 && parseFloat(val) <= 180, {
       message: "longitude_invalid",
     }),
-  radius: z.string().optional(),
+  radius: z.string().optional().default("100"),
   geolocation: z.string().optional(),
   city: z.string().optional(),
   country_code: z.string().optional(),
@@ -57,17 +69,13 @@ export default function AddProjectLocation({
   selectedRowData?: any;
   onSave: (id: string | null, newData: any) => void;
 }) {
+  const { countries, getCountryByCode } = useCountries();
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
-  const { countries } = useCountries();
   const showToast = useShowToast();
   const t = translations?.modules?.workload || {};
   const errT = translations?.formErrors || {};
-
-  function getCountryByCode(code: string) {
-    return countries.find((c) => c.country_code === code);
-  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -89,34 +97,43 @@ export default function AddProjectLocation({
   const latitudeValue = form.watch("latitude");
   const longitudeValue = form.watch("longitude");
 
+  // Automatically compute geolocation as lat,long when latitude or longitude changes
   useEffect(() => {
-    if (latitudeValue || longitudeValue) {
-      const lat = (latitudeValue || "").trim();
-      const lng = (longitudeValue || "").trim();
-      if (lat && lng) {
-        form.setValue("geolocation", `${lat},${lng}`, { shouldValidate: true });
-      } else {
-        form.setValue("geolocation", lat || lng, { shouldValidate: true });
-      }
+    const lat = (latitudeValue || "").trim();
+    const lng = (longitudeValue || "").trim();
+    if (lat && lng) {
+      form.setValue("geolocation", `${lat},${lng}`);
+    } else if (lat) {
+      form.setValue("geolocation", lat);
+    } else if (lng) {
+      form.setValue("geolocation", lng);
+    } else {
+      form.setValue("geolocation", "");
     }
   }, [latitudeValue, longitudeValue, form]);
 
   useEffect(() => {
     if (selectedRowData) {
-      const lat = selectedRowData.latitude !== undefined && selectedRowData.latitude !== null
-        ? String(selectedRowData.latitude)
-        : "";
-      const lng = selectedRowData.longitude !== undefined && selectedRowData.longitude !== null
-        ? String(selectedRowData.longitude)
-        : "";
+      let lat = selectedRowData.latitude ? String(selectedRowData.latitude) : "";
+      let lng = selectedRowData.longitude ? String(selectedRowData.longitude) : "";
+
+      if ((!lat || !lng) && selectedRowData.geolocation) {
+        const geoStr = String(selectedRowData.geolocation);
+        const parts = geoStr.split(",");
+        if (parts.length === 2) {
+          lat = lat || parts[0].trim();
+          lng = lng || parts[1].trim();
+        }
+      }
+
       form.reset({
         project_name: selectedRowData.project_name ?? "",
         location_code: selectedRowData.location_code ?? "",
         location_name: selectedRowData.location_name ?? "",
         latitude: lat,
         longitude: lng,
-        radius: selectedRowData.radius ? String(selectedRowData.radius) : "",
-        geolocation: selectedRowData.geolocation ?? (lat && lng ? `${lat},${lng}` : ""),
+        radius: selectedRowData.radius ? String(selectedRowData.radius) : "100",
+        geolocation: selectedRowData.geolocation ? String(selectedRowData.geolocation) : "",
         city: selectedRowData.city ?? "",
         country_code: selectedRowData.country_code ?? "",
         entity: selectedRowData.entity ?? "",
@@ -178,26 +195,22 @@ export default function AddProjectLocation({
     setIsSubmitting(true);
 
     try {
-      const lat = parseFloat(values.latitude);
-      const lng = parseFloat(values.longitude);
-      const computedGeo = values.geolocation?.trim() || `${lat},${lng}`;
-
       const payload: any = {
         project_name: values.project_name.trim(),
-        location_code: values.location_code?.trim() || undefined,
-        location_name: values.location_name?.trim() || undefined,
-        latitude: lat,
-        longitude: lng,
-        radius: values.radius ? String(values.radius) : undefined,
-        geolocation: computedGeo,
-        city: values.city?.trim() || undefined,
-        country_code: values.country_code?.trim() || undefined,
-        entity: values.entity?.trim() || undefined,
+        location_code: values.location_code ? values.location_code.trim() : undefined,
+        location_name: values.location_name ? values.location_name.trim() : undefined,
+        latitude: Number(values.latitude),
+        longitude: Number(values.longitude),
+        radius: values.radius ? String(values.radius).trim() : "100",
+        geolocation: values.geolocation ? values.geolocation.trim() : undefined,
+        city: values.city ? values.city.trim() : undefined,
+        country_code: values.country_code ? values.country_code.trim() : undefined,
+        entity: values.entity ? values.entity.trim() : undefined,
         active_flag: values.active_flag,
       };
 
       if (selectedRowData) {
-        const id = selectedRowData.location_id || selectedRowData.id;
+        const id = selectedRowData.location_id;
         editMutation.mutate({ location_id: Number(id), ...payload });
       } else {
         addMutation.mutate(payload);
@@ -223,7 +236,6 @@ export default function AddProjectLocation({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      type="text"
                       placeholder={t.placeholder_project_name || "Enter project name"}
                       {...field}
                     />
@@ -281,10 +293,14 @@ export default function AddProjectLocation({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="any"
+                      type="text"
+                      inputMode="decimal"
                       placeholder={t.placeholder_latitude || "e.g. 24.4539"}
-                      {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        const cleaned = sanitizeCoordinateInput(e.target.value);
+                        field.onChange(cleaned);
+                      }}
                     />
                   </FormControl>
                   <TranslatedError
@@ -306,10 +322,14 @@ export default function AddProjectLocation({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="any"
+                      type="text"
+                      inputMode="decimal"
                       placeholder={t.placeholder_longitude || "e.g. 54.3773"}
-                      {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        const cleaned = sanitizeCoordinateInput(e.target.value);
+                        field.onChange(cleaned);
+                      }}
                     />
                   </FormControl>
                   <TranslatedError
@@ -341,13 +361,14 @@ export default function AddProjectLocation({
               control={form.control}
               name="geolocation"
               render={({ field }) => (
-                <FormItem className="min-w-0">
+                <FormItem className="min-w-0 md:col-span-2">
                   <FormLabel>{t.geolocation || "Geolocation"}</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
                       disabled={true}
-                      placeholder={t.placeholder_geolocation || "Auto-filled from lat,long"}
+                      placeholder={t.placeholder_geolocation || "Auto-generated from lat,long"}
+                      className="bg-backdrop cursor-not-allowed opacity-80"
                       {...field}
                     />
                   </FormControl>
@@ -377,15 +398,15 @@ export default function AddProjectLocation({
               name="country_code"
               render={({ field }) => (
                 <FormItem className="min-w-0">
-                  <FormLabel className="flex gap-1 mt-2.5">
-                    {t.country_code || "Country Code"}
-                  </FormLabel>
-                  <CountryDropdown
-                    countries={countries}
-                    value={getCountryByCode(field.value || "") ?? null}
-                    displayMode="code"
-                    onChange={(c) => field.onChange(c?.country_code ?? "")}
-                  />
+                  <FormLabel>{t.country_code || "Country Code"}</FormLabel>
+                  <FormControl>
+                    <CountryDropdown
+                      countries={countries}
+                      value={getCountryByCode(field.value ?? null) ?? null}
+                      displayMode="code"
+                      onChange={(c) => field.onChange(c?.country_code ?? "")}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
@@ -399,7 +420,7 @@ export default function AddProjectLocation({
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder={t.placeholder_entity || "Enter entity name"}
+                      placeholder={t.placeholder_entity || "Enter entity"}
                       {...field}
                     />
                   </FormControl>
@@ -411,7 +432,7 @@ export default function AddProjectLocation({
               control={form.control}
               name="active_flag"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-3 space-y-0 pt-6">
+                <FormItem className="flex items-center gap-3 space-y-0 pt-6 md:col-span-2">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -419,7 +440,7 @@ export default function AddProjectLocation({
                     />
                   </FormControl>
                   <FormLabel className="cursor-pointer font-normal">
-                    {t.active_flag || "Active"}
+                    {t.active_flag || "Active Status"}
                   </FormLabel>
                 </FormItem>
               )}

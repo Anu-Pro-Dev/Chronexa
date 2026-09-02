@@ -33,11 +33,33 @@ import TranslatedError from "@/src/utils/translatedError";
 import { cn } from "@/src/lib/utils";
 import { format } from "date-fns";
 
+const sanitizeCoordinateInput = (val: string) => {
+  let cleaned = val.replace(/[^0-9.-]/g, "");
+  const isNegative = cleaned.startsWith("-");
+  cleaned = cleaned.replace(/-/g, "");
+  if (isNegative) cleaned = "-" + cleaned;
+  const parts = cleaned.split(".");
+  if (parts.length > 2) {
+    cleaned = parts[0] + "." + parts.slice(1).join("");
+  }
+  return cleaned;
+};
+
 const formSchema = z.object({
   cost_code: z.string().min(1, { message: "cost_code_required" }),
   cost_center: z.string().optional(),
-  latitude: z.string().min(1, { message: "latitude_required" }),
-  longitude: z.string().min(1, { message: "longitude_required" }),
+  latitude: z
+    .string()
+    .min(1, { message: "latitude_required" })
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= -90 && parseFloat(val) <= 90, {
+      message: "latitude_invalid",
+    }),
+  longitude: z
+    .string()
+    .min(1, { message: "longitude_required" })
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= -180 && parseFloat(val) <= 180, {
+      message: "longitude_invalid",
+    }),
   geocoordinates: z.string().optional(),
   start_time: z.string().optional(),
   end_time: z.string().optional(),
@@ -374,7 +396,7 @@ export default function AddCostCenterLocation({
               )}
             />
 
-            {/* Latitude (Mandatory) */}
+            {/* Latitude (Mandatory Numeric Only) */}
             <FormField
               control={form.control}
               name="latitude"
@@ -387,8 +409,13 @@ export default function AddCostCenterLocation({
                   <FormControl>
                     <Input
                       type="text"
+                      inputMode="decimal"
                       placeholder={t.placeholder_latitude || "Enter latitude (e.g. 24.4539)"}
-                      {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        const cleaned = sanitizeCoordinateInput(e.target.value);
+                        field.onChange(cleaned);
+                      }}
                     />
                   </FormControl>
                   <TranslatedError
@@ -399,7 +426,7 @@ export default function AddCostCenterLocation({
               )}
             />
 
-            {/* Longitude (Mandatory) */}
+            {/* Longitude (Mandatory Numeric Only) */}
             <FormField
               control={form.control}
               name="longitude"
@@ -412,8 +439,13 @@ export default function AddCostCenterLocation({
                   <FormControl>
                     <Input
                       type="text"
+                      inputMode="decimal"
                       placeholder={t.placeholder_longitude || "Enter longitude (e.g. 54.3773)"}
-                      {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        const cleaned = sanitizeCoordinateInput(e.target.value);
+                        field.onChange(cleaned);
+                      }}
                     />
                   </FormControl>
                   <TranslatedError
