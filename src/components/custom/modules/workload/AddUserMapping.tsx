@@ -7,12 +7,18 @@ import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/src/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/src/components/ui/command";
 import {
   Form,
   FormControl,
@@ -29,8 +35,11 @@ import {
   getAllIfmLocationMasterUnpaginated,
 } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDebounce } from "@/src/hooks/useDebounce";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/src/lib/utils";
 
 const formSchema = z.object({
   employee_number: z.string().min(1, { message: "employee_number_required" }),
@@ -41,6 +50,21 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+function getEmployeeFirstName(emp: any, language: string) {
+  if (!emp) return "";
+  if (language === "ar") {
+    return (emp.firstname_arb || emp.firstname_eng || "").trim();
+  }
+  return (emp.firstname_eng || emp.firstname_arb || "").trim();
+}
+
+function getEmployeeDisplay(emp: any, language: string) {
+  if (!emp) return "";
+  const empNo = emp.emp_no || emp.employee_number || "";
+  const firstName = getEmployeeFirstName(emp, language);
+  return firstName ? `${empNo} - ${firstName}` : empNo;
+}
 
 export default function AddUserMapping({
   on_open_change,
@@ -53,6 +77,12 @@ export default function AddUserMapping({
 }) {
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [empOpen, setEmpOpen] = useState(false);
+  const [locOpen, setLocOpen] = useState(false);
+
+  const [empSearch, setEmpSearch] = useState("");
+  const debouncedEmpSearch = useDebounce(empSearch, 300);
+
   const queryClient = useQueryClient();
   const showToast = useShowToast();
   const t = translations?.modules?.workload || {};
@@ -66,9 +96,14 @@ export default function AddUserMapping({
 
   const locationsList = Array.isArray(locationsResponse?.data) ? locationsResponse.data : [];
 
-  // Fetch employees list for dropdown
+  // Fetch employees with limit=10, parent_orgids=5, and search term
   const { data: employeesResponse, isLoading: isLoadingEmployees } = useFetchAllEntity("employee", {
-    searchParams: { limit: "1000", offset: "1" },
+    searchParams: {
+      limit: "10",
+      offset: "1",
+      parent_orgids: "5",
+      ...(debouncedEmpSearch && { search: debouncedEmpSearch }),
+    },
   });
 
   const employeesList = Array.isArray(employeesResponse?.data) ? employeesResponse.data : [];
@@ -181,91 +216,190 @@ export default function AddUserMapping({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
-            {/* Employee Number selection or input */}
+            {/* Searchable Employee Combobox with limit=10 & parent_orgids=5 */}
             <FormField
               control={form.control}
               name="employee_number"
-              render={({ field }) => (
-                <FormItem className="min-w-0">
-                  <FormLabel>
-                    {t.employee_number || "Employee Number"}
-                    <Required />
-                  </FormLabel>
-                  {employeesList.length > 0 ? (
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t.placeholder_employee_number || "Select employee number"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        {employeesList.map((emp: any) => {
-                          const empNo = emp.emp_no || emp.employee_number || "";
-                          const empName = language === "ar"
-                            ? `${emp.firstname_arb || ""} ${emp.lastname_arb || ""}`.trim()
-                            : `${emp.firstname_eng || ""} ${emp.lastname_eng || ""}`.trim();
-                          return (
-                            <SelectItem key={emp.employee_id || empNo} value={empNo}>
-                              {empNo} {empName ? `- ${empName}` : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder={t.placeholder_employee_number || "Enter employee number (e.g. EMP-1001)"}
-                        {...field}
-                      />
-                    </FormControl>
-                  )}
-                  <TranslatedError
-                    fieldError={form.formState.errors.employee_number}
-                    translations={errT}
-                  />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedEmp = employeesList.find(
+                  (e: any) => (e.emp_no || e.employee_number) === field.value
+                );
+                let triggerLabel = field.value || (t.placeholder_employee_number || "Select employee");
+                if (selectedEmp) {
+                  triggerLabel = getEmployeeDisplay(selectedEmp, language);
+                } else if (
+                  selectedRowData?.employee &&
+                  (selectedRowData.employee.emp_no === field.value || selectedRowData.employee_number === field.value)
+                ) {
+                  triggerLabel = getEmployeeDisplay(selectedRowData.employee, language);
+                }
+
+                return (
+                  <FormItem className="flex flex-col min-w-0">
+                    <FormLabel>
+                      {t.employee_number || "Employee Number"}
+                      <Required />
+                    </FormLabel>
+                    <Popover open={empOpen} onOpenChange={setEmpOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={empOpen}
+                            disabled={isLoadingEmployees}
+                            className={cn(
+                              "w-full justify-between font-normal h-10 px-3 border border-border-grey bg-transparent text-text-primary hover:bg-backdrop",
+                              !field.value && "text-text-secondary"
+                            )}
+                          >
+                            <span className="truncate">{triggerLabel}</span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-[300px] sm:w-[380px] p-0 shadow-lg bg-accent border border-border-grey z-[100]"
+                        align="start"
+                      >
+                        <Command shouldFilter={false} className="w-full">
+                          <CommandInput
+                            value={empSearch}
+                            onValueChange={(val) => setEmpSearch(val)}
+                            placeholder={t.placeholder_search_employee || "Search employee name or number..."}
+                          />
+                          <CommandList className="max-h-60 overflow-y-auto">
+                            <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
+                              {isLoadingEmployees ? "Searching..." : (t.no_employees_found || "No employees found.")}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {employeesList.map((emp: any) => {
+                                const empNo = emp.emp_no || emp.employee_number || "";
+                                const displayLabel = getEmployeeDisplay(emp, language);
+                                const isSelected = field.value === empNo;
+                                return (
+                                  <CommandItem
+                                    key={emp.employee_id || empNo}
+                                    value={empNo}
+                                    onSelect={() => {
+                                      field.onChange(empNo);
+                                      setEmpOpen(false);
+                                    }}
+                                    className="cursor-pointer flex items-center justify-between py-2 px-3 hover:bg-backdrop"
+                                  >
+                                    <div className="flex items-center gap-2 truncate">
+                                      <Check
+                                        className={cn(
+                                          "h-4 w-4 text-primary shrink-0",
+                                          isSelected ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      <span className="truncate font-medium">{displayLabel}</span>
+                                    </div>
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <TranslatedError
+                      fieldError={form.formState.errors.employee_number}
+                      translations={errT}
+                    />
+                  </FormItem>
+                );
+              }}
             />
 
-            {/* Location ID Selection */}
+            {/* Searchable Location Combobox */}
             <FormField
               control={form.control}
               name="location_id"
-              render={({ field }) => (
-                <FormItem className="min-w-0">
-                  <FormLabel>
-                    {t.location || "Location"}
-                    <Required />
-                  </FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isLoadingLocations}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t.placeholder_location_id || "Select location"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      {locationsList.map((loc: any) => (
-                        <SelectItem key={loc.location_id} value={String(loc.location_id)}>
-                          {loc.project_name} - {loc.location_name || loc.location_code || `Location #${loc.location_id}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <TranslatedError
-                    fieldError={form.formState.errors.location_id}
-                    translations={errT}
-                  />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedLoc = locationsList.find(
+                  (loc: any) => String(loc.location_id) === field.value
+                );
+                const triggerLabel = selectedLoc
+                  ? `${selectedLoc.project_name} - ${selectedLoc.location_name || selectedLoc.location_code || `ID #${selectedLoc.location_id}`}`
+                  : (t.placeholder_location_id || "Select location");
+
+                return (
+                  <FormItem className="flex flex-col min-w-0">
+                    <FormLabel>
+                      {t.location || "Location"}
+                      <Required />
+                    </FormLabel>
+                    <Popover open={locOpen} onOpenChange={setLocOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={locOpen}
+                            disabled={isLoadingLocations}
+                            className={cn(
+                              "w-full justify-between font-normal h-10 px-3 border border-border-grey bg-transparent text-text-primary hover:bg-backdrop",
+                              !field.value && "text-text-secondary"
+                            )}
+                          >
+                            <span className="truncate">{triggerLabel}</span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-[300px] sm:w-[380px] p-0 shadow-lg bg-accent border border-border-grey z-[100]"
+                        align="start"
+                      >
+                        <Command className="w-full">
+                          <CommandInput
+                            placeholder={t.placeholder_search_location || "Search project or location..."}
+                          />
+                          <CommandList className="max-h-60 overflow-y-auto">
+                            <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
+                              {isLoadingLocations ? "Loading locations..." : (t.no_locations_found || "No locations found.")}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {locationsList.map((loc: any) => {
+                                const locIdStr = String(loc.location_id);
+                                const label = `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
+                                const isSelected = field.value === locIdStr;
+                                return (
+                                  <CommandItem
+                                    key={loc.location_id}
+                                    value={`${loc.project_name} ${loc.location_name || ""} ${loc.location_code || ""} ${loc.location_id}`}
+                                    onSelect={() => {
+                                      field.onChange(locIdStr);
+                                      setLocOpen(false);
+                                    }}
+                                    className="cursor-pointer flex items-center justify-between py-2 px-3 hover:bg-backdrop"
+                                  >
+                                    <div className="flex items-center gap-2 truncate">
+                                      <Check
+                                        className={cn(
+                                          "h-4 w-4 text-primary shrink-0",
+                                          isSelected ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      <span className="truncate font-medium">{label}</span>
+                                    </div>
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <TranslatedError
+                      fieldError={form.formState.errors.location_id}
+                      translations={errT}
+                    />
+                  </FormItem>
+                );
+              }}
             />
 
             {/* From Date */}
