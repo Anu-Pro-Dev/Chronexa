@@ -13,6 +13,14 @@ import {
   FormItem,
   FormLabel,
 } from "@/src/components/ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/src/components/ui/popover";
+import { Calendar } from "@/src/components/ui/calendar";
+import { TimePicker } from "@/src/components/ui/time-picker";
+import { CalendarIcon, ClockIcon } from "@/src/icons/icons";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,12 +30,14 @@ import {
 } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
+import { cn } from "@/src/lib/utils";
+import { format } from "date-fns";
 
 const formSchema = z.object({
   cost_code: z.string().min(1, { message: "cost_code_required" }),
   cost_center: z.string().optional(),
-  latitude: z.string().optional(),
-  longitude: z.string().optional(),
+  latitude: z.string().min(1, { message: "latitude_required" }),
+  longitude: z.string().min(1, { message: "longitude_required" }),
   geocoordinates: z.string().optional(),
   start_time: z.string().optional(),
   end_time: z.string().optional(),
@@ -42,6 +52,26 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const parseTimeString = (timeStr: string | null | undefined): Date | undefined => {
+  if (!timeStr) return undefined;
+  try {
+    const today = new Date();
+    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return undefined;
+    today.setHours(hours, minutes, seconds || 0, 0);
+    return today;
+  } catch {
+    return undefined;
+  }
+};
+
+const formatTimeToString = (date: Date): string => {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+};
+
 export default function AddCostCenterLocation({
   on_open_change,
   selectedRowData,
@@ -53,6 +83,16 @@ export default function AddCostCenterLocation({
 }) {
   const { language, translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [popoverStates, setPopoverStates] = useState({
+    effectiveFrom: false,
+    effectiveTo: false,
+    startTime: false,
+    endTime: false,
+    breakStart: false,
+    breakEnd: false,
+  });
+
   const queryClient = useQueryClient();
   const showToast = useShowToast();
   const t = translations?.modules?.workload || {};
@@ -258,13 +298,16 @@ export default function AddCostCenterLocation({
               )}
             />
 
-            {/* Latitude */}
+            {/* Latitude (Mandatory) */}
             <FormField
               control={form.control}
               name="latitude"
               render={({ field }) => (
                 <FormItem className="min-w-0">
-                  <FormLabel>{t.latitude || "Latitude"}</FormLabel>
+                  <FormLabel>
+                    {t.latitude || "Latitude"}
+                    <Required />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="text"
@@ -272,17 +315,24 @@ export default function AddCostCenterLocation({
                       {...field}
                     />
                   </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.latitude}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
 
-            {/* Longitude */}
+            {/* Longitude (Mandatory) */}
             <FormField
               control={form.control}
               name="longitude"
               render={({ field }) => (
                 <FormItem className="min-w-0">
-                  <FormLabel>{t.longitude || "Longitude"}</FormLabel>
+                  <FormLabel>
+                    {t.longitude || "Longitude"}
+                    <Required />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="text"
@@ -290,6 +340,10 @@ export default function AddCostCenterLocation({
                       {...field}
                     />
                   </FormControl>
+                  <TranslatedError
+                    fieldError={form.formState.errors.longitude}
+                    translations={errT}
+                  />
                 </FormItem>
               )}
             />
@@ -314,60 +368,316 @@ export default function AddCostCenterLocation({
               )}
             />
 
-            {/* Start Time */}
+            {/* Start Time (TimePicker Component) */}
             <FormField
               control={form.control}
               name="start_time"
-              render={({ field }) => (
-                <FormItem className="min-w-0">
-                  <FormLabel>{t.start_time || "Start Time"}</FormLabel>
-                  <FormControl>
-                    <Input type="time" step="1" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const timeDate = parseTimeString(field.value);
+                return (
+                  <FormItem className="min-w-0">
+                    <FormLabel>{t.start_time || "Start Time"}</FormLabel>
+                    <Popover
+                      open={popoverStates.startTime}
+                      onOpenChange={(open) =>
+                        setPopoverStates((prev) => ({ ...prev, startTime: open }))
+                      }
+                    >
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className={cn(
+                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              field.value
+                            ) : (
+                              <span className="text-text-secondary">
+                                {t.placeholder_start_time || "Choose start time"}
+                              </span>
+                            )}
+                            <ClockIcon />
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-4" align="start">
+                        <TimePicker
+                          setDate={(date) => {
+                            field.onChange(date ? formatTimeToString(date) : "");
+                          }}
+                          date={timeDate}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                );
+              }}
             />
 
-            {/* End Time */}
+            {/* End Time (TimePicker Component) */}
             <FormField
               control={form.control}
               name="end_time"
-              render={({ field }) => (
-                <FormItem className="min-w-0">
-                  <FormLabel>{t.end_time || "End Time"}</FormLabel>
-                  <FormControl>
-                    <Input type="time" step="1" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const timeDate = parseTimeString(field.value);
+                return (
+                  <FormItem className="min-w-0">
+                    <FormLabel>{t.end_time || "End Time"}</FormLabel>
+                    <Popover
+                      open={popoverStates.endTime}
+                      onOpenChange={(open) =>
+                        setPopoverStates((prev) => ({ ...prev, endTime: open }))
+                      }
+                    >
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className={cn(
+                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              field.value
+                            ) : (
+                              <span className="text-text-secondary">
+                                {t.placeholder_end_time || "Choose end time"}
+                              </span>
+                            )}
+                            <ClockIcon />
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-4" align="start">
+                        <TimePicker
+                          setDate={(date) => {
+                            field.onChange(date ? formatTimeToString(date) : "");
+                          }}
+                          date={timeDate}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                );
+              }}
             />
 
-            {/* Effective From */}
+            {/* Effective From (Calendar Component) */}
             <FormField
               control={form.control}
               name="effective_from"
               render={({ field }) => (
                 <FormItem className="min-w-0">
                   <FormLabel>{t.effective_from || "Effective From"}</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
+                  <Popover
+                    open={popoverStates.effectiveFrom}
+                    onOpenChange={(open) =>
+                      setPopoverStates((prev) => ({ ...prev, effectiveFrom: open }))
+                    }
+                  >
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          className={cn(
+                            "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "dd/MM/yyyy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">
+                              {t.placeholder_date || "Choose date"}
+                            </span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const yyyy = date.getFullYear();
+                            const mm = String(date.getMonth() + 1).padStart(2, "0");
+                            const dd = String(date.getDate()).padStart(2, "0");
+                            field.onChange(`${yyyy}-${mm}-${dd}`);
+                          } else {
+                            field.onChange("");
+                          }
+                          setPopoverStates((prev) => ({ ...prev, effectiveFrom: false }));
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </FormItem>
               )}
             />
 
-            {/* Effective To */}
+            {/* Effective To (Calendar Component) */}
             <FormField
               control={form.control}
               name="effective_to"
               render={({ field }) => (
                 <FormItem className="min-w-0">
                   <FormLabel>{t.effective_to || "Effective To"}</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
+                  <Popover
+                    open={popoverStates.effectiveTo}
+                    onOpenChange={(open) =>
+                      setPopoverStates((prev) => ({ ...prev, effectiveTo: open }))
+                    }
+                  >
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          className={cn(
+                            "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "dd/MM/yyyy")
+                          ) : (
+                            <span className="font-normal text-sm text-text-secondary">
+                              {t.placeholder_date || "Choose date"}
+                            </span>
+                          )}
+                          <CalendarIcon />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const yyyy = date.getFullYear();
+                            const mm = String(date.getMonth() + 1).padStart(2, "0");
+                            const dd = String(date.getDate()).padStart(2, "0");
+                            field.onChange(`${yyyy}-${mm}-${dd}`);
+                          } else {
+                            field.onChange("");
+                          }
+                          setPopoverStates((prev) => ({ ...prev, effectiveTo: false }));
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </FormItem>
               )}
+            />
+
+            {/* Break Start (TimePicker Component) */}
+            <FormField
+              control={form.control}
+              name="break_start"
+              render={({ field }) => {
+                const timeDate = parseTimeString(field.value);
+                return (
+                  <FormItem className="min-w-0">
+                    <FormLabel>{t.break_start || "Break Start"}</FormLabel>
+                    <Popover
+                      open={popoverStates.breakStart}
+                      onOpenChange={(open) =>
+                        setPopoverStates((prev) => ({ ...prev, breakStart: open }))
+                      }
+                    >
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className={cn(
+                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              field.value
+                            ) : (
+                              <span className="text-text-secondary">
+                                {t.placeholder_start_time || "Choose break start time"}
+                              </span>
+                            )}
+                            <ClockIcon />
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-4" align="start">
+                        <TimePicker
+                          setDate={(date) => {
+                            field.onChange(date ? formatTimeToString(date) : "");
+                          }}
+                          date={timeDate}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                );
+              }}
+            />
+
+            {/* Break End (TimePicker Component) */}
+            <FormField
+              control={form.control}
+              name="break_end"
+              render={({ field }) => {
+                const timeDate = parseTimeString(field.value);
+                return (
+                  <FormItem className="min-w-0">
+                    <FormLabel>{t.break_end || "Break End"}</FormLabel>
+                    <Popover
+                      open={popoverStates.breakEnd}
+                      onOpenChange={(open) =>
+                        setPopoverStates((prev) => ({ ...prev, breakEnd: open }))
+                      }
+                    >
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className={cn(
+                              "w-full bg-accent px-3 flex justify-between text-text-primary text-sm font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              field.value
+                            ) : (
+                              <span className="text-text-secondary">
+                                {t.placeholder_end_time || "Choose break end time"}
+                              </span>
+                            )}
+                            <ClockIcon />
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-4" align="start">
+                        <TimePicker
+                          setDate={(date) => {
+                            field.onChange(date ? formatTimeToString(date) : "");
+                          }}
+                          date={timeDate}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Extra Hours */}
