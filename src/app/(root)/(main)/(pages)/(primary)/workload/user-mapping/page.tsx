@@ -1,16 +1,24 @@
 "use client";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import PowerHeader from "@/src/components/custom/power-comps/power-header";
 import PowerTable from "@/src/components/custom/power-comps/power-table";
 import AddUserMapping from "@/src/components/custom/modules/workload/AddUserMapping";
 import FilterUserMapping from "@/src/components/custom/modules/workload/FilterUserMapping";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
+import { InlineLoading } from "@/src/app/loading";
 
 export default function Page() {
+  const router = useRouter();
+  const { privilegeMap, isLoading: isPrivilegeLoading } = usePrivileges();
   const { modules, language, translations } = useLanguage();
+
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+
   const [columns, setColumns] = useState<{ field: string; headerName: string }[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortField, setSortField] = useState<string>("");
@@ -26,6 +34,48 @@ export default function Page() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.workload || {};
+
+  // Check view privilege and redirect to accessible submodule or /no-access if false
+  useEffect(() => {
+    if (isPrivilegeLoading) return;
+
+    const workloadKey = Object.keys(privilegeMap || {}).find(
+      (k) => k.toLowerCase() === "workload"
+    );
+    const workloadModule = workloadKey ? privilegeMap[workloadKey] : null;
+
+    if (!workloadModule || workloadModule.allowed === false) {
+      router.replace("/no-access");
+      return;
+    }
+
+    const subModules = workloadModule.subModules || [];
+    const isSubAllowed = (sm: any) =>
+      sm.allowed !== false && sm.privileges?.view !== false && sm.hasView !== false;
+
+    const currentSub = subModules.find(
+      (sm: any) => sm.path === "user-mapping" || sm.sub_module_name?.toLowerCase().includes("mapping")
+    );
+
+    if (currentSub && isSubAllowed(currentSub)) {
+      setHasPermission(true);
+    } else {
+      // Find nearest accessible submodule in workload
+      const projLocSub = subModules.find(
+        (sm: any) => sm.path === "project-location" || sm.sub_module_name?.toLowerCase().includes("location")
+      );
+      if (projLocSub && isSubAllowed(projLocSub)) {
+        router.replace("/workload/project-location/");
+      } else {
+        const otherAllowed = subModules.find((sm: any) => sm.path !== "user-mapping" && isSubAllowed(sm));
+        if (otherAllowed) {
+          router.replace(`/workload/${otherAllowed.path}/`);
+        } else {
+          router.replace("/no-access");
+        }
+      }
+    }
+  }, [privilegeMap, isPrivilegeLoading, router]);
 
   const offset = useMemo(() => currentPage, [currentPage]);
 
@@ -75,6 +125,7 @@ export default function Page() {
   }, [selectedLocations]);
 
   const { data: mappingsData, isLoading, refetch } = useFetchAllEntity("ifm-employee-location-mapping", {
+    enabled: hasPermission === true,
     searchParams: {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -126,7 +177,7 @@ export default function Page() {
         if (loc) {
           const locDetails = loc.location_name || loc.location_code || "";
           locName = loc.project_name && locDetails
-            ? `${locDetails}`
+            ? `${loc.project_name} - ${locDetails}`
             : loc.location_name || loc.project_name || loc.location_code || `Location #${loc.location_id}`;
         } else if (row.location_id) {
           locName = `Location #${row.location_id}`;
@@ -215,6 +266,16 @@ export default function Page() {
   const handleRowSelection = useCallback((rows: any[]) => {
     setSelectedRows(rows);
   }, []);
+
+  if (isPrivilegeLoading || hasPermission === null) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <InlineLoading message="Loading..." />
+      </div>
+    );
+  }
+
+  if (!hasPermission) return null;
 
   return (
     <div className="flex flex-col gap-4">
