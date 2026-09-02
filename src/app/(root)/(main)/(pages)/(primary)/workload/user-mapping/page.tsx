@@ -52,8 +52,8 @@ export default function Page() {
         headerName: t.department || "Department",
       },
       {
-        field: "location_id",
-        headerName: t.location || "Location ID",
+        field: "location_name",
+        headerName: t.location || "Location",
       },
       {
         field: "formatted_from_date",
@@ -121,12 +121,24 @@ export default function Page() {
             : dept.department_name_eng || dept.department_name_arb || "-";
         }
 
+        const loc = row.location;
+        let locName = "-";
+        if (loc) {
+          const locDetails = loc.location_name || loc.location_code || "";
+          locName = loc.project_name && locDetails
+            ? `${locDetails}`
+            : loc.location_name || loc.project_name || loc.location_code || `Location #${loc.location_id}`;
+        } else if (row.location_id) {
+          locName = `Location #${row.location_id}`;
+        }
+
         return {
           ...row,
           id: row.mapping_id,
           employee_name: empName || "-",
           organization_name: orgName || "-",
           department_name: deptName || "-",
+          location_name: locName,
           formatted_from_date: formatDate(row.from_date),
           formatted_to_date: formatDate(row.to_date),
           active_status_text: row.active_flag ? "Active" : "Inactive",
