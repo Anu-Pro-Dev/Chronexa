@@ -1558,6 +1558,18 @@ export const addIfmEmployeeLocationMappingRequest = async (data: {
   return apiRequest("/ifm-employee-location-mapping/add", "POST", data);
 };
 
+export const addBulkIfmEmployeeLocationMappingRequest = async (data: {
+  employee_number: string;
+  location_ids: number[];
+  from_date?: string;
+  to_date?: string;
+  last_changed_date?: string;
+  last_changed_time?: string;
+  active_flag?: boolean;
+}) => {
+  return apiRequest("/ifm-employee-location-mapping/add-bulk", "POST", data);
+};
+
 export const editIfmEmployeeLocationMappingRequest = async (data: {
   mapping_id: number;
   employee_number?: string;

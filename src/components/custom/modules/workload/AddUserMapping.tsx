@@ -28,9 +28,9 @@ import {
 } from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  addIfmEmployeeLocationMappingRequest,
+  addBulkIfmEmployeeLocationMappingRequest,
   editIfmEmployeeLocationMappingRequest,
 } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
@@ -171,28 +171,19 @@ export default function AddUserMapping({
     }
   }, [selectedRowData, form]);
 
-  const addMultiMutation = useMutation({
-    mutationFn: async (payloads: any[]) => {
-      const results = await Promise.allSettled(
-        payloads.map((payload) => addIfmEmployeeLocationMappingRequest(payload))
-      );
-      const fulfilled = results.filter((r) => r.status === "fulfilled");
-      const rejected = results.filter((r) => r.status === "rejected");
-
-      if (fulfilled.length === 0 && rejected.length > 0) {
-        throw (rejected[0] as PromiseRejectedResult).reason;
-      }
-      return { fulfilledCount: fulfilled.length, totalCount: payloads.length };
-    },
+  const addBulkMutation = useMutation({
+    mutationFn: addBulkIfmEmployeeLocationMappingRequest,
     onSuccess: (res) => {
       showToast("success", "add_ifm_mapping_success");
       queryClient.invalidateQueries({ queryKey: ["ifm-employee-location-mapping"] });
-      onSave(null, res);
+      onSave(null, res.data);
       on_open_change(false);
     },
     onError: (error: any) => {
-      if (error?.response?.status === 409) {
-        showToast("error", error?.response?.data?.message || "Mapping already exists for employee and location");
+      if (error?.response?.status === 404) {
+        showToast("error", error?.response?.data?.message || "One or more locations not found");
+      } else if (error?.response?.status === 409) {
+        showToast("error", error?.response?.data?.message || "Mapping already exists");
       } else {
         showToast("error", error?.response?.data?.message || "formsubmission_error");
       }
@@ -235,14 +226,13 @@ export default function AddUserMapping({
           active_flag: values.active_flag,
         });
       } else {
-        const payloads = values.location_ids.map((locId) => ({
+        addBulkMutation.mutate({
           employee_number: values.employee_number.trim(),
-          location_id: Number(locId),
+          location_ids: values.location_ids.map((id) => Number(id)),
           from_date: fromDateIso,
           to_date: toDateIso,
           active_flag: values.active_flag,
-        }));
-        addMultiMutation.mutate(payloads);
+        });
       }
     } finally {
       setIsSubmitting(false);
