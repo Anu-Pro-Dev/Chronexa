@@ -527,6 +527,11 @@ export default function LanguageProvider({
           path: "/workload/user-mapping/",
           value: "user_mapping",
         },
+        {
+          label: currentLanguageData.translations?.modules?.workload?.cost_center_location || "Cost Center Location",
+          path: "/workload/cost-center-location/",
+          value: "cost_center_location",
+        },
       ],
     };
 

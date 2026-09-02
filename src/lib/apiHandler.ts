@@ -1599,3 +1599,71 @@ export const getIfmEmployeeLocationMappingByEmployee = async (employeeNumber: st
 export const getIfmEmployeeLocationMappingByLocation = async (location_id: number) => {
   return apiRequest(`/ifm-employee-location-mapping/by-location/${location_id}`, "GET");
 };
+
+// ── Cost Code Master APIs ─────────────────────────────────────────────
+export const addCostCodeMasterRequest = async (data: {
+  cost_code?: string;
+  cost_center?: string;
+  geocoordinates?: string;
+  start_time?: string;
+  end_time?: string;
+  permit_extra_hours_flag?: boolean;
+  extra_hours?: number;
+  effective_from?: string;
+  effective_to?: string;
+  break_start?: string;
+  break_end?: string;
+  week_off?: string;
+}) => {
+  return apiRequest("/cost-code-master/add", "POST", data);
+};
+
+export const addBulkCostCodeMasterRequest = async (data: {
+  items: Array<{
+    cost_code?: string;
+    cost_center?: string;
+    geocoordinates?: string;
+    start_time?: string;
+    end_time?: string;
+    permit_extra_hours_flag?: boolean;
+    extra_hours?: number;
+    effective_from?: string;
+    effective_to?: string;
+    break_start?: string;
+    break_end?: string;
+    week_off?: string;
+  }>;
+}) => {
+  return apiRequest("/cost-code-master/add-bulk", "POST", data);
+};
+
+export const editCostCodeMasterRequest = async (data: {
+  id: number;
+  cost_code?: string;
+  cost_center?: string;
+  geocoordinates?: string;
+  start_time?: string;
+  end_time?: string;
+  permit_extra_hours_flag?: boolean;
+  extra_hours?: number;
+  effective_from?: string;
+  effective_to?: string;
+  break_start?: string;
+  break_end?: string;
+  week_off?: string;
+}) => {
+  const { id, ...payload } = data;
+  return apiRequest(`/cost-code-master/update/${id}`, "PUT", payload);
+};
+
+export const getCostCodeMasterById = async (id: number) => {
+  return apiRequest(`/cost-code-master/get/${id}`, "GET");
+};
+
+export const deleteCostCodeMasterRequest = async (id: number) => {
+  return apiRequest(`/cost-code-master/delete/${id}`, "DELETE");
+};
+
+export const getAllCostCodeMasterUnpaginated = async () => {
+  return apiRequest("/cost-code-master", "GET");
+};

@@ -27,16 +27,25 @@ export default function Page() {
       sm.allowed !== false && sm.privileges?.view !== false && sm.hasView !== false;
 
     const projLocSub = subModules.find(
-      (sm: any) => sm.path === "project-location" || sm.sub_module_name?.toLowerCase().includes("location")
+      (sm: any) => sm.path === "project-location" || sm.sub_module_name?.toLowerCase().includes("project location")
     );
     const userMapSub = subModules.find(
-      (sm: any) => sm.path === "user-mapping" || sm.sub_module_name?.toLowerCase().includes("mapping")
+      (sm: any) => sm.path === "user-mapping" || sm.sub_module_name?.toLowerCase().includes("user mapping")
+    );
+    const costCenterSub = subModules.find(
+      (sm: any) =>
+        sm.path === "cost-center-location" ||
+        sm.path === "cost-code-master" ||
+        sm.sub_module_name?.toLowerCase().includes("cost center") ||
+        sm.sub_module_name?.toLowerCase().includes("cost code")
     );
 
     if (projLocSub && isSubAllowed(projLocSub)) {
       router.replace("/workload/project-location/");
     } else if (userMapSub && isSubAllowed(userMapSub)) {
       router.replace("/workload/user-mapping/");
+    } else if (costCenterSub && isSubAllowed(costCenterSub)) {
+      router.replace("/workload/cost-center-location/");
     } else {
       const firstAllowed = subModules.find(isSubAllowed);
       if (firstAllowed) {

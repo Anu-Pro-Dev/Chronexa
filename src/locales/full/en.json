@@ -1091,7 +1091,27 @@
         "placeholder_entity": "Enter entity name",
         "placeholder_employee_number": "Select or enter employee number",
         "placeholder_location_id": "Select location",
-        "filter_by_location": "Filter by Location"
+        "filter_by_location": "Filter by Location",
+        "cost_center_location": "Cost Center Location",
+        "cost_code": "Cost Code",
+        "cost_center": "Cost Center",
+        "geocoordinates": "Geocoordinates",
+        "start_time": "Start Time",
+        "end_time": "End Time",
+        "permit_extra_hours_flag": "Permit Extra Hours",
+        "extra_hours": "Extra Hours",
+        "effective_from": "Effective From",
+        "effective_to": "Effective To",
+        "break_start": "Break Start",
+        "break_end": "Break End",
+        "week_off": "Week Off",
+        "placeholder_cost_code": "Enter cost code (e.g. CC-1001)",
+        "placeholder_cost_center": "Enter cost center",
+        "placeholder_geocoordinates": "Enter geocoordinates (e.g. 24.4539,54.3773)",
+        "placeholder_start_time": "Select or enter start time (e.g. 08:00:00)",
+        "placeholder_end_time": "Select or enter end time (e.g. 17:00:00)",
+        "placeholder_extra_hours": "Enter extra hours (e.g. 2)",
+        "placeholder_week_off": "Select or enter week off (e.g. Friday,Saturday)"
       }
     },
     "sub_modules": {

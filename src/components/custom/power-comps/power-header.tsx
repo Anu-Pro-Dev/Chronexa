@@ -109,6 +109,8 @@ export default function PowerHeader({
       'ifmLocationMaster': 'location_id',
       'ifm-employee-location-mapping': 'mapping_id',
       'ifmEmployeeLocationMapping': 'mapping_id',
+      'cost-code-master': 'id',
+      'costCodeMaster': 'id',
     };
     
     if (specialMappings[entityName]) {

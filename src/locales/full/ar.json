@@ -1087,7 +1087,27 @@
         "placeholder_entity": "أدخل الكيان",
         "placeholder_employee_number": "اختر أو أدخل رقم الموظف",
         "placeholder_location_id": "اختر الموقع",
-        "filter_by_location": "تصفية حسب الموقع"
+        "filter_by_location": "تصفية حسب الموقع",
+        "cost_center_location": "موقع مركز التكلفة",
+        "cost_code": "كود التكلفة",
+        "cost_center": "مركز التكلفة",
+        "geocoordinates": "الإحداثيات الجغرافية",
+        "start_time": "وقت البدء",
+        "end_time": "وقت الانتهاء",
+        "permit_extra_hours_flag": "السماح بساعات إضافية",
+        "extra_hours": "الساعات الإضافية",
+        "effective_from": "ساري من",
+        "effective_to": "ساري إلى",
+        "break_start": "بداية الاستراحة",
+        "break_end": "نهاية الاستراحة",
+        "week_off": "العطلة الأسبوعية",
+        "placeholder_cost_code": "أدخل كود التكلفة",
+        "placeholder_cost_center": "أدخل مركز التكلفة",
+        "placeholder_geocoordinates": "أدخل الإحداثيات الجغرافية",
+        "placeholder_start_time": "اختر وقت البدء",
+        "placeholder_end_time": "اختر وقت الانتهاء",
+        "placeholder_extra_hours": "أدخل الساعات الإضافية",
+        "placeholder_week_off": "اختر العطلة الأسبوعية"
       }
     },
     "sub_modules": {
