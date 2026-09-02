@@ -513,6 +513,23 @@ export default function LanguageProvider({
       ],
     };
 
+    const workload = {
+      route_name: "Workload",
+      path: "/workload/",
+      items: [
+        {
+          label: currentLanguageData.translations?.modules?.workload?.project_location || "Project Location",
+          path: "/workload/project-location/",
+          value: "project_location",
+        },
+        {
+          label: currentLanguageData.translations?.modules?.workload?.user_mapping || "User Mapping",
+          path: "/workload/user-mapping/",
+          value: "user_mapping",
+        },
+      ],
+    };
+
     return {
       dashboard,
       companyMaster,
@@ -528,6 +545,7 @@ export default function LanguageProvider({
       alerts,
       userManagement,
       manuals,
+      workload,
     };
   }, [authData.isAuthenticated, authData.isGeofenceEnabled, currentLanguageData]);
 

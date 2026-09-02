@@ -1497,3 +1497,93 @@ export const editBusinessUnitRequest = async (data: {
   const { business_unit_id, ...payload } = data;
   return apiRequest(`/business-unit/edit/${business_unit_id}`, "PUT", payload);
 };
+
+// ── IFM Location Master APIs ──────────────────────────────────────────
+export const addIfmLocationMasterRequest = async (data: {
+  project_name: string;
+  location_code?: string;
+  location_name?: string;
+  latitude: number;
+  longitude: number;
+  radius?: string | number;
+  geolocation?: string;
+  city?: string;
+  country_code?: string;
+  entity?: string;
+  active_flag?: boolean;
+}) => {
+  return apiRequest("/ifm-location-master/add", "POST", data);
+};
+
+export const editIfmLocationMasterRequest = async (data: {
+  location_id: number;
+  project_name?: string;
+  location_code?: string;
+  location_name?: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: string | number;
+  geolocation?: string;
+  city?: string;
+  country_code?: string;
+  entity?: string;
+  active_flag?: boolean;
+}) => {
+  const { location_id, ...payload } = data;
+  return apiRequest(`/ifm-location-master/update/${location_id}`, "PUT", payload);
+};
+
+export const getIfmLocationMasterById = async (location_id: number) => {
+  return apiRequest(`/ifm-location-master/get/${location_id}`, "GET");
+};
+
+export const deleteIfmLocationMasterRequest = async (location_id: number) => {
+  return apiRequest(`/ifm-location-master/delete/${location_id}`, "DELETE");
+};
+
+export const getAllIfmLocationMasterUnpaginated = async () => {
+  return apiRequest("/ifm-location-master/", "GET");
+};
+
+// ── IFM Employee Location Mapping APIs ────────────────────────────────
+export const addIfmEmployeeLocationMappingRequest = async (data: {
+  employee_number: string;
+  location_id: number;
+  from_date?: string;
+  to_date?: string;
+  last_changed_date?: string;
+  last_changed_time?: string;
+  active_flag?: boolean;
+}) => {
+  return apiRequest("/ifm-employee-location-mapping/add", "POST", data);
+};
+
+export const editIfmEmployeeLocationMappingRequest = async (data: {
+  mapping_id: number;
+  employee_number?: string;
+  location_id?: number;
+  from_date?: string;
+  to_date?: string;
+  last_changed_date?: string;
+  last_changed_time?: string;
+  active_flag?: boolean;
+}) => {
+  const { mapping_id, ...payload } = data;
+  return apiRequest(`/ifm-employee-location-mapping/update/${mapping_id}`, "PUT", payload);
+};
+
+export const getIfmEmployeeLocationMappingById = async (mapping_id: number) => {
+  return apiRequest(`/ifm-employee-location-mapping/get/${mapping_id}`, "GET");
+};
+
+export const deleteIfmEmployeeLocationMappingRequest = async (mapping_id: number) => {
+  return apiRequest(`/ifm-employee-location-mapping/delete/${mapping_id}`, "DELETE");
+};
+
+export const getIfmEmployeeLocationMappingByEmployee = async (employeeNumber: string) => {
+  return apiRequest(`/ifm-employee-location-mapping/by-employee/${encodeURIComponent(employeeNumber)}`, "GET");
+};
+
+export const getIfmEmployeeLocationMappingByLocation = async (location_id: number) => {
+  return apiRequest(`/ifm-employee-location-mapping/by-location/${location_id}`, "GET");
+};

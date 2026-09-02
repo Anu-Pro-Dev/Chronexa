@@ -54,6 +54,7 @@ const getModuleIcon = (moduleKey: string) => {
     "Settings": SettingsIcon,
     "Alerts": AlertsIcon,
     "Manuals": ManualsIcon,
+    "Workload": MenuFold,
   };
   return iconMap[moduleKey] || DashboardIcon;
 };
