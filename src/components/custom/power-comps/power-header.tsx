@@ -105,6 +105,12 @@ export default function PowerHeader({
       'secUserRole': 'user_role_id',
       'employeeManualTransaction': 'employee_manual_transaction_id',
       'business-unit': 'business_unit_id',
+      'ifm-location-master': 'location_id',
+      'ifmLocationMaster': 'location_id',
+      'ifm-employee-location-mapping': 'mapping_id',
+      'ifmEmployeeLocationMapping': 'mapping_id',
+      'cost-code-master': 'id',
+      'costCodeMaster': 'id',
     };
     
     if (specialMappings[entityName]) {
