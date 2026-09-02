@@ -86,6 +86,21 @@ export default function AddProjectLocation({
     },
   });
 
+  const latitudeValue = form.watch("latitude");
+  const longitudeValue = form.watch("longitude");
+
+  useEffect(() => {
+    if (latitudeValue || longitudeValue) {
+      const lat = (latitudeValue || "").trim();
+      const lng = (longitudeValue || "").trim();
+      if (lat && lng) {
+        form.setValue("geolocation", `${lat},${lng}`, { shouldValidate: true });
+      } else {
+        form.setValue("geolocation", lat || lng, { shouldValidate: true });
+      }
+    }
+  }, [latitudeValue, longitudeValue, form]);
+
   useEffect(() => {
     if (selectedRowData) {
       const lat = selectedRowData.latitude !== undefined && selectedRowData.latitude !== null
@@ -331,7 +346,8 @@ export default function AddProjectLocation({
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder={t.placeholder_geolocation || "e.g. 24.4539,54.3773"}
+                      disabled={true}
+                      placeholder={t.placeholder_geolocation || "Auto-filled from lat,long"}
                       {...field}
                     />
                   </FormControl>
