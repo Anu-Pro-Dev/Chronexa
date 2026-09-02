@@ -17,7 +17,6 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
 } from "@/src/components/ui/command";
 import {
   Form,
@@ -32,7 +31,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addIfmEmployeeLocationMappingRequest,
   editIfmEmployeeLocationMappingRequest,
-  getAllIfmLocationMasterUnpaginated,
 } from "@/src/lib/apiHandler";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
@@ -83,18 +81,39 @@ export default function AddUserMapping({
   const [empSearch, setEmpSearch] = useState("");
   const debouncedEmpSearch = useDebounce(empSearch, 300);
 
+  const [locSearch, setLocSearch] = useState("");
+  const debouncedLocSearch = useDebounce(locSearch, 300);
+
+  const [selectedLocationMap, setSelectedLocationMap] = useState<Record<string, any>>({});
+
   const queryClient = useQueryClient();
   const showToast = useShowToast();
   const t = translations?.modules?.workload || {};
   const errT = translations?.formErrors || {};
 
-  // Fetch locations dropdown unpaginated
-  const { data: locationsResponse, isLoading: isLoadingLocations } = useQuery({
-    queryKey: ["ifm-location-master-unpaginated"],
-    queryFn: getAllIfmLocationMasterUnpaginated,
+  // Fetch locations with limit=10 and search term
+  const { data: locationsResponse, isLoading: isLoadingLocations } = useFetchAllEntity("ifm-location-master", {
+    searchParams: {
+      limit: "10",
+      offset: "1",
+      ...(debouncedLocSearch && { search: debouncedLocSearch }),
+    },
   });
 
   const locationsList = Array.isArray(locationsResponse?.data) ? locationsResponse.data : [];
+
+  // Cache locations so selected location labels persist across searches
+  useEffect(() => {
+    if (locationsList.length > 0) {
+      setSelectedLocationMap((prev) => {
+        const next = { ...prev };
+        locationsList.forEach((loc: any) => {
+          next[String(loc.location_id)] = loc;
+        });
+        return next;
+      });
+    }
+  }, [locationsList]);
 
   // Fetch employees with limit=10, parent_orgids=5, and search term
   const { data: employeesResponse, isLoading: isLoadingEmployees } = useFetchAllEntity("employee", {
@@ -287,39 +306,37 @@ export default function AddUserMapping({
                             placeholder={t.placeholder_search_employee || "Search employee name or number..."}
                             className="border-none"
                           />
-                          <CommandList className="max-h-60 overflow-y-auto">
-                            <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
-                              {isLoadingEmployees ? "Searching..." : (t.no_employees_found || "No employees found.")}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {employeesList.map((emp: any) => {
-                                const empNo = emp.emp_no || emp.employee_number || "";
-                                const displayLabel = getEmployeeDisplay(emp, language);
-                                const isSelected = field.value === empNo;
-                                return (
-                                  <CommandItem
-                                    key={emp.employee_id || empNo}
-                                    value={empNo}
-                                    onSelect={() => {
-                                      field.onChange(empNo);
-                                      setEmpOpen(false);
-                                    }}
-                                    className="cursor-pointer flex items-center justify-between py-2 px-3 hover:bg-backdrop"
-                                  >
-                                    <div className="flex items-center gap-2 truncate">
-                                      <Check
-                                        className={cn(
-                                          "h-4 w-4 text-primary shrink-0",
-                                          isSelected ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      <span className="truncate font-medium">{displayLabel}</span>
-                                    </div>
-                                  </CommandItem>
-                                );
-                              })}
-                            </CommandGroup>
-                          </CommandList>
+                          <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
+                            {isLoadingEmployees ? "Searching..." : (t.no_employees_found || "No employees found.")}
+                          </CommandEmpty>
+                          <CommandGroup className="max-h-60 overflow-y-auto pr-1">
+                            {employeesList.map((emp: any) => {
+                              const empNo = emp.emp_no || emp.employee_number || "";
+                              const displayLabel = getEmployeeDisplay(emp, language);
+                              const isSelected = field.value === empNo;
+                              return (
+                                <CommandItem
+                                  key={emp.employee_id || empNo}
+                                  value={empNo}
+                                  onSelect={() => {
+                                    field.onChange(empNo);
+                                    setEmpOpen(false);
+                                  }}
+                                  className="cursor-pointer flex items-center justify-between py-2 px-3 hover:bg-backdrop"
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    <Check
+                                      className={cn(
+                                        "h-4 w-4 text-primary shrink-0",
+                                        isSelected ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <span className="truncate font-medium">{displayLabel}</span>
+                                  </div>
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
                         </Command>
                       </PopoverContent>
                     </Popover>
@@ -339,7 +356,7 @@ export default function AddUserMapping({
               render={({ field }) => {
                 const selectedIds = field.value || [];
                 const getLocationLabel = (locId: string) => {
-                  const loc = locationsList.find((l: any) => String(l.location_id) === locId);
+                  const loc = selectedLocationMap[locId] || locationsList.find((l: any) => String(l.location_id) === locId);
                   if (!loc) return `ID #${locId}`;
                   return `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
                 };
@@ -388,37 +405,37 @@ export default function AddUserMapping({
                         className="w-[300px] sm:w-[380px] p-0 border-none shadow-dropdown bg-accent z-[100]"
                         align="start"
                       >
-                        <Command className="w-full">
+                        <Command shouldFilter={false} className="w-full">
                           <CommandInput
+                            value={locSearch}
+                            onValueChange={(val) => setLocSearch(val)}
                             placeholder={t.placeholder_search_location || "Search project or location..."}
                             className="border-none"
                           />
-                          <CommandList className="max-h-60 overflow-y-auto">
-                            <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
-                              {isLoadingLocations ? "Loading locations..." : (t.no_locations_found || "No locations found.")}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {locationsList.map((loc: any) => {
-                                const locIdStr = String(loc.location_id);
-                                const label = `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
-                                const isSelected = selectedIds.includes(locIdStr);
-                                return (
-                                  <CommandItem
-                                    key={loc.location_id}
-                                    value={`${loc.project_name} ${loc.location_name || ""} ${loc.location_code || ""} ${loc.location_id}`}
-                                    onSelect={() => toggleLocation(locIdStr)}
-                                    className="cursor-pointer flex items-center gap-3 py-2 px-3 hover:bg-backdrop"
-                                  >
-                                    <Checkbox
-                                      checked={isSelected}
-                                      onCheckedChange={() => toggleLocation(locIdStr)}
-                                    />
-                                    <span className="truncate font-medium">{label}</span>
-                                  </CommandItem>
-                                );
-                              })}
-                            </CommandGroup>
-                          </CommandList>
+                          <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
+                            {isLoadingLocations ? "Searching..." : (t.no_locations_found || "No locations found.")}
+                          </CommandEmpty>
+                          <CommandGroup className="max-h-60 overflow-y-auto pr-1">
+                            {locationsList.map((loc: any) => {
+                              const locIdStr = String(loc.location_id);
+                              const label = `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
+                              const isSelected = selectedIds.includes(locIdStr);
+                              return (
+                                <CommandItem
+                                  key={loc.location_id}
+                                  value={locIdStr}
+                                  onSelect={() => toggleLocation(locIdStr)}
+                                  className="cursor-pointer flex items-center gap-3 py-2 px-3 hover:bg-backdrop"
+                                >
+                                  <Checkbox
+                                    checked={isSelected}
+                                    onCheckedChange={() => toggleLocation(locIdStr)}
+                                  />
+                                  <span className="truncate font-medium">{label}</span>
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
                         </Command>
                       </PopoverContent>
                     </Popover>

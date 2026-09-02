@@ -57,7 +57,7 @@ export default function FilterUserMapping({
       ) : locations.length === 0 ? (
         <div className="py-4 text-center text-sm">No locations available</div>
       ) : (
-        <div className="max-h-60 overflow-y-auto flex flex-col gap-2 border p-3 rounded-md">
+        <div className="max-h-60 overflow-y-auto pr-2 flex flex-col gap-2 border border-border-grey p-3 rounded-md">
           {locations.map((loc: any) => {
             const locId = String(loc.location_id);
             const isChecked = tempSelected.includes(locId);
