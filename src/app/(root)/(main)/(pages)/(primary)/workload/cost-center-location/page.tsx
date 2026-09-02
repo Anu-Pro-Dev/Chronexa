@@ -114,28 +114,12 @@ export default function Page() {
         headerName: t.geocoordinates || "Geocoordinates",
       },
       {
-        field: "formatted_start_time",
-        headerName: t.start_time || "Start Time",
-      },
-      {
-        field: "formatted_end_time",
-        headerName: t.end_time || "End Time",
-      },
-      {
         field: "permit_extra_hours_text",
         headerName: t.permit_extra_hours_flag || "Permit Extra Hours",
       },
       {
         field: "extra_hours",
         headerName: t.extra_hours || "Extra Hours",
-      },
-      {
-        field: "formatted_effective_from",
-        headerName: t.effective_from || "Effective From",
-      },
-      {
-        field: "formatted_effective_to",
-        headerName: t.effective_to || "Effective To",
       },
       {
         field: "week_off",
