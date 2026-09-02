@@ -82,10 +82,6 @@ export default function Page() {
   useEffect(() => {
     setColumns([
       {
-        field: "mapping_id",
-        headerName: t.mapping_id || "Mapping ID",
-      },
-      {
         field: "employee_number",
         headerName: t.employee_number || "Employee Number",
       },
@@ -94,24 +90,12 @@ export default function Page() {
         headerName: t.employee || "Employee Name",
       },
       {
-        field: "organization_name",
-        headerName: t.organization || "Organization",
-      },
-      {
-        field: "department_name",
-        headerName: t.department || "Department",
+        field: "project_name",
+        headerName: t.project_name || "Project Name",
       },
       {
         field: "location_name",
-        headerName: t.location || "Location",
-      },
-      {
-        field: "formatted_from_date",
-        headerName: t.from_date || "From Date",
-      },
-      {
-        field: "formatted_to_date",
-        headerName: t.to_date || "To Date",
+        headerName: t.location_name || t.location || "Location Name",
       },
       {
         field: "active_status_text",
@@ -134,17 +118,6 @@ export default function Page() {
     },
   });
 
-  const formatDate = (dateStr: string | null | undefined) => {
-    if (!dateStr) return "-";
-    try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return "-";
-      return d.toLocaleDateString();
-    } catch {
-      return "-";
-    }
-  };
-
   const data = useMemo(() => {
     if (Array.isArray(mappingsData?.data)) {
       return mappingsData.data.map((row: any) => {
@@ -156,42 +129,16 @@ export default function Page() {
             : `${emp.firstname_eng || ""} ${emp.lastname_eng || ""}`.trim();
         }
 
-        const org = row.organization;
-        let orgName = "-";
-        if (org) {
-          orgName = language === "ar"
-            ? org.organization_arb || org.organization_eng || "-"
-            : org.organization_eng || org.organization_arb || "-";
-        }
-
-        const dept = row.department;
-        let deptName = "-";
-        if (dept) {
-          deptName = language === "ar"
-            ? dept.department_name_arb || dept.department_name_eng || "-"
-            : dept.department_name_eng || dept.department_name_arb || "-";
-        }
-
         const loc = row.location;
-        let locName = "-";
-        if (loc) {
-          const locDetails = loc.location_name || loc.location_code || "";
-          locName = loc.project_name && locDetails
-            ? `${loc.project_name} - ${locDetails}`
-            : loc.location_name || loc.project_name || loc.location_code || `Location #${loc.location_id}`;
-        } else if (row.location_id) {
-          locName = `Location #${row.location_id}`;
-        }
+        const projectName = loc?.project_name || "-";
+        const locationName = loc?.location_name || loc?.location_code || (row.location_id ? `Location #${row.location_id}` : "-");
 
         return {
           ...row,
           id: row.mapping_id,
           employee_name: empName || "-",
-          organization_name: orgName || "-",
-          department_name: deptName || "-",
-          location_name: locName,
-          formatted_from_date: formatDate(row.from_date),
-          formatted_to_date: formatDate(row.to_date),
+          project_name: projectName,
+          location_name: locationName,
           active_status_text: row.active_flag ? "Active" : "Inactive",
         };
       });
