@@ -8,6 +8,9 @@ import { useLanguage } from "@/src/providers/LanguageProvider";
 import { usePrivileges } from "@/src/providers/PrivilegeProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
+import { useDeleteEntityMutation } from "@/src/hooks/useDeleteEntityMutation";
+import { deleteBulkCostCodeMasterRequest } from "@/src/lib/apiHandler";
+import { useShowToast } from "@/src/utils/toastHelper";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import { InlineLoading } from "@/src/app/loading";
 
@@ -15,6 +18,7 @@ export default function Page() {
   const router = useRouter();
   const { privilegeMap, isLoading: isPrivilegeLoading } = usePrivileges();
   const { modules, language, translations } = useLanguage();
+  const showToast = useShowToast();
 
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
@@ -31,6 +35,10 @@ export default function Page() {
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const t = translations?.modules?.workload || {};
+
+  const deleteMutation = useDeleteEntityMutation({
+    onSelectionClear: () => setSelectedRows([]),
+  });
 
   // Check view privilege and redirect to accessible submodule or /no-access if false
   useEffect(() => {
@@ -233,6 +241,33 @@ export default function Page() {
     setCurrentPage(1);
   }, []);
 
+  const handleCustomDelete = useCallback(async () => {
+    const validIds = selectedRows
+      .map((r) => r.id || r.cost_code_id)
+      .filter((id) => id !== undefined && id !== null);
+
+    if (validIds.length === 0) {
+      showToast("error", "delete_error");
+      return;
+    }
+
+    if (validIds.length === 1) {
+      deleteMutation.mutate({ entityName: "cost-code-master", ids: validIds });
+    } else {
+      try {
+        await deleteBulkCostCodeMasterRequest(validIds.map(Number));
+        showToast("success", "delete_multiple_success", {
+          displayText: t.cost_center_location || "Cost Center Location",
+          count: validIds.length,
+        });
+        queryClient.invalidateQueries({ queryKey: ["cost-code-master"] });
+        setSelectedRows([]);
+      } catch (error: any) {
+        showToast("error", error?.response?.data?.message || "delete_error");
+      }
+    }
+  }, [selectedRows, deleteMutation, queryClient, showToast, t]);
+
   const props = {
     Data: data,
     Columns: columns,
@@ -285,6 +320,7 @@ export default function Page() {
         selectedRows={selectedRows}
         items={modules?.workload?.items}
         entityName="cost-code-master"
+        customDeleteHandler={handleCustomDelete}
         modal_title={t.cost_center_location || "Cost Center Location"}
         modal_component={
           <AddCostCenterLocation

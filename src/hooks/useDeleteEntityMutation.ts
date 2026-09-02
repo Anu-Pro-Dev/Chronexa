@@ -36,14 +36,10 @@ export function useDeleteEntityMutation({
       entityName,
       ids,
     }: { entityName: string; ids: (string | number)[] }) => {
-      const numericIds = ids.map(Number).filter((n) => !isNaN(n));
       if (ids.length === 1) {
         return apiRequest(`/${entityName}/delete/${String(ids[0])}`, "DELETE");
       } else {
-        if (entityName === "cost-code-master" || entityName === "costCodeMaster") {
-          return apiRequest("/cost-code-master/delete-many", "POST", { ids: numericIds });
-        }
-        return apiRequest(`/${entityName}/delete`, "DELETE", { ids: numericIds });
+        return apiRequest(`/${entityName}/delete`, "DELETE", { ids });
       }
     },
     onSuccess: (result, variables) => {
