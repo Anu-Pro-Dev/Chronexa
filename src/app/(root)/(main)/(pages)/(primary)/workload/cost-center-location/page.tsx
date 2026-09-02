@@ -106,11 +106,11 @@ export default function Page() {
         headerName: t.geocoordinates || "Geocoordinates",
       },
       {
-        field: "start_time",
+        field: "formatted_start_time",
         headerName: t.start_time || "Start Time",
       },
       {
-        field: "end_time",
+        field: "formatted_end_time",
         headerName: t.end_time || "End Time",
       },
       {
@@ -122,11 +122,11 @@ export default function Page() {
         headerName: t.extra_hours || "Extra Hours",
       },
       {
-        field: "effective_from",
+        field: "formatted_effective_from",
         headerName: t.effective_from || "Effective From",
       },
       {
-        field: "effective_to",
+        field: "formatted_effective_to",
         headerName: t.effective_to || "Effective To",
       },
       {
@@ -156,14 +156,52 @@ export default function Page() {
     }
   };
 
+  const parseTimeString = (timeStr: string | null | undefined): Date | undefined => {
+    if (!timeStr) return undefined;
+    try {
+      const str = String(timeStr).trim();
+      if (!str || str === "-") return undefined;
+
+      if (str.includes("T") || str.includes("Z")) {
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? undefined : d;
+      }
+
+      const today = new Date();
+      const [hours, minutes, seconds] = str.split(":").map(Number);
+      if (isNaN(hours) || isNaN(minutes)) return undefined;
+      today.setHours(hours, minutes, seconds || 0, 0);
+      return today;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const formatTimeDisplay = (timeStr: string | null | undefined): string => {
+    const d = parseTimeString(timeStr);
+    if (!d) return "-";
+    try {
+      const hours = d.getHours().toString().padStart(2, "0");
+      const minutes = d.getMinutes().toString().padStart(2, "0");
+      const seconds = d.getSeconds().toString().padStart(2, "0");
+      return `${hours}:${minutes}:${seconds}`;
+    } catch {
+      return timeStr ? String(timeStr) : "-";
+    }
+  };
+
   const data = useMemo(() => {
     if (Array.isArray(costCodesData?.data)) {
       return costCodesData.data.map((row: any) => ({
         ...row,
         id: row.id || row.cost_code_id,
+        formatted_start_time: formatTimeDisplay(row.start_time),
+        formatted_end_time: formatTimeDisplay(row.end_time),
+        formatted_break_start: formatTimeDisplay(row.break_start),
+        formatted_break_end: formatTimeDisplay(row.break_end),
         permit_extra_hours_text: row.permit_extra_hours_flag ? "Yes" : "No",
-        effective_from: formatDate(row.effective_from),
-        effective_to: formatDate(row.effective_to),
+        formatted_effective_from: formatDate(row.effective_from),
+        formatted_effective_to: formatDate(row.effective_to),
       }));
     }
     return [];

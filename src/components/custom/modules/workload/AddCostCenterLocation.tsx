@@ -55,8 +55,18 @@ type FormValues = z.infer<typeof formSchema>;
 const parseTimeString = (timeStr: string | null | undefined): Date | undefined => {
   if (!timeStr) return undefined;
   try {
+    const str = String(timeStr).trim();
+    if (!str || str === "-") return undefined;
+
+    // Handle UTC ISO strings like "1970-01-01T08:00:00.000Z"
+    if (str.includes("T") || str.includes("Z")) {
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? undefined : d;
+    }
+
+    // Handle plain HH:mm or HH:mm:ss strings (local time)
     const today = new Date();
-    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+    const [hours, minutes, seconds] = str.split(":").map(Number);
     if (isNaN(hours) || isNaN(minutes)) return undefined;
     today.setHours(hours, minutes, seconds || 0, 0);
     return today;
@@ -72,19 +82,68 @@ const formatTimeToString = (date: Date): string => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
+const formatTimeForInput = (timeStr: string | null | undefined): string => {
+  const d = parseTimeString(timeStr);
+  if (!d) return "";
+  return formatTimeToString(d);
+};
+
+// Convert local system time string (e.g. "08:00:00") into a UTC ISO timestamp string (e.g. "1970-01-01T04:00:00.000Z")
+const formatTimeToUTCISO = (localTimeStr: string | null | undefined): string | undefined => {
+  if (!localTimeStr) return undefined;
+  try {
+    const str = String(localTimeStr).trim();
+    if (!str || str === "-") return undefined;
+
+    if (str.includes("T") && str.endsWith("Z")) {
+      return str;
+    }
+
+    const [hours, minutes, seconds] = str.split(":").map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return undefined;
+
+    const localDate = new Date(1970, 0, 1, hours, minutes, seconds || 0, 0);
+    return localDate.toISOString();
+  } catch {
+    return undefined;
+  }
+};
+
 const parseDateString = (dateVal: string | null | undefined): Date | undefined => {
   if (!dateVal) return undefined;
   try {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
-      const [year, month, day] = dateVal.split("-").map(Number);
-      const d = new Date(year, month - 1, day);
+    const str = String(dateVal).trim();
+    if (!str || str === "-") return undefined;
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      const parts = str.split("T")[0].split("-").map(Number);
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
       return isNaN(d.getTime()) ? undefined : d;
     }
-    const d = new Date(dateVal);
+
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+      const parts = str.split("/").map(Number);
+      let d = new Date(parts[2], parts[1] - 1, parts[0]);
+      if (isNaN(d.getTime()) || parts[1] > 12) {
+        d = new Date(parts[2], parts[0] - 1, parts[1]);
+      }
+      return isNaN(d.getTime()) ? undefined : d;
+    }
+
+    const d = new Date(str);
     return isNaN(d.getTime()) ? undefined : d;
   } catch {
     return undefined;
   }
+};
+
+const formatDateForInput = (dateVal: string | null | undefined) => {
+  const d = parseDateString(dateVal);
+  if (!d) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 };
 
 const formatDateDisplay = (dateVal: string | null | undefined): string | null => {
@@ -161,20 +220,6 @@ export default function AddCostCenterLocation({
     }
   }, [latitudeValue, longitudeValue, form]);
 
-  const formatDateForInput = (dateVal: string | null | undefined) => {
-    if (!dateVal) return "";
-    try {
-      const d = new Date(dateVal);
-      if (isNaN(d.getTime())) return dateVal;
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
-    } catch {
-      return dateVal;
-    }
-  };
-
   useEffect(() => {
     if (selectedRowData) {
       let lat = "";
@@ -187,20 +232,23 @@ export default function AddCostCenterLocation({
         }
       }
 
+      const effFrom = selectedRowData.effective_from ?? selectedRowData.effectiveFrom;
+      const effTo = selectedRowData.effective_to ?? selectedRowData.effectiveTo;
+
       form.reset({
         cost_code: selectedRowData.cost_code || "",
         cost_center: selectedRowData.cost_center || "",
         latitude: lat,
         longitude: lng,
         geocoordinates: selectedRowData.geocoordinates || "",
-        start_time: selectedRowData.start_time || "",
-        end_time: selectedRowData.end_time || "",
+        start_time: formatTimeForInput(selectedRowData.start_time),
+        end_time: formatTimeForInput(selectedRowData.end_time),
         permit_extra_hours_flag: !!selectedRowData.permit_extra_hours_flag,
         extra_hours: Number(selectedRowData.extra_hours || 0),
-        effective_from: formatDateForInput(selectedRowData.effective_from),
-        effective_to: formatDateForInput(selectedRowData.effective_to),
-        break_start: selectedRowData.break_start || "",
-        break_end: selectedRowData.break_end || "",
+        effective_from: formatDateForInput(effFrom),
+        effective_to: formatDateForInput(effTo),
+        break_start: formatTimeForInput(selectedRowData.break_start),
+        break_end: formatTimeForInput(selectedRowData.break_end),
         week_off: selectedRowData.week_off || "",
       });
     } else {
@@ -258,14 +306,14 @@ export default function AddCostCenterLocation({
         cost_code: values.cost_code.trim(),
         cost_center: values.cost_center ? values.cost_center.trim() : undefined,
         geocoordinates: values.geocoordinates ? values.geocoordinates.trim() : undefined,
-        start_time: values.start_time ? values.start_time.trim() : undefined,
-        end_time: values.end_time ? values.end_time.trim() : undefined,
+        start_time: formatTimeToUTCISO(values.start_time),
+        end_time: formatTimeToUTCISO(values.end_time),
         permit_extra_hours_flag: values.permit_extra_hours_flag,
         extra_hours: Number(values.extra_hours || 0),
         effective_from: values.effective_from || undefined,
         effective_to: values.effective_to || undefined,
-        break_start: values.break_start ? values.break_start.trim() : undefined,
-        break_end: values.break_end ? values.break_end.trim() : undefined,
+        break_start: formatTimeToUTCISO(values.break_start),
+        break_end: formatTimeToUTCISO(values.break_end),
         week_off: values.week_off ? values.week_off.trim() : undefined,
       };
 
