@@ -38,12 +38,12 @@ import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import { useShowToast } from "@/src/utils/toastHelper";
 import TranslatedError from "@/src/utils/translatedError";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
 const formSchema = z.object({
   employee_number: z.string().min(1, { message: "employee_number_required" }),
-  location_id: z.string().min(1, { message: "location_id_required" }),
+  location_ids: z.array(z.string()).min(1, { message: "location_id_required" }),
   from_date: z.string().optional(),
   to_date: z.string().optional(),
   active_flag: z.boolean().default(true),
@@ -112,7 +112,7 @@ export default function AddUserMapping({
     resolver: zodResolver(formSchema),
     defaultValues: {
       employee_number: "",
-      location_id: "",
+      location_ids: [],
       from_date: "",
       to_date: "",
       active_flag: true,
@@ -132,9 +132,10 @@ export default function AddUserMapping({
 
   useEffect(() => {
     if (selectedRowData) {
+      const locIdStr = selectedRowData.location_id ? String(selectedRowData.location_id) : "";
       form.reset({
         employee_number: selectedRowData.employee_number ?? selectedRowData.employee?.emp_no ?? "",
-        location_id: selectedRowData.location_id ? String(selectedRowData.location_id) : "",
+        location_ids: locIdStr ? [locIdStr] : [],
         from_date: formatDateForInput(selectedRowData.from_date),
         to_date: formatDateForInput(selectedRowData.to_date),
         active_flag: selectedRowData.active_flag ?? true,
@@ -142,7 +143,7 @@ export default function AddUserMapping({
     } else {
       form.reset({
         employee_number: "",
-        location_id: "",
+        location_ids: [],
         from_date: "",
         to_date: "",
         active_flag: true,
@@ -150,17 +151,28 @@ export default function AddUserMapping({
     }
   }, [selectedRowData, form]);
 
-  const addMutation = useMutation({
-    mutationFn: addIfmEmployeeLocationMappingRequest,
+  const addMultiMutation = useMutation({
+    mutationFn: async (payloads: any[]) => {
+      const results = await Promise.allSettled(
+        payloads.map((payload) => addIfmEmployeeLocationMappingRequest(payload))
+      );
+      const fulfilled = results.filter((r) => r.status === "fulfilled");
+      const rejected = results.filter((r) => r.status === "rejected");
+
+      if (fulfilled.length === 0 && rejected.length > 0) {
+        throw (rejected[0] as PromiseRejectedResult).reason;
+      }
+      return { fulfilledCount: fulfilled.length, totalCount: payloads.length };
+    },
     onSuccess: (res) => {
       showToast("success", "add_ifm_mapping_success");
-      onSave(null, res.data);
       queryClient.invalidateQueries({ queryKey: ["ifm-employee-location-mapping"] });
+      onSave(null, res);
       on_open_change(false);
     },
     onError: (error: any) => {
       if (error?.response?.status === 409) {
-        showToast("error", error?.response?.data?.message || "Mapping already exists for this employee and location");
+        showToast("error", error?.response?.data?.message || "Mapping already exists for employee and location");
       } else {
         showToast("error", error?.response?.data?.message || "formsubmission_error");
       }
@@ -171,8 +183,8 @@ export default function AddUserMapping({
     mutationFn: editIfmEmployeeLocationMappingRequest,
     onSuccess: (res, variables) => {
       showToast("success", "update_ifm_mapping_success");
-      onSave(variables.mapping_id.toString(), res.data || variables);
       queryClient.invalidateQueries({ queryKey: ["ifm-employee-location-mapping"] });
+      onSave(variables.mapping_id.toString(), res.data || variables);
       on_open_change(false);
     },
     onError: (error: any) => {
@@ -192,19 +204,25 @@ export default function AddUserMapping({
       const fromDateIso = values.from_date ? new Date(values.from_date).toISOString() : undefined;
       const toDateIso = values.to_date ? new Date(values.to_date).toISOString() : undefined;
 
-      const payload: any = {
-        employee_number: values.employee_number.trim(),
-        location_id: Number(values.location_id),
-        from_date: fromDateIso,
-        to_date: toDateIso,
-        active_flag: values.active_flag,
-      };
-
       if (selectedRowData) {
         const id = selectedRowData.mapping_id || selectedRowData.id;
-        editMutation.mutate({ mapping_id: Number(id), ...payload });
+        editMutation.mutate({
+          mapping_id: Number(id),
+          employee_number: values.employee_number.trim(),
+          location_id: Number(values.location_ids[0]),
+          from_date: fromDateIso,
+          to_date: toDateIso,
+          active_flag: values.active_flag,
+        });
       } else {
-        addMutation.mutate(payload);
+        const payloads = values.location_ids.map((locId) => ({
+          employee_number: values.employee_number.trim(),
+          location_id: Number(locId),
+          from_date: fromDateIso,
+          to_date: toDateIso,
+          active_flag: values.active_flag,
+        }));
+        addMultiMutation.mutate(payloads);
       }
     } finally {
       setIsSubmitting(false);
@@ -216,7 +234,7 @@ export default function AddUserMapping({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
-            {/* Searchable Employee Combobox with limit=10 & parent_orgids=5 */}
+            {/* Searchable Employee Combobox */}
             <FormField
               control={form.control}
               name="employee_number"
@@ -249,17 +267,17 @@ export default function AddUserMapping({
                             aria-expanded={empOpen}
                             disabled={isLoadingEmployees}
                             className={cn(
-                              "w-full justify-between font-normal h-10 px-3 border border-border-grey bg-transparent text-text-primary hover:bg-backdrop",
+                              "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 justify-between",
                               !field.value && "text-text-secondary"
                             )}
                           >
                             <span className="truncate">{triggerLabel}</span>
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronDown className="ml-2 h-4 w-4 text-text-primary shrink-0" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent
-                        className="w-[300px] sm:w-[380px] p-0 shadow-lg bg-accent border border-border-grey z-[100]"
+                        className="w-[300px] sm:w-[380px] p-0 border-none shadow-dropdown bg-accent z-[100]"
                         align="start"
                       >
                         <Command shouldFilter={false} className="w-full">
@@ -267,6 +285,7 @@ export default function AddUserMapping({
                             value={empSearch}
                             onValueChange={(val) => setEmpSearch(val)}
                             placeholder={t.placeholder_search_employee || "Search employee name or number..."}
+                            className="border-none"
                           />
                           <CommandList className="max-h-60 overflow-y-auto">
                             <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
@@ -313,17 +332,33 @@ export default function AddUserMapping({
               }}
             />
 
-            {/* Searchable Location Combobox */}
+            {/* Searchable Multi-Select Locations Combobox */}
             <FormField
               control={form.control}
-              name="location_id"
+              name="location_ids"
               render={({ field }) => {
-                const selectedLoc = locationsList.find(
-                  (loc: any) => String(loc.location_id) === field.value
-                );
-                const triggerLabel = selectedLoc
-                  ? `${selectedLoc.project_name} - ${selectedLoc.location_name || selectedLoc.location_code || `ID #${selectedLoc.location_id}`}`
-                  : (t.placeholder_location_id || "Select location");
+                const selectedIds = field.value || [];
+                const getLocationLabel = (locId: string) => {
+                  const loc = locationsList.find((l: any) => String(l.location_id) === locId);
+                  if (!loc) return `ID #${locId}`;
+                  return `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
+                };
+
+                let triggerLabel = t.placeholder_location_id || "Select location(s)";
+                if (selectedIds.length === 1) {
+                  triggerLabel = getLocationLabel(selectedIds[0]);
+                } else if (selectedIds.length > 1) {
+                  const firstLabel = getLocationLabel(selectedIds[0]);
+                  triggerLabel = `${firstLabel} (+${selectedIds.length - 1} more)`;
+                }
+
+                const toggleLocation = (idStr: string) => {
+                  if (selectedIds.includes(idStr)) {
+                    field.onChange(selectedIds.filter((item) => item !== idStr));
+                  } else {
+                    field.onChange([...selectedIds, idStr]);
+                  }
+                };
 
                 return (
                   <FormItem className="flex flex-col min-w-0">
@@ -340,22 +375,23 @@ export default function AddUserMapping({
                             aria-expanded={locOpen}
                             disabled={isLoadingLocations}
                             className={cn(
-                              "w-full justify-between font-normal h-10 px-3 border border-border-grey bg-transparent text-text-primary hover:bg-backdrop",
-                              !field.value && "text-text-secondary"
+                              "flex h-10 w-full rounded-full border border-border-grey bg-transparent px-3 text-sm font-normal shadow-none text-text-primary transition-colors hover:bg-transparent focus:outline-none focus:border-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 justify-between",
+                              selectedIds.length === 0 && "text-text-secondary"
                             )}
                           >
                             <span className="truncate">{triggerLabel}</span>
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronDown className="ml-2 h-4 w-4 text-text-primary shrink-0" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent
-                        className="w-[300px] sm:w-[380px] p-0 shadow-lg bg-accent border border-border-grey z-[100]"
+                        className="w-[300px] sm:w-[380px] p-0 border-none shadow-dropdown bg-accent z-[100]"
                         align="start"
                       >
                         <Command className="w-full">
                           <CommandInput
                             placeholder={t.placeholder_search_location || "Search project or location..."}
+                            className="border-none"
                           />
                           <CommandList className="max-h-60 overflow-y-auto">
                             <CommandEmpty className="p-4 text-sm text-text-secondary text-center">
@@ -365,26 +401,19 @@ export default function AddUserMapping({
                               {locationsList.map((loc: any) => {
                                 const locIdStr = String(loc.location_id);
                                 const label = `${loc.project_name} - ${loc.location_name || loc.location_code || `ID #${loc.location_id}`}`;
-                                const isSelected = field.value === locIdStr;
+                                const isSelected = selectedIds.includes(locIdStr);
                                 return (
                                   <CommandItem
                                     key={loc.location_id}
                                     value={`${loc.project_name} ${loc.location_name || ""} ${loc.location_code || ""} ${loc.location_id}`}
-                                    onSelect={() => {
-                                      field.onChange(locIdStr);
-                                      setLocOpen(false);
-                                    }}
-                                    className="cursor-pointer flex items-center justify-between py-2 px-3 hover:bg-backdrop"
+                                    onSelect={() => toggleLocation(locIdStr)}
+                                    className="cursor-pointer flex items-center gap-3 py-2 px-3 hover:bg-backdrop"
                                   >
-                                    <div className="flex items-center gap-2 truncate">
-                                      <Check
-                                        className={cn(
-                                          "h-4 w-4 text-primary shrink-0",
-                                          isSelected ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      <span className="truncate font-medium">{label}</span>
-                                    </div>
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onCheckedChange={() => toggleLocation(locIdStr)}
+                                    />
+                                    <span className="truncate font-medium">{label}</span>
                                   </CommandItem>
                                 );
                               })}
@@ -394,7 +423,7 @@ export default function AddUserMapping({
                       </PopoverContent>
                     </Popover>
                     <TranslatedError
-                      fieldError={form.formState.errors.location_id}
+                      fieldError={form.formState.errors.location_ids}
                       translations={errT}
                     />
                   </FormItem>
