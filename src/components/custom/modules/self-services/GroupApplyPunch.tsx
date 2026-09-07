@@ -379,7 +379,7 @@ export default function GroupApplyPunch({
         <div className="bg-accent transition-all duration-300 rounded-xl">
 
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mt-4 justify-end">
               {remarksLength > 500 && (
                 <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center">
                   <ExclamationIcon className="mr-2" width="14" height="14" />

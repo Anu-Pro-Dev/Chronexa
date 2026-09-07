@@ -1266,7 +1266,11 @@
       "excel_export_error": "خطأ في إنشاء ملف Excel. يرجى المحاولة مرة أخرى.",
       "excel_no_data_error": "لا توجد بيانات متاحة للتصدير.",
       "excel_session_expired": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
-      "excel_fetch_error": "فشل في جلب البيانات من الخادم"
+      "excel_fetch_error": "فشل في جلب البيانات من الخادم",
+      "approve_transaction_error": "فشل في الموافقة على المعاملة. يرجى المحاولة مرة أخرى.",
+      "reject_transaction_error": "فشل في رفض المعاملة. يرجى المحاولة مرة أخرى.",
+      "approve_transaction_success": "تمت الموافقة على المعاملة بنجاح!",
+      "reject_transaction_success": "تم رفض المعاملة بنجاح!"
     },
     "formErrors": {
       "location_code_required": "كود الموقع مطلوب.",

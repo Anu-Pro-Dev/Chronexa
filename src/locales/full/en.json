@@ -1266,7 +1266,11 @@
       "excel_export_error": "Error generating Excel file. Please try again.",
       "excel_no_data_error": "No data available to export.",
       "excel_session_expired": "Session expired. Please login again.",
-      "excel_fetch_error": "Failed to fetch data from server"
+      "excel_fetch_error": "Failed to fetch data from server",
+      "approve_transaction_error": "Failed to approve transaction. Please try again.",
+      "reject_transaction_error": "Failed to reject transaction. Please try again.",
+      "approve_transaction_success": "Transaction approved successfully!",
+      "reject_transaction_success": "Transaction rejected successfully!"
     },
     "formErrors": {
       "location_code_required": "Location code is required.",

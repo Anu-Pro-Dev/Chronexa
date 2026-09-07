@@ -90,12 +90,12 @@ export default function Page() {
         field: "role_name",
         headerName: t.role_name || "Role Name",
       },
-      // { 
-      //   field: "privileges", 
-      //   headerName: t.privileges || "Privileges",
-      //   clickable: true, 
-      //   onCellClick: handleCellClick 
-      // },
+      { 
+        field: "privileges", 
+        headerName: t.privileges || "Privileges",
+        clickable: true, 
+        onCellClick: handleCellClick 
+      },
       { 
         field: "assign_role", 
         headerName: t.assign_role || "Assign Role", 

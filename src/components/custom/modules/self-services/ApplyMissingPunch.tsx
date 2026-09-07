@@ -323,22 +323,22 @@ export default function ApplyMissingPunch({
 
       const payload = isEditMode
         ? {
-            employee_manual_transaction_id: Number(existingManualTransId),
-            transaction_time,
-            reason: values.reason,
-            remarks: values.employee_remarks || "",
-            ...(values.attachment ? { attachment: values.attachment } : {}),
-          }
+          employee_manual_transaction_id: Number(existingManualTransId),
+          transaction_time,
+          reason: values.reason,
+          remarks: values.employee_remarks || "",
+          ...(values.attachment ? { attachment: values.attachment } : {}),
+        }
         : {
-            employee_id: Number(rowData?.Employee_Id),
-            transaction_time,
-            Emp_Missing_Movements_Id: Number(rowData?.emp_missing_Movements_Id),
-            reason: values.reason,
-            remarks: values.employee_remarks || "",
-            transaction_status: "Pending",
-            // Attachment may be undefined when org is exempt
-            ...(values.attachment ? { attachment: values.attachment } : {}),
-          };
+          employee_id: Number(rowData?.Employee_Id),
+          transaction_time,
+          Emp_Missing_Movements_Id: Number(rowData?.emp_missing_Movements_Id),
+          reason: values.reason,
+          remarks: values.employee_remarks || "",
+          transaction_status: "Pending",
+          // Attachment may be undefined when org is exempt
+          ...(values.attachment ? { attachment: values.attachment } : {}),
+        };
 
       applyMissingPunchMutation.mutate(payload);
     } catch (error) {
@@ -358,7 +358,7 @@ export default function ApplyMissingPunch({
     <div className="flex flex-col gap-6">
       <div className="bg-accent transition-all duration-300 rounded-xl">
         {remarksLength > 500 && (
-          <div className="flex items-center gap-4 mb-2">
+          <div className="flex items-center gap-4 mt-4 justify-end">
             <p className="text-xs text-destructive border border-red-200 rounded-md px-2 py-1 font-semibold bg-red-400 bg-opacity-10 flex items-center">
               <ExclamationIcon className="mr-2" width="14" height="14" />
               {formErrors.remarks_max_length ||
@@ -369,7 +369,7 @@ export default function ApplyMissingPunch({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-2 gap-y-5 gap-10 pt-8">
+            <div className="grid grid-cols-2 gap-y-5 gap-10 pt-4">
 
               {/* Employee */}
               <FormField
@@ -520,9 +520,9 @@ export default function ApplyMissingPunch({
                     <p className="text-xs text-text-secondary">
                       {isEditMode
                         ? t.group_apply_attachment_note_edit ||
-                          "Leave empty to keep existing file. PDF, JPG, PNG — max 5 MB"
+                        "Leave empty to keep existing file. PDF, JPG, PNG — max 5 MB"
                         : t.group_apply_attachment_note ||
-                          "PDF, JPG, PNG — max 5 MB"}
+                        "PDF, JPG, PNG — max 5 MB"}
                     </p>
                     <TranslatedError
                       fieldError={form.formState.errors.attachment}
