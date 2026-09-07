@@ -501,6 +501,24 @@ export const AlertsIcon = (color: string = "#64748B") => (
   </svg>
 );
 
+export const WorkloadIcon = (color: string = "#64748B") => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M3.333 6.667h13.334M6.667 6.667V4.167A1.667 1.667 0 0 1 8.333 2.5h3.334a1.667 1.667 0 0 1 1.666 1.667v2.5m-10 0A1.667 1.667 0 0 0 1.667 8.333v7.5A1.667 1.667 0 0 0 3.333 17.5h13.334a1.667 1.667 0 0 0 1.666-1.667v-7.5a1.667 1.667 0 0 0-1.666-1.666H3.333zm6.667 4.166v2.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export const UserManagementIcon = (color: string = "#64748B") => (
   <svg
     width="17"
