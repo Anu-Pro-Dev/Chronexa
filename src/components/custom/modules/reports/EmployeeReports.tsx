@@ -140,18 +140,22 @@ export default function EmployeeReports() {
     searchParams: { limit: "1000" },
   });
 
+  // Departments (Division in UI) — now sources directly from vertical as well as company.
+  // Uses the by-filters endpoint which resolves descendant orgs for vertical_ids on the backend,
+  // so no per-company fan-out is needed. Falls back to vertical branch when company not chosen.
   const { data: departmentsByOrg, isLoading: isDepartmentsLoading } = useQuery({
-    queryKey: ["departmentsByOrg", selectedCompanies],
+    queryKey: ["departmentsByOrg", selectedVerticals, selectedCompanies],
     queryFn: async () => {
-      if (selectedCompanies.length === 0) return null;
-      const allDepartments = await Promise.all(
-        selectedCompanies.map(companyId =>
-          apiRequest(`/dept-org-mapping/by-organization/${companyId}`, "GET")
-        )
-      );
-      return { data: allDepartments.flatMap(r => r?.data || []) };
+      if (selectedVerticals.length === 0 && selectedCompanies.length === 0) return null;
+      const params = new URLSearchParams();
+      if (selectedVerticals.length > 0) params.set("vertical_ids", selectedVerticals.join(","));
+      if (selectedCompanies.length > 0) params.set("company_ids", selectedCompanies.join(","));
+      params.set("is_active", "true");
+      const res = await apiRequest(`/dept-org-mapping/by-filters?${params.toString()}`, "GET");
+      // Backend returns { data: mappings[], total } where each mapping includes `departments`
+      return { data: res?.data || [] };
     },
-    enabled: selectedCompanies.length > 0,
+    enabled: selectedVerticals.length > 0 || selectedCompanies.length > 0,
   });
 
   const getManagerSearchParams = () => {
@@ -339,11 +343,13 @@ export default function EmployeeReports() {
   };
 
   const getDepartmentData = () => {
-    if (!departmentsByOrg?.data || selectedCompanies.length === 0) return [];
+    // Allow sourcing from vertical alone — company no longer mandatory
+    if (!departmentsByOrg?.data) return [];
+    if (selectedVerticals.length === 0 && selectedCompanies.length === 0) return [];
     const departmentsMap = new Map();
     const mappings = Array.isArray(departmentsByOrg.data) ? departmentsByOrg.data : [departmentsByOrg.data];
     mappings.forEach((mapping: any) => {
-      if (mapping.departments && mapping.departments.department_id && mapping.is_active) {
+      if (mapping.departments && mapping.departments.department_id && mapping.is_active !== false) {
         departmentsMap.set(mapping.departments.department_id, {
           department_id: mapping.departments.department_id,
           department_code: mapping.departments.department_code,
@@ -888,6 +894,7 @@ export default function EmployeeReports() {
   };
 
   const getDepartmentPlaceholderText = () => {
+    if (selectedVerticals.length === 0 && selectedCompanies.length === 0) return t.select_vertical_first || "Select vertical first";
     if (selectedDepartments.length === 0) return t.placeholder_division || "Choose division";
     return `${selectedDepartments.length} ${t.division || 'division'}${selectedDepartments.length > 1 ? 's' : ''} ${t.selected || 'selected'}`;
   };
@@ -1238,9 +1245,24 @@ export default function EmployeeReports() {
                               onSearchChange={debouncedDepartmentSearch}
                               className="mt-5 w-full max-w-[350px] 3xl:max-w-[450px]"
                             >
-                              {getDepartmentData().length === 0 && departmentSearchTerm && (
+                              {selectedVerticals.length === 0 && selectedCompanies.length === 0 && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.select_vertical_first || "Select vertical first"}
+                                </div>
+                              )}
+                              {getDepartmentData().length === 0 && departmentSearchTerm && selectedVerticals.length > 0 && (
                                 <div className="p-3 text-sm text-text-secondary">
                                   {t.no_divisions_found || "No divisions found"}
+                                </div>
+                              )}
+                              {getDepartmentData().length === 0 && !departmentSearchTerm && selectedVerticals.length > 0 && selectedCompanies.length > 0 && !isDepartmentsLoading && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_divisions_found || "No divisions found"}
+                                </div>
+                              )}
+                              {getDepartmentData().length === 0 && !departmentSearchTerm && selectedVerticals.length > 0 && selectedCompanies.length === 0 && !isDepartmentsLoading && (
+                                <div className="p-3 text-sm text-text-secondary">
+                                  {t.no_divisions_found || "No divisions found for selected vertical"}
                                 </div>
                               )}
                               {getDepartmentData().map((item: any) => {
