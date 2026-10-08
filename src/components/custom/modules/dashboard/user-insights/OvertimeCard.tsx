@@ -171,7 +171,7 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
   const insightsOvertimeCache = useUserInsightsStore((s) => s.insightsOvertimeCache);
   const hasOvertimeData = date in insightsOvertimeCache;
   const overtime = insightsOvertimeCache[date];
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeParams } = useUserInsightsOrganization();
 
   const rawValues = [
     overtime?.avgHoursToday ?? 0,
@@ -251,7 +251,11 @@ export default function OvertimeCard({ date }: OvertimeCardProps) {
           columns={overtimeExportColumns}
           meta={{
             title: "Overtime & Hours Worked",
-            filters: { Organization: String(organizationId ?? ""), Date: date },
+            filters: {
+              ...(organizationId ? { Organization: String(organizationId) } : {}),
+              ...(scopeParams?.verticalIds ? { Verticals: String(scopeParams.verticalIds) } : {}),
+              Date: date,
+            },
           }}
         />
       </div>

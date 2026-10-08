@@ -11,20 +11,6 @@ function buildQuery(params: Record<string, string | number | undefined>): string
     .join("&");
 }
 
-/** Calls the unified snapshot endpoint and returns the raw data array/object. */
-async function fetchSnapshot<T>(
-  orgId: number,
-  action: string,
-  date?: string
-): Promise<T> {
-  const query = buildQuery({ action, date });
-  const response = await apiRequest(
-    `/insights/${orgId}?${query}`,
-    "GET"
-  );
-  if (!response?.data) throw new Error(`No data returned for action: ${action}`);
-  return response.data as T;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Raw SP row shapes (what comes back from the snapshot JSON)
@@ -228,63 +214,110 @@ export interface OrganizationEarlyDespatchData {
   }>;
 }
 
-export interface PlainOrgItem {
-  type: "org";
-  id: number;
-  name: string;
-  entity_name: null;
+export interface VerticalOrganization {
+  organization_id: number;
+  organization_name: string;
+  display_name: string;
+  entity_name: string;
   employee_count: number;
 }
 
-export interface EntityGroupItem {
-  type: "entity";
+export interface VerticalItem {
+  vertical_id: number;
+  vertical_name: string;
+  display_name: string;
   entity_name: string;
   employee_count_total: number;
-  orgs: {
-    id: number;
-    name: string;
-    employee_count: number;
-  }[];
+  organizations: VerticalOrganization[];
 }
 
-export type OrganizationListItem = PlainOrgItem | EntityGroupItem;
-
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Organization list
+// Organization / Vertical list
 // ─────────────────────────────────────────────────────────────────────────────
 
-// export async function fetchOrganizationList(): Promise<OrganizationListItem[]> {
-//   const response = await apiRequest(`/insights/list`, "GET");
-//   // Backend returns { success: true, data: [...] } — plain array, not { organizations: [...] }
-//   const list = response?.data;
-//   if (!list) throw new Error("No organization list data returned");
-//   return Array.isArray(list) ? list : (list.organizations ?? []);
-// }
-
-export async function fetchOrganizationList(): Promise<OrganizationListItem[]> {
-  const response = await apiRequest(`/insights/list`, "GET");
+export async function fetchVerticalsList(params?: {
+  verticalIds?: string | number | number[];
+  orgIds?: string | number | number[];
+}): Promise<VerticalItem[]> {
+  const query = buildQuery({
+    verticalIds: Array.isArray(params?.verticalIds)
+      ? params?.verticalIds.join(",")
+      : params?.verticalIds,
+    orgIds: Array.isArray(params?.orgIds)
+      ? params?.orgIds.join(",")
+      : params?.orgIds,
+  });
+  const endpoint = query ? `/insights/list?${query}` : `/insights/list`;
+  const response = await apiRequest(endpoint, "GET");
   const list = response?.data;
-  if (!list) throw new Error("No organization list data returned");
+  if (!list) return [];
   return Array.isArray(list) ? list : [];
 }
 
+/** Legacy alias */
+export const fetchOrganizationList = fetchVerticalsList;
+
+export interface InsightsScopeParams {
+  verticalIds?: number[] | string | number;
+  orgIds?: number[] | string | number;
+  date?: string;
+}
+
+function resolveScopeParams(
+  scope: number | InsightsScopeParams | undefined,
+  date?: string
+): { queryParams: Record<string, string | number | undefined>; pathSegment?: number } {
+  if (typeof scope === "number") {
+    return {
+      pathSegment: scope,
+      queryParams: { date },
+    };
+  }
+
+  const vIds = Array.isArray(scope?.verticalIds)
+    ? scope?.verticalIds.join(",")
+    : scope?.verticalIds;
+  const oIds = Array.isArray(scope?.orgIds)
+    ? scope?.orgIds.join(",")
+    : scope?.orgIds;
+
+  return {
+    queryParams: {
+      verticalIds: vIds,
+      orgIds: oIds,
+      date: scope?.date ?? date,
+    },
+  };
+}
+
+/** Calls /insights or /insights/:orgId and returns the raw data array/object. */
+async function fetchSnapshot<T>(
+  scope: number | InsightsScopeParams | undefined,
+  action: string,
+  date?: string
+): Promise<T> {
+  const { pathSegment, queryParams } = resolveScopeParams(scope, date);
+  const query = buildQuery({ action, ...queryParams });
+  const url = pathSegment !== undefined ? `/insights/${pathSegment}?${query}` : `/insights?${query}`;
+  const response = await apiRequest(url, "GET");
+  if (!response?.data) throw new Error(`No data returned for action: ${action}`);
+  return response.data as T;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Individual fetchers — all backed by snapshot endpoint
+// Individual fetchers — backed by snapshot endpoint
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function fetchTotalsAndToday(
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "organization" | "totals" | "today" | "attendanceSplit">> {
-  // Single snapshot call covers totals + today + attendanceSplit (derived)
-  // The API may return a plain object OR a single-element array — handle both.
-  const raw = await fetchSnapshot<TotalsRow | TotalsRow[]>(orgId, "totals", date);
+  const raw = await fetchSnapshot<TotalsRow | TotalsRow[]>(scope, "totals", date);
   const row = Array.isArray(raw) ? raw[0] : raw;
   if (!row) throw new Error("Empty totals response");
 
   return {
-    organization: { id: orgId, name: "" },
+    organization: { id: typeof scope === "number" ? scope : 0, name: "" },
     totals: {
       totalEmployees: row.totalEmployees,
       employeesInUse: row.presentCount,
@@ -306,7 +339,6 @@ export async function fetchTotalsAndToday(
       onLeave: row.onLeave,
       absentCount: row.absentCount,
     },
-    // Derived from same row — no extra API call needed
     attendanceSplit: {
       checkedIn: row.checkIns,
       checkedOut: row.checkOuts,
@@ -322,20 +354,20 @@ export async function fetchTotalsAndToday(
 
 /** Derived from totals — no separate API call. Kept for store compatibility. */
 export async function fetchAttendanceSplit(
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "attendanceSplit">> {
-  const data = await fetchTotalsAndToday(orgId, date);
+  const data = await fetchTotalsAndToday(scope, date);
   return { attendanceSplit: data.attendanceSplit };
 }
 
 export async function fetchHourlyTrend(
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "hourlyTrend">> {
-  const rows = await fetchSnapshot<HourlyRow[]>(orgId, "hourly", date);
+  const rows = await fetchSnapshot<HourlyRow[]>(scope, "hourly", date);
   return {
-    hourlyTrend: rows.map((r) => ({
+    hourlyTrend: (Array.isArray(rows) ? rows : []).map((r) => ({
       hour: r.hour,
       checkIns: r.checkIns,
       checkOuts: r.checkOuts,
@@ -344,12 +376,12 @@ export async function fetchHourlyTrend(
 }
 
 export async function fetchDepartmentAttendance(
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "departmentAttendance">> {
-  const rows = await fetchSnapshot<DeptRow[]>(orgId, "departments", date);
+  const rows = await fetchSnapshot<DeptRow[]>(scope, "departments", date);
   return {
-    departmentAttendance: rows.map((r) => ({
+    departmentAttendance: (Array.isArray(rows) ? rows : []).map((r) => ({
       department: r.Department,
       present: r.present,
       absent: r.absent,
@@ -365,12 +397,12 @@ export async function fetchDepartmentAttendance(
 }
 
 export async function fetchWeeklyTrend(
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "weeklyTrend">> {
-  const rows = await fetchSnapshot<WeeklyRow[]>(orgId, "weekly", date);
+  const rows = await fetchSnapshot<WeeklyRow[]>(scope, "weekly", date);
   return {
-    weeklyTrend: rows.map((r) => ({
+    weeklyTrend: (Array.isArray(rows) ? rows : []).map((r) => ({
       label: r.dayName,
       present: r.present,
       onLeave: r.onLeave,
@@ -383,10 +415,10 @@ export async function fetchWeeklyTrend(
 }
 
 export async function fetchOvertime(
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<Pick<OrganizationAnalyticsData, "overtime">> {
-  const raw = await fetchSnapshot<OvertimeRow | OvertimeRow[]>(orgId, "overtime", date);
+  const raw = await fetchSnapshot<OvertimeRow | OvertimeRow[]>(scope, "overtime", date);
   const row = Array.isArray(raw) ? raw[0] : raw;
   if (!row) throw new Error("Empty overtime response");
   return {
@@ -399,7 +431,7 @@ export async function fetchOvertime(
       weekAttendanceRate: row.weekAttendanceRate,
       requiredHours: row.requiredHours,
       noPunchToday: row.noPunchToday,
-      onTimeRate: row.onTimeRate
+      onTimeRate: row.onTimeRate,
     },
   };
 }
@@ -409,16 +441,16 @@ export async function fetchOvertime(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getUserInsightsData = async (
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<OrganizationAnalyticsData> => {
   const [totalsData, hourlyTrend, departmentAttendance, weeklyTrend, overtime] =
     await Promise.all([
-      fetchTotalsAndToday(orgId, date),
-      fetchHourlyTrend(orgId, date),
-      fetchDepartmentAttendance(orgId, date),
-      fetchWeeklyTrend(orgId, date),
-      fetchOvertime(orgId, date),
+      fetchTotalsAndToday(scope, date),
+      fetchHourlyTrend(scope, date),
+      fetchDepartmentAttendance(scope, date),
+      fetchWeeklyTrend(scope, date),
+      fetchOvertime(scope, date),
     ]);
 
   return {
@@ -438,10 +470,10 @@ export const getUserInsightsData = async (
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getUserAlertsData = async (
-  orgId: number,
+  scope: number | InsightsScopeParams | undefined,
   date?: string
 ): Promise<OrganizationAlertsData> => {
-  const raw = await fetchSnapshot<AlertsRow | AlertsRow[]>(orgId, "alerts", date);
+  const raw = await fetchSnapshot<AlertsRow | AlertsRow[]>(scope, "alerts", date);
   const row = Array.isArray(raw) ? raw[0] : raw;
   if (!row) throw new Error("Empty alerts response");
 
@@ -454,8 +486,8 @@ export const getUserAlertsData = async (
     lowest_dept_pct: row.lowestDeptPct ?? 0,
     leave_requests_today: row.leaveRequestsToday,
     overtime_count: row.overtimeCount,
-    geofence_violations: 0,   // not in SP — reserved for future
-    unapproved_wfh: 0,   // not in SP — reserved for future
+    geofence_violations: 0,
+    unapproved_wfh: 0,
     consecutive_absent_3plus: row.consecutiveAbsent3Plus,
   };
 };
@@ -465,16 +497,13 @@ export const getUserAlertsData = async (
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getEarlyDespatchData = async (
-  orgId: number,
-  date?: string,
-  // threshold = 30,
-  // topN = 10
+  scope: number | InsightsScopeParams | undefined,
+  date?: string
 ): Promise<OrganizationEarlyDespatchData> => {
-  const query = buildQuery({ action: "despatch", date });
-  const response = await apiRequest(
-    `/insights/${orgId}?${query}`,
-    "GET"
-  );
+  const { pathSegment, queryParams } = resolveScopeParams(scope, date);
+  const query = buildQuery({ action: "despatch", ...queryParams });
+  const url = pathSegment !== undefined ? `/insights/${pathSegment}?${query}` : `/insights?${query}`;
+  const response = await apiRequest(url, "GET");
   if (!response?.data) throw new Error("No despatch data returned");
 
   const rows = response.data as DespatchRow[];

@@ -29,7 +29,7 @@ interface HourlyTrendChartProps {
 export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
   const insightsHourlyTrendCache = useUserInsightsStore((s) => s.insightsHourlyTrendCache);
   const hasHourlyData = date in insightsHourlyTrendCache;
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeParams } = useUserInsightsOrganization();
 
   const hourlyData = insightsHourlyTrendCache[date] ?? EMPTY_DATA;
 
@@ -55,7 +55,11 @@ export default function HourlyTrendChart({ date }: HourlyTrendChartProps) {
             columns={hourlyExportColumns}
             meta={{
               title: "Hourly Attendance Trend",
-              filters: { Organization: String(organizationId ?? ""), Date: date },
+              filters: {
+                ...(organizationId ? { Organization: String(organizationId) } : {}),
+                ...(scopeParams?.verticalIds ? { Verticals: String(scopeParams.verticalIds) } : {}),
+                Date: date,
+              },
             }}
           />
         </div>

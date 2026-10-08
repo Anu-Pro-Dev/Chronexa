@@ -31,7 +31,7 @@ export default function UserInsightsPage() {
   const { date } = useSelectedDate();
   const selectedDate = React.useMemo(() => toLocalDateStr(date), [date]);
 
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeKey, scopeParams } = useUserInsightsOrganization();
 
   const {
     fetchDailySummary,
@@ -43,13 +43,11 @@ export default function UserInsightsPage() {
     clearData,
   } = useUserInsightsStore();
 
-  // Track the previous org + date so we can detect real changes.
+  // Track the previous scopeKey + date so we can detect real changes.
   const prevKeyRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
-    if (!organizationId) return;
-
-    const currentKey = `${organizationId}::${selectedDate}`;
+    const currentKey = `${scopeKey}::${selectedDate}`;
 
     // ── Reset all data to 0 immediately whenever org or date changes ──────
     if (prevKeyRef.current !== null && prevKeyRef.current !== currentKey) {
@@ -57,24 +55,30 @@ export default function UserInsightsPage() {
     }
     prevKeyRef.current = currentKey;
 
+    // Use scopeParams if multi-company selection or vertical selection is active,
+    // otherwise fallback to organizationId or scopeParams
+    const scope = (scopeParams?.orgIds && Array.isArray(scopeParams.orgIds) && scopeParams.orgIds.length > 1)
+      ? scopeParams
+      : (organizationId ?? scopeParams);
+
     // ── Wave 1: above-the-fold KPIs + hourly chart ────────────────────────
-    void fetchDailySummary(organizationId, selectedDate);
-    void fetchAttendancePct(organizationId, selectedDate);
-    void fetchHourlyTrendData(organizationId, selectedDate);
+    void fetchDailySummary(scope, selectedDate);
+    void fetchAttendancePct(scope, selectedDate);
+    void fetchHourlyTrendData(scope, selectedDate);
 
     // ── Wave 2: department table ──────────────────────────────────────────
     const t2 = setTimeout(() => {
-      void fetchDeptAttendanceData(organizationId, selectedDate);
+      void fetchDeptAttendanceData(scope, selectedDate);
     }, WAVE_DELAY_MS);
 
     // ── Wave 3: overtime ──────────────────────────────────────────────────
     const t3 = setTimeout(() => {
-      void fetchOvertimeData(organizationId, selectedDate);
+      void fetchOvertimeData(scope, selectedDate);
     }, WAVE_DELAY_MS * 2);
 
     // ── Wave 4: weekly trend (bottom of page) ─────────────────────────────
     const t4 = setTimeout(() => {
-      void fetchWeeklyTrendData(organizationId, selectedDate);
+      void fetchWeeklyTrendData(scope, selectedDate);
     }, WAVE_DELAY_MS * 3);
 
     return () => {
@@ -84,6 +88,8 @@ export default function UserInsightsPage() {
     };
   }, [
     organizationId,
+    scopeKey,
+    scopeParams,
     selectedDate,
     fetchDailySummary,
     fetchHourlyTrendData,

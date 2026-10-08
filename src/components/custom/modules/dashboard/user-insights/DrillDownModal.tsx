@@ -189,30 +189,52 @@ function getColConfig(filter: DrillDownFilter): ColConfig {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fetch
-// attendancePct  → GET /insights/:orgId?action=attendancePct&date=…  (snapshot)
-// all others     → GET /insights/:orgId/drilldown?filter=…&date=…
+// attendancePct  → GET /insights?action=attendancePct&date=… or /insights/:orgId?action=attendancePct&date=…
+// all others     → GET /insights/drilldown?filter=…&date=… or /insights/:orgId/drilldown?filter=…&date=…
 // ─────────────────────────────────────────────────────────────────────────────
 async function fetchDrillDown(
-  orgId: number,
+  orgId: number | undefined,
+  scopeParams: Record<string, any> | undefined,
   filter: DrillDownFilter,
   date: string
 ): Promise<DrillDownResponse> {
+  const queryParams = new URLSearchParams();
+  queryParams.set("date", date);
+  if (filter !== "attendancePct") {
+    queryParams.set("filter", filter);
+  } else {
+    queryParams.set("action", "attendancePct");
+  }
+
+  if (orgId) {
+    // If specific orgId passed and not in scopeParams
+    if (!scopeParams?.orgIds) queryParams.set("orgIds", String(orgId));
+  }
+  if (scopeParams?.orgIds) {
+    const o = Array.isArray(scopeParams.orgIds) ? scopeParams.orgIds.join(",") : scopeParams.orgIds;
+    queryParams.set("orgIds", String(o));
+  }
+  if (scopeParams?.verticalIds) {
+    const v = Array.isArray(scopeParams.verticalIds) ? scopeParams.verticalIds.join(",") : scopeParams.verticalIds;
+    queryParams.set("verticalIds", String(v));
+  }
+
   if (filter === "attendancePct") {
-    const response = await apiRequest(
-      `/insights/${orgId}?action=attendancePct&date=${date}`,
-      "GET"
-    );
+    const endpoint = orgId && !scopeParams?.verticalIds
+      ? `/insights/${orgId}?${queryParams.toString()}`
+      : `/insights?${queryParams.toString()}`;
+    const response = await apiRequest(endpoint, "GET");
     const agg: AttendancePctData =
       response?.data?.totalEmployees !== undefined
         ? response.data
-        : response?.data?.data ?? response;
+        : response?.data?.data?.[0] ?? response?.data?.data ?? response;
     return { employees: [], total: 0, aggregate: agg };
   }
-  const query    = new URLSearchParams({ filter, date }).toString();
-  const response = await apiRequest(
-    `/insights/${orgId}/drilldown?${query}`,
-    "GET"
-  );
+
+  const endpoint = orgId && !scopeParams?.verticalIds
+    ? `/insights/${orgId}/drilldown?${queryParams.toString()}`
+    : `/insights/drilldown?${queryParams.toString()}`;
+  const response = await apiRequest(endpoint, "GET");
   const raw = response?.data;
   if (Array.isArray(raw)) {
     return { employees: raw as DrillDownEmployee[], total: raw.length };
@@ -341,7 +363,8 @@ function AvatarCell({ name, color }: { name?: string | null; color: string }) {
 interface DrillDownModalProps {
   open:         boolean;
   onOpenChange: (open: boolean) => void;
-  orgId:        number;
+  orgId?:       number;
+  scopeParams?: Record<string, any>;
   date:         string;
   filter:       DrillDownFilter;
   title:        string;
@@ -353,6 +376,7 @@ export default function DrillDownModal({
   open,
   onOpenChange,
   orgId,
+  scopeParams,
   date,
   filter,
   title,
@@ -369,6 +393,8 @@ export default function DrillDownModal({
   const isAttendancePct = filter === "attendancePct";
   const colConfig       = getColConfig(filter);
 
+  const scopeKey = JSON.stringify({ orgId, scopeParams, date });
+
   React.useEffect(() => {
     if (!open) return;
     let cancelled = false;
@@ -378,7 +404,7 @@ export default function DrillDownModal({
     setData([]);
     setTotal(0);
     setAggregate(null);
-    fetchDrillDown(orgId, filter, date)
+    fetchDrillDown(orgId, scopeParams, filter, date)
       .then((res) => {
         if (cancelled) return;
         setData(res.employees);
@@ -391,7 +417,7 @@ export default function DrillDownModal({
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [open, orgId, filter, date]);
+  }, [open, scopeKey, filter]);
 
   const filtered = React.useMemo(() => {
     if (!search.trim()) return data;
@@ -500,7 +526,14 @@ export default function DrillDownModal({
               <ExportButton
                 data={exportData}
                 columns={exportColumns}
-                meta={{ title, filters: { Date: date, Org: String(orgId) } }}
+                meta={{
+                  title,
+                  filters: {
+                    Date: date,
+                    ...(orgId ? { Org: String(orgId) } : {}),
+                    ...(scopeParams?.verticalIds ? { Verticals: String(scopeParams.verticalIds) } : {}),
+                  },
+                }}
               />
             )}
             <ResponsiveModalClose className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-background hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">

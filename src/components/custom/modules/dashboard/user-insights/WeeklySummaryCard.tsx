@@ -23,7 +23,7 @@ export default function WeeklySummaryCard({ date }: WeeklySummaryCardProps) {
   );
   const weekStart = getWeekStartStr(date);
   const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeParams } = useUserInsightsOrganization();
 
   const daysWithData = rawData.filter((entry: any) => entry.total > 0);
 
@@ -91,7 +91,11 @@ export default function WeeklySummaryCard({ date }: WeeklySummaryCardProps) {
           columns={summaryExportColumns}
           meta={{
             title: "Weekly Summary",
-            filters: { Organization: String(organizationId ?? ""), "Week Of": weekStart },
+            filters: {
+              ...(organizationId ? { Organization: String(organizationId) } : {}),
+              ...(scopeParams?.verticalIds ? { Verticals: String(scopeParams.verticalIds) } : {}),
+              "Week Of": weekStart,
+            },
           }}
         />
       </div>

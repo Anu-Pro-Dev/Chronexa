@@ -41,7 +41,7 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
   const insightsDailySummaryCache = useUserInsightsStore((s) => s.insightsDailySummaryCache);
   const hasSummary = date in insightsDailySummaryCache;
   const summary = insightsDailySummaryCache[date];
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeParams } = useUserInsightsOrganization();
 
 
   const values = SLICES.map((s) => Math.max((summary as any)?.[s.key] ?? 0, 0));
@@ -79,7 +79,11 @@ export default function AttendanceSplitChart({ date }: AttendanceSplitChartProps
           columns={splitExportColumns}
           meta={{
             title: "Yesterday's Attendance Split",
-            filters: { Organization: String(organizationId ?? ""), Date: date },
+            filters: {
+              ...(organizationId ? { Organization: String(organizationId) } : {}),
+              ...(scopeParams?.verticalIds ? { Verticals: String(scopeParams.verticalIds) } : {}),
+              Date: date,
+            },
           }}
         />
       </div>

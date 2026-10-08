@@ -49,9 +49,24 @@ interface DeptTableProps {
 export default function DeptTable({ date }: DeptTableProps) {
   const insightsDeptAttendanceCache = useUserInsightsStore((s) => s.insightsDeptAttendanceCache);
   const hasDeptData = date in insightsDeptAttendanceCache;
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeParams } = useUserInsightsOrganization();
 
-  const deptData: DeptRow[] = (insightsDeptAttendanceCache[date] ?? []).slice(0, 6);
+  const rawDeptData: DeptRow[] = (insightsDeptAttendanceCache[date] ?? []);
+
+  // Merge/aggregate duplicate department names if the backend returns multiple entries across grouped organizations
+  const aggregatedDeptMap = new Map<string, DeptRow>();
+  rawDeptData.forEach((item) => {
+    const key = (item.name || "Unknown").trim();
+    if (!aggregatedDeptMap.has(key)) {
+      aggregatedDeptMap.set(key, { ...item, name: key });
+    } else {
+      const existing = aggregatedDeptMap.get(key)!;
+      existing.checkIns += item.checkIns || 0;
+      existing.total += item.total || 0;
+    }
+  });
+
+  const deptData: DeptRow[] = Array.from(aggregatedDeptMap.values()).slice(0, 6);
 
   const deptExportColumns: ExportColumn[] = [
     { header: "Department", key: "department", width: 25 },
@@ -78,7 +93,11 @@ export default function DeptTable({ date }: DeptTableProps) {
           columns={deptExportColumns}
           meta={{
             title: "Attendance by Department",
-            filters: { Organization: String(organizationId ?? ""), Date: date },
+            filters: {
+              ...(organizationId ? { Organization: String(organizationId) } : {}),
+              ...(scopeParams?.verticalIds ? { Verticals: String(scopeParams.verticalIds) } : {}),
+              Date: date,
+            },
           }}
         />
       </div>
@@ -103,7 +122,7 @@ export default function DeptTable({ date }: DeptTableProps) {
               const pct = row.total > 0 ? Math.round((row.checkIns / row.total) * 100) : 0;
               const color = getDeptColor(idx);
               return (
-                <tr key={row.name} className="border-b border-border/50 last:border-0">
+                <tr key={`${row.name}-${idx}`} className="border-b border-border/50 last:border-0">
                   <td className="py-3 text-text-primary font-regular">
                     <div className="flex items-center gap-2">
                       <span className="inline-block h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />

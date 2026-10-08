@@ -5,6 +5,7 @@ import {
   fetchOvertime,
   fetchTotalsAndToday,
   fetchWeeklyTrend,
+  InsightsScopeParams,
   OrganizationAnalyticsData,
 } from "@/src/lib/userInsightsApiHandler";
 import {
@@ -98,6 +99,18 @@ function resolveDateKey(date?: string): string {
   return date ?? toLocalDateStr(new Date());
 }
 
+function resolveScopeKey(scope?: number | InsightsScopeParams): string {
+  if (typeof scope === "number") return `org_${scope}`;
+  if (!scope) return "default";
+  const v = Array.isArray(scope.verticalIds)
+    ? scope.verticalIds.join(",")
+    : scope.verticalIds ?? "";
+  const o = Array.isArray(scope.orgIds)
+    ? scope.orgIds.join(",")
+    : scope.orgIds ?? "";
+  return `v[${v}]_o[${o}]`;
+}
+
 function setPendingRequest(
   set: (updater: (state: UserInsightsState) => Partial<UserInsightsState>) => void,
   requestKey: string
@@ -187,14 +200,14 @@ export interface UserInsightsState {
   insightsWeeklyTrendCache: Record<string, WeeklyEntry[]>;
   insightsDeptAttendanceCache: Record<string, DeptEntry[]>;
   insightsOvertimeCache: Record<string, OvertimeData>;
-  attendancePctCache: Record<string, AttendancePctData>;   // ← properly typed & initialized
+  attendancePctCache: Record<string, AttendancePctData>;
 
-  fetchDailySummary: (orgId: number, date?: string) => Promise<void>;
-  fetchHourlyTrendData: (orgId: number, date?: string) => Promise<void>;
-  fetchDeptAttendanceData: (orgId: number, date?: string) => Promise<void>;
-  fetchWeeklyTrendData: (orgId: number, date?: string) => Promise<void>;
-  fetchOvertimeData: (orgId: number, date?: string) => Promise<void>;
-  fetchAttendancePct: (orgId: number, date?: string) => Promise<void>;  // ← new action
+  fetchDailySummary: (scope?: number | InsightsScopeParams, date?: string) => Promise<void>;
+  fetchHourlyTrendData: (scope?: number | InsightsScopeParams, date?: string) => Promise<void>;
+  fetchDeptAttendanceData: (scope?: number | InsightsScopeParams, date?: string) => Promise<void>;
+  fetchWeeklyTrendData: (scope?: number | InsightsScopeParams, date?: string) => Promise<void>;
+  fetchOvertimeData: (scope?: number | InsightsScopeParams, date?: string) => Promise<void>;
+  fetchAttendancePct: (scope?: number | InsightsScopeParams, date?: string) => Promise<void>;
   clearData: () => void;
 }
 
@@ -210,17 +223,18 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   insightsWeeklyTrendCache: {},
   insightsDeptAttendanceCache: {},
   insightsOvertimeCache: {},
-  attendancePctCache: {},   // ← initialized as empty object (was missing)
+  attendancePctCache: {},
 
   // ── Daily summary ───────────────────────────────────────────────────────────
-  fetchDailySummary: async (orgId, date) => {
+  fetchDailySummary: async (scope, date) => {
     const cacheKey = resolveDateKey(date);
-    const requestKey = buildInsightsRequestKey("dailySummary", orgId, cacheKey);
+    const scopeId = resolveScopeKey(scope);
+    const requestKey = buildInsightsRequestKey("dailySummary", scopeId, cacheKey);
     const { insightsDailySummaryCache, pendingRequests } = get();
     if (insightsDailySummaryCache[cacheKey] || pendingRequests[requestKey]) return;
     setPendingRequest(set, requestKey);
     try {
-      const data = await fetchTotalsAndToday(orgId, cacheKey);
+      const data = await fetchTotalsAndToday(scope, cacheKey);
       const summary = mapDailySummary(data);
       set((state) => ({
         insightsDailySummaryCache: {
@@ -236,14 +250,15 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   },
 
   // ── Hourly trend ────────────────────────────────────────────────────────────
-  fetchHourlyTrendData: async (orgId, date) => {
+  fetchHourlyTrendData: async (scope, date) => {
     const cacheKey = resolveDateKey(date);
-    const requestKey = buildInsightsRequestKey("hourlyTrend", orgId, cacheKey);
+    const scopeId = resolveScopeKey(scope);
+    const requestKey = buildInsightsRequestKey("hourlyTrend", scopeId, cacheKey);
     const { insightsHourlyTrendCache, pendingRequests } = get();
     if (insightsHourlyTrendCache[cacheKey] || pendingRequests[requestKey]) return;
     setPendingRequest(set, requestKey);
     try {
-      const response = await fetchHourlyTrend(orgId, cacheKey);
+      const response = await fetchHourlyTrend(scope, cacheKey);
       const hourlyTrend: HourlyEntry[] = response.hourlyTrend.map((entry) => ({
         hour: entry.hour,
         checkins: entry.checkIns,
@@ -263,14 +278,15 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   },
 
   // ── Department attendance ───────────────────────────────────────────────────
-  fetchDeptAttendanceData: async (orgId, date) => {
+  fetchDeptAttendanceData: async (scope, date) => {
     const cacheKey = resolveDateKey(date);
-    const requestKey = buildInsightsRequestKey("deptAttendance", orgId, cacheKey);
+    const scopeId = resolveScopeKey(scope);
+    const requestKey = buildInsightsRequestKey("deptAttendance", scopeId, cacheKey);
     const { insightsDeptAttendanceCache, pendingRequests } = get();
     if (insightsDeptAttendanceCache[cacheKey] || pendingRequests[requestKey]) return;
     setPendingRequest(set, requestKey);
     try {
-      const response = await fetchDepartmentAttendance(orgId, cacheKey);
+      const response = await fetchDepartmentAttendance(scope, cacheKey);
       const deptAttendance: DeptEntry[] = response.departmentAttendance.map((entry) => ({
         name: entry.department,
         present: entry.present,
@@ -291,16 +307,17 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   },
 
   // ── Weekly trend ────────────────────────────────────────────────────────────
-  fetchWeeklyTrendData: async (orgId, date) => {
+  fetchWeeklyTrendData: async (scope, date) => {
     const cacheKey = resolveDateKey(date);
     const weekStart = getWeekStartStr(cacheKey);
-    const requestKey = buildInsightsRequestKey("weeklyTrend", orgId, weekStart);
+    const scopeId = resolveScopeKey(scope);
+    const requestKey = buildInsightsRequestKey("weeklyTrend", scopeId, weekStart);
     const { insightsWeeklyTrendCache, pendingRequests } = get();
     if (insightsWeeklyTrendCache[weekStart] || pendingRequests[requestKey]) return;
     set({ weeklyTrendError: null });
     setPendingRequest(set, requestKey);
     try {
-      const response = await fetchWeeklyTrend(orgId, cacheKey);
+      const response = await fetchWeeklyTrend(scope, cacheKey);
       const weeklyTrend = mapWeeklyTrend(response.weeklyTrend, weekStart);
       set((state) => ({
         insightsWeeklyTrendCache: {
@@ -320,14 +337,15 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   },
 
   // ── Overtime ────────────────────────────────────────────────────────────────
-  fetchOvertimeData: async (orgId, date) => {
+  fetchOvertimeData: async (scope, date) => {
     const cacheKey = resolveDateKey(date);
-    const requestKey = buildInsightsRequestKey("overtime", orgId, cacheKey);
+    const scopeId = resolveScopeKey(scope);
+    const requestKey = buildInsightsRequestKey("overtime", scopeId, cacheKey);
     const { insightsOvertimeCache, pendingRequests } = get();
     if (insightsOvertimeCache[cacheKey] || pendingRequests[requestKey]) return;
     setPendingRequest(set, requestKey);
     try {
-      const overtimeResponse = await fetchOvertime(orgId, cacheKey);
+      const overtimeResponse = await fetchOvertime(scope, cacheKey);
       const overtime: OvertimeData = {
         avgHoursToday: overtimeResponse.overtime.avgHoursToday,
         overtimeStaff: overtimeResponse.overtime.overtimeCount,
@@ -353,27 +371,33 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
   },
 
   // ── Attendance % ─────────────────────────────────────────────────────────────
-  // Calls GET /insights/:orgId?action=attendancePct&date=YYYY-MM-DD
-  // Stores result in attendancePctCache[date] so KpiGrid can read it.
-  // In fetchAttendancePct:
-  fetchAttendancePct: async (orgId, date) => {
+  fetchAttendancePct: async (scope, date) => {
     const cacheKey = resolveDateKey(date);
-    const orgDateKey = `${orgId}_${cacheKey}`;
-    const requestKey = buildInsightsRequestKey("attendancePct", orgId, cacheKey);
+    const scopeId = resolveScopeKey(scope);
+    const scopeDateKey = `${scopeId}_${cacheKey}`;
+    const requestKey = buildInsightsRequestKey("attendancePct", scopeId, cacheKey);
     const { attendancePctCache, pendingRequests } = get();
-    if (attendancePctCache[orgDateKey] || pendingRequests[requestKey]) return;
+    if (attendancePctCache[scopeDateKey] || pendingRequests[requestKey]) return;
     setPendingRequest(set, requestKey);
     try {
-      const response = await apiRequest(
-        `/insights/${orgId}?action=attendancePct&date=${cacheKey}`,
-        "GET"
-      );
-      const pct = response?.data as AttendancePctData;
+      let endpoint = `/insights?action=attendancePct&date=${cacheKey}`;
+      if (typeof scope === "number") {
+        endpoint = `/insights/${scope}?action=attendancePct&date=${cacheKey}`;
+      } else if (scope) {
+        const v = Array.isArray(scope.verticalIds) ? scope.verticalIds.join(",") : scope.verticalIds;
+        const o = Array.isArray(scope.orgIds) ? scope.orgIds.join(",") : scope.orgIds;
+        const params = new URLSearchParams({ action: "attendancePct", date: cacheKey });
+        if (v) params.append("verticalIds", String(v));
+        if (o) params.append("orgIds", String(o));
+        endpoint = `/insights?${params.toString()}`;
+      }
+      const response = await apiRequest(endpoint, "GET");
+      const pct = (response?.data?.data ? response.data.data[0] : response?.data) as AttendancePctData;
       if (!pct || pct.presentCount == null || pct.eligibleEmployees == null) return;
       set((state) => ({
         attendancePctCache: {
           ...state.attendancePctCache,
-          [orgDateKey]: pct,
+          [scopeDateKey]: pct,
         },
       }));
     } catch (error) {
@@ -382,6 +406,7 @@ export const useUserInsightsStore = create<UserInsightsState>((set, get) => ({
       clearPendingRequest(set, requestKey);
     }
   },
+
 
   // ── Clear ───────────────────────────────────────────────────────────────────
   clearData: () => {

@@ -17,8 +17,9 @@ export function getWeekStartStr(fromDate?: string): string {
 
 export function buildInsightsRequestKey(
   slice: string,
-  orgId: number,
+  scope: string | number,
   key: string,
 ): string {
-  return `${slice}:${orgId}:${key}`;
+  return `${slice}:${scope}:${key}`;
 }
+

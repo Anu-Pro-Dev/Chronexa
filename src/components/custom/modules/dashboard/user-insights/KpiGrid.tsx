@@ -229,7 +229,7 @@ export default function KpiGrid({ date }: KpiGridProps) {
     (s) => s.insightsDailySummaryCache
   );
 
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeKey, scopeParams } = useUserInsightsOrganization();
   const isLicenseOrg = organizationId === ORG_LICENSE_ONLY;
 
   // ── Daily summary ──────────────────────────────────────────────────────────
@@ -241,7 +241,7 @@ export default function KpiGrid({ date }: KpiGridProps) {
   // the selector — avoids a stale closure where Zustand doesn't detect the
   // key change and the component never re-renders with fresh data.
   const attendancePctCache = useUserInsightsStore((s) => s.attendancePctCache);
-  const pctCacheKey = `${organizationId}_${date}`;
+  const pctCacheKey = `${scopeKey}_${date}`;
   const pctData = attendancePctCache[pctCacheKey];
 
   const adjustedPct = pctData?.adjustedPct ?? 0;
@@ -399,11 +399,12 @@ export default function KpiGrid({ date }: KpiGridProps) {
         ))}
       </div>
 
-      {modal && organizationId && (
+      {modal && (
         <DrillDownModal
           open={modal.open}
           onOpenChange={(open) => (open ? undefined : closeDrillDown())}
-          orgId={organizationId}
+          orgId={organizationId ?? undefined}
+          scopeParams={scopeParams}
           date={date}
           filter={modal.filter}
           title={modal.title}

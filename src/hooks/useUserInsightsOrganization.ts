@@ -46,6 +46,9 @@ export function useUserInsightsOrganization() {
   const userInfo = useAuthStore((state) => state.userInfo);
   const isChecking = useAuthStore((state) => state.isChecking);
   const selectedOrganizationId = useSelectedOrganization((s) => s.selectedOrganizationId);
+  const selectedCompanyOrgIds = useSelectedOrganization((s) => s.selectedCompanyOrgIds);
+  const selectedVerticalIds = useSelectedOrganization((s) => s.selectedVerticalIds);
+  const selectedDepartmentIds = useSelectedOrganization((s) => s.selectedDepartmentIds);
 
   const defaultOrganizationId = React.useMemo(() => {
     if (userInfo?.organization?.id) {
@@ -54,13 +57,55 @@ export function useUserInsightsOrganization() {
     return readOrganizationIdFromStorage();
   }, [userInfo]);
 
-  // If the user has manually selected an org from the dropdown, use that.
-  // Otherwise fall back to the org derived from their login profile.
-  const organizationId = selectedOrganizationId ?? defaultOrganizationId;
+  const organizationId = selectedOrganizationId;
+
+  // Effective company IDs (multi or single)
+  const activeCompanyIds = React.useMemo(() => {
+    if (selectedCompanyOrgIds && selectedCompanyOrgIds.length > 0) {
+      return selectedCompanyOrgIds;
+    }
+    if (selectedOrganizationId) {
+      return [selectedOrganizationId];
+    }
+    return [];
+  }, [selectedCompanyOrgIds, selectedOrganizationId]);
+
+  // Build cache / request key representation of current scope
+  const scopeKey = React.useMemo(() => {
+    const parts: string[] = [];
+    if (activeCompanyIds.length > 0) {
+      parts.push(`org_${[...activeCompanyIds].sort((a, b) => a - b).join(",")}`);
+    } else if (selectedVerticalIds && selectedVerticalIds.length > 0) {
+      parts.push(`v_${[...selectedVerticalIds].sort((a, b) => a - b).join(",")}`);
+    }
+    if (selectedDepartmentIds && selectedDepartmentIds.length > 0) {
+      parts.push(`dept_${[...selectedDepartmentIds].sort((a, b) => a - b).join(",")}`);
+    }
+    return parts.length > 0 ? parts.join("::") : "default";
+  }, [activeCompanyIds, selectedVerticalIds, selectedDepartmentIds]);
+
+  const scopeParams = React.useMemo(() => {
+    const params: Record<string, any> = {};
+    if (activeCompanyIds.length > 0) {
+      params.orgIds = activeCompanyIds.length === 1 ? activeCompanyIds[0] : activeCompanyIds;
+    } else if (selectedVerticalIds && selectedVerticalIds.length > 0) {
+      params.verticalIds = selectedVerticalIds;
+    }
+    if (selectedDepartmentIds && selectedDepartmentIds.length > 0) {
+      params.deptIds = selectedDepartmentIds;
+      params.department_ids = selectedDepartmentIds.join(",");
+    }
+    return params;
+  }, [activeCompanyIds, selectedVerticalIds, selectedDepartmentIds]);
 
   return {
     organizationId,
     defaultOrganizationId,
-    isCheckingOrganization: isChecking && organizationId === null,
+    selectedVerticalIds,
+    selectedDepartmentIds,
+    scopeKey,
+    scopeParams,
+    isCheckingOrganization: isChecking,
   };
 }
+

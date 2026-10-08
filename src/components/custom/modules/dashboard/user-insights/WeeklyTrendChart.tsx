@@ -57,7 +57,7 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
   const insightsWeeklyTrendCache = useUserInsightsStore((s) => s.insightsWeeklyTrendCache);
   const weekStart = getWeekStartStr(date);
   const rawData = insightsWeeklyTrendCache[weekStart] ?? [];
-  const { organizationId } = useUserInsightsOrganization();
+  const { organizationId, scopeParams } = useUserInsightsOrganization();
 
   const byDay = new Map(rawData.map((entry: any) => [entry.day, entry]));
   const weekStartDate = new Date(`${weekStart}T00:00:00`);
@@ -117,7 +117,11 @@ export default function WeeklyTrendChart({ date }: WeeklyTrendChartProps) {
             columns={weeklyExportColumns}
             meta={{
               title: "Weekly Attendance Trend",
-              filters: { Organization: String(organizationId ?? ""), "Week Of": weekStart },
+              filters: {
+                ...(organizationId ? { Organization: String(organizationId) } : {}),
+                ...(scopeParams?.verticalIds ? { Verticals: String(scopeParams.verticalIds) } : {}),
+                "Week Of": weekStart,
+              },
             }}
           />
         </div>
