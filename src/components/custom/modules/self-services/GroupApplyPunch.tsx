@@ -126,8 +126,12 @@ export default function GroupApplyPunch({
     setPopoverStates((prev) => ({ ...prev, [key]: false }));
 
   const orgId = userInfo?.organization_id ?? userInfo?.organization?.id;
+  const parentOrgId = userInfo?.organization?.parent_id ?? userInfo?.parent_organization_id ?? userInfo?.parent_id;
+  const PCP_PARENT_ORG_IDS = [2, 4, 6, 7];
+  const isPCPOrg = orgId === 25 || (parentOrgId && PCP_PARENT_ORG_IDS.includes(Number(parentOrgId)));
+
   const today = startOfDay(new Date());
-  const allowedDays = orgId === 25 ? 30 : 60;
+  const allowedDays = isPCPOrg ? 30 : 60;
   const allowedDaysAgo = startOfDay(subDays(today, allowedDays));
   const isDateDisabled = (date: Date) => {
     const d = startOfDay(date);

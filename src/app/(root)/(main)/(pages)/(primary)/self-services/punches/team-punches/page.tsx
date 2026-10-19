@@ -166,16 +166,27 @@ export default function Page() {
 
   const apiConfig = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
-    const commonParams = {
+    const commonParams: Record<string, string> = {
       limit: String(rowsPerPage),
       offset: String(offset),
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
       ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
       ...(toDate && { to_date: formatDateForAPI(toDate) }),
-      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      ...(selectedOrganization && { organization_id: selectedOrganization }),
-      ...(selectedVertical && { vertical_id: selectedVertical }),
-      ...(selectedEmployeeType && { employee_type_id: selectedEmployeeType }),
+      ...(debouncedEmployeeFilter && {
+        employee_id: debouncedEmployeeFilter,
+        employeeId: debouncedEmployeeFilter,
+      }),
+      ...(selectedOrganization && {
+        organization_id: selectedOrganization,
+        organization_ids: selectedOrganization,
+      }),
+      ...(selectedVertical && {
+        vertical_id: selectedVertical,
+        parent_orgids: selectedVertical,
+      }),
+      ...(selectedEmployeeType && {
+        employee_type_id: selectedEmployeeType,
+      }),
     };
     if (userRole === "admin") {
       return { endpoint: "/employeeEventTransaction/all", searchParams: commonParams };
@@ -184,7 +195,10 @@ export default function Page() {
     } else {
       return {
         endpoint: "/employeeEventTransaction/all",
-        searchParams: { ...commonParams, ...(employeeId && { employeeId: String(employeeId) }) },
+        searchParams: {
+          ...commonParams,
+          ...(employeeId && { employee_id: String(employeeId), employeeId: String(employeeId) }),
+        },
       };
     }
   }, [
@@ -196,19 +210,32 @@ export default function Page() {
 
   const exportApiConfig = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
-    const commonParams = {
+    const commonParams: Record<string, string> = {
+      limit: "1000",
+      offset: "1",
       ...(debouncedSearchValue && { search: debouncedSearchValue }),
       ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
       ...(toDate && { to_date: formatDateForAPI(toDate) }),
-      ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
-      ...(selectedOrganization && { organization_id: selectedOrganization }),
-      ...(selectedVertical && { vertical_id: selectedVertical }),
-      ...(selectedEmployeeType && { employee_type_id: selectedEmployeeType }),
+      ...(debouncedEmployeeFilter && {
+        employee_id: debouncedEmployeeFilter,
+        employeeId: debouncedEmployeeFilter,
+      }),
+      ...(selectedOrganization && {
+        organization_id: selectedOrganization,
+        organization_ids: selectedOrganization,
+      }),
+      ...(selectedVertical && {
+        vertical_id: selectedVertical,
+        parent_orgids: selectedVertical,
+      }),
+      ...(selectedEmployeeType && {
+        employee_type_id: selectedEmployeeType,
+      }),
     };
     if (userRole === "admin") {
-      return { endpoint: "/employeeEventTransaction", searchParams: commonParams };
+      return { endpoint: "/employeeEventTransaction/all", searchParams: commonParams };
     } else {
-      return { endpoint: "/employeeEventTransaction/team", searchParams: commonParams };
+      return { endpoint: "/employeeEventTransaction/team/all", searchParams: commonParams };
     }
   }, [
     userInfo?.role,
@@ -443,7 +470,7 @@ export default function Page() {
       };
     }
 
-    const allData = Array.isArray(allPunchesData?.data)
+    const allData = Array.isArray(allPunchesData?.data) && allPunchesData.data.length > 0
       ? allPunchesData.data.map((transaction: any) => {
         const transactionTimeStr = transaction.transaction_time;
 
@@ -480,14 +507,22 @@ export default function Page() {
           remarks: transaction.remarks,
         };
       })
-      : [];
+      : data.map((item: any) => ({
+        emp_no: item.emp_no,
+        employee_name: item.employee_name,
+        reason: item.reason,
+        transaction_date: item.transaction_date,
+        transaction_time: item.transaction_time,
+        geolocation: item.geolocation,
+        remarks: item.remarks,
+      }));
 
     return {
       ...props,
       Data: allData,
       selectedRows: [],
     };
-  }, [props, allPunchesData, selectedRows, language]);
+  }, [props, allPunchesData, selectedRows, data, language]);
 
   const renderPowerTable = () => {
     if (isChecking) {

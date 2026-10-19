@@ -36,11 +36,24 @@ export default function Page() {
   const { modules, language, translations } = useLanguage();
   const { isAuthenticated, isChecking, employeeId, userInfo, userRole: authUserRole } = useAuthGuard();
   const orgId = userInfo?.organization_id ?? userInfo?.organization?.id;
+  const parentOrgId = userInfo?.organization?.parent_id ?? userInfo?.parent_organization_id ?? userInfo?.parent_id;
+
+  // PCP parent organization IDs: 2, 4, 6, 7, along with organization ID 25
+  const PCP_PARENT_ORG_IDS = [2, 4, 6, 7];
+  const isPCPOrg = orgId === 25 || (parentOrgId && PCP_PARENT_ORG_IDS.includes(Number(parentOrgId)));
+
+  const isManager =
+    userInfo?.manager_flag === true ||
+    userInfo?.manager_flag === 1 ||
+    userInfo?.manager_flag === "1" ||
+    userInfo?.manager_flag === "true" ||
+    (authUserRole || userInfo?.role || "").toLowerCase() === "manager" ||
+    (authUserRole || userInfo?.role || "").toLowerCase() === "admin";
 
   const today = new Date();
   const yesterday = subDays(today, 1);
 
-  const allowedDays = orgId === 25 ? 20 : 30;
+  const allowedDays = isPCPOrg ? 20 : 30;
 
   const defaultFromDate = startOfDay(subDays(yesterday, allowedDays));
 
@@ -599,7 +612,7 @@ export default function Page() {
         disableAdd={true}
         customButtons={
           <>
-            {canAdd && (
+            {(canAdd || (isPCPOrg && isManager)) && (
               <Button
                 variant="success"
                 size="sm"
