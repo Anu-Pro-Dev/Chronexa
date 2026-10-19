@@ -131,7 +131,7 @@ export default function GroupApplyPunch({
   const isPCPOrg = orgId === 25 || (parentOrgId && PCP_PARENT_ORG_IDS.includes(Number(parentOrgId)));
 
   const today = startOfDay(new Date());
-  const allowedDays = isPCPOrg ? 30 : 60;
+  const allowedDays = orgId === 25 ? 30 : 60;
   const allowedDaysAgo = startOfDay(subDays(today, allowedDays));
   const isDateDisabled = (date: Date) => {
     const d = startOfDay(date);
