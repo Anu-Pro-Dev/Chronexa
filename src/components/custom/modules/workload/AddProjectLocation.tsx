@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,10 +13,19 @@ import {
   FormItem,
   FormLabel,
 } from "@/src/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import Required from "@/src/components/ui/required";
 import CountryDropdown from "@/src/components/custom/common/country-dropdown";
 import { useCountries } from "@/src/hooks/useCountries";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
+import { useFetchAllEntity } from "@/src/hooks/useFetchAllEntity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addIfmLocationMasterRequest, editIfmLocationMasterRequest } from "@/src/lib/apiHandler";
 import { useShowToast } from "@/src/utils/toastHelper";
@@ -71,11 +80,64 @@ export default function AddProjectLocation({
 }) {
   const { countries, getCountryByCode } = useCountries();
   const { language, translations } = useLanguage();
+  const { userInfo, userRole } = useAuthGuard();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const showToast = useShowToast();
   const t = translations?.modules?.workload || {};
   const errT = translations?.formErrors || {};
+
+  const { data: organizationsData } = useFetchAllEntity("organization", {
+    searchParams: { limit: "1000" },
+  });
+
+  const entityOptions = useMemo(() => {
+    const orgs: any[] = organizationsData?.data || [];
+    if (!orgs.length) return [];
+
+    // User's parent organization / vertical IDs
+    const parentIdRaw =
+      userInfo?.organization?.parent_id ??
+      userInfo?.parent_organization_id ??
+      userInfo?.parent_id ??
+      userInfo?.parentId;
+
+    const roleParentIdsRaw = userInfo?.role?.parent_ids ?? userInfo?.parent_ids;
+
+    let allowedParentIds: string[] = [];
+    if (roleParentIdsRaw) {
+      allowedParentIds = String(roleParentIdsRaw)
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    if (parentIdRaw !== undefined && parentIdRaw !== null && parentIdRaw !== "") {
+      const pStr = String(parentIdRaw).trim();
+      if (!allowedParentIds.includes(pStr)) {
+        allowedParentIds.push(pStr);
+      }
+    }
+
+    const roleLower = String(userRole || userInfo?.role || "").toLowerCase();
+    const isSuperAdmin = roleLower === "admin" || roleLower === "superadmin" || roleLower === "super admin";
+
+    let filteredOrgs = orgs;
+    if (!isSuperAdmin && allowedParentIds.length > 0) {
+      filteredOrgs = orgs.filter((item: any) =>
+        allowedParentIds.includes(String(item.parent_id))
+      );
+    }
+
+    const uniqueEntities = new Set<string>();
+    filteredOrgs.forEach((org: any) => {
+      const name = (org.entity_name || org.organization_eng || org.display_name || "").trim();
+      if (name) {
+        uniqueEntities.add(name);
+      }
+    });
+
+    return Array.from(uniqueEntities).sort((a, b) => a.localeCompare(b));
+  }, [organizationsData, userInfo, userRole]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -225,6 +287,7 @@ export default function AddProjectLocation({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
+            {/* 1. Project Name */}
             <FormField
               control={form.control}
               name="project_name"
@@ -248,16 +311,17 @@ export default function AddProjectLocation({
               )}
             />
 
+            {/* 2. Radius */}
             <FormField
               control={form.control}
-              name="location_code"
+              name="radius"
               render={({ field }) => (
                 <FormItem className="min-w-0">
-                  <FormLabel>{t.location_code || "Location Code"}</FormLabel>
+                  <FormLabel>{t.radius || "Radius"}</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder={t.placeholder_location_code || "Enter location code"}
+                      placeholder={t.placeholder_radius || "e.g. 100"}
                       {...field}
                     />
                   </FormControl>
@@ -265,6 +329,7 @@ export default function AddProjectLocation({
               )}
             />
 
+            {/* 3. Location Name */}
             <FormField
               control={form.control}
               name="location_name"
@@ -282,6 +347,25 @@ export default function AddProjectLocation({
               )}
             />
 
+            {/* 4. Location Code */}
+            <FormField
+              control={form.control}
+              name="location_code"
+              render={({ field }) => (
+                <FormItem className="min-w-0">
+                  <FormLabel>{t.location_code || "Location Code"}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder={t.placeholder_location_code || "Enter location code"}
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {/* 5. Latitude */}
             <FormField
               control={form.control}
               name="latitude"
@@ -311,6 +395,7 @@ export default function AddProjectLocation({
               )}
             />
 
+            {/* 6. Longitude */}
             <FormField
               control={form.control}
               name="longitude"
@@ -340,23 +425,7 @@ export default function AddProjectLocation({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="radius"
-              render={({ field }) => (
-                <FormItem className="min-w-0">
-                  <FormLabel>{t.radius || "Radius"}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      placeholder={t.placeholder_radius || "e.g. 100"}
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
+            {/* 7. Geo Coordinate / Geolocation (Full 2-column width) */}
             <FormField
               control={form.control}
               name="geolocation"
@@ -376,6 +445,7 @@ export default function AddProjectLocation({
               )}
             />
 
+            {/* 8. City */}
             <FormField
               control={form.control}
               name="city"
@@ -393,6 +463,7 @@ export default function AddProjectLocation({
               )}
             />
 
+            {/* 9. Country Code */}
             <FormField
               control={form.control}
               name="country_code"
@@ -411,23 +482,41 @@ export default function AddProjectLocation({
               )}
             />
 
+            {/* 10. Entity Name (Dropdown filtered by user role / parent organization) */}
             <FormField
               control={form.control}
               name="entity"
               render={({ field }) => (
                 <FormItem className="min-w-0">
                   <FormLabel>{t.entity || "Entity"}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      placeholder={t.placeholder_entity || "Enter entity"}
-                      {...field}
-                    />
-                  </FormControl>
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={(val) => field.onChange(val)}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t.placeholder_entity || "Select entity"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {/* If the current record has an entity not in the options list, keep it as an option */}
+                      {field.value && !entityOptions.includes(field.value) && (
+                        <SelectItem key={field.value} value={field.value}>
+                          {field.value}
+                        </SelectItem>
+                      )}
+                      {entityOptions.map((name) => (
+                        <SelectItem key={name} value={name}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormItem>
               )}
             />
 
+            {/* 11. Active Flag */}
             <FormField
               control={form.control}
               name="active_flag"
