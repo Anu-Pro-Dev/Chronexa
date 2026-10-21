@@ -70,7 +70,7 @@ export default function AddPcpLocation({
   onSave: (id: string | null, newData: any) => void;
 }) {
   const { countries, getCountryByCode } = useCountries();
-  const { language, translations } = useLanguage();
+  const { translations } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const showToast = useShowToast();
