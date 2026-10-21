@@ -532,6 +532,11 @@ export default function LanguageProvider({
           path: "/workload/cost-center-location/",
           value: "cost_center_location",
         },
+        {
+          label: currentLanguageData.translations?.modules?.workload?.pcp_location_master || "PCP Location Master",
+          path: "/workload/pcp-location-master/",
+          value: "pcp_location_master",
+        },
       ],
     };
 

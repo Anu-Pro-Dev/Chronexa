@@ -1671,3 +1671,58 @@ export const deleteBulkCostCodeMasterRequest = async (ids: number[]) => {
 export const getAllCostCodeMasterUnpaginated = async () => {
   return apiRequest("/cost-code-master", "GET");
 };
+
+// ── PCP Location Master APIs ──────────────────────────────────────────
+export const addPcpLocationMasterRequest = async (data: {
+  project_name: string;
+  location_code?: string;
+  location_name?: string;
+  latitude: number;
+  longitude: number;
+  radius?: string | number;
+  geolocation?: string;
+  city?: string;
+  country_code?: string;
+  entity?: string;
+  active_flag?: boolean;
+}) => {
+  return apiRequest("/pcp-location-master/add", "POST", data);
+};
+
+export const editPcpLocationMasterRequest = async (data: {
+  location_id: number;
+  project_name?: string;
+  location_code?: string;
+  location_name?: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: string | number;
+  geolocation?: string;
+  city?: string;
+  country_code?: string;
+  entity?: string;
+  active_flag?: boolean;
+}) => {
+  const { location_id, ...payload } = data;
+  return apiRequest(`/pcp-location-master/update/${location_id}`, "PUT", payload);
+};
+
+export const getPcpLocationMasterById = async (location_id: number) => {
+  return apiRequest(`/pcp-location-master/get/${location_id}`, "GET");
+};
+
+export const deletePcpLocationMasterRequest = async (location_id: number) => {
+  return apiRequest(`/pcp-location-master/delete/${location_id}`, "DELETE");
+};
+
+export const deleteBulkPcpLocationMasterRequest = async (ids: number[]) => {
+  return apiRequest("/pcp-location-master/delete", "DELETE", { ids });
+};
+
+export const getAllPcpLocationMasterUnpaginated = async (params?: { is_active?: boolean; location_ids?: string }) => {
+  const query = new URLSearchParams();
+  if (params?.is_active !== undefined) query.set("is_active", String(params.is_active));
+  if (params?.location_ids) query.set("location_ids", params.location_ids);
+  const qStr = query.toString();
+  return apiRequest(`/pcp-location-master${qStr ? `?${qStr}` : ""}`, "GET");
+};
