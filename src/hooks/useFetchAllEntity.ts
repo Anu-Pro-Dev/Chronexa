@@ -15,7 +15,7 @@ interface Options {
 export function useFetchAllEntity(entity: string, options?: Options) {
   const { searchParams = {}, enabled = true, endpoint, removeAll = false } = options || {};
 
-  const immediateParams = ['limit', 'offset', 'status', 'organization_id', 'app_type', 'emp_no', 'location_ids', 'parent_orgids'];
+  const immediateParams = ['limit', 'offset', 'status', 'organization_id', 'organization_ids', 'parent_id', 'parent_ids', 'app_type', 'emp_no', 'location_ids'];
   
   const { immediate, searchable } = useMemo(() => {
     const immediate: Params = {};
@@ -42,7 +42,7 @@ export function useFetchAllEntity(entity: string, options?: Options) {
   const fetchFn = async () => {
     const queryString = Object.entries(finalParams)
       .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value).replace(/%2C/gi, ',')}`)
       .join('&');
     
     let baseUrl: string;

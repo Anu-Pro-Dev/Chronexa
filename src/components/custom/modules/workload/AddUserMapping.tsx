@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -28,6 +28,8 @@ import {
 } from "@/src/components/ui/form";
 import Required from "@/src/components/ui/required";
 import { useLanguage } from "@/src/providers/LanguageProvider";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { useDashboardStore } from "@/src/store/useDashboardStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   addBulkIfmEmployeeLocationMappingRequest,
@@ -116,12 +118,35 @@ export default function AddUserMapping({
     }
   }, [locationsList]);
 
-  // Fetch employees with limit=10, parent_orgids=5, and search term
+  // Resolve the logged-in user's role, then use that role's parent_ids as the
+  // employee scope instead of a hardcoded parent organization.
+  const userInfo = useAuthStore((state) => state.userInfo);
+  const storeRoleId = useDashboardStore((state) => state.roleId);
+  const roleId = userInfo?.roleId ?? userInfo?.role_id ?? storeRoleId ?? null;
+
+  const { data: roleResponse, isLoading: isLoadingRole } = useFetchAllEntity("secRole", {
+    endpoint: roleId ? `/secRole/get/${roleId}` : undefined,
+    enabled: !!roleId,
+  });
+
+  const roleParentOrgIds = useMemo(() => {
+    const rawParentIds = roleResponse?.data?.parent_ids;
+    if (!rawParentIds) return "";
+    return String(rawParentIds)
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean)
+      .join(",");
+  }, [roleResponse]);
+
+  // Fetch employees with limit=10, scoped to the role's parent organizations,
+  // and search term. The backend also enforces role-based org access from the JWT.
   const { data: employeesResponse, isLoading: isLoadingEmployees } = useFetchAllEntity("employee", {
+    enabled: !roleId || !isLoadingRole,
     searchParams: {
       limit: "10",
       offset: "1",
-      parent_orgids: "5",
+      ...(roleParentOrgIds && { parent_ids: roleParentOrgIds }),
       ...(debouncedEmpSearch && { search: debouncedEmpSearch }),
     },
   });
