@@ -39,6 +39,12 @@ export default function Page() {
         sm.sub_module_name?.toLowerCase().includes("cost center") ||
         sm.sub_module_name?.toLowerCase().includes("cost code")
     );
+    const pcpLocationSub = subModules.find(
+      (sm: any) =>
+        sm.path === "pcp-location-master" ||
+        sm.path === "pcp_location_master" ||
+        sm.sub_module_name?.toLowerCase().includes("pcp location")
+    );
 
     if (projLocSub && isSubAllowed(projLocSub)) {
       router.replace("/workload/project-location/");
@@ -46,6 +52,8 @@ export default function Page() {
       router.replace("/workload/user-mapping/");
     } else if (costCenterSub && isSubAllowed(costCenterSub)) {
       router.replace("/workload/cost-center-location/");
+    } else if (pcpLocationSub && isSubAllowed(pcpLocationSub)) {
+      router.replace("/workload/pcp-location-master/");
     } else {
       const firstAllowed = subModules.find(isSubAllowed);
       if (firstAllowed) {
