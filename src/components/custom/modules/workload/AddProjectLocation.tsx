@@ -79,7 +79,7 @@ export default function AddProjectLocation({
   onSave: (id: string | null, newData: any) => void;
 }) {
   const { countries, getCountryByCode } = useCountries();
-  const { language, translations } = useLanguage();
+  const { translations } = useLanguage();
   const { userInfo, userRole } = useAuthGuard();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();

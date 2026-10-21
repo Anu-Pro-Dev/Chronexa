@@ -30,7 +30,7 @@ export default function Page() {
 
   const queryClient = useQueryClient();
   const debouncedSearchValue = useDebounce(searchValue, 300);
-  const t = translations?.modules?.workload || {};
+  const t = useMemo(() => translations?.modules?.workload || {}, [translations]);
 
   // Check view privilege and redirect to accessible submodule or /no-access if false
   useEffect(() => {
