@@ -146,7 +146,7 @@ export default function AddUserMapping({
     searchParams: {
       limit: "10",
       offset: "1",
-      ...(roleParentOrgIds && { parent_orgids: roleParentOrgIds }),
+      ...(roleParentOrgIds && { parent_ids: roleParentOrgIds }),
       ...(debouncedEmpSearch && { search: debouncedEmpSearch }),
     },
   });
