@@ -1726,3 +1726,52 @@ export const getAllPcpLocationMasterUnpaginated = async (params?: { is_active?: 
   const qStr = query.toString();
   return apiRequest(`/pcp-location-master${qStr ? `?${qStr}` : ""}`, "GET");
 };
+
+export type SparkEmployeeLocationPayload = {
+  EmployeeNumber: string;
+  NameEng?: string | null;
+  LocationCode?: string | null;
+  LocationEng?: string | null;
+  CountryCode?: string | null;
+  Radius?: string | null;
+  Geolocation?: string | null;
+  latitude?: number;
+  longitude?: number;
+  City?: string | null;
+  FromDate?: string | null;
+  ToDate?: string | null;
+};
+
+export const addSparkEmployeeLocationRequest = async (data: SparkEmployeeLocationPayload) => {
+  return apiRequest("/spark-employee-location/add", "POST", data);
+};
+
+export const editSparkEmployeeLocationRequest = async (
+  data: SparkEmployeeLocationPayload & { location_id: number }
+) => {
+  const { location_id, ...payload } = data;
+  return apiRequest(`/spark-employee-location/update/${location_id}`, "PUT", payload);
+};
+
+export const getSparkEmployeeLocationById = async (location_id: number) => {
+  return apiRequest(`/spark-employee-location/get/${location_id}`, "GET");
+};
+
+export const deleteSparkEmployeeLocationRequest = async (location_id: number) => {
+  return apiRequest(`/spark-employee-location/delete/${location_id}`, "DELETE");
+};
+
+export const deleteBulkSparkEmployeeLocationRequest = async (ids: number[]) => {
+  return apiRequest("/spark-employee-location/delete", "DELETE", { ids });
+};
+
+export const getAllSparkEmployeeLocationUnpaginated = async (params?: {
+  employee_number?: string;
+  location_ids?: string;
+}) => {
+  const query = new URLSearchParams();
+  if (params?.employee_number) query.set("employee_number", params.employee_number);
+  if (params?.location_ids) query.set("location_ids", params.location_ids);
+  const qStr = query.toString();
+  return apiRequest(`/spark-employee-location${qStr ? `?${qStr}` : ""}`, "GET");
+};

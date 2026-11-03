@@ -45,6 +45,12 @@ export default function Page() {
         sm.path === "pcp_location_master" ||
         sm.sub_module_name?.toLowerCase().includes("pcp location")
     );
+    const sparkLocationSub = subModules.find(
+      (sm: any) =>
+        sm.path === "spark-location" ||
+        sm.path === "spark-employee-location" ||
+        sm.sub_module_name?.toLowerCase().includes("spark")
+    );
 
     if (projLocSub && isSubAllowed(projLocSub)) {
       router.replace("/workload/project-location/");
@@ -54,6 +60,8 @@ export default function Page() {
       router.replace("/workload/cost-center-location/");
     } else if (pcpLocationSub && isSubAllowed(pcpLocationSub)) {
       router.replace("/workload/pcp-location-master/");
+    } else if (sparkLocationSub && isSubAllowed(sparkLocationSub)) {
+      router.replace("/workload/spark-location/");
     } else {
       const firstAllowed = subModules.find(isSubAllowed);
       if (firstAllowed) {

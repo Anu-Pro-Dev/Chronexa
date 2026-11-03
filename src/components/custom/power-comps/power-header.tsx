@@ -113,6 +113,9 @@ export default function PowerHeader({
       'costCodeMaster': 'id',
       'pcp-location-master': 'location_id',
       'pcpLocationMaster': 'location_id',
+      'spark-employee-location': 'location_id',
+      'sparkEmployeeLocation': 'location_id',
+      'spark-location': 'location_id',
     };
     
     if (specialMappings[entityName]) {

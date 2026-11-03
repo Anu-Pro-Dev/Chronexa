@@ -537,6 +537,11 @@ export default function LanguageProvider({
           path: "/workload/pcp-location-master/",
           value: "pcp_location_master",
         },
+        {
+          label: currentLanguageData.translations?.modules?.workload?.spark_location || "Spark Location",
+          path: "/workload/spark-location/",
+          value: "spark_location",
+        },
       ],
     };
 
