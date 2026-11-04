@@ -1775,3 +1775,22 @@ export const getAllSparkEmployeeLocationUnpaginated = async (params?: {
   const qStr = query.toString();
   return apiRequest(`/spark-employee-location${qStr ? `?${qStr}` : ""}`, "GET");
 };
+
+export type OpenLocationPayload = {
+  employee_id?: number | null;
+  employee_number?: string | null;
+  employee_name?: string | null;
+  is_active?: boolean;
+};
+
+export const addOpenLocationRequest = async (data: OpenLocationPayload) => {
+  return apiRequest("/open-location/add", "POST", data);
+};
+
+export const deleteOpenLocationRequest = async (open_location_id: number) => {
+  return apiRequest(`/open-location/delete/${open_location_id}`, "DELETE");
+};
+
+export const deleteBulkOpenLocationRequest = async (ids: number[]) => {
+  return apiRequest("/open-location/delete", "DELETE", { ids });
+};

@@ -542,6 +542,11 @@ export default function LanguageProvider({
           path: "/workload/spark-location/",
           value: "spark_location",
         },
+        {
+          label: currentLanguageData.translations?.modules?.workload?.open_location || "Open Location",
+          path: "/workload/open-location/",
+          value: "open_location",
+        },
       ],
     };
 
