@@ -116,6 +116,9 @@ export default function PowerHeader({
       'spark-employee-location': 'location_id',
       'sparkEmployeeLocation': 'location_id',
       'spark-location': 'location_id',
+      'open-location': 'open_location_id',
+      'openLocation': 'open_location_id',
+      'open_location': 'open_location_id',
     };
     
     if (specialMappings[entityName]) {
