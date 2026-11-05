@@ -58,13 +58,23 @@ export default function Page() {
   // userInfo is null on the server but populated on the client.
   const isAdmin = !isChecking && userInfo?.role?.toLowerCase() === "admin";
   const isManager = !isChecking && userInfo?.role?.toLowerCase() === "manager";
+  const roleId = Number(userInfo?.roleId ?? userInfo?.role_id ?? 0);
+  const isOrgWideTeamRole = !isChecking && roleId === 18;
 
-  const options = useMemo(() => [
-    { value: "all", label: "All" },
-    { value: "0", label: t.pending || "Pending" },
-    { value: "1", label: t.approved || "Approved" },
-    { value: "2", label: t.rejected || "Rejected" },
-  ], [t]);
+  const options = useMemo(() => {
+    if (isOrgWideTeamRole) {
+      return [
+        { value: "all", label: "All" },
+        { value: "0", label: t.pending || "Pending" },
+      ];
+    }
+    return [
+      { value: "all", label: "All" },
+      { value: "0", label: t.pending || "Pending" },
+      { value: "1", label: t.approved || "Approved" },
+      { value: "2", label: t.rejected || "Rejected" },
+    ];
+  }, [t, isOrgWideTeamRole]);
 
   const closePopover = useCallback((key: 'fromDate' | 'toDate' | 'employeeFilter') => {
     setPopoverStates(prev => ({ ...prev, [key]: false }));
@@ -86,7 +96,7 @@ export default function Page() {
   // Keep options shape stable across renders to avoid React Query key instability.
   const employeeFetchOptions = useMemo(() => {
     const isReady = !!userInfo?.role && !isChecking;
-    if (isManager && !isAdmin && employeeId) {
+    if (isManager && !isAdmin && !isOrgWideTeamRole && employeeId) {
       return {
         endpoint: `/employee/all?manager_id=${employeeId}`,
         enabled: isReady,
@@ -95,9 +105,9 @@ export default function Page() {
     return {
       endpoint: `/employee/all`,
       searchParams: { limit: "1000" },
-      enabled: isReady && isAdmin,
+      enabled: isReady && (isAdmin || isOrgWideTeamRole),
     };
-  }, [isManager, isAdmin, employeeId, userInfo?.role, isChecking]);
+  }, [isManager, isAdmin, isOrgWideTeamRole, employeeId, userInfo?.role, isChecking]);
 
   const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
     "employee",
@@ -212,6 +222,19 @@ export default function Page() {
   const apiConfig = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
 
+    if (isOrgWideTeamRole) {
+      const teamParams = {
+        limit: String(rowsPerPage),
+        offset: String(offset),
+        ...(selectedOption === "0" && { pending: "true" }),
+        ...(fromDate && { from_date: formatDateForAPI(fromDate) }),
+        ...(toDate && { to_date: formatDateForAPI(toDate) }),
+        ...(debouncedSearchValue && { search: debouncedSearchValue }),
+        ...(debouncedEmployeeFilter && { employee_id: debouncedEmployeeFilter }),
+      };
+      return { endpoint: "/employeeLeave/team/all", searchParams: teamParams };
+    }
+
     const commonParams = {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -238,6 +261,7 @@ export default function Page() {
       };
     }
   }, [
+    isOrgWideTeamRole,
     userInfo?.role,
     rowsPerPage,
     offset,
@@ -264,7 +288,7 @@ export default function Page() {
     if (!Array.isArray(leavesData?.data)) return [];
 
     // Admins see all records; managers/others exclude their own record from the list
-    const filteredData = isAdmin
+    const filteredData = isAdmin || isOrgWideTeamRole
       ? leavesData.data
       : leavesData.data.filter((leave: any) => leave.employee_id !== employeeId);
 
@@ -288,7 +312,7 @@ export default function Page() {
         employee_master: leave.employee_master || leave.employee_master_employee_leaves_employee_idToemployee_master,
       };
     });
-  }, [leavesData, language, employeeId, isAdmin, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel, formatDateForDisplay]);
+  }, [leavesData, language, employeeId, isAdmin, isOrgWideTeamRole, getEmployeeDisplayInfo, getLeaveTypeName, getStatusLabel, formatDateForDisplay]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setCurrentPage(newPage);
@@ -465,7 +489,7 @@ export default function Page() {
         </div>
 
         {/* Employee filter — admin and manager only */}
-        {(isAdmin || isManager) && (
+        {(isAdmin || isManager || isOrgWideTeamRole) && (
           <div>
             <Popover open={popoverStates.employeeFilter} onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, employeeFilter: open }))}>
               <PopoverTrigger asChild>

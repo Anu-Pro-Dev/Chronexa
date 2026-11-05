@@ -91,6 +91,8 @@ export default function Page() {
 
   const isAdmin = userInfo?.role?.toLowerCase() === "admin";
   const isManager = userInfo?.role?.toLowerCase() === "manager";
+  const roleId = Number(userInfo?.roleId ?? userInfo?.role_id ?? 0);
+  const isOrgWideTeamRole = !isChecking && roleId === 18;
 
   const { data: organizationData } = useFetchAllEntity("organization", {
     searchParams: {
@@ -166,6 +168,19 @@ export default function Page() {
 
   const apiConfig = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
+
+    if (isOrgWideTeamRole) {
+      const teamParams: Record<string, string> = {
+        limit: String(rowsPerPage),
+        offset: String(offset),
+        ...(debouncedSearchValue && { search: debouncedSearchValue }),
+        ...(fromDate && { startDate: formatDateForAPI(fromDate) }),
+        ...(toDate && { endDate: formatDateForAPI(toDate) }),
+        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+      };
+      return { endpoint: "/employeeEventTransaction/team/all", searchParams: teamParams };
+    }
+
     const commonParams: Record<string, string> = {
       limit: String(rowsPerPage),
       offset: String(offset),
@@ -202,7 +217,7 @@ export default function Page() {
       };
     }
   }, [
-    userInfo?.role, rowsPerPage, offset,
+    isOrgWideTeamRole, userInfo?.role, rowsPerPage, offset,
     debouncedSearchValue, fromDate, toDate, debouncedEmployeeFilter,
     selectedOrganization, selectedVertical, selectedEmployeeType,
     employeeId, formatDateForAPI,
@@ -210,6 +225,19 @@ export default function Page() {
 
   const exportApiConfig = useMemo(() => {
     const userRole = userInfo?.role?.toLowerCase();
+
+    if (isOrgWideTeamRole) {
+      const teamParams: Record<string, string> = {
+        limit: "1000",
+        offset: "1",
+        ...(debouncedSearchValue && { search: debouncedSearchValue }),
+        ...(fromDate && { startDate: formatDateForAPI(fromDate) }),
+        ...(toDate && { endDate: formatDateForAPI(toDate) }),
+        ...(debouncedEmployeeFilter && { employeeId: debouncedEmployeeFilter }),
+      };
+      return { endpoint: "/employeeEventTransaction/team/all", searchParams: teamParams };
+    }
+
     const commonParams: Record<string, string> = {
       limit: "1000",
       offset: "1",
@@ -238,7 +266,7 @@ export default function Page() {
       return { endpoint: "/employeeEventTransaction/team/all", searchParams: commonParams };
     }
   }, [
-    userInfo?.role,
+    isOrgWideTeamRole, userInfo?.role,
     debouncedSearchValue, fromDate, toDate, debouncedEmployeeFilter,
     selectedOrganization, selectedVertical, selectedEmployeeType,
     formatDateForAPI,
@@ -376,11 +404,11 @@ export default function Page() {
 
   const { data: employeesData, isLoading: isLoadingEmployees } = useFetchAllEntity(
     "employee",
-    isManager && !isAdmin && employeeId
+    isManager && !isAdmin && !isOrgWideTeamRole && employeeId
       ? { endpoint: `/employee/all?manager_id=${employeeId}` }
       : {
         searchParams: { limit: "1000" },
-        enabled: !!userInfo && isAdmin,
+        enabled: !!userInfo && (isAdmin || isOrgWideTeamRole),
       }
   );
 
@@ -774,7 +802,7 @@ export default function Page() {
           </Popover>
         </div>
 
-        {(isAdmin || isManager) && (
+        {(isAdmin || isManager || isOrgWideTeamRole) && (
           <div>
             <Popover
               open={popoverStates.employeeFilter}
