@@ -137,8 +137,8 @@ const COLUMN_WIDTHS: Record<string, number> = {
   Shift: 14,
   PunchIn: 12,
   PunchOut: 12,
-  LocationIn: 24,
-  LocationOut: 24,
+  LocationIn: 30,
+  LocationOut: 30,
   DailyWorkedHrs: 14,
   DailyMissedHrs: 14,
   LateCheckIn: 14,
@@ -163,8 +163,8 @@ const HEADER_OVERRIDES: Record<string, string> = {
   Department: "Division",
   LateCheckIn: "Late Check-In",
   EarlyCheckOut: "Early Check-Out",
-  LocationIn: "Location In",
-  LocationOut: "Location Out",
+  LocationIn: "Location In / Device In",
+  LocationOut: "Location Out / Device Out",
 }
 
 interface Summary {
@@ -338,6 +338,16 @@ export class ExcelExporter {
     // Location In/Out read ONLY the LocationIn/LocationOut keys. The previous
     // fallback to GeoLocationIn/Out is removed on purpose: those hold raw
     // lat/long pairs, and this column must show the location name instead.
+    // The same cell also carries the punch device (DeviceIn/DeviceOut):
+    // "Location / Device", or whichever of the two exists.
+    if (header === 'LocationIn' || header === 'LocationOut') {
+      const device = header === 'LocationIn' ? row.DeviceIn : row.DeviceOut;
+      return [row[header], device]
+        .map((v) => (v === null || v === undefined ? '' : String(v).trim()))
+        .filter(Boolean)
+        .join(' / ');
+    }
+
     const value = row[header];
 
     if (value === null || value === undefined || value === '') return '';

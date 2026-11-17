@@ -34,8 +34,8 @@ const HEADER_OVERRIDES: Record<string, string> = {
   Department: "Division",
   LateCheckIn: "Late Check-In",
   EarlyCheckOut: "Early Check-Out",
-  LocationIn: "Location In",
-  LocationOut: "Location Out",
+  LocationIn: "Location In / Device In",
+  LocationOut: "Location Out / Device Out",
 };
 
 function parseTimeHM(value: any): { h: number; m: number } | null {
@@ -189,13 +189,13 @@ export class PDFExporter {
     const widthMap: Record<string, string> = {
       // daily — 21 columns; these sum to 100% because the table uses
       // table-layout: fixed, where over-allocating squeezes every column.
-      'EmployeeNo': '4%', 'Name': '6%', 'ParentOrganization': '5%', 'Organization': '5%',
+      'EmployeeNo': '4%', 'Name': '6%', 'ParentOrganization': '4%', 'Organization': '5%',
       'Department': '5%', 'BusinessUnit': '5%', 'EmployeeType': '5%',
       'WorkDate': '5%', 'WorkDay': '3%', 'Shift': '3%',
-      'PunchIn': '4%', 'LocationIn': '7%', 'PunchOut': '4%', 'LocationOut': '7%',
-      'DailyWorkedHrs': '5%', 'DailyMissedHrs': '5%',
+      'PunchIn': '4%', 'LocationIn': '9%', 'PunchOut': '4%', 'LocationOut': '9%',
+      'DailyWorkedHrs': '4%', 'DailyMissedHrs': '4%',
       'LateCheckIn': '4%', 'EarlyCheckOut': '4%',
-      'IsAbsent': '4%', 'MissedPunch': '4%', 'EmployeeStatus': '6%',
+      'IsAbsent': '4%', 'MissedPunch': '4%', 'EmployeeStatus': '5%',
       // aggregated
       'WeekStart': '12%', 'WeekEnd': '12%', 'Month': '12%', 'Year': '8%',
       'TotalWorkedHrs': '13%', 'TotalMissedHrs': '13%', 'TotalExtraHrs': '13%', 'TotalAbsents': '10%',
@@ -214,6 +214,16 @@ export class PDFExporter {
     if (header === 'EarlyCheckOut') {
       if (!isProfessional(row) || !row.PunchOut) return '';
       return formatMinutesToHHMM(getMinutesEarly(row.PunchOut));
+    }
+
+    // Location column also carries the punch device: "Location / Device",
+    // or whichever of the two exists.
+    if (header === 'LocationIn' || header === 'LocationOut') {
+      const device = header === 'LocationIn' ? row.DeviceIn : row.DeviceOut;
+      return [row[header], device]
+        .map((v) => (v === null || v === undefined ? '' : String(v).trim()))
+        .filter(Boolean)
+        .join(' / ');
     }
 
     const value = row[header];

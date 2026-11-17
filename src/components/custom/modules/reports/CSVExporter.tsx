@@ -36,8 +36,8 @@ const HEADER_OVERRIDES: Record<string, string> = {
   Department: "Division",
   LateCheckIn: "Late Check-In",
   EarlyCheckOut: "Early Check-Out",
-  LocationIn: "Location In",
-  LocationOut: "Location Out",
+  LocationIn: "Location In / Device In",
+  LocationOut: "Location Out / Device Out",
 };
 
 function parseTimeHM(value: any): { h: number; m: number } | null {
@@ -154,6 +154,16 @@ export class CSVExporter {
     if (header === 'EarlyCheckOut') {
       if (!isProfessional(row) || !row.PunchOut) return '';
       return formatMinutesToHHMM(getMinutesEarly(row.PunchOut));
+    }
+
+    // Location column also carries the punch device: "Location / Device",
+    // or whichever of the two exists.
+    if (header === 'LocationIn' || header === 'LocationOut') {
+      const device = header === 'LocationIn' ? row.DeviceIn : row.DeviceOut;
+      return [row[header], device]
+        .map((v) => (v === null || v === undefined ? '' : String(v).trim()))
+        .filter(Boolean)
+        .join(' / ');
     }
 
     const value = row[header];
