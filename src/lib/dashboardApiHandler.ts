@@ -113,3 +113,23 @@ export const getTeamReportAttendance = async (params: {
   });
   return apiRequest(`/report/attendance?${query}`, 'GET');
 };
+
+export const exportTeamAttendance = async (
+  kpi?: string,
+  date?: string,
+  format?: 'xlsx' | 'json'
+) => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('kpi', kpi || 'all');
+  if (date) queryParams.append('date', date);
+  if (format) queryParams.append('format', format);
+
+  const query = queryParams.toString();
+  return apiRequest(
+    `/dashboard/teamAttendance/export${query ? `?${query}` : ''}`,
+    'GET',
+    undefined,
+    HEAVY_TIMEOUT,
+    format === 'json' ? 'json' : 'blob'
+  );
+};

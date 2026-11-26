@@ -16,13 +16,13 @@ const apiInstance = axios.create({
 });
 
 // Function to handle API requests
-export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", data?: any, timeout?: number) => {
+export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", data?: any, timeout?: number, responseType?: "json" | "blob" | "arraybuffer" | "text") => {
   try {
     const token = getAuthToken();
 
     const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
 
-    const config = {
+    const config: any = { ...(responseType ? { responseType } : {}),
       method,
       url: endpoint,
       data,

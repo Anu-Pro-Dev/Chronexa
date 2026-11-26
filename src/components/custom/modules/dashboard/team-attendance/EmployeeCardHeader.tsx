@@ -8,8 +8,8 @@ import { Button } from "@/src/components/ui/button";
 import { Calendar1Icon } from "@/src/icons/icons";
 import { cn } from "@/src/lib/utils";
 import { ExportButton } from "../export/ExportButton";
-import type { ExportColumn } from "../export/DashboardExcelExporter";
-import { useTeamAttendanceData } from "./TeamAttendanceDataProvider";
+import { exportTeamAttendance } from "@/src/lib/dashboardApiHandler";
+import toast from "react-hot-toast";
 
 export const EmployeeCardHeader = () => {
   const { translations } = useLanguage();
@@ -18,7 +18,6 @@ export const EmployeeCardHeader = () => {
   const setSelectedDate = useSelectedDate((s) => s.setDate);
   const [localDate, setLocalDate] = useState<Date>(selectedDate);
   const [open, setOpen] = useState(false);
-  const { teamAttendanceDetails } = useTeamAttendanceData();
 
   useEffect(() => {
     setLocalDate(selectedDate);
@@ -32,31 +31,36 @@ export const EmployeeCardHeader = () => {
     }
   };
 
-  const formatHrs = (v: any) => {
-    if (!v || v === "0:00" || v === "00:00") return "0";
-    const [h, m] = String(v).split(":");
-    return `${Number(h) + Number(m) / 60}`;
+  const handleBackendExport = async () => {
+    try {
+      const pad = (n: number) => (n < 10 ? `0${n}` : n);
+      const targetDate = localDate || selectedDate || new Date();
+      const formattedDate = `${targetDate.getFullYear()}-${pad(targetDate.getMonth() + 1)}-${pad(targetDate.getDate())}`;
+
+      const blob = await exportTeamAttendance("all", formattedDate);
+      const filename = `Team_Attendance_all_${formattedDate}.xlsx`;
+
+      const blobUrl = window.URL.createObjectURL(
+        blob instanceof Blob
+          ? blob
+          : new Blob([blob], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            })
+      );
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+
+      toast.success("Team attendance export downloaded successfully");
+    } catch (error: any) {
+      console.error("Error exporting team attendance:", error);
+      toast.error(error?.message || "Failed to download Excel");
+    }
   };
-
-  const teamExportColumns: ExportColumn[] = [
-    { header: "Metric", key: "metric", width: 22 },
-    { header: "Value", key: "value", width: 14 },
-  ];
-
-  const teamExportData = teamAttendanceDetails
-    ? [
-        { metric: "Workforce", value: teamAttendanceDetails.Workforce ?? 0 },
-        { metric: "Project Managers", value: teamAttendanceDetails.ProjectManagers ?? 0 },
-        { metric: "Check-ins", value: teamAttendanceDetails.CheckInCount ?? 0 },
-        { metric: "Check-outs", value: teamAttendanceDetails.CheckOutCount ?? 0 },
-        { metric: "Approved Leaves", value: teamAttendanceDetails.ApprovedLeaves ?? 0 },
-        { metric: "Absent", value: teamAttendanceDetails.AbsentCount ?? 0 },
-        { metric: "Missed Check-in", value: teamAttendanceDetails.MissedCheckIn ?? 0 },
-        { metric: "Missed Check-out", value: teamAttendanceDetails.MissedCheckOut ?? 0 },
-        { metric: "Missing Hours", value: teamAttendanceDetails.MissingHours || "0:00" },
-        { metric: "Overtime", value: teamAttendanceDetails.Overtime || "0:00" },
-      ]
-    : [];
 
   return (
     <div className="flex flex-row justify-between p-4">
@@ -65,12 +69,7 @@ export const EmployeeCardHeader = () => {
           {t?.emp_overview || "Employee Overview"}
         </h5>
         <ExportButton
-          data={teamExportData}
-          columns={teamExportColumns}
-          meta={{
-            title: "Employee Overview",
-            filters: { Date: localDate?.toDateString() ?? "" },
-          }}
+          onExport={handleBackendExport}
         />
       </div>
 
