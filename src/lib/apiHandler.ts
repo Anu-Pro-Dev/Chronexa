@@ -16,7 +16,7 @@ const apiInstance = axios.create({
 });
 
 // Function to handle API requests
-export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", data?: any, timeout?: number, responseType?: "json" | "blob" | "arraybuffer" | "text") => {
+export const apiRequest = async (endpoint: string, method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", data?: any, timeout?: number, responseType?: "json" | "blob" | "arraybuffer" | "text"): Promise<any> => {
   try {
     const token = getAuthToken();
 
