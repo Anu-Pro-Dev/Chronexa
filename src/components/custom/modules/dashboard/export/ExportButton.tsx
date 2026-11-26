@@ -6,12 +6,13 @@ import { DashboardExcelExporter, ExportColumn, ExportMeta } from "./DashboardExc
 
 interface ExportButtonProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: Record<string, any>[];
-  columns: ExportColumn[];
-  meta: ExportMeta;
+  data?: Record<string, any>[];
+  columns?: ExportColumn[];
+  meta?: ExportMeta;
   filename?: string;
   disabled?: boolean;
   className?: string;
+  onExport?: () => Promise<void> | void;
 }
 
 export function ExportButton({
@@ -21,6 +22,7 @@ export function ExportButton({
   filename,
   disabled,
   className = "",
+  onExport,
 }: ExportButtonProps) {
   const [loading, setLoading] = React.useState(false);
 
@@ -28,7 +30,11 @@ export function ExportButton({
     if (loading) return;
     setLoading(true);
     try {
-      await DashboardExcelExporter.export(data, columns, meta, filename);
+      if (onExport) {
+        await onExport();
+      } else if (data && columns && meta) {
+        await DashboardExcelExporter.export(data, columns, meta, filename);
+      }
     } catch (err) {
       console.error("Export failed:", err);
     } finally {
@@ -36,11 +42,13 @@ export function ExportButton({
     }
   };
 
+  const isDataEmpty = onExport ? false : !data || data.length === 0;
+
   return (
     <button
       type="button"
       onClick={handleExport}
-      disabled={disabled || loading || data.length === 0}
+      disabled={disabled || loading || isDataEmpty}
       className={`inline-flex items-center justify-center w-7 h-7 rounded-md text-text-secondary hover:text-primary hover:bg-backdrop transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
       title="Export to Excel"
     >
